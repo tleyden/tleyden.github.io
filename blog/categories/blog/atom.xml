@@ -4,7 +4,7 @@
   <title><![CDATA[Category: blog | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/blog/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2013-09-07T11:30:39-07:00</updated>
+  <updated>2013-09-07T11:36:57-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -144,6 +144,18 @@ $ rake deploy
 <h2>Step 11: revel in it&rsquo;s beauty</h2>
 
 <p><img src="http://cl.ly/image/1e2x3I293X3w/Screen%20Shot%202013-09-07%20at%2012.21.57%20AM.png" alt="screenshot" /></p>
+
+<h2>Step 12: Oops, don&rsquo;t forget to push the source changes!</h2>
+
+<p>Even though the blog content is deployed (eg, your master branch with your content has been pushed to github), the source is still sitting on your computer.  If your hard drive crashes, you&rsquo;ll lose your markdown, which is no fun.</p>
+
+<p>Here&rsquo;s how to push the latest changes of your source files up to github:</p>
+
+<p><code>
+git add .
+git commit -m 'I just added a new blog entry'
+git push origin source
+</code></p>
 ]]></content>
   </entry>
   
