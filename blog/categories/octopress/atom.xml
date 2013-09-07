@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: octopress | Seven Story Rabbit Hole]]></title>
+  <link href="http://tleyden.github.io/blog/categories/octopress/atom.xml" rel="self"/>
+  <link href="http://tleyden.github.io/"/>
+  <updated>2013-09-07T11:30:39-07:00</updated>
+  <id>http://tleyden.github.io/</id>
+  <author>
+    <name><![CDATA[Traun Leyden]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Octopress Setup Part I]]></title>
+    <link href="http://tleyden.github.io/blog/2013/09/07/octopress-setup-part-i/"/>
+    <updated>2013-09-07T11:26:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2013/09/07/octopress-setup-part-i</id>
+    <content type="html"><![CDATA[<p>I&rsquo;m writing this blog entry as I&rsquo;m creating my blog.  I have decided to use <a href="http://octopress.org/">Octopress</a>, and I&rsquo;m initially going to host it on <a href="http://pages.github.com/">Github Pages</a>.</p>
+
+<h2>Step 1: create a github pages repo</h2>
+
+<p>In my case, I made a new repo called tleyden/tleyden.github.io.</p>
+
+<h2>Step 2: push an index.html</h2>
+
+<p>Clone the repo</p>
+
+<p><code>
+$ git clone git@github.com:tleyden/tleyden.github.io.git
+</code></p>
+
+<p>Add some content</p>
+
+<p><code>
+$ cd tleyden.github.io
+$ echo "&lt;h1&gt;hello&lt;/h1&gt;" &gt; index.html
+</code></p>
+
+<p>Commit and push</p>
+
+<p><code>
+$ git add index.html
+$ git commit -m "empty blog"
+$ git push origin master
+</code></p>
+
+<h2>Step 3: see if it actually worked</h2>
+
+<p>Go to <a href="http://tleyden.github.io/">http://tleyden.github.io/</a> to see if it works.</p>
+
+<p><strong>It did not work.  WTH!?</strong></p>
+
+<p>Oh wait, it says: <em>It may take up to ten minutes until your page is available.</em></p>
+
+<p>Patiently hit reload 5 times / minute, and 7 minutes later .. <strong>IT WORKS!</strong></p>
+
+<h2>Step 4: get rvm (octopress dependency)</h2>
+
+<p><code>
+$ \curl -L https://get.rvm.io | bash
+$ source /Users/traun/.rvm/scripts/rvm
+$ rvm notes
+</code></p>
+
+<h2>Step 5: get ruby 1.9.3 (octopress dependency)</h2>
+
+<p><code>
+$ rvm install 1.9.3
+Searching for binary rubies, this might take some time.
+No binary rubies available for: osx/10.8/x86_64/ruby-1.9.3-p448.
+Continuing with compilation. Please read 'rvm help mount' to get more information on binary rubies.
+Checking requirements for osx.
+Installing requirements for osx.
+Updating system......
+Error running 'requirements_osx_brew_update_system ruby-1.9.3-p448',
+please read /Users/traun/.rvm/log/1378534467_ruby-1.9.3-p448/update_system.log
+Requirements installation failed with status: 1.
+</code></p>
+
+<p>I managed to get past this error by following this <a href="http://stackoverflow.com/questions/14113427/brew-update-failed">stack overflow post</a></p>
+
+<p>Let&rsquo;s try this again ..</p>
+
+<p><code>
+Installing required packages: gcc46, libyaml, libksba, openssl......................................................................................................
+</code></p>
+
+<p>45 minutes later, it finally worked.<br/>
+<code>
+$ rvm use 1.9.3
+$ rvm rubygems latest
+</code></p>
+
+<h2>Step 6: get octopress</h2>
+
+<p>Follow the <a href="http://octopress.org/docs/setup/">Setup Ocotpress</a> instructions</p>
+
+<h2>Step 7: recreate repo</h2>
+
+<p>So this is a little <em>awkward</em>, and looking back I wish I hadn&rsquo;t pushed that index.html earlier, because it interferes with the github push in the next step.</p>
+
+<ul>
+<li>Delete your entire github repository: <code>username/username.github.io</code></li>
+<li>Create a new empty github repository: <code>username/username.github.io</code></li>
+</ul>
+
+
+<h2>Step 8: deploy to github pages</h2>
+
+<p>Follow the <a href="http://octopress.org/docs/deploying/github/">Deploy to Github pages</a> instructions.</p>
+
+<p>There is one step that is crucial if you don&rsquo;t want to accidentally lose your blog content:</p>
+
+<p><code>
+git add .
+git commit -m 'your message'
+git push origin source
+</code></p>
+
+<p>After doing that, your github repo should have two branches:</p>
+
+<ul>
+<li>Master: the &ldquo;published blog&rdquo; goes here, and will have a top-level index.html</li>
+<li>Source: the entire octopress source tree, plus a &ldquo;source&rdquo; and &ldquo;sass&rdquo; directory.  The &ldquo;source&rdquo; directory is where your blog markdown content will actually live.</li>
+</ul>
+
+
+<h2>Step 9: write a blog entry</h2>
+
+<p>Follow the <a href="http://octopress.org/docs/blogging/">New blog post</a> instructions.</p>
+
+<h2>Step 10: re-deploy</h2>
+
+<p>From the last step in the <a href="http://octopress.org/docs/deploying/github/">Deploy to Github pages</a> instructions, do the following:</p>
+
+<p><code>
+$ rake generate
+$ rake deploy
+</code></p>
+
+<h2>Step 11: revel in it&rsquo;s beauty</h2>
+
+<p><img src="http://cl.ly/image/1e2x3I293X3w/Screen%20Shot%202013-09-07%20at%2012.21.57%20AM.png" alt="screenshot" /></p>
+]]></content>
+  </entry>
+  
+</feed>

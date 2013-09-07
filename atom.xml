@@ -1,16 +1,169 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[My Octopress Blog]]></title>
+  <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2013-09-07T11:20:15-07:00</updated>
+  <updated>2013-09-07T11:30:39-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
-    <name><![CDATA[Your Name]]></name>
+    <name><![CDATA[Traun Leyden]]></name>
     
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Octopress Setup Part I]]></title>
+    <link href="http://tleyden.github.io/blog/2013/09/07/octopress-setup-part-i/"/>
+    <updated>2013-09-07T11:26:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2013/09/07/octopress-setup-part-i</id>
+    <content type="html"><![CDATA[<p>I&rsquo;m writing this blog entry as I&rsquo;m creating my blog.  I have decided to use <a href="http://octopress.org/">Octopress</a>, and I&rsquo;m initially going to host it on <a href="http://pages.github.com/">Github Pages</a>.</p>
+
+<h2>Step 1: create a github pages repo</h2>
+
+<p>In my case, I made a new repo called tleyden/tleyden.github.io.</p>
+
+<h2>Step 2: push an index.html</h2>
+
+<p>Clone the repo</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ git clone git@github.com:tleyden/tleyden.github.io.git</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Add some content</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd tleyden.github.io
+</span><span class='line'>$ echo "&lt;h1&gt;hello&lt;/h1&gt;" &gt; index.html</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Commit and push</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ git add index.html
+</span><span class='line'>$ git commit -m "empty blog"
+</span><span class='line'>$ git push origin master</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Step 3: see if it actually worked</h2>
+
+<p>Go to <a href="http://tleyden.github.io/">http://tleyden.github.io/</a> to see if it works.</p>
+
+<p><strong>It did not work.  WTH!?</strong></p>
+
+<p>Oh wait, it says: <em>It may take up to ten minutes until your page is available.</em></p>
+
+<p>Patiently hit reload 5 times / minute, and 7 minutes later .. <strong>IT WORKS!</strong></p>
+
+<h2>Step 4: get rvm (octopress dependency)</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ \curl -L https://get.rvm.io | bash
+</span><span class='line'>$ source /Users/traun/.rvm/scripts/rvm
+</span><span class='line'>$ rvm notes</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Step 5: get ruby 1.9.3 (octopress dependency)</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ rvm install 1.9.3
+</span><span class='line'>Searching for binary rubies, this might take some time.
+</span><span class='line'>No binary rubies available for: osx/10.8/x86_64/ruby-1.9.3-p448.
+</span><span class='line'>Continuing with compilation. Please read 'rvm help mount' to get more information on binary rubies.
+</span><span class='line'>Checking requirements for osx.
+</span><span class='line'>Installing requirements for osx.
+</span><span class='line'>Updating system......
+</span><span class='line'>Error running 'requirements_osx_brew_update_system ruby-1.9.3-p448',
+</span><span class='line'>please read /Users/traun/.rvm/log/1378534467_ruby-1.9.3-p448/update_system.log
+</span><span class='line'>Requirements installation failed with status: 1.</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I managed to get past this error by following this <a href="http://stackoverflow.com/questions/14113427/brew-update-failed">stack overflow post</a></p>
+
+<p>Let&rsquo;s try this again ..</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Installing required packages: gcc46, libyaml, libksba, openssl......................................................................................................</span></code></pre></td></tr></table></div></figure>
+
+
+<p>45 minutes later, it finally worked.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ rvm use 1.9.3
+</span><span class='line'>$ rvm rubygems latest</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Step 6: get octopress</h2>
+
+<p>Follow the <a href="http://octopress.org/docs/setup/">Setup Ocotpress</a> instructions</p>
+
+<h2>Step 7: recreate repo</h2>
+
+<p>So this is a little <em>awkward</em>, and looking back I wish I hadn&rsquo;t pushed that index.html earlier, because it interferes with the github push in the next step.</p>
+
+<ul>
+<li>Delete your entire github repository: <code>username/username.github.io</code></li>
+<li>Create a new empty github repository: <code>username/username.github.io</code></li>
+</ul>
+
+
+<h2>Step 8: deploy to github pages</h2>
+
+<p>Follow the <a href="http://octopress.org/docs/deploying/github/">Deploy to Github pages</a> instructions.</p>
+
+<p>There is one step that is crucial if you don&rsquo;t want to accidentally lose your blog content:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>git add .
+</span><span class='line'>git commit -m 'your message'
+</span><span class='line'>git push origin source</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After doing that, your github repo should have two branches:</p>
+
+<ul>
+<li>Master: the &ldquo;published blog&rdquo; goes here, and will have a top-level index.html</li>
+<li>Source: the entire octopress source tree, plus a &ldquo;source&rdquo; and &ldquo;sass&rdquo; directory.  The &ldquo;source&rdquo; directory is where your blog markdown content will actually live.</li>
+</ul>
+
+
+<h2>Step 9: write a blog entry</h2>
+
+<p>Follow the <a href="http://octopress.org/docs/blogging/">New blog post</a> instructions.</p>
+
+<h2>Step 10: re-deploy</h2>
+
+<p>From the last step in the <a href="http://octopress.org/docs/deploying/github/">Deploy to Github pages</a> instructions, do the following:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ rake generate
+</span><span class='line'>$ rake deploy</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Step 11: revel in it&rsquo;s beauty</h2>
+
+<p><img src="http://cl.ly/image/1e2x3I293X3w/Screen%20Shot%202013-09-07%20at%2012.21.57%20AM.png" alt="screenshot" /></p>
+]]></content>
+  </entry>
   
 </feed>
