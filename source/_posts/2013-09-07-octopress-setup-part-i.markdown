@@ -129,4 +129,15 @@ $ rake deploy
 ![screenshot](http://cl.ly/image/1e2x3I293X3w/Screen%20Shot%202013-09-07%20at%2012.21.57%20AM.png)
 
 
+## Step 12: Oops, don't forget to push the source changes!
+
+Even though the blog content is deployed (eg, your master branch with your content has been pushed to github), the source is still sitting on your computer.  If your hard drive crashes, you'll lose your markdown, which is no fun.
+
+Here's how to push the latest changes of your source files up to github:
+
+```
+git add .
+git commit -m 'I just added a new blog entry'
+git push origin source
+```
 
