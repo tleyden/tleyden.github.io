@@ -1,0 +1,458 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Deciphering some Go code - Seven Story Rabbit Hole</title>
+  <meta name="author" content="Traun Leyden">
+
+  
+  <meta name="description" content="While trying to use couch-go and looking at the source, I&rsquo;ve come across some things I don&rsquo;t understand. Is function wrapper needed? 1
+2 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://tleyden.github.io/blog/2013/09/20/deciphering-some-go-code">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+
+  <table><tr><td>
+  <h1><a href="/">Seven Story Rabbit Hole</a></h1>
+  
+    <h2>Sometimes awesome things happen in deep rabbit holes.  Or not.</h2>
+  
+  </td><td>&nbsp;&nbsp;
+  <img class="left" src="/images/rabbit_hole_graphic.png" width="295" height="105" title="image" alt="images">
+  </td></tr>
+  </table>
+
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:tleyden.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Deciphering Some Go Code</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-09-20T11:11:00-07:00" pubdate data-updated="true">Sep 20<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>While trying to use <a href="http://godoc.org/code.google.com/p/dsallings-couch-go">couch-go</a> and looking at the source, I&rsquo;ve come across some things I don&rsquo;t understand.</p>
+
+<h1>Is function wrapper needed?</h1>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>resp, err := client.Get(full_url)
+</span><span class='line'>log.Printf("resp: %v err: %v", resp, err)
+</span><span class='line'>if err == nil {
+</span><span class='line'>    func() {
+</span><span class='line'>        defer resp.Body.Close()
+</span><span class='line'>        defer conn.Close()
+</span><span class='line'>
+</span><span class='line'>        tc := timeoutClient{resp.Body, conn, timeout}
+</span><span class='line'>        largest = handler(&tc)
+</span><span class='line'>    }()
+</span><span class='line'>} else {
+</span><span class='line'>    log.Printf("Error in stream: %v", err)
+</span><span class='line'>    time.Sleep(time.Second * 1)
+</span><span class='line'>}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Why the separate function wrapper here?  Why not just call:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>defer resp.Body.Close()
+</span><span class='line'>defer conn.Close()
+</span><span class='line'>tc := timeoutClient{resp.Body, conn, timeout}
+</span><span class='line'>largest = handler(&tc)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>directly?</p>
+
+<h1>How to elegantly dump a request body?</h1>
+
+<p>I was trying to debug something, and I wanted to print out the json string before it was being parsed, and here&rsquo;s what I ended up doing:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>body, err0 := ioutil.ReadAll(r.Body)
+</span><span class='line'>bodyStr := string(body)
+</span><span class='line'>log.Printf("body: %v err: %v", bodyStr, err0)
+</span><span class='line'>newBody := bytes.NewBuffer(body)
+</span><span class='line'>d := json.NewDecoder(newBody)
+</span><span class='line'>// d := json.NewDecoder(r.Body) &lt;-- orig code
+</span><span class='line'>if err := d.Decode(results); err != nil {
+</span><span class='line'>    log.Printf("Decode err: %v", err)
+</span><span class='line'>    return err
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>it seems like there should be a slicker way, like maybe rewinding the r.Body Reader?</p>
+
+<h1>Using new() with a map &mdash; does this look right?</h1>
+
+<p>According to &ldquo;The Way To Go&rdquo; (book), you are not supposed to be using new() with maps.  However I did this in one case:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>type Document map[string]interface{}
+</span><span class='line'>
+</span><span class='line'>func (game Game) fetchLatestGameDoc() (doc Document, err error) {
+</span><span class='line'>        fetchedDoc := new(Document)
+</span><span class='line'>        err = game.db.Retrieve(GAME_DOC_ID, fetchedDoc)
+</span><span class='line'>        if err == nil {
+</span><span class='line'>     doc = *fetchedDoc
+</span><span class='line'>        }
+</span><span class='line'>        return
+</span><span class='line'>}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>is there a better way?  When I tried using make(), I got the error <code>err: json: Unmarshal(non-pointer checkerlution.Document)</code>.  Using make() followed by &amp; didn&rsquo;t work either.</p>
+
+<h1>Type Assertion hell</h1>
+
+<p>I&rsquo;m trying to get some data that&rsquo;s fairly deep in some json, and ended up doing a lot of awkward feeling type assertions:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func (game Game) checkGameDocInChanges(changes Changes) bool {
+</span><span class='line'>        foundGameDoc := false
+</span><span class='line'>        changeResultsRaw := changes["results"]
+</span><span class='line'>        changeResults := changeResultsRaw.([]interface{})
+</span><span class='line'>        for _, changeResultRaw := range changeResults {
+</span><span class='line'>                changeResult := changeResultRaw.(map[string]interface{})
+</span><span class='line'>                docIdRaw := changeResult["id"]
+</span><span class='line'>                docId := docIdRaw.(string)
+</span><span class='line'>                if strings.Contains(docId, GAME_DOC_ID) {
+</span><span class='line'>                        foundGameDoc = true
+</span><span class='line'>              }
+</span><span class='line'>        }
+</span><span class='line'>        return foundGameDoc
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>there must be a better way?</p>
+
+<p>Also I didn&rsquo;t get why this didn&rsquo;t work:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>type ChangeItem map[string]interface{}
+</span><span class='line'>...
+</span><span class='line'>changeResult := changeResultRaw.(ChangeItem)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>to make it work I had to change it to:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>changeResult := changeResultRaw.(map[string]interface{})</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>Getting unexpected float64 back from JSON, had to do awkward type conversions</h1>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func (game Game) isOurTurn(gameDoc Document) bool {
+</span><span class='line'>        activeTeamRaw := gameDoc["activeTeam"]
+</span><span class='line'>        activeTeam := int(activeTeamRaw.(float64))
+</span><span class='line'>        return activeTeam == game.ourTeamId
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Json snippet:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{"_id":"game:checkers","activeTeam":0}</span></code></pre></td></tr></table></div></figure>
+
+
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Traun Leyden</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-09-20T11:11:00-07:00" pubdate data-updated="true">Sep 20<span>th</span>, 2013</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2013/09/20/deciphering-some-go-code/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2013/09/20/deciphering-some-go-code/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/09/19/java-coding-challenge/" title="Previous Post: Java coding challenge">&laquo; Java coding challenge</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>About Me</h1>
+  <p>
+  I'm a startup engineer at Couchbase, working on <a href="https://github.com/couchbase/couchbase-lite-android">Couchbase Lite for Android</a> -- a mobile NoSQL database with Sync built-in.
+  </p>
+
+  <p>
+  In my spare time I am working on a <a href="https://github.com/tleyden/neurgo">Neural Network in Go</a>.
+  </p>
+
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/09/20/deciphering-some-go-code/">Deciphering Some Go Code</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/09/19/java-coding-challenge/">Java Coding Challenge</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/09/07/octopress-setup-part-ii/">Octopress Setup Part II</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/09/07/octopress-setup-part-i/">Octopress Setup Part I</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/tleyden">@tleyden</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'tleyden',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+<section>
+     <h1>Twitter</h1>
+<a class="twitter-timeline" width="300" height="350" href="https://twitter.com/tleydn" data-widget-id="376419812865368064">Tweets by @tleydn</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+ </section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - Traun Leyden -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'sevenstoryrabbithole';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://tleyden.github.io/blog/2013/09/20/deciphering-some-go-code/';
+        var disqus_url = 'http://tleyden.github.io/blog/2013/09/20/deciphering-some-go-code/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

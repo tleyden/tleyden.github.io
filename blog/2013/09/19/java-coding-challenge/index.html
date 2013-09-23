@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Octopress Setup Part II - Seven Story Rabbit Hole</title>
+  <title>Java coding challenge - Seven Story Rabbit Hole</title>
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Showing my tweets on my blog What&rsquo;s a blog without a few tweets to spice it up? Here&rsquo;s my first attempt, which didn&rsquo;t work. I &hellip;">
+  <meta name="description" content="Write a server that uses tcp sockets which returns images to clients, and avoids duplicate work for concurrent requests for the same image. &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://tleyden.github.io/blog/2013/09/07/octopress-setup-part-ii">
+  <link rel="canonical" href="http://tleyden.github.io/blog/2013/09/19/java-coding-challenge">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
@@ -75,7 +75,7 @@
   
   <header>
     
-      <h1 class="entry-title">Octopress Setup Part II</h1>
+      <h1 class="entry-title">Java Coding Challenge</h1>
     
     
       <p class="meta">
@@ -91,84 +91,97 @@
   
 
 
-<time datetime="2013-09-07T11:46:00-07:00" pubdate data-updated="true">Sep 7<span>th</span>, 2013</time>
+<time datetime="2013-09-19T13:42:00-07:00" pubdate data-updated="true">Sep 19<span>th</span>, 2013</time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><h1>Showing my tweets on my blog</h1>
+<div class="entry-content"><p>Write a server that uses tcp sockets which returns images to clients, and avoids duplicate work for concurrent requests for the same image.</p>
 
-<p>What&rsquo;s a blog without a few tweets to spice it up?</p>
+<h1>Description</h1>
 
-<p>Here&rsquo;s my first attempt, which didn&rsquo;t work.  I modified my _config.yml file to have:</p>
+<p>A server will listen for tcp client connections and generate PNG checkerboard images and return them to clients that request them.  Example checkerboard image:</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>twitter_user: tleydn</span></code></pre></td></tr></table></div></figure>
+<p><img src="/images/checkerboard.png" width="295" height="105" title="image" alt="images"></p>
 
-
-<p>After some desperate googling, I came across <a href="http://blog.jmac.org/blog/2013/03/30/putting-twitter-back-into-octopress/">this blog post</a> which seems to suggest that twitter support has been remoted from Octopress, with instructions on how to embed a twitter widget.</p>
-
-<p>Here&rsquo;s a few tricks to make it looks slightly less butt-ugly:</p>
+<p>The client will send a single parameter to the server after it opens the tcp socket connection to the server:</p>
 
 <ul>
-<li>In the twitter widget generator, choose the &ldquo;dark&rdquo; theme.</li>
-<li>Modify the widget class to have dimensions <code>width="300" height="350"</code> so that it is slightly less distracting when viewing content.</li>
+<li> The size of the &ldquo;checkboard image&rdquo;, which will be a single scalar value like 5, which will result in a 5x5 square, as shown above.</li>
 </ul>
 
 
-<h1>Adding an &ldquo;About&rdquo; page</h1>
-
-<p>I followed the instructions on <a href="http://octopress.org/docs/theme/template/">Theming &amp; Customization</a>, which added an About section on the top of the sidebar on the right side.</p>
-
-<h1>Enabling Disqus comments</h1>
-
-<p>This was trivial:</p>
+<p>The server will use the following default values when generating the checkerboard image:</p>
 
 <ul>
-<li>Go to <a href="http://disqus.com">Disqus</a> and register a new site</li>
-<li>Add the &ldquo;shortname&rdquo; to the _config.yml file</li>
+<li> size: each square will be 60 x 60 pixels.</li>
+<li> color: squares will be alternating black and white, with black for the square in the 0th row and 0th column, and white for the square in the 1st row and 0th column, etc.  Exactly as shown above.</li>
 </ul>
 
 
-<h1>Let&rsquo;s pimp this thing &mdash; Adding an image in the header</h1>
+<h1>Basic Requirements</h1>
 
 <ul>
-<li>Open octopress/source/_includes/custom/header.html</li>
-<li>Find an image graphic and save it into octopress/source/images (in my case, it was /images/rabbit_hole_graphic.png)</li>
-<li>Add a new html table element, and in one cell add a link to the image with the appropriate size dimensions.</li>
+<li>Written in either Java or Scala</li>
+<li>To generate the actual image, you can use anything you want.  The image format can be any popular image format (PNG, JPEG, GIF, etc..)</li>
+<li>For the data structures required by the server, you can use any existing data structures within Java itself or a 3rd party, there is no requirement to develop your own.</li>
+<li>The server will respond with the image data in PNG format, and then close the connection.</li>
 </ul>
 
 
-<p>Example header.html file:</p>
+<h1>Advanced Requirements</h1>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>  &lt;table&gt;&lt;tr&gt;&lt;td&gt;
-</span><span class='line'>  &lt;h1&gt;&lt;a href="{{ root_url }}/"&gt;{{ site.title }}&lt;/a&gt;&lt;/h1&gt;
-</span><span class='line'>  {% if site.subtitle %}
-</span><span class='line'>    &lt;h2&gt;{{ site.subtitle }}&lt;/h2&gt;
-</span><span class='line'>  {% endif %}
-</span><span class='line'>  &lt;/td&gt;&lt;td&gt;&nbsp;&nbsp;
-</span><span class='line'>  {% img left /images/rabbit_hole_graphic.png 295 105 'image' 'images' %}
-</span><span class='line'>  &lt;/td&gt;&lt;/tr&gt;
-</span><span class='line'>  &lt;/table&gt;
-</span></code></pre></td></tr></table></div></figure>
+<ul>
+<li>In the method that generates the square, there must be a call to Thread.sleep(Y) before returning.  Y represents number of milliseconds to sleep, and will be a random number between 0 and 5000.</li>
+<li>The server can handle multiple client requests in parallel (as opposed to handling them in serial).  In other words, if client1 contacts the server, and then client2 contacts the server a few milliseconds later, there is a chance that client2 will receive a response before client1, depending on the random sleep described above.</li>
+<li>In order to avoid needlessly generating the same image twice, if the server is asked to generate a square of size X by client1, and then again asked to generate another square of size X by client2 before it has returned the square to client1, it will simply wait for the square for client1 is finished being generated and return that same square data to both client2 and client1.  Here is an example timeline to show how events would roughly be ordered:
+
+<ul>
+<li>At 12:00:00 Client1 asks for square of size 6</li>
+<li>At 12:00:01 The server starts to generate the square for client1</li>
+<li>At 12:00:01 Client2 asks for square of size 6 (the server does <em>not</em> try to generate a new square, since there is already a pending request for an identical square)</li>
+<li>At 12:00:06 The server finishes generating the square of size 6, as originally requested by client1</li>
+<li>At 12:00:07 The server returns the square to client1</li>
+<li>At 12:00:07 The server returns the same square to client2</li>
+</ul>
+</li>
+</ul>
 
 
-<p>I&rsquo;m not a hipster, it&rsquo;s just that my HTML coding skillz are stuck at about 1995.  If you are seething with the overwhelming urge to tell me how to do this in 2013 CSS style, go right ahead and add a comment.</p>
+<h1>Deliverables</h1>
 
-<p>Anyway, the end justifies the means:</p>
+<ul>
+<li>server.sh &ndash; starts the server that listens on 8000</li>
+<li>client.sh X &ndash; runs a client that:
 
-<p><img class="center" src="/images/ScreenShotBlogIIa.png" title="image" alt="images"></p>
+<ul>
+<li>connects to localhost:8000</li>
+<li>passes the parameter X (the size of the checkboard image) to the server</li>
+<li>reads the PNG into a file called X.png</li>
+<li>prints a message to say its finished.</li>
+</ul>
+</li>
+<li>A zip file that contains all jar file dependencies <em>or</em> a document that describes on how to download the required dependencies</li>
+</ul>
+
+
+<h1>Shortcuts</h1>
+
+<p>If this feels like too much work, take the following shortcut:</p>
+
+<ul>
+<li>Rather than return an image, just create a string which would represent the image, where X represents black and O represents white.  Eg, if it was a 2x2 square, return &ldquo;X00X&rdquo;</li>
+</ul>
+
+
+<h1>Bonus points</h1>
+
+<ul>
+<li>Record your commits in a local git repository as you work, and submit a zip file of the repository along with the other deliverables</li>
+</ul>
+
 </div>
 
 
@@ -191,21 +204,15 @@
   
 
 
-<time datetime="2013-09-07T11:46:00-07:00" pubdate data-updated="true">Sep 7<span>th</span>, 2013</time>
+<time datetime="2013-09-19T13:42:00-07:00" pubdate data-updated="true">Sep 19<span>th</span>, 2013</time>
       
-
-<span class="categories">
-  
-    <a class='category' href='/blog/categories/blog/'>blog</a>, <a class='category' href='/blog/categories/octopress/'>octopress</a>
-  
-</span>
 
 
     </p>
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2013/09/07/octopress-setup-part-ii/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2013/09/07/octopress-setup-part-ii/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2013/09/19/java-coding-challenge/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2013/09/19/java-coding-challenge/" >Tweet</a>
   
   
   
@@ -214,10 +221,10 @@
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2013/09/07/octopress-setup-part-i/" title="Previous Post: Octopress Setup Part I">&laquo; Octopress Setup Part I</a>
+        <a class="basic-alignment left" href="/blog/2013/09/07/octopress-setup-part-ii/" title="Previous Post: Octopress Setup Part II">&laquo; Octopress Setup Part II</a>
       
       
-        <a class="basic-alignment right" href="/blog/2013/09/19/java-coding-challenge/" title="Next Post: Java coding challenge">Java coding challenge &raquo;</a>
+        <a class="basic-alignment right" href="/blog/2013/09/20/deciphering-some-go-code/" title="Next Post: Deciphering some Go code">Deciphering some Go code &raquo;</a>
       
     </p>
   </footer>
@@ -322,8 +329,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://tleyden.github.io/blog/2013/09/07/octopress-setup-part-ii/';
-        var disqus_url = 'http://tleyden.github.io/blog/2013/09/07/octopress-setup-part-ii/';
+        var disqus_identifier = 'http://tleyden.github.io/blog/2013/09/19/java-coding-challenge/';
+        var disqus_url = 'http://tleyden.github.io/blog/2013/09/19/java-coding-challenge/';
         var disqus_script = 'embed.js';
       
     (function () {

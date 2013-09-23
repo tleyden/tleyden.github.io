@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2013-09-07T13:31:55-07:00</updated>
+  <updated>2013-09-23T11:04:38-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,285 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Deciphering some Go code]]></title>
+    <link href="http://tleyden.github.io/blog/2013/09/20/deciphering-some-go-code/"/>
+    <updated>2013-09-20T11:11:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2013/09/20/deciphering-some-go-code</id>
+    <content type="html"><![CDATA[<p>While trying to use <a href="http://godoc.org/code.google.com/p/dsallings-couch-go">couch-go</a> and looking at the source, I&rsquo;ve come across some things I don&rsquo;t understand.</p>
+
+<h1>Is function wrapper needed?</h1>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>resp, err := client.Get(full_url)
+</span><span class='line'>log.Printf("resp: %v err: %v", resp, err)
+</span><span class='line'>if err == nil {
+</span><span class='line'>    func() {
+</span><span class='line'>        defer resp.Body.Close()
+</span><span class='line'>        defer conn.Close()
+</span><span class='line'>
+</span><span class='line'>        tc := timeoutClient{resp.Body, conn, timeout}
+</span><span class='line'>        largest = handler(&tc)
+</span><span class='line'>    }()
+</span><span class='line'>} else {
+</span><span class='line'>    log.Printf("Error in stream: %v", err)
+</span><span class='line'>    time.Sleep(time.Second * 1)
+</span><span class='line'>}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Why the separate function wrapper here?  Why not just call:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>defer resp.Body.Close()
+</span><span class='line'>defer conn.Close()
+</span><span class='line'>tc := timeoutClient{resp.Body, conn, timeout}
+</span><span class='line'>largest = handler(&tc)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>directly?</p>
+
+<h1>How to elegantly dump a request body?</h1>
+
+<p>I was trying to debug something, and I wanted to print out the json string before it was being parsed, and here&rsquo;s what I ended up doing:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>body, err0 := ioutil.ReadAll(r.Body)
+</span><span class='line'>bodyStr := string(body)
+</span><span class='line'>log.Printf("body: %v err: %v", bodyStr, err0)
+</span><span class='line'>newBody := bytes.NewBuffer(body)
+</span><span class='line'>d := json.NewDecoder(newBody)
+</span><span class='line'>// d := json.NewDecoder(r.Body) &lt;-- orig code
+</span><span class='line'>if err := d.Decode(results); err != nil {
+</span><span class='line'>    log.Printf("Decode err: %v", err)
+</span><span class='line'>    return err
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>it seems like there should be a slicker way, like maybe rewinding the r.Body Reader?</p>
+
+<h1>Using new() with a map &mdash; does this look right?</h1>
+
+<p>According to &ldquo;The Way To Go&rdquo; (book), you are not supposed to be using new() with maps.  However I did this in one case:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>type Document map[string]interface{}
+</span><span class='line'>
+</span><span class='line'>func (game Game) fetchLatestGameDoc() (doc Document, err error) {
+</span><span class='line'>        fetchedDoc := new(Document)
+</span><span class='line'>        err = game.db.Retrieve(GAME_DOC_ID, fetchedDoc)
+</span><span class='line'>        if err == nil {
+</span><span class='line'>     doc = *fetchedDoc
+</span><span class='line'>        }
+</span><span class='line'>        return
+</span><span class='line'>}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>is there a better way?  When I tried using make(), I got the error <code>err: json: Unmarshal(non-pointer checkerlution.Document)</code>.  Using make() followed by &amp; didn&rsquo;t work either.</p>
+
+<h1>Type Assertion hell</h1>
+
+<p>I&rsquo;m trying to get some data that&rsquo;s fairly deep in some json, and ended up doing a lot of awkward feeling type assertions:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func (game Game) checkGameDocInChanges(changes Changes) bool {
+</span><span class='line'>        foundGameDoc := false
+</span><span class='line'>        changeResultsRaw := changes["results"]
+</span><span class='line'>        changeResults := changeResultsRaw.([]interface{})
+</span><span class='line'>        for _, changeResultRaw := range changeResults {
+</span><span class='line'>                changeResult := changeResultRaw.(map[string]interface{})
+</span><span class='line'>                docIdRaw := changeResult["id"]
+</span><span class='line'>                docId := docIdRaw.(string)
+</span><span class='line'>                if strings.Contains(docId, GAME_DOC_ID) {
+</span><span class='line'>                        foundGameDoc = true
+</span><span class='line'>              }
+</span><span class='line'>        }
+</span><span class='line'>        return foundGameDoc
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>there must be a better way?</p>
+
+<p>Also I didn&rsquo;t get why this didn&rsquo;t work:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>type ChangeItem map[string]interface{}
+</span><span class='line'>...
+</span><span class='line'>changeResult := changeResultRaw.(ChangeItem)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>to make it work I had to change it to:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>changeResult := changeResultRaw.(map[string]interface{})</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>Getting unexpected float64 back from JSON, had to do awkward type conversions</h1>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func (game Game) isOurTurn(gameDoc Document) bool {
+</span><span class='line'>        activeTeamRaw := gameDoc["activeTeam"]
+</span><span class='line'>        activeTeam := int(activeTeamRaw.(float64))
+</span><span class='line'>        return activeTeam == game.ourTeamId
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Json snippet:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{"_id":"game:checkers","activeTeam":0}</span></code></pre></td></tr></table></div></figure>
+
+
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Java coding challenge]]></title>
+    <link href="http://tleyden.github.io/blog/2013/09/19/java-coding-challenge/"/>
+    <updated>2013-09-19T13:42:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2013/09/19/java-coding-challenge</id>
+    <content type="html"><![CDATA[<p>Write a server that uses tcp sockets which returns images to clients, and avoids duplicate work for concurrent requests for the same image.</p>
+
+<h1>Description</h1>
+
+<p>A server will listen for tcp client connections and generate PNG checkerboard images and return them to clients that request them.  Example checkerboard image:</p>
+
+<p><img src="http://tleyden.github.io/images/checkerboard.png" width="295" height="105" title="image" alt="images"></p>
+
+<p>The client will send a single parameter to the server after it opens the tcp socket connection to the server:</p>
+
+<ul>
+<li> The size of the &ldquo;checkboard image&rdquo;, which will be a single scalar value like 5, which will result in a 5x5 square, as shown above.</li>
+</ul>
+
+
+<p>The server will use the following default values when generating the checkerboard image:</p>
+
+<ul>
+<li> size: each square will be 60 x 60 pixels.</li>
+<li> color: squares will be alternating black and white, with black for the square in the 0th row and 0th column, and white for the square in the 1st row and 0th column, etc.  Exactly as shown above.</li>
+</ul>
+
+
+<h1>Basic Requirements</h1>
+
+<ul>
+<li>Written in either Java or Scala</li>
+<li>To generate the actual image, you can use anything you want.  The image format can be any popular image format (PNG, JPEG, GIF, etc..)</li>
+<li>For the data structures required by the server, you can use any existing data structures within Java itself or a 3rd party, there is no requirement to develop your own.</li>
+<li>The server will respond with the image data in PNG format, and then close the connection.</li>
+</ul>
+
+
+<h1>Advanced Requirements</h1>
+
+<ul>
+<li>In the method that generates the square, there must be a call to Thread.sleep(Y) before returning.  Y represents number of milliseconds to sleep, and will be a random number between 0 and 5000.</li>
+<li>The server can handle multiple client requests in parallel (as opposed to handling them in serial).  In other words, if client1 contacts the server, and then client2 contacts the server a few milliseconds later, there is a chance that client2 will receive a response before client1, depending on the random sleep described above.</li>
+<li>In order to avoid needlessly generating the same image twice, if the server is asked to generate a square of size X by client1, and then again asked to generate another square of size X by client2 before it has returned the square to client1, it will simply wait for the square for client1 is finished being generated and return that same square data to both client2 and client1.  Here is an example timeline to show how events would roughly be ordered:
+
+<ul>
+<li>At 12:00:00 Client1 asks for square of size 6</li>
+<li>At 12:00:01 The server starts to generate the square for client1</li>
+<li>At 12:00:01 Client2 asks for square of size 6 (the server does <em>not</em> try to generate a new square, since there is already a pending request for an identical square)</li>
+<li>At 12:00:06 The server finishes generating the square of size 6, as originally requested by client1</li>
+<li>At 12:00:07 The server returns the square to client1</li>
+<li>At 12:00:07 The server returns the same square to client2</li>
+</ul>
+</li>
+</ul>
+
+
+<h1>Deliverables</h1>
+
+<ul>
+<li>server.sh &ndash; starts the server that listens on 8000</li>
+<li>client.sh X &ndash; runs a client that:
+
+<ul>
+<li>connects to localhost:8000</li>
+<li>passes the parameter X (the size of the checkboard image) to the server</li>
+<li>reads the PNG into a file called X.png</li>
+<li>prints a message to say its finished.</li>
+</ul>
+</li>
+<li>A zip file that contains all jar file dependencies <em>or</em> a document that describes on how to download the required dependencies</li>
+</ul>
+
+
+<h1>Shortcuts</h1>
+
+<p>If this feels like too much work, take the following shortcut:</p>
+
+<ul>
+<li>Rather than return an image, just create a string which would represent the image, where X represents black and O represents white.  Eg, if it was a 2x2 square, return &ldquo;X00X&rdquo;</li>
+</ul>
+
+
+<h1>Bonus points</h1>
+
+<ul>
+<li>Record your commits in a local git repository as you work, and submit a zip file of the repository along with the other deliverables</li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Octopress Setup Part II]]></title>
