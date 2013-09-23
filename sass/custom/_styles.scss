@@ -1,2 +1,9 @@
 // This File is imported last, and will override other styles in the cascade
 // Add styles here to make changes without digging in too much
+
+// indent lists.  taken from: http://www.gorticus.com/blog/2012/09/09/ol-and-ul-alignment-in-octopress/
+article {
+  ol, ul {
+    padding-left: 3em;
+  }
+}
