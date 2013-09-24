@@ -176,6 +176,12 @@
 
 <p>it seems like there should be a slicker way, like maybe rewinding the r.Body Reader?</p>
 
+<p><strong>Answer</strong>: yes, there is a <em>much</em> slicker way, <code>io.TeeReader</code></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>d := json.NewDecoder(io.TeeReader(r.Body, os.Stdout))</span></code></pre></td></tr></table></div></figure>
+
+
 <h1>Using new() with a map &mdash; does this look right?</h1>
 
 <p>According to &ldquo;The Way To Go&rdquo; (book), you are not supposed to be using new() with maps.  However I did this in one case:</p>
