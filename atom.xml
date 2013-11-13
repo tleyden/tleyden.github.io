@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2013-11-12T22:19:07-08:00</updated>
+  <updated>2013-11-12T22:23:27-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -22,7 +22,7 @@
 
 <h1>Goal</h1>
 
-<p>I want to get Docker running under OSX.</p>
+<p>I want to get Docker running under OSX..</p>
 
 <h2>Environment</h2>
 
