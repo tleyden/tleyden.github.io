@@ -58,6 +58,12 @@ if err := d.Decode(results); err != nil {
 
 it seems like there should be a slicker way, like maybe rewinding the r.Body Reader?
 
+**Answer**: yes, there is a _much_ slicker way, `io.TeeReader`
+
+```
+d := json.NewDecoder(io.TeeReader(r.Body, os.Stdout))
+```
+
 # Using new() with a map -- does this look right?
 
 According to "The Way To Go" (book), you are not supposed to be using new() with maps.  However I did this in one case:
@@ -131,3 +137,24 @@ Json snippet:
 {"_id":"game:checkers","activeTeam":0}
 ```
 
+# Can't check for nil
+
+I have these structs:
+
+```
+type Game struct {
+    gameState            GameState
+}
+
+type GameState struct {
+   ...
+}
+```
+
+and in a loop, I set the gameState field of the Game object to value.  I'm trying to detect if it's the first pass through the loop with this:
+
+```
+isFirstGame := (game.gameState == nil)
+```
+
+but I get the error `cannot convert nil to type GameState`
