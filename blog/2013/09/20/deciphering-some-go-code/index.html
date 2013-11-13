@@ -283,7 +283,33 @@
 </pre></td><td class='code'><pre><code class=''><span class='line'>{"_id":"game:checkers","activeTeam":0}</span></code></pre></td></tr></table></div></figure>
 
 
+<h1>Can&rsquo;t check for nil</h1>
 
+<p>I have these structs:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>type Game struct {
+</span><span class='line'>    gameState            GameState
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>type GameState struct {
+</span><span class='line'>   ...
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and in a loop, I set the gameState field of the Game object to value.  I&rsquo;m trying to detect if it&rsquo;s the first pass through the loop with this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>isFirstGame := (game.gameState == nil)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>but I get the error <code>cannot convert nil to type GameState</code></p>
 </div>
 
 
@@ -326,6 +352,8 @@
         <a class="basic-alignment left" href="/blog/2013/09/19/java-coding-challenge/" title="Previous Post: Java coding challenge">&laquo; Java coding challenge</a>
       
       
+        <a class="basic-alignment right" href="/blog/2013/11/12/docker-on-osx/" title="Next Post: Docker on OSX">Docker on OSX &raquo;</a>
+      
     </p>
   </footer>
 </article>
@@ -354,6 +382,10 @@
 <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/11/12/docker-on-osx/">Docker on OSX</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2013/09/20/deciphering-some-go-code/">Deciphering Some Go Code</a>
