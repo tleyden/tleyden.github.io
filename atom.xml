@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2013-11-12T22:23:27-08:00</updated>
+  <updated>2013-11-12T22:28:46-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -41,7 +41,7 @@
 </ul>
 
 
-<h2>Install VirutalBox + Vagrant</h2>
+<h2>Install VirtualBox + Vagrant</h2>
 
 <ul>
 <li><p>Install VirtualBox via <a href="http://download.virtualbox.org/virtualbox/4.3.2/VirtualBox-4.3.2-90405-OSX.dmg">VirtualBox OSX installer</a></p></li>
