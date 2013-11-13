@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2013-11-12T22:06:44-08:00</updated>
+  <updated>2013-11-12T22:19:07-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -18,7 +18,9 @@
     <link href="http://tleyden.github.io/blog/2013/11/12/docker-on-osx/"/>
     <updated>2013-11-12T21:01:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2013/11/12/docker-on-osx</id>
-    <content type="html"><![CDATA[<h1>Goal</h1>
+    <content type="html"><![CDATA[<p><img src="http://cl.ly/image/302X103n330L/docker.png" alt="Docker.png" /></p>
+
+<h1>Goal</h1>
 
 <p>I want to get Docker running under OSX.</p>
 
@@ -39,7 +41,7 @@
 </ul>
 
 
-<h2>Install Vagrant + Dependencies</h2>
+<h2>Install VirutalBox + Vagrant</h2>
 
 <ul>
 <li><p>Install VirtualBox via <a href="http://download.virtualbox.org/virtualbox/4.3.2/VirtualBox-4.3.2-90405-OSX.dmg">VirtualBox OSX installer</a></p></li>
