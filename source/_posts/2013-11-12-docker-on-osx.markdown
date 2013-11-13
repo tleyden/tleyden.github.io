@@ -10,7 +10,7 @@ categories:
 
 # Goal
 
-I want to get Docker running under OSX.
+I want to get Docker running under OSX..
 
 ## Environment
 
@@ -24,7 +24,7 @@ I want to get Docker running under OSX.
 * Virtualbox is VM software.  
 * CoreOS is an operating system based on linux that's all about running docker.
 
-## Install VirutalBox + Vagrant
+## Install VirtualBox + Vagrant
 
 * Install VirtualBox via [VirtualBox OSX installer](http://download.virtualbox.org/virtualbox/4.3.2/VirtualBox-4.3.2-90405-OSX.dmg)
 
