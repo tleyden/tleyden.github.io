@@ -10,6 +10,12 @@ This tutorial will show you how to run a cluster of Couchbase Servers, where eac
 
 ![Diagram](http://cl.ly/image/2G0h381N3o42/docker%20couchbase%20cluster.png)
 
+This probably looks like _a lot_ of layers, which is going to be a heavy drain on your system resources.  Actually, it's not!  
+
+All of the layers under CoreOS are extremely thin and lightweight.  Docker's virtualization model is more like FreeBSD jails than VMWare.  Eg, the processes running inside a docker image are just processes inside the host OS (in this case, CoreOS).
+
+(whereas the layer between OSX -> VirtualBox -> CoreOS is a more heavyweight virtualization model)
+
 ## Install Docker and dependencies
 
 [Install Docker on OSX](http://tleyden.github.io/blog/2013/11/12/docker-on-osx/)
