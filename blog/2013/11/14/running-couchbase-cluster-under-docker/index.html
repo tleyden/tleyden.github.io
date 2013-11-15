@@ -102,19 +102,15 @@
 
 <p><img src="http://cl.ly/image/2G0h381N3o42/docker%20couchbase%20cluster.png" alt="Diagram" /></p>
 
-<p>This probably looks like <em>a lot</em> of layers, which is going to be a heavy drain on your system resources.  Actually, it&rsquo;s not!</p>
-
-<p>All of the layers under CoreOS are extremely thin and lightweight.  Docker&rsquo;s virtualization model is more like FreeBSD jails than VMWare.  Eg, the processes running inside a docker image are just processes inside the host OS (in this case, CoreOS).</p>
-
-<p>(whereas the layer between OSX &ndash;> VirtualBox &ndash;> CoreOS is a more heavyweight virtualization model)</p>
+<p>This probably looks like <em>a lot</em> of layers, and you might be wondering if this will make your system crawl &mdash; but bear in mind that the Docker virtualization model is very lightweight, and so basically everything under CoreOS has very little resource overhead.</p>
 
 <h2>Install Docker and dependencies</h2>
 
-<p><a href="http://tleyden.github.io/blog/2013/11/12/docker-on-osx/">Install Docker on OSX</a></p>
+<p>If you are on OSX and don&rsquo;t have Docker or the rest of the Docker onion installed, check out <a href="http://tleyden.github.io/blog/2013/11/12/docker-on-osx/">Install Docker on OSX</a> before proceeding.</p>
 
 <h2>Edit vagrant file to add port mappings</h2>
 
-<p>In order to access all the nodes from the host, <em>which doesn&rsquo;t currently work</em>, you would need to add the following entries to your Vagrantfile:</p>
+<p>In order to access all the Couchbase Server nodes from the host, <em>which doesn&rsquo;t currently work</em>, you would need to add the following entries to your Vagrantfile:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -124,7 +120,7 @@
 </span><span class='line'>config.vm.network "forwarded_port", guest: 11210, host:   11210</span></code></pre></td></tr></table></div></figure>
 
 
-<p>As mentioned, accessing all of the nodes from the host does not currently work.  However, I think at least some of these entries are needed, so to be on the safe side just add all of them.</p>
+<p>As mentioned, accessing all of the Couchbase Server nodes from the host does not currently work.  However, I think at least some of these entries are needed, so to be on the safe side just add all of them.</p>
 
 <h2>Start CoreOS and ssh in</h2>
 
@@ -144,8 +140,10 @@
 
 <h2>Start docker image for a single node</h2>
 
+<p>Here&rsquo;s how to fire up the first docker image</p>
+
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>docker run -i -t -d -p 11210:11210 -p 8091:7081 -p 8092:8092 dustin/latest</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>docker run -i -t -d -p 11210:11210 -p 8091:7081 -p 8092:8092 dustin/couchbase:latest</span></code></pre></td></tr></table></div></figure>
 
 
 <p>and you should see:</p>

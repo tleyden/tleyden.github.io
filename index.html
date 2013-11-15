@@ -105,19 +105,15 @@
 
 <p><img src="http://cl.ly/image/2G0h381N3o42/docker%20couchbase%20cluster.png" alt="Diagram" /></p>
 
-<p>This probably looks like <em>a lot</em> of layers, which is going to be a heavy drain on your system resources.  Actually, it&rsquo;s not!</p>
-
-<p>All of the layers under CoreOS are extremely thin and lightweight.  Docker&rsquo;s virtualization model is more like FreeBSD jails than VMWare.  Eg, the processes running inside a docker image are just processes inside the host OS (in this case, CoreOS).</p>
-
-<p>(whereas the layer between OSX &ndash;> VirtualBox &ndash;> CoreOS is a more heavyweight virtualization model)</p>
+<p>This probably looks like <em>a lot</em> of layers, and you might be wondering if this will make your system crawl &mdash; but bear in mind that the Docker virtualization model is very lightweight, and so basically everything under CoreOS has very little resource overhead.</p>
 
 <h2>Install Docker and dependencies</h2>
 
-<p><a href="http://tleyden.github.io/blog/2013/11/12/docker-on-osx/">Install Docker on OSX</a></p>
+<p>If you are on OSX and don&rsquo;t have Docker or the rest of the Docker onion installed, check out <a href="http://tleyden.github.io/blog/2013/11/12/docker-on-osx/">Install Docker on OSX</a> before proceeding.</p>
 
 <h2>Edit vagrant file to add port mappings</h2>
 
-<p>In order to access all the nodes from the host, <em>which doesn&rsquo;t currently work</em>, you would need to add the following entries to your Vagrantfile:</p>
+<p>In order to access all the Couchbase Server nodes from the host, <em>which doesn&rsquo;t currently work</em>, you would need to add the following entries to your Vagrantfile:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -127,7 +123,7 @@
 </span><span class='line'>config.vm.network "forwarded_port", guest: 11210, host:   11210</span></code></pre></td></tr></table></div></figure>
 
 
-<p>As mentioned, accessing all of the nodes from the host does not currently work.  However, I think at least some of these entries are needed, so to be on the safe side just add all of them.</p>
+<p>As mentioned, accessing all of the Couchbase Server nodes from the host does not currently work.  However, I think at least some of these entries are needed, so to be on the safe side just add all of them.</p>
 
 <h2>Start CoreOS and ssh in</h2>
 
@@ -147,8 +143,10 @@
 
 <h2>Start docker image for a single node</h2>
 
+<p>Here&rsquo;s how to fire up the first docker image</p>
+
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>docker run -i -t -d -p 11210:11210 -p 8091:7081 -p 8092:8092 dustin/latest</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>docker run -i -t -d -p 11210:11210 -p 8091:7081 -p 8092:8092 dustin/couchbase:latest</span></code></pre></td></tr></table></div></figure>
 
 
 <p>and you should see:</p>
@@ -259,13 +257,15 @@
 
 <h2>Here&rsquo;s what turned out to be happening</h2>
 
+<p><img src="http://cl.ly/image/0H40001q3T1Q/android_sqlite_deadlock.png" alt="Diagram" /></p>
+
 <ul>
 <li>Create a single SQLiteDatabase object that is shared among all threads</li>
-<li>Thread1 spawned</li>
-<li>Thread2 spawned</li>
-<li>Thread1 opens a transaction and inserts some data</li>
-<li>Thread1 calls .join() on Thread2 to wait for it to finish</li>
-<li>Thread2 attempts to read some data</li>
+<li>WriterThread spawned</li>
+<li>t0: WriterThread opens a transaction and inserts some data</li>
+<li>t1: WriterThread spawns ReaderThread</li>
+<li>t2: ReaderThread attempts to read some data</li>
+<li>t3: WriterThread calls .join() on ReaderThread to wait for it to finish</li>
 <li>Deadlock!</li>
 </ul>
 
@@ -273,9 +273,9 @@
 <h2>Digging into the deadlock</h2>
 
 <ul>
-<li>Thread1 has an open transaction, and therefore is holding on to the one and only connection owned by the single SQLiteDatabase object</li>
-<li>Thread2 is trying to get a new connection to execute its statement, but cannot because Thread1 is holding the only one available</li>
-<li>Thread1 is waiting for Thread2 to finish so it can finish it&rsquo;s transaction and release the connection.</li>
+<li>WriterThread has an open transaction, and therefore is holding on to the one and only connection owned by the single SQLiteDatabase object</li>
+<li>ReaderThread is trying to get a new connection to execute its statement, but cannot because WriterThread is holding the only one available</li>
+<li>WriterThread is waiting for ReaderThread to finish so it can finish it&rsquo;s transaction and release the connection.</li>
 <li>Deadlock!</li>
 </ul>
 
@@ -284,11 +284,11 @@
 
 <p><a href="https://github.com/couchbaselabs/android-sqlite-experiments/blob/master/AndroidSQLiteExperiments/src/main/java/com/couchbaselabs/droidsqliteexprmnts/experiments/ThreadsSingleConnectionDeadlock.java">ThreadsSingleConnectionDeadlock.java</a></p>
 
-<h2>Fix Idea #1 &ndash; Don&rsquo;t make Thread1 join Thread2</h2>
+<h2>Fix Idea #1 &ndash; Don&rsquo;t make WriterThread join ReaderThread</h2>
 
 <p>This is the somewhat naive and obvious fix.</p>
 
-<p>In the case of this particular bug, it looks like the code needs to be reworked anyway, which will make that fix in the process.</p>
+<p>In the case of this particular bug, it looks like the code can be reworked to avoid this problem altogether, and should end up with a cleaner design anyway.</p>
 
 <h2>(Bad) Fix Idea #2 &ndash; Each thread gets its own SQLiteDatabase object (for the same database)</h2>
 
@@ -302,11 +302,11 @@
 
 <h2>Is there really a good fix?</h2>
 
-<p>So what if you absolutely needed to have the ability to have Thread1 join Thread2, and you wanted to avoid giving each thread it&rsquo;s own SQLiteDatabase object, how could that be accomplished?</p>
+<p>So what if you absolutely needed to have the ability to have WriterThread join ReaderThread, and you wanted to avoid giving each thread it&rsquo;s own SQLiteDatabase object, how could that be accomplished?</p>
 
 <p>Or is that just a silly scenario and it&rsquo;s better to just not do that?  (it seems fairly easy to do it by accident in any scenarios where threads are waiting on another and both accessing the same database)</p>
 
-<p>Actually, I don&rsquo;t know.. it&rsquo;s an open question.  Comments welcome.</p>
+<p>Actually, I don&rsquo;t know &mdash; it&rsquo;s an open question.  Comments welcome.</p>
 </div>
   
   
