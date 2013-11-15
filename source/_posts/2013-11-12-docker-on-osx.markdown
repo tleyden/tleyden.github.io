@@ -10,7 +10,7 @@ categories:
 
 # Goal
 
-I want to get Docker running under OSX..
+Get Docker running under OSX.
 
 ## Environment
 
@@ -30,12 +30,17 @@ I want to get Docker running under OSX..
 
 * Install Vagrant via [Vagrant OSX installer](http://files.vagrantup.com/packages/a40522f5fabccb9ddabad03d836e120ff5d14093/Vagrant-1.3.5.dmg)
 
-## Vagrant Up
+## Vagrant Smoke Test: run Ubuntu Precise
+
+To make sure Vagrant is installed correctly, run the following commands to see if Ubuntu Precise comes up and you are able to ssh into it.
 
 ```
 vagrant init precise32 http://files.vagrantup.com/precise32.box
 vagrant up
+vagrant ssh
 ```
+
+If that doesn't work, you should probably fix it before moving on.  Otherwise, keep reading.
 
 ## Install/Run CoreOS
 
@@ -57,4 +62,4 @@ vagrant ssh
 docker run -t -i ubuntu bash
 ```
 
-After running this, you should be ssh'd inside of an Ubuntu shell, running under docker (running inside of VirtualBox)
+After running this, you should be ssh'd inside of an Ubuntu shell, running under docker (running inside of VirtualBox .. etc, all the way up the onion)
