@@ -10,19 +10,15 @@ This tutorial will show you how to run a cluster of Couchbase Servers, where eac
 
 ![Diagram](http://cl.ly/image/2G0h381N3o42/docker%20couchbase%20cluster.png)
 
-This probably looks like _a lot_ of layers, which is going to be a heavy drain on your system resources.  Actually, it's not!  
-
-All of the layers under CoreOS are extremely thin and lightweight.  Docker's virtualization model is more like FreeBSD jails than VMWare.  Eg, the processes running inside a docker image are just processes inside the host OS (in this case, CoreOS).
-
-(whereas the layer between OSX -> VirtualBox -> CoreOS is a more heavyweight virtualization model)
+This probably looks like _a lot_ of layers, and you might be wondering if this will make your system crawl -- but bear in mind that the Docker virtualization model is very lightweight, and so basically everything under CoreOS has very little resource overhead.
 
 ## Install Docker and dependencies
 
-[Install Docker on OSX](http://tleyden.github.io/blog/2013/11/12/docker-on-osx/)
+If you are on OSX and don't have Docker or the rest of the Docker onion installed, check out [Install Docker on OSX](http://tleyden.github.io/blog/2013/11/12/docker-on-osx/) before proceeding.
 
 ## Edit vagrant file to add port mappings
 
-In order to access all the nodes from the host, _which doesn't currently work_, you would need to add the following entries to your Vagrantfile:
+In order to access all the Couchbase Server nodes from the host, _which doesn't currently work_, you would need to add the following entries to your Vagrantfile:
 
 ```
 config.vm.network "forwarded_port", guest: 8091, host: 8091
@@ -30,7 +26,7 @@ config.vm.network "forwarded_port", guest: 8092, host: 8092
 config.vm.network "forwarded_port", guest: 11210, host:	11210
 ```
 
-As mentioned, accessing all of the nodes from the host does not currently work.  However, I think at least some of these entries are needed, so to be on the safe side just add all of them.
+As mentioned, accessing all of the Couchbase Server nodes from the host does not currently work.  However, I think at least some of these entries are needed, so to be on the safe side just add all of them.
 
 ## Start CoreOS and ssh in
 
@@ -50,8 +46,10 @@ $ vagrant ssh
 
 ## Start docker image for a single node
 
+Here's how to fire up the first docker image
+
 ```
-docker run -i -t -d -p 11210:11210 -p 8091:7081 -p 8092:8092 dustin/latest
+docker run -i -t -d -p 11210:11210 -p 8091:7081 -p 8092:8092 dustin/couchbase:latest
 ```
 and you should see:
 
