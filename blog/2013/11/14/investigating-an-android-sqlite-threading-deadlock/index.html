@@ -5,13 +5,13 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Docker on OSX - Seven Story Rabbit Hole</title>
+  <title>Investigating an Android SQLite threading deadlock - Seven Story Rabbit Hole</title>
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Goal Get Docker running under OSX. Environment OSX Mavericks
-Macbook Retina Understanding the tools Vagrant is a tool to provision VMs.
-Virtualbox &hellip;">
+  <meta name="description" content="In an unreleased version of Couchbase Lite for Android, I was seeing the following error: 1
+2
+SQLiteConnectionPool The connection pool for database &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -20,7 +20,7 @@ Virtualbox &hellip;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://tleyden.github.io/blog/2013/11/12/docker-on-osx">
+  <link rel="canonical" href="http://tleyden.github.io/blog/2013/11/14/investigating-an-android-sqlite-threading-deadlock">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
@@ -77,7 +77,7 @@ Virtualbox &hellip;">
   
   <header>
     
-      <h1 class="entry-title">Docker on OSX</h1>
+      <h1 class="entry-title">Investigating an Android SQLite Threading Deadlock</h1>
     
     
       <p class="meta">
@@ -93,81 +93,71 @@ Virtualbox &hellip;">
   
 
 
-<time datetime="2013-11-12T21:01:00-08:00" pubdate data-updated="true">Nov 12<span>th</span>, 2013</time>
+<time datetime="2013-11-14T11:24:00-08:00" pubdate data-updated="true">Nov 14<span>th</span>, 2013</time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><p><img src="http://cl.ly/image/302X103n330L/docker.png" alt="Docker.png" /></p>
-
-<h1>Goal</h1>
-
-<p>Get Docker running under OSX.</p>
-
-<h2>Environment</h2>
-
-<ul>
-<li><p>OSX Mavericks</p></li>
-<li><p>Macbook Retina</p></li>
-</ul>
-
-
-<h2>Understanding the tools</h2>
-
-<ul>
-<li>Vagrant is a tool to provision VMs.</li>
-<li>Virtualbox is VM software.</li>
-<li>CoreOS is an operating system based on linux that&rsquo;s all about running docker.</li>
-</ul>
-
-
-<h2>Install VirtualBox + Vagrant</h2>
-
-<ul>
-<li><p>Install VirtualBox via <a href="http://download.virtualbox.org/virtualbox/4.3.2/VirtualBox-4.3.2-90405-OSX.dmg">VirtualBox OSX installer</a></p></li>
-<li><p>Install Vagrant via <a href="http://files.vagrantup.com/packages/a40522f5fabccb9ddabad03d836e120ff5d14093/Vagrant-1.3.5.dmg">Vagrant OSX installer</a></p></li>
-</ul>
-
-
-<h2>Vagrant Smoke Test: run Ubuntu Precise</h2>
-
-<p>To make sure Vagrant is installed correctly, run the following commands to see if Ubuntu Precise comes up and you are able to ssh into it.</p>
+<div class="entry-content"><p>In an unreleased version of Couchbase Lite for Android, I was seeing the following error:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>vagrant init precise32 http://files.vagrantup.com/precise32.box
-</span><span class='line'>vagrant up
-</span><span class='line'>vagrant ssh</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>SQLiteConnectionPool The connection pool for database has been unable to grant a connection to thread
+</span><span class='line'>SQLiteConnectionPool(14004): Connections: 0 active, 1 idle, 0 available.</span></code></pre></td></tr></table></div></figure>
 
 
-<p>If that doesn&rsquo;t work, you should probably fix it before moving on.  Otherwise, keep reading.</p>
+<h2>Here&rsquo;s what turned out to be happening</h2>
 
-<h2>Install/Run CoreOS</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git clone https://github.com/coreos/coreos-vagrant/
-</span><span class='line'>cd coreos-vagrant
-</span><span class='line'>vagrant up</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>SSH into CoreOS</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>vagrant ssh</span></code></pre></td></tr></table></div></figure>
+<ul>
+<li>Create a single SQLiteDatabase object that is shared among all threads</li>
+<li>Thread1 spawned</li>
+<li>Thread2 spawned</li>
+<li>Thread1 opens a transaction and inserts some data</li>
+<li>Thread1 calls .join() on Thread2 to wait for it to finish</li>
+<li>Thread2 attempts to read some data</li>
+<li>Deadlock!</li>
+</ul>
 
 
-<h2>Run stock ubuntu docker image</h2>
+<h2>Digging into the deadlock</h2>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>docker run -t -i ubuntu bash</span></code></pre></td></tr></table></div></figure>
+<ul>
+<li>Thread1 has an open transaction, and therefore is holding on to the one and only connection owned by the single SQLiteDatabase object</li>
+<li>Thread2 is trying to get a new connection to execute its statement, but cannot because Thread1 is holding the only one available</li>
+<li>Thread1 is waiting for Thread2 to finish so it can finish it&rsquo;s transaction and release the connection.</li>
+<li>Deadlock!</li>
+</ul>
 
 
-<p>After running this, you should be ssh&rsquo;d inside of an Ubuntu shell, running under docker (running inside of VirtualBox .. etc, all the way up the onion)</p>
+<h2>Code to reproduce the issue</h2>
+
+<p><a href=""></a></p>
+
+<h2>Fix Idea #1 &ndash; Don&rsquo;t make Thread1 join Thread2</h2>
+
+<p>This is the somewhat naive and obvious fix.</p>
+
+<p>In the case of this particular bug, it looks like the code needs to be reworked anyway, which will make that fix in the process.</p>
+
+<h2>(Bad) Fix Idea #2 &ndash; Each thread gets its own SQLiteDatabase object (for the same database)</h2>
+
+<p>You would think this could solve the problem, and it probably would, but there are some major caveats here.</p>
+
+<p>As explained in <a href="http://touchlabblog.tumblr.com/post/24474398246/android-sqlite-locking">Android Sqlite Locking</a>:</p>
+
+<blockquote><p>If you try to write to the database from actual distinct connections at the same time, one will fail.  It will not wait till the first is done and then write.  It will simply not write your change.  Worse, if you don’t call the right version of insert/update on the SQLiteDatabase, you won’t get an exception.  You’ll just get a message in your LogCat, and that will be it.</p></blockquote>
+
+<p>So to avoid this kind of hellish scenario, it&rsquo;s definitely safer to stick with a <a href="http://touchlabblog.tumblr.com/post/24474750219/single-sqlite-connection">Single SQLite connection</a></p>
+
+<h2>Is there really a good fix?</h2>
+
+<p>So what if you absolutely needed to have the ability to have Thread1 join Thread2, and you wanted to avoid giving each thread it&rsquo;s own SQLiteDatabase object, how could that be accomplished?</p>
+
+<p>Or is that just a silly scenario and it&rsquo;s better to just not do that?  (it seems fairly easy to do it by accident in any scenarios where threads are waiting on another and both accessing the same database)</p>
+
+<p>Actually, I don&rsquo;t know.. it&rsquo;s an open question.  Comments welcome.</p>
 </div>
 
 
@@ -190,7 +180,7 @@ Virtualbox &hellip;">
   
 
 
-<time datetime="2013-11-12T21:01:00-08:00" pubdate data-updated="true">Nov 12<span>th</span>, 2013</time>
+<time datetime="2013-11-14T11:24:00-08:00" pubdate data-updated="true">Nov 14<span>th</span>, 2013</time>
       
 
 
@@ -198,7 +188,7 @@ Virtualbox &hellip;">
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2013/11/12/docker-on-osx/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2013/11/12/docker-on-osx/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2013/11/14/investigating-an-android-sqlite-threading-deadlock/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2013/11/14/investigating-an-android-sqlite-threading-deadlock/" >Tweet</a>
   
   
   
@@ -207,10 +197,10 @@ Virtualbox &hellip;">
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2013/09/20/deciphering-some-go-code/" title="Previous Post: Deciphering some Go code">&laquo; Deciphering some Go code</a>
+        <a class="basic-alignment left" href="/blog/2013/11/12/docker-on-osx/" title="Previous Post: Docker on OSX">&laquo; Docker on OSX</a>
       
       
-        <a class="basic-alignment right" href="/blog/2013/11/14/investigating-an-android-sqlite-threading-deadlock/" title="Next Post: Investigating an Android SQLite threading deadlock">Investigating an Android SQLite threading deadlock &raquo;</a>
+        <a class="basic-alignment right" href="/blog/2013/11/14/running-couchbase-cluster-under-docker/" title="Next Post: Running couchbase cluster under docker">Running couchbase cluster under docker &raquo;</a>
       
     </p>
   </footer>
@@ -319,8 +309,8 @@ Virtualbox &hellip;">
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://tleyden.github.io/blog/2013/11/12/docker-on-osx/';
-        var disqus_url = 'http://tleyden.github.io/blog/2013/11/12/docker-on-osx/';
+        var disqus_identifier = 'http://tleyden.github.io/blog/2013/11/14/investigating-an-android-sqlite-threading-deadlock/';
+        var disqus_url = 'http://tleyden.github.io/blog/2013/11/14/investigating-an-android-sqlite-threading-deadlock/';
         var disqus_script = 'embed.js';
       
     (function () {

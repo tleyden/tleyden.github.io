@@ -9,8 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Goal I want to get Docker running under OSX.. Environment OSX Mavericks
-Macbook Retina Understanding the tools Vagrant is a tool to provision VMs. &hellip;">
+  <meta name="description" content="This tutorial will show you how to run a cluster of Couchbase Servers, where each node is running inside of a docker image. Install Docker and &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -79,6 +78,241 @@ Macbook Retina Understanding the tools Vagrant is a tool to provision VMs. &hell
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2013/11/14/running-couchbase-cluster-under-docker/">Running Couchbase Cluster Under Docker</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-14T15:45:00-08:00" pubdate data-updated="true">Nov 14<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>This tutorial will show you how to run a cluster of Couchbase Servers, where each node is running inside of a docker image.</p>
+
+<p><img src="http://cl.ly/image/2G0h381N3o42/docker%20couchbase%20cluster.png" alt="Diagram" /></p>
+
+<h2>Install Docker and dependencies</h2>
+
+<p><a href="http://tleyden.github.io/blog/2013/11/12/docker-on-osx/">Install Docker on OSX</a></p>
+
+<h2>Edit vagrant file to add port mappings</h2>
+
+<p>In order to access all the nodes from the host, <em>which doesn&rsquo;t currently work</em>, you would need to add the following entries to your Vagrantfile:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>config.vm.network "forwarded_port", guest: 8091, host: 8091
+</span><span class='line'>config.vm.network "forwarded_port", guest: 8092, host: 8092
+</span><span class='line'>config.vm.network "forwarded_port", guest: 11210, host:   11210</span></code></pre></td></tr></table></div></figure>
+
+
+<p>As mentioned, accessing all of the nodes from the host does not currently work.  However, I think at least some of these entries are needed, so to be on the safe side just add all of them.</p>
+
+<h2>Start CoreOS and ssh in</h2>
+
+<p>Execute the following commands in the directory where you have your CoreOS Vagrantfile.  In my case, I have it under <code>~/Tools/coreos-vagrant</code> and it contains a Vagrantfile, a README.md file, and a few others.</p>
+
+<p>Start CoreOS</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ vagrant up</span></code></pre></td></tr></table></div></figure>
+
+
+<p>SSH into CoreOS</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ vagrant ssh</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Start docker image for a single node</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>docker run -i -t -d -p 11210:11210 -p 8091:7081 -p 8092:8092 dustin/latest</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and you should see:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Unable to find image 'dustin/couchbase:latest' (tag: latest) locally
+</span><span class='line'>Pulling repository dustin/couchbase
+</span><span class='line'>9e0279ab340d: Download complete
+</span><span class='line'>...
+</span><span class='line'>845987ce946b</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Find the name of the docker instance by running <code>$ docker ps</code></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>core@localhost ~ $ docker ps
+</span><span class='line'>CONTAINER ID        IMAGE                     COMMAND                CREATED              STATUS              PORTS                                                                      NAMES
+</span><span class='line'>845987ce946b        dustin/couchbase:latest   /bin/sh -c /usr/loca   About a minute ago   Up About a minute   0.0.0.0:11210-&gt;11210/tcp, 0.0.0.0:8091-&gt;7081/tcp, 0.0.0.0:8092-&gt;8092/tcp   purple_kangaroo</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In this case it&rsquo;s <em>purple_kangaroo</em>.</p>
+
+<p>Now take a look at the logs for that docker instance:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>core@localhost ~ $ docker logs purple_kangaroo
+</span><span class='line'>/opt/couchbase/etc/couchbase_init.d: 45: ulimit: error setting limit (Operation not permitted)
+</span><span class='line'>/opt/couchbase/etc/couchbase_init.d: 47: ulimit: error setting limit (Operation not permitted)
+</span><span class='line'> * Started couchbase-server
+</span><span class='line'>Starting cluster
+</span><span class='line'>SUCCESS: init 127.0.0.1
+</span><span class='line'>SUCCESS: bucket-create</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If you only want to run one Couchbase Server node, you are pretty much done and you can skip to the section below to login to the Couchbase Server admin</p>
+
+<p>If you want to run a cluster of Couchbase Server nodes, read on.</p>
+
+<h2>Start docker images for other nodes</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run -i -t -d -link purple_kangaroo:alpha dustin/couchbase:latest</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This will start another node that is linked to the initial node, and will be in the same cluster.  There is some Weird Magic behind the scenes that makes that all work.</p>
+
+<h1>Go to Couchbase Server admin</h1>
+
+<p>Open <a href="http://localhost:8091/">http://localhost:8091/</a> in your browser, and you should see a login screen, where the default credentials are Administrator/password.</p>
+
+<p>After you login, you should see the Admin UI with three nodes in your cluster:</p>
+
+<p><img src="http://cl.ly/image/2K3i1v2w3H0E/Screen%20Shot%202013-11-14%20at%204.47.18%20PM.png" alt="Screenshot" /></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/11/14/investigating-an-android-sqlite-threading-deadlock/">Investigating an Android SQLite Threading Deadlock</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-14T11:24:00-08:00" pubdate data-updated="true">Nov 14<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>In an unreleased version of Couchbase Lite for Android, I was seeing the following error:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>SQLiteConnectionPool The connection pool for database has been unable to grant a connection to thread
+</span><span class='line'>SQLiteConnectionPool(14004): Connections: 0 active, 1 idle, 0 available.</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Here&rsquo;s what turned out to be happening</h2>
+
+<ul>
+<li>Create a single SQLiteDatabase object that is shared among all threads</li>
+<li>Thread1 spawned</li>
+<li>Thread2 spawned</li>
+<li>Thread1 opens a transaction and inserts some data</li>
+<li>Thread1 calls .join() on Thread2 to wait for it to finish</li>
+<li>Thread2 attempts to read some data</li>
+<li>Deadlock!</li>
+</ul>
+
+
+<h2>Digging into the deadlock</h2>
+
+<ul>
+<li>Thread1 has an open transaction, and therefore is holding on to the one and only connection owned by the single SQLiteDatabase object</li>
+<li>Thread2 is trying to get a new connection to execute its statement, but cannot because Thread1 is holding the only one available</li>
+<li>Thread1 is waiting for Thread2 to finish so it can finish it&rsquo;s transaction and release the connection.</li>
+<li>Deadlock!</li>
+</ul>
+
+
+<h2>Code to reproduce the issue</h2>
+
+<p><a href=""></a></p>
+
+<h2>Fix Idea #1 &ndash; Don&rsquo;t make Thread1 join Thread2</h2>
+
+<p>This is the somewhat naive and obvious fix.</p>
+
+<p>In the case of this particular bug, it looks like the code needs to be reworked anyway, which will make that fix in the process.</p>
+
+<h2>(Bad) Fix Idea #2 &ndash; Each thread gets its own SQLiteDatabase object (for the same database)</h2>
+
+<p>You would think this could solve the problem, and it probably would, but there are some major caveats here.</p>
+
+<p>As explained in <a href="http://touchlabblog.tumblr.com/post/24474398246/android-sqlite-locking">Android Sqlite Locking</a>:</p>
+
+<blockquote><p>If you try to write to the database from actual distinct connections at the same time, one will fail.  It will not wait till the first is done and then write.  It will simply not write your change.  Worse, if you don’t call the right version of insert/update on the SQLiteDatabase, you won’t get an exception.  You’ll just get a message in your LogCat, and that will be it.</p></blockquote>
+
+<p>So to avoid this kind of hellish scenario, it&rsquo;s definitely safer to stick with a <a href="http://touchlabblog.tumblr.com/post/24474750219/single-sqlite-connection">Single SQLite connection</a></p>
+
+<h2>Is there really a good fix?</h2>
+
+<p>So what if you absolutely needed to have the ability to have Thread1 join Thread2, and you wanted to avoid giving each thread it&rsquo;s own SQLiteDatabase object, how could that be accomplished?</p>
+
+<p>Or is that just a silly scenario and it&rsquo;s better to just not do that?  (it seems fairly easy to do it by accident in any scenarios where threads are waiting on another and both accessing the same database)</p>
+
+<p>Actually, I don&rsquo;t know.. it&rsquo;s an open question.  Comments welcome.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2013/11/12/docker-on-osx/">Docker on OSX</a></h1>
     
     
@@ -106,7 +340,7 @@ Macbook Retina Understanding the tools Vagrant is a tool to provision VMs. &hell
 
 <h1>Goal</h1>
 
-<p>I want to get Docker running under OSX..</p>
+<p>Get Docker running under OSX.</p>
 
 <h2>Environment</h2>
 
@@ -133,13 +367,19 @@ Macbook Retina Understanding the tools Vagrant is a tool to provision VMs. &hell
 </ul>
 
 
-<h2>Vagrant Up</h2>
+<h2>Vagrant Smoke Test: run Ubuntu Precise</h2>
+
+<p>To make sure Vagrant is installed correctly, run the following commands to see if Ubuntu Precise comes up and you are able to ssh into it.</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
+<span class='line-number'>3</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>vagrant init precise32 http://files.vagrantup.com/precise32.box
-</span><span class='line'>vagrant up</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>vagrant up
+</span><span class='line'>vagrant ssh</span></code></pre></td></tr></table></div></figure>
 
+
+<p>If that doesn&rsquo;t work, you should probably fix it before moving on.  Otherwise, keep reading.</p>
 
 <h2>Install/Run CoreOS</h2>
 
@@ -163,7 +403,7 @@ Macbook Retina Understanding the tools Vagrant is a tool to provision VMs. &hell
 </pre></td><td class='code'><pre><code class=''><span class='line'>docker run -t -i ubuntu bash</span></code></pre></td></tr></table></div></figure>
 
 
-<p>After running this, you should be ssh&rsquo;d inside of an Ubuntu shell, running under docker (running inside of VirtualBox)</p>
+<p>After running this, you should be ssh&rsquo;d inside of an Ubuntu shell, running under docker (running inside of VirtualBox .. etc, all the way up the onion)</p>
 </div>
   
   
@@ -862,6 +1102,14 @@ Macbook Retina Understanding the tools Vagrant is a tool to provision VMs. &hell
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2013/11/14/running-couchbase-cluster-under-docker/">Running Couchbase Cluster Under Docker</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/14/investigating-an-android-sqlite-threading-deadlock/">Investigating an Android SQLite Threading Deadlock</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2013/11/12/docker-on-osx/">Docker on OSX</a>
       </li>
     
@@ -871,14 +1119,6 @@ Macbook Retina Understanding the tools Vagrant is a tool to provision VMs. &hell
     
       <li class="post">
         <a href="/blog/2013/09/19/java-coding-challenge/">Java Coding Challenge</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/09/07/octopress-setup-part-ii/">Octopress Setup Part II</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/09/07/octopress-setup-part-i/">Octopress Setup Part I</a>
       </li>
     
   </ul>
