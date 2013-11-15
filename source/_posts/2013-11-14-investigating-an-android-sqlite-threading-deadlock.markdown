@@ -32,7 +32,7 @@ SQLiteConnectionPool(14004): Connections: 0 active, 1 idle, 0 available.
 
 ## Code to reproduce the issue
 
-[]()
+[ThreadsSingleConnectionDeadlock.java](https://github.com/couchbaselabs/android-sqlite-experiments/blob/master/AndroidSQLiteExperiments/src/main/java/com/couchbaselabs/droidsqliteexprmnts/experiments/ThreadsSingleConnectionDeadlock.java)
 
 ## Fix Idea #1 - Don't make Thread1 join Thread2
 
