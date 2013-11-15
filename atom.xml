@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2013-11-14T17:25:50-08:00</updated>
+  <updated>2013-11-14T17:37:54-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -166,7 +166,7 @@
 
 <h2>Code to reproduce the issue</h2>
 
-<p><a href=""></a></p>
+<p><a href="https://github.com/couchbaselabs/android-sqlite-experiments/blob/master/AndroidSQLiteExperiments/src/main/java/com/couchbaselabs/droidsqliteexprmnts/experiments/ThreadsSingleConnectionDeadlock.java">ThreadsSingleConnectionDeadlock.java</a></p>
 
 <h2>Fix Idea #1 &ndash; Don&rsquo;t make Thread1 join Thread2</h2>
 
