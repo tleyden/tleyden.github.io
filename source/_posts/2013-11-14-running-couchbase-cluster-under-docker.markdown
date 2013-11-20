@@ -14,7 +14,7 @@ This probably looks like _a lot_ of layers, and you might be wondering if this w
 
 ## Install Docker and dependencies
 
-If you are on OSX and don't have Docker or the rest of the Docker onion installed, check out [Install Docker on OSX](http://tleyden.github.io/blog/2013/11/12/docker-on-osx/) before proceeding.
+If you are on OSX and don't have Docker installed, check out [Install Docker on OSX](http://tleyden.github.io/blog/2013/11/12/docker-on-osx/) before proceeding.
 
 ## Edit vagrant file to add port mappings
 
