@@ -5,13 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Blog Archive - Seven Story Rabbit Hole</title>
+  <title>Debugging HTTP traffic in Android apps with a proxy - Seven Story Rabbit Hole</title>
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Blog Archive 2013 Debugging HTTP traffic in Android apps with a proxy
-Nov 20 2013 Running couchbase cluster under docker
-Nov 14 2013 Investigating &hellip;">
+  <meta name="description" content="If you need to debug the HTTP communication between a server and an Android app running in an emulator or device, here&rsquo;s some instructions on &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -20,7 +18,7 @@ Nov 14 2013 Investigating &hellip;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://tleyden.github.io/blog/archives">
+  <link rel="canonical" href="http://tleyden.github.io/blog/2013/11/20/debugging-http-traffic-in-android-apps-with-a-proxy">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
@@ -73,116 +71,136 @@ Nov 14 2013 Investigating &hellip;">
   <div id="main">
     <div id="content">
       <div>
-<article role="article">
+<article class="hentry" role="article">
   
   <header>
-    <h1 class="entry-title">Blog Archive</h1>
+    
+      <h1 class="entry-title">Debugging HTTP Traffic in Android Apps With a Proxy</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-20T14:35:00-08:00" pubdate data-updated="true">Nov 20<span>th</span>, 2013</time>
+        
+      </p>
     
   </header>
-  
-  <div id="blog-archives">
 
 
+<div class="entry-content"><p>If you need to debug the HTTP communication between a server and an Android app running in an emulator or device, here&rsquo;s some instructions on how I went about doing it.</p>
 
-  
-  <h2>2013</h2>
+<p>Here&rsquo;s the overall diagram of what&rsquo;s happening:</p>
 
-<article>
-  
-<h1><a href="/blog/2013/11/20/debugging-http-traffic-in-android-apps-with-a-proxy/">Debugging HTTP traffic in Android apps with a proxy</a></h1>
-<time datetime="2013-11-20T14:35:00-08:00" pubdate><span class='month'>Nov</span> <span class='day'>20</span> <span class='year'>2013</span></time>
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/android_proxy.png" alt="Diagram" /></p>
 
+<h2>Install a Proxy</h2>
 
-</article>
+<p>I&rsquo;m using <a href="http://www.charlesproxy.com/">Charles Proxy</a> and highly recommend it.</p>
 
+<p>As far as proxy configuration, the defaults should be fine.  It should be listening on port 8888 and proxying everything.  If you need HTTPS, you might have to configure that, I don&rsquo;t remember if it&rsquo;s enabled by default.</p>
 
+<h2>Configure the Android Emulator to use that proxy</h2>
 
-<article>
-  
-<h1><a href="/blog/2013/11/14/running-couchbase-cluster-under-docker/">Running couchbase cluster under docker</a></h1>
-<time datetime="2013-11-14T15:45:00-08:00" pubdate><span class='month'>Nov</span> <span class='day'>14</span> <span class='year'>2013</span></time>
+<p>There is a blog that describes how to get to this screen, I don&rsquo;t have the link handy.  Essentially once you get to this screen, just update the ip to have the special 10.0.2.2 ip address which represents your workstation, and the port the proxy is listening on (port 8888).</p>
 
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/android_emu_proxy_config.png" alt="Screenshot" /></p>
 
-</article>
+<h2>Run an HTTP server on your workstation, on port 4984</h2>
 
+<p>Actually use any port you want, but in my case I&rsquo;m connecting to a server that runs on port 4984.</p>
 
+<h2>Configure your app to connect to 127.0.0.1:4984</h2>
 
-<article>
-  
-<h1><a href="/blog/2013/11/14/investigating-an-android-sqlite-threading-deadlock/">Investigating an Android SQLite threading deadlock</a></h1>
-<time datetime="2013-11-14T11:24:00-08:00" pubdate><span class='month'>Nov</span> <span class='day'>14</span> <span class='year'>2013</span></time>
+<p>This is actually a bit counterintuitive, but the idea is that the address must be reachable from the workstation&rsquo;s network, not from the emulator&rsquo;s network.</p>
 
+<p>So for that reason, if the server is running on the workstation, you would want to use 127.0.0.1 as the IP.</p>
 
-</article>
+<p>As long as the server is reachable from your workstation, you can use that IP and it will go through the proxy.</p>
 
+<h2>View HTTP traffic in proxy</h2>
 
+<p>Here&rsquo;s what the HTTP JSON response looks like in the proxy:</p>
 
-<article>
-  
-<h1><a href="/blog/2013/11/12/docker-on-osx/">Docker on OSX</a></h1>
-<time datetime="2013-11-12T21:01:00-08:00" pubdate><span class='month'>Nov</span> <span class='day'>12</span> <span class='year'>2013</span></time>
-
-
-</article>
-
-
-
-<article>
-  
-<h1><a href="/blog/2013/09/20/deciphering-some-go-code/">Deciphering some Go code</a></h1>
-<time datetime="2013-09-20T11:11:00-07:00" pubdate><span class='month'>Sep</span> <span class='day'>20</span> <span class='year'>2013</span></time>
-
-
-</article>
-
-
-
-<article>
-  
-<h1><a href="/blog/2013/09/19/java-coding-challenge/">Java coding challenge</a></h1>
-<time datetime="2013-09-19T13:42:00-07:00" pubdate><span class='month'>Sep</span> <span class='day'>19</span> <span class='year'>2013</span></time>
-
-
-</article>
-
-
-
-<article>
-  
-<h1><a href="/blog/2013/09/07/octopress-setup-part-ii/">Octopress Setup Part II</a></h1>
-<time datetime="2013-09-07T11:46:00-07:00" pubdate><span class='month'>Sep</span> <span class='day'>07</span> <span class='year'>2013</span></time>
-
-<footer>
-  <span class="categories">posted in <a class='category' href='/blog/categories/blog/'>blog</a>, <a class='category' href='/blog/categories/octopress/'>octopress</a></span>
-</footer>
-
-
-</article>
-
-
-
-<article>
-  
-<h1><a href="/blog/2013/09/07/octopress-setup-part-i/">Octopress Setup Part I</a></h1>
-<time datetime="2013-09-07T11:26:00-07:00" pubdate><span class='month'>Sep</span> <span class='day'>07</span> <span class='year'>2013</span></time>
-
-<footer>
-  <span class="categories">posted in <a class='category' href='/blog/categories/blog/'>blog</a>, <a class='category' href='/blog/categories/octopress/'>octopress</a></span>
-</footer>
-
-
-</article>
-
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/charles_proxy_screenshot.png" alt="Screenshot" /></p>
 </div>
 
+
+  <footer>
+    <p class="meta">
+      
   
+
+<span class="byline author vcard">Posted by <span class="fn">Traun Leyden</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-20T14:35:00-08:00" pubdate data-updated="true">Nov 20<span>th</span>, 2013</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2013/11/20/debugging-http-traffic-in-android-apps-with-a-proxy/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2013/11/20/debugging-http-traffic-in-android-apps-with-a-proxy/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/11/14/running-couchbase-cluster-under-docker/" title="Previous Post: Running couchbase cluster under docker">&laquo; Running couchbase cluster under docker</a>
+      
+      
+    </p>
+  </footer>
 </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
 
 </div>
 
 <aside class="sidebar">
   
     <section>
+  <h1>About Me</h1>
+  <p>
+  I'm a startup engineer at Couchbase, working on <a href="https://github.com/couchbase/couchbase-lite-android">Couchbase Lite for Android</a> -- a mobile NoSQL database with Sync built-in.
+  </p>
+
+  <p>
+  In my spare time I am working on a <a href="https://github.com/tleyden/neurgo">Neural Network in Go</a>.
+  </p>
+
+</section>
+<section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
     
@@ -263,7 +281,10 @@ Nov 14 2013 Investigating &hellip;">
       var disqus_shortname = 'sevenstoryrabbithole';
       
         
-        var disqus_script = 'count.js';
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://tleyden.github.io/blog/2013/11/20/debugging-http-traffic-in-android-apps-with-a-proxy/';
+        var disqus_url = 'http://tleyden.github.io/blog/2013/11/20/debugging-http-traffic-in-android-apps-with-a-proxy/';
+        var disqus_script = 'embed.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
