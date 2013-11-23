@@ -1,0 +1,519 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>A simple data race in Go and how to fix it - Seven Story Rabbit Hole</title>
+  <meta name="author" content="Traun Leyden">
+
+  
+  <meta name="description" content="Suppose you want to add an http handler which can show some things that in memory. Simple, right? Actually, if you aren&rsquo;t careful, doing this &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://tleyden.github.io/blog/2013/11/21/a-simple-data-race-in-go-and-how-to-fix-it">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+
+  <table><tr><td>
+  <h1><a href="/">Seven Story Rabbit Hole</a></h1>
+  
+    <h2>Sometimes awesome things happen in deep rabbit holes.  Or not.</h2>
+  
+  </td><td>&nbsp;&nbsp;
+  <img class="left" src="/images/rabbit_hole_graphic.png" width="295" height="105" title="image" alt="images">
+  </td></tr>
+  </table>
+
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:tleyden.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">A Simple Data Race in Go and How to Fix It</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-21T08:16:00-08:00" pubdate data-updated="true">Nov 21<span>st</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Suppose you want to add an http handler which can show some things that in memory.</p>
+
+<p>Simple, right?  Actually, if you aren&rsquo;t careful, doing this can lead to data races, even though only one goroutine is writing the data at any given time.</p>
+
+<p>Here&rsquo;s the golang code (also on <a href="https://github.com/tleyden/go-scratchpad/blob/1521d96e8f093b06ed57cd32e702b8ccb458e270/concurrentaccess/main.go">github</a>) that reproduces the issue:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>type Foo struct {
+</span><span class='line'>  content string
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>type FooSlice []*Foo
+</span><span class='line'>
+</span><span class='line'>func updateFooSlice(fooSlice FooSlice) {
+</span><span class='line'>  for {
+</span><span class='line'>      foo := &Foo{content: "new"}
+</span><span class='line'>      (*fooSlice)[0] = foo
+</span><span class='line'>      time.Sleep(time.Second)
+</span><span class='line'>  }
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>func installHttpHandler(fooSlice FooSlice) {
+</span><span class='line'>  handler := func(w http.ResponseWriter, r *http.Request) {
+</span><span class='line'>      for _, foo := range fooSlice {
+</span><span class='line'>          if foo != nil {
+</span><span class='line'>              fmt.Fprintf(w, "foo: %v ", (*foo).content)
+</span><span class='line'>          }
+</span><span class='line'>      }
+</span><span class='line'>
+</span><span class='line'>  }
+</span><span class='line'>  http.HandleFunc("/", handler)
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>func main() {
+</span><span class='line'>  foo1 := &Foo{content: "hey"}
+</span><span class='line'>  foo2 := &Foo{content: "yo"}
+</span><span class='line'>  fooSlice := FooSlice{foo1, foo2}
+</span><span class='line'>
+</span><span class='line'>  installHttpHandler(fooSlice)
+</span><span class='line'>
+</span><span class='line'>  go updateFooSlice(fooSlice)
+</span><span class='line'>
+</span><span class='line'>  http.ListenAndServe(":8080", nil)
+</span><span class='line'>}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>if you run this code with <code>go run main.go</code> and then open <code>http://localhost:8080</code> in your browser, it will work as expected.</p>
+
+<p>But not so fast!  Lurking in this code are data races, and if you run this with race detection enabled using <code>go run -race main.go</code> and then access it with the browser, it will panic with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>==================
+</span><span class='line'>WARNING: DATA RACE
+</span><span class='line'>Read by goroutine 6:
+</span><span class='line'>  main.func·001()
+</span><span class='line'>      /../concurrentaccess/main.go:45 +0x9e
+</span><span class='line'>      ...
+</span><span class='line'>Previous write by goroutine 4:
+</span><span class='line'>  main.updateFooSlice()
+</span><span class='line'>      /../concurrentaccess/main.go:35 +0x98
+</span><span class='line'>      ...</span></code></pre></td></tr></table></div></figure>
+
+
+<p>because there are two goroutines accessing the same slice without any protection &mdash; the main goroutine running the http server, and the goroutine running <code>updateFooSlice</code>.</p>
+
+<h2>Fix #1 &ndash; use sync.mutex to lock the slice</h2>
+
+<p>This isn&rsquo;t necessarily the <em>best</em> way to fix this, but it&rsquo;s the simplest to understand and explain.</p>
+
+<p>Here are the changes to the code (also on <a href="https://github.com/tleyden/go-scratchpad/blob/8f031806d5f0d7becef844f5400f2cc663ff4bf7/concurrentaccess/main.go">github</a>):</p>
+
+<ul>
+<li>Import the <code>sync</code> package</li>
+<li>Create a sync.Mutex object in the package-global namespace</li>
+<li>Before updating the slice, lock the mutex, and after updating it, unlock it.</li>
+<li>Before the http handler access the slice, it locks the mutex, and after it&rsquo;s done, it unlocks it.</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>type Foo struct {
+</span><span class='line'>  content string
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>type FooSlice []*Foo
+</span><span class='line'>
+</span><span class='line'>var mutex sync.Mutex
+</span><span class='line'>
+</span><span class='line'>func updateFooSlice(fooSlice FooSlice) {
+</span><span class='line'>  for {
+</span><span class='line'>      mutex.Lock()
+</span><span class='line'>      foo := &Foo{content: "new"}
+</span><span class='line'>      fooSlice[0] = foo
+</span><span class='line'>      fooSlice[1] = nil
+</span><span class='line'>      mutex.Unlock()
+</span><span class='line'>      time.Sleep(time.Second)
+</span><span class='line'>  }
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>func installHttpHandler(fooSlice FooSlice) {
+</span><span class='line'>  handler := func(w http.ResponseWriter, r *http.Request) {
+</span><span class='line'>      mutex.Lock()
+</span><span class='line'>      defer mutex.Unlock()
+</span><span class='line'>      for _, foo := range fooSlice {
+</span><span class='line'>          if foo != nil {
+</span><span class='line'>              fmt.Fprintf(w, "foo: %v ", (*foo).content)
+</span><span class='line'>          }
+</span><span class='line'>      }
+</span><span class='line'>  }
+</span><span class='line'>  http.HandleFunc("/", handler)
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>func main() {
+</span><span class='line'>
+</span><span class='line'>  foo1 := &Foo{content: "hey"}
+</span><span class='line'>  foo2 := &Foo{content: "yo"}
+</span><span class='line'>
+</span><span class='line'>  fooSlice := FooSlice{foo1, foo2}
+</span><span class='line'>
+</span><span class='line'>  installHttpHandler(fooSlice)
+</span><span class='line'>
+</span><span class='line'>  go updateFooSlice(fooSlice)
+</span><span class='line'>
+</span><span class='line'>  http.ListenAndServe(":8080", nil)
+</span><span class='line'>
+</span><span class='line'>}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If you now re-run the code with the <code>-race</code> flag and access <code>http://localhost:8080</code>, it won&rsquo;t panic.</p>
+
+<h2>Fix #2 &ndash; Don&rsquo;t communicate by sharing memory, share memory by communicating.</h2>
+
+<p>In this approach, rather than using <code>sync.Mutex</code>, we will use channels.</p>
+
+<h2>Digression &ndash; chan chan</h2>
+
+<p>A channel describes a transport of sorts.  You can send a thing down that transport.  When using a chan chan, the thing you want to send down the transport is another transport to send things back.</p>
+
+<p>Before you can understand Fix #2, you will need to understand <code>chan chan</code>&rsquo;s &mdash; in other words, channels of channels, or put another way &mdash; channels which are for exchanging other channels.  You could also call them &ldquo;metachannels&rdquo;, if you are a metahead.</p>
+
+<h2>Fix #2 &ndash; Continued</h2>
+
+<p>Sorry, this blog post isn&rsquo;t finished yet, stay tuned.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Traun Leyden</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-21T08:16:00-08:00" pubdate data-updated="true">Nov 21<span>st</span>, 2013</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2013/11/21/a-simple-data-race-in-go-and-how-to-fix-it/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2013/11/21/a-simple-data-race-in-go-and-how-to-fix-it/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/11/20/debugging-http-traffic-in-android-apps-with-a-proxy/" title="Previous Post: Debugging HTTP traffic in Android apps with a proxy">&laquo; Debugging HTTP traffic in Android apps with a proxy</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2013/11/22/android-studio-plus-genymotion-emulator/" title="Next Post: Android Studio + Genymotion Emulator">Android Studio + Genymotion Emulator &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>About Me</h1>
+  <p>
+  I'm a startup engineer at Couchbase, working on <a href="https://github.com/couchbase/couchbase-lite-android">Couchbase Lite for Android</a> -- a mobile NoSQL database with Sync built-in.
+  </p>
+
+  <p>
+  In my spare time I am working on a <a href="https://github.com/tleyden/neurgo">Neural Network in Go</a>.
+  </p>
+
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/11/22/android-studio-plus-genymotion-emulator/">Android Studio + Genymotion Emulator</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/21/a-simple-data-race-in-go-and-how-to-fix-it/">A Simple Data Race in Go and How to Fix It</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/20/debugging-http-traffic-in-android-apps-with-a-proxy/">Debugging HTTP Traffic in Android Apps With a Proxy</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/14/running-couchbase-cluster-under-docker/">Running Couchbase Cluster Under Docker</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/14/investigating-an-android-sqlite-threading-deadlock/">Investigating an Android SQLite Threading Deadlock</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/tleyden">@tleyden</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'tleyden',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+<section>
+     <h1>Twitter</h1>
+<a class="twitter-timeline" width="300" height="350" href="https://twitter.com/tleydn" data-widget-id="376419812865368064">Tweets by @tleydn</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+ </section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - Traun Leyden -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'sevenstoryrabbithole';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://tleyden.github.io/blog/2013/11/21/a-simple-data-race-in-go-and-how-to-fix-it/';
+        var disqus_url = 'http://tleyden.github.io/blog/2013/11/21/a-simple-data-race-in-go-and-how-to-fix-it/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

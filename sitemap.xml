@@ -39,12 +39,24 @@
         <lastmod>2013-11-20T15:10:35-08:00</lastmod>
     </url>
     <url>
+        <loc>
+            http://tleyden.github.io/blog/2013/11/21/a-simple-data-race-in-go-and-how-to-fix-it/
+        </loc>
+        <lastmod>2013-11-22T16:46:32-08:00</lastmod>
+    </url>
+    <url>
+        <loc>
+            http://tleyden.github.io/blog/2013/11/22/android-studio-plus-genymotion-emulator/
+        </loc>
+        <lastmod>2013-11-22T16:35:03-08:00</lastmod>
+    </url>
+    <url>
         <loc>http://tleyden.github.io/blog/archives/</loc>
-        <lastmod>2013-11-20T15:10:35-08:00</lastmod>
+        <lastmod>2013-11-22T16:46:32-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/</loc>
-        <lastmod>2013-11-20T15:10:35-08:00</lastmod>
+        <lastmod>2013-11-22T16:46:32-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/robots.txt</loc>
