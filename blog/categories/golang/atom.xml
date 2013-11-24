@@ -1,0 +1,471 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: golang | Seven Story Rabbit Hole]]></title>
+  <link href="http://tleyden.github.io/blog/categories/golang/atom.xml" rel="self"/>
+  <link href="http://tleyden.github.io/"/>
+  <updated>2013-11-24T15:48:15-08:00</updated>
+  <id>http://tleyden.github.io/</id>
+  <author>
+    <name><![CDATA[Traun Leyden]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Understanding chan chan's in Go]]></title>
+    <link href="http://tleyden.github.io/blog/2013/11/23/understanding-chan-chans-in-go/"/>
+    <updated>2013-11-23T07:58:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2013/11/23/understanding-chan-chans-in-go</id>
+    <content type="html"><![CDATA[<p>A channel describes a transport of sorts.  You can send a thing down that transport.  When using a chan chan, the thing you want to send down the transport is another transport to send things back.</p>
+
+<p>They are useful when you want to get a response to something, and you don&rsquo;t want to setup two channels (it&rsquo;s generally considered bad practice to have data moving bidirectionally on a single channel)</p>
+
+<h2>Visual time lapse walkthrough</h2>
+
+<p>Keep in mind that Goroutine C is the &ldquo;real consumer&rdquo; even though it will be the one which writes to the request channel.</p>
+
+<p>The request channel starts out empty.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_1.png" alt="Screenshot" /></p>
+
+<p>Goroutine C passes a &ldquo;response channel&rdquo; to go routine D via the request channel</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_2.png" alt="Screenshot" /></p>
+
+<p>Goroutine C starts reading from the (still empty) response channel.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_3.png" alt="Screenshot" /></p>
+
+<p>Goroutine D writes a string to the response channel</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_4.png" alt="Screenshot" /></p>
+
+<p>Goroutine C now is able to read a value from response channel, and get&rsquo;s the &ldquo;wassup!&rdquo; message</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_5.png" alt="Screenshot" /></p>
+
+<p>And now we are back to where we started</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_1.png" alt="Screenshot" /></p>
+
+<h2>And here is some code</h2>
+
+<p>```
+package main</p>
+
+<p>import &ldquo;fmt&rdquo;
+import &ldquo;time&rdquo;</p>
+
+<p>func main() {</p>
+
+<pre><code> // make the request chan chan that both go-routines will be given
+ requestChan := make(chan chan string)
+
+ // start the goroutines
+ go goroutineC(requestChan)
+ go goroutineD(requestChan)
+
+ // sleep for a second to let the goroutines complete
+ time.Sleep(time.Second)
+</code></pre>
+
+<p>}</p>
+
+<p>func goroutineC(requestChan chan chan string) {</p>
+
+<pre><code> // make a new response chan
+ responseChan := make(chan string)
+
+ // send the responseChan to goRoutineD
+ requestChan &lt;- responseChan
+
+ // read the response
+ response := &lt;-responseChan
+
+ fmt.Printf("Response: %v\n", response)
+</code></pre>
+
+<p>}</p>
+
+<p>func goroutineD(requestChan chan chan string) {</p>
+
+<pre><code> // read the responseChan from the requestChan
+ responseChan := &lt;-requestChan
+
+ // send a value down the responseChan
+ responseChan &lt;- "wassup!"
+</code></pre>
+
+<p>}</p>
+
+<p>```</p>
+
+<p>This code can be run on <a href="http://play.golang.org/p/chi6P2XGTO">Go playground</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[A simple data race in Go and how to fix it]]></title>
+    <link href="http://tleyden.github.io/blog/2013/11/21/a-simple-data-race-in-go-and-how-to-fix-it/"/>
+    <updated>2013-11-21T08:16:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2013/11/21/a-simple-data-race-in-go-and-how-to-fix-it</id>
+    <content type="html"><![CDATA[<p>Suppose you want to add an http handler which can show some things that in memory.</p>
+
+<p>Simple, right?  Actually, if you aren&rsquo;t careful, doing this can lead to data races, even though only one goroutine is writing the data at any given time.</p>
+
+<p>Here&rsquo;s the golang code (also on <a href="https://github.com/tleyden/go-scratchpad/blob/1521d96e8f093b06ed57cd32e702b8ccb458e270/concurrentaccess/main.go">github</a>) that reproduces the issue:</p>
+
+<p>```
+type Foo struct {</p>
+
+<pre><code>content string
+</code></pre>
+
+<p>}</p>
+
+<p>type FooSlice []*Foo</p>
+
+<p>func updateFooSlice(fooSlice FooSlice) {</p>
+
+<pre><code>for {
+    foo := &amp;Foo{content: "new"}
+    (*fooSlice)[0] = foo
+    time.Sleep(time.Second)
+}
+</code></pre>
+
+<p>}</p>
+
+<p>func installHttpHandler(fooSlice FooSlice) {</p>
+
+<pre><code>handler := func(w http.ResponseWriter, r *http.Request) {
+    for _, foo := range fooSlice {
+        if foo != nil {
+            fmt.Fprintf(w, "foo: %v ", (*foo).content)
+        }
+    }
+
+}
+http.HandleFunc("/", handler)
+</code></pre>
+
+<p>}</p>
+
+<p>func main() {</p>
+
+<pre><code>foo1 := &amp;Foo{content: "hey"}
+foo2 := &amp;Foo{content: "yo"}
+fooSlice := FooSlice{foo1, foo2}
+
+installHttpHandler(fooSlice)
+
+go updateFooSlice(fooSlice)
+
+http.ListenAndServe(":8080", nil)
+</code></pre>
+
+<p>}</p>
+
+<p>```</p>
+
+<p>if you run this code with <code>go run main.go</code> and then open <code>http://localhost:8080</code> in your browser, it will work as expected.</p>
+
+<p>But not so fast!  Lurking in this code are data races, and if you run this with race detection enabled using <code>go run -race main.go</code> and then access it with the browser, it will panic with:</p>
+
+<h1>```</h1>
+
+<p>WARNING: DATA RACE
+Read by goroutine 6:
+  main.func·001()</p>
+
+<pre><code>  /../concurrentaccess/main.go:45 +0x9e
+  ...
+</code></pre>
+
+<p>Previous write by goroutine 4:
+  main.updateFooSlice()</p>
+
+<pre><code>  /../concurrentaccess/main.go:35 +0x98
+  ...
+</code></pre>
+
+<p>```</p>
+
+<p>because there are two goroutines accessing the same slice without any protection &mdash; the main goroutine running the http server, and the goroutine running <code>updateFooSlice</code>.</p>
+
+<h2>Fix #1 &ndash; use sync.mutex to lock the slice</h2>
+
+<p>This isn&rsquo;t necessarily the <em>best</em> way to fix this, but it&rsquo;s the simplest to understand and explain.</p>
+
+<p>Here are the changes to the code (also on <a href="https://github.com/tleyden/go-scratchpad/blob/8f031806d5f0d7becef844f5400f2cc663ff4bf7/concurrentaccess/main.go">github</a>):</p>
+
+<ul>
+<li>Import the <code>sync</code> package</li>
+<li>Create a sync.Mutex object in the package-global namespace</li>
+<li>Before updating the slice, lock the mutex, and after updating it, unlock it.</li>
+<li>Before the http handler access the slice, it locks the mutex, and after it&rsquo;s done, it unlocks it.</li>
+</ul>
+
+
+<p>```
+type Foo struct {</p>
+
+<pre><code>content string
+</code></pre>
+
+<p>}</p>
+
+<p>type FooSlice []*Foo</p>
+
+<p>var mutex sync.Mutex</p>
+
+<p>func updateFooSlice(fooSlice FooSlice) {</p>
+
+<pre><code>for {
+    mutex.Lock()
+    foo := &amp;Foo{content: "new"}
+    fooSlice[0] = foo
+    fooSlice[1] = nil
+    mutex.Unlock()
+    time.Sleep(time.Second)
+}
+</code></pre>
+
+<p>}</p>
+
+<p>func installHttpHandler(fooSlice FooSlice) {</p>
+
+<pre><code>handler := func(w http.ResponseWriter, r *http.Request) {
+    mutex.Lock()
+    defer mutex.Unlock()
+    for _, foo := range fooSlice {
+        if foo != nil {
+            fmt.Fprintf(w, "foo: %v ", (*foo).content)
+        }
+    }
+}
+http.HandleFunc("/", handler)
+</code></pre>
+
+<p>}</p>
+
+<p>func main() {</p>
+
+<pre><code>foo1 := &amp;Foo{content: "hey"}
+foo2 := &amp;Foo{content: "yo"}
+
+fooSlice := FooSlice{foo1, foo2}
+
+installHttpHandler(fooSlice)
+
+go updateFooSlice(fooSlice)
+
+http.ListenAndServe(":8080", nil)
+</code></pre>
+
+<p>}</p>
+
+<p>```</p>
+
+<p>If you now re-run the code with the <code>-race</code> flag and access <code>http://localhost:8080</code>, it won&rsquo;t panic.</p>
+
+<h2>Fix #2 &ndash; Don&rsquo;t communicate by sharing memory, share memory by communicating.</h2>
+
+<p>In this approach, rather than using <code>sync.Mutex</code>, we will use channels.</p>
+
+<h2>Digression &ndash; chan chan</h2>
+
+<p>A channel describes a transport of sorts.  You can send a thing down that transport.  When using a chan chan, the thing you want to send down the transport is another transport to send things back.</p>
+
+<p>Before you can understand Fix #2, you will need to understand <code>chan chan</code>&rsquo;s &mdash; in other words, channels of channels, or put another way &mdash; channels which are for exchanging other channels.  You could also call them &ldquo;metachannels&rdquo;, if you are a metahead.</p>
+
+<h2>Fix #2 &ndash; Continued</h2>
+
+<p>Sorry, this blog post isn&rsquo;t finished yet, stay tuned.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Deciphering some Go code]]></title>
+    <link href="http://tleyden.github.io/blog/2013/09/20/deciphering-some-go-code/"/>
+    <updated>2013-09-20T11:11:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2013/09/20/deciphering-some-go-code</id>
+    <content type="html"><![CDATA[<p>While trying to use <a href="http://godoc.org/code.google.com/p/dsallings-couch-go">couch-go</a> and looking at the source, I&rsquo;ve come across some things I don&rsquo;t understand.</p>
+
+<h1>Is function wrapper needed?</h1>
+
+<p>```
+resp, err := client.Get(full_url)
+log.Printf(&ldquo;resp: %v err: %v&rdquo;, resp, err)
+if err == nil {</p>
+
+<pre><code>func() {
+    defer resp.Body.Close()
+    defer conn.Close()
+
+    tc := timeoutClient{resp.Body, conn, timeout}
+    largest = handler(&amp;tc)
+}()
+</code></pre>
+
+<p>} else {</p>
+
+<pre><code>log.Printf("Error in stream: %v", err)
+time.Sleep(time.Second * 1)
+</code></pre>
+
+<p>}</p>
+
+<p>```</p>
+
+<p>Why the separate function wrapper here?  Why not just call:</p>
+
+<p><code>
+defer resp.Body.Close()
+defer conn.Close()
+tc := timeoutClient{resp.Body, conn, timeout}
+largest = handler(&amp;tc)
+</code></p>
+
+<p>directly?</p>
+
+<h1>How to elegantly dump a request body?</h1>
+
+<p>I was trying to debug something, and I wanted to print out the json string before it was being parsed, and here&rsquo;s what I ended up doing:</p>
+
+<p>```
+body, err0 := ioutil.ReadAll(r.Body)
+bodyStr := string(body)
+log.Printf(&ldquo;body: %v err: %v&rdquo;, bodyStr, err0)
+newBody := bytes.NewBuffer(body)
+d := json.NewDecoder(newBody)
+// d := json.NewDecoder(r.Body) &lt;&mdash; orig code
+if err := d.Decode(results); err != nil {</p>
+
+<pre><code>log.Printf("Decode err: %v", err)
+return err
+</code></pre>
+
+<p>}
+```</p>
+
+<p>it seems like there should be a slicker way, like maybe rewinding the r.Body Reader?</p>
+
+<p><strong>Answer</strong>: yes, there is a <em>much</em> slicker way, <code>io.TeeReader</code></p>
+
+<p><code>
+d := json.NewDecoder(io.TeeReader(r.Body, os.Stdout))
+</code></p>
+
+<h1>Using new() with a map &mdash; does this look right?</h1>
+
+<p>According to &ldquo;The Way To Go&rdquo; (book), you are not supposed to be using new() with maps.  However I did this in one case:</p>
+
+<p>```
+type Document map[string]interface{}</p>
+
+<p>func (game Game) fetchLatestGameDoc() (doc Document, err error) {</p>
+
+<pre><code>    fetchedDoc := new(Document)
+    err = game.db.Retrieve(GAME_DOC_ID, fetchedDoc)
+    if err == nil {
+   doc = *fetchedDoc
+    }
+    return
+</code></pre>
+
+<p>}</p>
+
+<p>```</p>
+
+<p>is there a better way?  When I tried using make(), I got the error <code>err: json: Unmarshal(non-pointer checkerlution.Document)</code>.  Using make() followed by &amp; didn&rsquo;t work either.</p>
+
+<h1>Type Assertion hell</h1>
+
+<p>I&rsquo;m trying to get some data that&rsquo;s fairly deep in some json, and ended up doing a lot of awkward feeling type assertions:</p>
+
+<p>```
+func (game Game) checkGameDocInChanges(changes Changes) bool {</p>
+
+<pre><code>    foundGameDoc := false
+    changeResultsRaw := changes["results"]
+    changeResults := changeResultsRaw.([]interface{})
+    for _, changeResultRaw := range changeResults {
+            changeResult := changeResultRaw.(map[string]interface{})
+            docIdRaw := changeResult["id"]
+            docId := docIdRaw.(string)
+            if strings.Contains(docId, GAME_DOC_ID) {
+                    foundGameDoc = true
+            }
+    }
+    return foundGameDoc
+</code></pre>
+
+<p>}
+```</p>
+
+<p>there must be a better way?</p>
+
+<p>Also I didn&rsquo;t get why this didn&rsquo;t work:</p>
+
+<p><code>
+type ChangeItem map[string]interface{}
+...
+changeResult := changeResultRaw.(ChangeItem)
+</code></p>
+
+<p>to make it work I had to change it to:</p>
+
+<p><code>
+changeResult := changeResultRaw.(map[string]interface{})
+</code></p>
+
+<h1>Getting unexpected float64 back from JSON, had to do awkward type conversions</h1>
+
+<p>```
+func (game Game) isOurTurn(gameDoc Document) bool {</p>
+
+<pre><code>    activeTeamRaw := gameDoc["activeTeam"]
+    activeTeam := int(activeTeamRaw.(float64))
+    return activeTeam == game.ourTeamId
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Json snippet:</p>
+
+<p><code>
+{"_id":"game:checkers","activeTeam":0}
+</code></p>
+
+<h1>Can&rsquo;t check for nil</h1>
+
+<p>I have these structs:</p>
+
+<p>```
+type Game struct {</p>
+
+<pre><code>gameState            GameState
+</code></pre>
+
+<p>}</p>
+
+<p>type GameState struct {
+   &hellip;
+}
+```</p>
+
+<p>and in a loop, I set the gameState field of the Game object to value.  I&rsquo;m trying to detect if it&rsquo;s the first pass through the loop with this:</p>
+
+<p><code>
+isFirstGame := (game.gameState == nil)
+</code></p>
+
+<p>but I get the error <code>cannot convert nil to type GameState</code></p>
+]]></content>
+  </entry>
+  
+</feed>

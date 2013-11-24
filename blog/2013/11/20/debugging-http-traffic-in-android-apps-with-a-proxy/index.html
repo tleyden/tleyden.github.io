@@ -133,6 +133,32 @@
 <p>Here&rsquo;s what the HTTP JSON response looks like in the proxy:</p>
 
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/charles_proxy_screenshot.png" alt="Screenshot" /></p>
+
+<h2>If you are using the Genymotion emulator</h2>
+
+<p>The Genymotion emulator has a different method of modifying the proxy setting:</p>
+
+<p>In your virtual device:</p>
+
+<ul>
+<li>Go to Android settings menu</li>
+<li>In Wireless &amp; Networks section, select Wi-Fi</li>
+<li>Press and hold for 2 seconds WiredSSID network in the list</li>
+<li>Choose Modify Network</li>
+<li>Check Show advanced options</li>
+<li>Select Manual for Proxy settings menu entry</li>
+<li>Now enter the proxy settings provided by your network administrator
+
+<ul>
+<li>Ip: 10.0.3.2 (this is a special ip that Genymotion uses to connect back to the host)</li>
+<li>Port: 8888</li>
+</ul>
+</li>
+<li>Finally press the Save button</li>
+</ul>
+
+
+<p>If you don&rsquo;t have Genymotion running, you should check it out, it runs <em>much</em> faster than the default emulator.  <a href="http://tleyden.github.io/blog/2013/11/22/android-studio-plus-genymotion-emulator/">How to get Android Studio + Genymotion working</a></p>
 </div>
 
 
@@ -157,6 +183,12 @@
 
 <time datetime="2013-11-20T14:35:00-08:00" pubdate data-updated="true">Nov 20<span>th</span>, 2013</time>
       
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/android/'>android</a>
+  
+</span>
 
 
     </p>
@@ -207,6 +239,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2013/11/23/understanding-chan-chans-in-go/">Understanding Chan Chan's in Go</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2013/11/22/android-studio-plus-genymotion-emulator/">Android Studio + Genymotion Emulator</a>
       </li>
     
@@ -220,10 +256,6 @@
     
       <li class="post">
         <a href="/blog/2013/11/14/running-couchbase-cluster-under-docker/">Running Couchbase Cluster Under Docker</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/11/14/investigating-an-android-sqlite-threading-deadlock/">Investigating an Android SQLite Threading Deadlock</a>
       </li>
     
   </ul>

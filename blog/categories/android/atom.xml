@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: android | Seven Story Rabbit Hole]]></title>
+  <link href="http://tleyden.github.io/blog/categories/android/atom.xml" rel="self"/>
+  <link href="http://tleyden.github.io/"/>
+  <updated>2013-11-24T15:48:15-08:00</updated>
+  <id>http://tleyden.github.io/</id>
+  <author>
+    <name><![CDATA[Traun Leyden]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Android Studio + Genymotion Emulator]]></title>
+    <link href="http://tleyden.github.io/blog/2013/11/22/android-studio-plus-genymotion-emulator/"/>
+    <updated>2013-11-22T15:51:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2013/11/22/android-studio-plus-genymotion-emulator</id>
+    <content type="html"><![CDATA[<p>The Android emulator is dog slow.  The x86 intel emulators only work with certain versions of OSX, otherwise they crash miserably.</p>
+
+<p>Genymotion is apparently pretty good, so I&rsquo;m giving that a shot.</p>
+
+<p>Here&rsquo;s how to do it.</p>
+
+<h2>Download and Install VirtualBox</h2>
+
+<p><a href="https://www.virtualbox.org/wiki/Downloads">Download VirtualBox</a> + follow instructions to install.</p>
+
+<h2>Signup with Genymotion + Download installer</h2>
+
+<ul>
+<li><p>Go to <a href="genymotion.com">genymotion.com</a> and signup</p></li>
+<li><p>Click the &ldquo;Get Genymotion&rdquo; button and <a href="https://cloud.genymotion.com/page/launchpad/download/">download</a> the appropriate version for your OS.</p></li>
+</ul>
+
+
+<h2>Run the Genymotion application</h2>
+
+<p>It will install Genymotion and Genmotion shell &mdash; run the Genymotion application (not the shell).</p>
+
+<p>When you run it, you will see:</p>
+
+<p><img src="http://cl.ly/image/0e1j3t1j1V3F/Screen%20Shot%202013-11-22%20at%203.57.11%20PM.png" alt="Screenshot" /></p>
+
+<p>Click add new virtual device.  It will ask you to login, then show you a list:</p>
+
+<p><img src="http://cl.ly/image/2i3M2D0p2M2J/Screen%20Shot%202013-11-22%20at%203.59.41%20PM.png" alt="Screenshot" /></p>
+
+<p>Pick the virtual device you want and it will download it.</p>
+
+<h2>Try starting a virtual device</h2>
+
+<p>Here&rsquo;s what happened on my system:</p>
+
+<ul>
+<li>Hit Play to run virtual device</li>
+<li>It asked me to configure the Android SDK location, I said &ldquo;No&rdquo;</li>
+<li>Then it gave me an error that VirtualBox was not installed</li>
+<li>I started VirtualBox manually</li>
+<li>I retried running the virtual device, this time it worked and I saw</li>
+</ul>
+
+
+<p><img src="http://cl.ly/image/252a1T3d2U1x/Screen%20Shot%202013-11-22%20at%204.06.46%20PM.png" alt="Screenshot" /></p>
+
+<h2>Configure Android Studio plugin</h2>
+
+<p>Go to Preferences / Plugins and click &ldquo;Browse Repositories&rdquo;, then search for Genymotion.  Right click and choose &ldquo;Download and Install&rdquo;.</p>
+
+<p><img src="http://cl.ly/image/110z2N2i1S3N/Screen%20Shot%202013-11-22%20at%204.08.42%20PM.png" alt="Screenshot" /></p>
+
+<p>Restart Android Studio and you should see a new icon in your IDE.</p>
+
+<p><img src="http://cl.ly/image/0F0N330u0C32/Screen%20Shot%202013-11-22%20at%204.11.00%20PM.png" alt="Screenshot" /></p>
+
+<p>Click the icon and it will bring up Preferences, and choose the path to the Genymotion application.</p>
+
+<p><img src="http://cl.ly/image/3G3K1s0p2h3x/Screen%20Shot%202013-11-22%20at%204.14.05%20PM.png" alt="Screenshot" /></p>
+
+<p>Now if you click the Genymotion icon again, you will see the list of devices available:</p>
+
+<p><img src="http://cl.ly/image/1Y120s1n1d2l/Screen%20Shot%202013-11-22%20at%204.15.20%20PM.png" alt="Screenshot" /></p>
+
+<h2>Start an emulator</h2>
+
+<p>Click the Genymotion icon within Android studio, select a virtual device, and hit start.</p>
+
+<p>It will ask you to choose the location of the SDK:</p>
+
+<p><img src="http://cl.ly/image/2N0W1h0O3Q2H/Screen%20Shot%202013-11-22%20at%204.18.02%20PM.png" alt="Screenshot" /></p>
+
+<p>On Mac OSX, I was not able to brows to the path since the application was greyed out in the chooser dialog, so I went onto the shell and found it (/Applications/Android Studio.app/sdk) and just copied and pasted it:</p>
+
+<p><img src="http://cl.ly/image/2V2H0d0M1z0f/Screen%20Shot%202013-11-22%20at%204.21.12%20PM.png" alt="Screenshot" /></p>
+
+<p>Select a virtual device, and hit start (again).  It should come up now.</p>
+
+<h2>Deploy an application/test to that emulator</h2>
+
+<p>In Android Studio, hit the &ldquo;Play&rdquo; or &ldquo;Debug&rdquo; button, and you should see the dialog that asks you to choose an emulator:</p>
+
+<p><img src="http://cl.ly/image/1I43000V3h12/Screen%20Shot%202013-11-22%20at%204.25.21%20PM.png" alt="Screenshot" /></p>
+
+<p>and one of the emulators will be the Genymotion emulator.  After you choose that emulator and hit &ldquo;OK&rdquo;, it will run your application in the Genymotion emulator (this is showing the <a href="https://github.com/couchbaselabs/GrocerySync-Android">Grocery Sync</a> demo app for <a href="https://github.com/couchbase/couchbase-lite-android">Couchbase Lite</a>):</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/Genymotion_Grocery_sync.png" alt="Screenshot" /></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Debugging HTTP traffic in Android apps with a proxy]]></title>
+    <link href="http://tleyden.github.io/blog/2013/11/20/debugging-http-traffic-in-android-apps-with-a-proxy/"/>
+    <updated>2013-11-20T14:35:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2013/11/20/debugging-http-traffic-in-android-apps-with-a-proxy</id>
+    <content type="html"><![CDATA[<p>If you need to debug the HTTP communication between a server and an Android app running in an emulator or device, here&rsquo;s some instructions on how I went about doing it.</p>
+
+<p>Here&rsquo;s the overall diagram of what&rsquo;s happening:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/android_proxy.png" alt="Diagram" /></p>
+
+<h2>Install a Proxy</h2>
+
+<p>I&rsquo;m using <a href="http://www.charlesproxy.com/">Charles Proxy</a> and highly recommend it.</p>
+
+<p>As far as proxy configuration, the defaults should be fine.  It should be listening on port 8888 and proxying everything.  If you need HTTPS, you might have to configure that, I don&rsquo;t remember if it&rsquo;s enabled by default.</p>
+
+<h2>Configure the Android Emulator to use that proxy</h2>
+
+<p>There is a blog that describes how to get to this screen, I don&rsquo;t have the link handy.  Essentially once you get to this screen, just update the ip to have the special 10.0.2.2 ip address which represents your workstation, and the port the proxy is listening on (port 8888).</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/android_emu_proxy_config.png" alt="Screenshot" /></p>
+
+<h2>Run an HTTP server on your workstation, on port 4984</h2>
+
+<p>Actually use any port you want, but in my case I&rsquo;m connecting to a server that runs on port 4984.</p>
+
+<h2>Configure your app to connect to 127.0.0.1:4984</h2>
+
+<p>This is actually a bit counterintuitive, but the idea is that the address must be reachable from the workstation&rsquo;s network, not from the emulator&rsquo;s network.</p>
+
+<p>So for that reason, if the server is running on the workstation, you would want to use 127.0.0.1 as the IP.</p>
+
+<p>As long as the server is reachable from your workstation, you can use that IP and it will go through the proxy.</p>
+
+<h2>View HTTP traffic in proxy</h2>
+
+<p>Here&rsquo;s what the HTTP JSON response looks like in the proxy:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/charles_proxy_screenshot.png" alt="Screenshot" /></p>
+
+<h2>If you are using the Genymotion emulator</h2>
+
+<p>The Genymotion emulator has a different method of modifying the proxy setting:</p>
+
+<p>In your virtual device:</p>
+
+<ul>
+<li>Go to Android settings menu</li>
+<li>In Wireless &amp; Networks section, select Wi-Fi</li>
+<li>Press and hold for 2 seconds WiredSSID network in the list</li>
+<li>Choose Modify Network</li>
+<li>Check Show advanced options</li>
+<li>Select Manual for Proxy settings menu entry</li>
+<li>Now enter the proxy settings provided by your network administrator
+
+<ul>
+<li>Ip: 10.0.3.2 (this is a special ip that Genymotion uses to connect back to the host)</li>
+<li>Port: 8888</li>
+</ul>
+</li>
+<li>Finally press the Save button</li>
+</ul>
+
+
+<p>If you don&rsquo;t have Genymotion running, you should check it out, it runs <em>much</em> faster than the default emulator.  <a href="http://tleyden.github.io/blog/2013/11/22/android-studio-plus-genymotion-emulator/">How to get Android Studio + Genymotion working</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Investigating an Android SQLite threading deadlock]]></title>
+    <link href="http://tleyden.github.io/blog/2013/11/14/investigating-an-android-sqlite-threading-deadlock/"/>
+    <updated>2013-11-14T11:24:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2013/11/14/investigating-an-android-sqlite-threading-deadlock</id>
+    <content type="html"><![CDATA[<p>In an unreleased version of Couchbase Lite for Android, I was seeing the following error:</p>
+
+<p><code>
+SQLiteConnectionPool The connection pool for database has been unable to grant a connection to thread
+SQLiteConnectionPool(14004): Connections: 0 active, 1 idle, 0 available.
+</code></p>
+
+<h2>Here&rsquo;s what turned out to be happening</h2>
+
+<p><img src="http://cl.ly/image/0H40001q3T1Q/android_sqlite_deadlock.png" alt="Diagram" /></p>
+
+<ul>
+<li>Create a single SQLiteDatabase object that is shared among all threads</li>
+<li>WriterThread spawned</li>
+<li>t0: WriterThread opens a transaction and inserts some data</li>
+<li>t1: WriterThread spawns ReaderThread</li>
+<li>t2: ReaderThread attempts to read some data</li>
+<li>t3: WriterThread calls .join() on ReaderThread to wait for it to finish</li>
+<li>Deadlock!</li>
+</ul>
+
+
+<h2>Digging into the deadlock</h2>
+
+<ul>
+<li>WriterThread has an open transaction, and therefore is holding on to the one and only connection owned by the single SQLiteDatabase object</li>
+<li>ReaderThread is trying to get a new connection to execute its statement, but cannot because WriterThread is holding the only one available</li>
+<li>WriterThread is waiting for ReaderThread to finish so it can finish it&rsquo;s transaction and release the connection.</li>
+<li>Deadlock!</li>
+</ul>
+
+
+<h2>Code to reproduce the issue</h2>
+
+<p><a href="https://github.com/couchbaselabs/android-sqlite-experiments/blob/master/AndroidSQLiteExperiments/src/main/java/com/couchbaselabs/droidsqliteexprmnts/experiments/ThreadsSingleConnectionDeadlock.java">ThreadsSingleConnectionDeadlock.java</a></p>
+
+<h2>Fix Idea #1 &ndash; Don&rsquo;t make WriterThread join ReaderThread</h2>
+
+<p>This is the somewhat naive and obvious fix.</p>
+
+<p>In the case of this particular bug, it looks like the code can be reworked to avoid this problem altogether, and should end up with a cleaner design anyway.</p>
+
+<h2>(Bad) Fix Idea #2 &ndash; Each thread gets its own SQLiteDatabase object (for the same database)</h2>
+
+<p>You would think this could solve the problem, and it probably would, but there are some major caveats here.</p>
+
+<p>As explained in <a href="http://touchlabblog.tumblr.com/post/24474398246/android-sqlite-locking">Android Sqlite Locking</a>:</p>
+
+<blockquote><p>If you try to write to the database from actual distinct connections at the same time, one will fail.  It will not wait till the first is done and then write.  It will simply not write your change.  Worse, if you don’t call the right version of insert/update on the SQLiteDatabase, you won’t get an exception.  You’ll just get a message in your LogCat, and that will be it.</p></blockquote>
+
+<p>So to avoid this kind of hellish scenario, it&rsquo;s definitely safer to stick with a <a href="http://touchlabblog.tumblr.com/post/24474750219/single-sqlite-connection">Single SQLite connection</a></p>
+
+<h2>Is there really a good fix?</h2>
+
+<p>So what if you absolutely needed to have the ability to have WriterThread join ReaderThread, and you wanted to avoid giving each thread it&rsquo;s own SQLiteDatabase object, how could that be accomplished?</p>
+
+<p>Or is that just a silly scenario and it&rsquo;s better to just not do that?  (it seems fairly easy to do it by accident in any scenarios where threads are waiting on another and both accessing the same database)</p>
+
+<p>Actually, I don&rsquo;t know &mdash; it&rsquo;s an open question.  Comments welcome.</p>
+]]></content>
+  </entry>
+  
+</feed>

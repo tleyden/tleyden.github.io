@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: docker | Seven Story Rabbit Hole]]></title>
+  <link href="http://tleyden.github.io/blog/categories/docker/atom.xml" rel="self"/>
+  <link href="http://tleyden.github.io/"/>
+  <updated>2013-11-24T15:48:15-08:00</updated>
+  <id>http://tleyden.github.io/</id>
+  <author>
+    <name><![CDATA[Traun Leyden]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Running couchbase cluster under docker]]></title>
+    <link href="http://tleyden.github.io/blog/2013/11/14/running-couchbase-cluster-under-docker/"/>
+    <updated>2013-11-14T15:45:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2013/11/14/running-couchbase-cluster-under-docker</id>
+    <content type="html"><![CDATA[<p>This tutorial will show you how to run a cluster of Couchbase Servers, where each node is running inside of a docker image.</p>
+
+<p><img src="http://cl.ly/image/2G0h381N3o42/docker%20couchbase%20cluster.png" alt="Diagram" /></p>
+
+<p>This probably looks like <em>a lot</em> of layers, and you might be wondering if this will make your system crawl &mdash; but bear in mind that the Docker virtualization model is very lightweight, and so basically everything under CoreOS has very little resource overhead.</p>
+
+<h2>Install Docker and dependencies</h2>
+
+<p>If you are on OSX and don&rsquo;t have Docker installed, check out <a href="http://tleyden.github.io/blog/2013/11/12/docker-on-osx/">Install Docker on OSX</a> before proceeding.</p>
+
+<h2>Edit vagrant file to add port mappings</h2>
+
+<p>In order to access all the Couchbase Server nodes from the host, <em>which doesn&rsquo;t currently work</em>, you would need to add the following entries to your Vagrantfile:</p>
+
+<p><code>
+config.vm.network "forwarded_port", guest: 8091, host: 8091
+config.vm.network "forwarded_port", guest: 8092, host: 8092
+config.vm.network "forwarded_port", guest: 11210, host: 11210
+</code></p>
+
+<p>As mentioned, accessing all of the Couchbase Server nodes from the host does not currently work.  However, I think at least some of these entries are needed, so to be on the safe side just add all of them.</p>
+
+<h2>Start CoreOS and ssh in</h2>
+
+<p>Execute the following commands in the directory where you have your CoreOS Vagrantfile.  In my case, I have it under <code>~/Tools/coreos-vagrant</code> and it contains a Vagrantfile, a README.md file, and a few others.</p>
+
+<p>Start CoreOS</p>
+
+<p><code>
+$ vagrant up
+</code></p>
+
+<p>SSH into CoreOS</p>
+
+<p><code>
+$ vagrant ssh
+</code></p>
+
+<h2>Start docker image for a single node</h2>
+
+<p>Here&rsquo;s how to fire up the first docker image</p>
+
+<p><code>
+docker run -i -t -d -p 11210:11210 -p 8091:7081 -p 8092:8092 dustin/couchbase:latest
+</code>
+and you should see:</p>
+
+<p><code>
+Unable to find image 'dustin/couchbase:latest' (tag: latest) locally
+Pulling repository dustin/couchbase
+9e0279ab340d: Download complete
+...
+845987ce946b
+</code></p>
+
+<p>Find the name of the docker instance by running <code>$ docker ps</code></p>
+
+<p><code>
+core@localhost ~ $ docker ps
+CONTAINER ID        IMAGE                     COMMAND                CREATED              STATUS              PORTS                                                                      NAMES
+845987ce946b        dustin/couchbase:latest   /bin/sh -c /usr/loca   About a minute ago   Up About a minute   0.0.0.0:11210-&gt;11210/tcp, 0.0.0.0:8091-&gt;7081/tcp, 0.0.0.0:8092-&gt;8092/tcp   purple_kangaroo
+</code></p>
+
+<p>In this case it&rsquo;s <em>purple_kangaroo</em>.</p>
+
+<p>Now take a look at the logs for that docker instance:</p>
+
+<p><code>
+core@localhost ~ $ docker logs purple_kangaroo
+/opt/couchbase/etc/couchbase_init.d: 45: ulimit: error setting limit (Operation not permitted)
+/opt/couchbase/etc/couchbase_init.d: 47: ulimit: error setting limit (Operation not permitted)
+ * Started couchbase-server
+Starting cluster
+SUCCESS: init 127.0.0.1
+SUCCESS: bucket-create
+</code></p>
+
+<p>If you only want to run one Couchbase Server node, you are pretty much done and you can skip to the section below to login to the Couchbase Server admin</p>
+
+<p>If you want to run a cluster of Couchbase Server nodes, read on.</p>
+
+<h2>Start docker images for other nodes</h2>
+
+<p><code>
+$ docker run -i -t -d -link purple_kangaroo:alpha dustin/couchbase:latest
+</code></p>
+
+<p>This will start another node that is linked to the initial node, and will be in the same cluster.  There is some Weird Magic behind the scenes that makes that all work.</p>
+
+<h1>Go to Couchbase Server admin</h1>
+
+<p>Open <a href="http://localhost:8091/">http://localhost:8091/</a> in your browser, and you should see a login screen, where the default credentials are Administrator/password.</p>
+
+<p>After you login, you should see the Admin UI with three nodes in your cluster:</p>
+
+<p><img src="http://cl.ly/image/2K3i1v2w3H0E/Screen%20Shot%202013-11-14%20at%204.47.18%20PM.png" alt="Screenshot" /></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Docker on OSX]]></title>
+    <link href="http://tleyden.github.io/blog/2013/11/12/docker-on-osx/"/>
+    <updated>2013-11-12T21:01:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2013/11/12/docker-on-osx</id>
+    <content type="html"><![CDATA[<p><img src="http://cl.ly/image/302X103n330L/docker.png" alt="Docker.png" /></p>
+
+<h1>Goal</h1>
+
+<p>Get Docker running under OSX.</p>
+
+<h2>Environment</h2>
+
+<ul>
+<li><p>OSX Mavericks</p></li>
+<li><p>Macbook Retina</p></li>
+</ul>
+
+
+<h2>Understanding the tools</h2>
+
+<ul>
+<li>Vagrant is a tool to provision VMs.</li>
+<li>Virtualbox is VM software.</li>
+<li>CoreOS is an operating system based on linux that&rsquo;s all about running docker.</li>
+</ul>
+
+
+<h2>Install VirtualBox + Vagrant</h2>
+
+<ul>
+<li><p>Install VirtualBox via <a href="http://download.virtualbox.org/virtualbox/4.3.2/VirtualBox-4.3.2-90405-OSX.dmg">VirtualBox OSX installer</a></p></li>
+<li><p>Install Vagrant via <a href="http://files.vagrantup.com/packages/a40522f5fabccb9ddabad03d836e120ff5d14093/Vagrant-1.3.5.dmg">Vagrant OSX installer</a></p></li>
+</ul>
+
+
+<h2>Vagrant Smoke Test: run Ubuntu Precise</h2>
+
+<p>To make sure Vagrant is installed correctly, run the following commands to see if Ubuntu Precise comes up and you are able to ssh into it.</p>
+
+<p><code>
+vagrant init precise32 http://files.vagrantup.com/precise32.box
+vagrant up
+vagrant ssh
+</code></p>
+
+<p>If that doesn&rsquo;t work, you should probably fix it before moving on.  Otherwise, keep reading.</p>
+
+<h2>Install/Run CoreOS</h2>
+
+<p><code>
+git clone https://github.com/coreos/coreos-vagrant/
+cd coreos-vagrant
+vagrant up
+</code></p>
+
+<h2>SSH into CoreOS</h2>
+
+<p><code>
+vagrant ssh
+</code></p>
+
+<h2>Run stock ubuntu docker image</h2>
+
+<p><code>
+docker run -t -i ubuntu bash
+</code></p>
+
+<p>After running this, you should be ssh&rsquo;d inside of an Ubuntu shell, running under docker (running inside of VirtualBox .. etc, all the way up the onion)</p>
+]]></content>
+  </entry>
+  
+</feed>

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: hiring | Seven Story Rabbit Hole]]></title>
+  <link href="http://tleyden.github.io/blog/categories/hiring/atom.xml" rel="self"/>
+  <link href="http://tleyden.github.io/"/>
+  <updated>2013-11-24T15:48:15-08:00</updated>
+  <id>http://tleyden.github.io/</id>
+  <author>
+    <name><![CDATA[Traun Leyden]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Java coding challenge]]></title>
+    <link href="http://tleyden.github.io/blog/2013/09/19/java-coding-challenge/"/>
+    <updated>2013-09-19T13:42:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2013/09/19/java-coding-challenge</id>
+    <content type="html"><![CDATA[<p>Write a server that uses tcp sockets which returns images to clients, and avoids duplicate work for concurrent requests for the same image.</p>
+
+<h1>Description</h1>
+
+<p>A server will listen for tcp client connections and generate PNG checkerboard images and return them to clients that request them.  Example checkerboard image:</p>
+
+<p><img src="/images/checkerboard.png" width="295" height="105" title="&lsquo;image&rsquo; &lsquo;images&rsquo;" ></p>
+
+<p>The client will send a single parameter to the server after it opens the tcp socket connection to the server:</p>
+
+<ul>
+<li> The size of the &ldquo;checkboard image&rdquo;, which will be a single scalar value like 5, which will result in a 5x5 square, as shown above.</li>
+</ul>
+
+
+<p>The server will use the following default values when generating the checkerboard image:</p>
+
+<ul>
+<li> size: each square will be 60 x 60 pixels.</li>
+<li> color: squares will be alternating black and white, with black for the square in the 0th row and 0th column, and white for the square in the 1st row and 0th column, etc.  Exactly as shown above.</li>
+</ul>
+
+
+<h1>Basic Requirements</h1>
+
+<ul>
+<li>Written in either Java or Scala</li>
+<li>To generate the actual image, you can use anything you want.  The image format can be any popular image format (PNG, JPEG, GIF, etc..)</li>
+<li>For the data structures required by the server, you can use any existing data structures within Java itself or a 3rd party, there is no requirement to develop your own.</li>
+<li>The server will respond with the image data in PNG format, and then close the connection.</li>
+</ul>
+
+
+<h1>Advanced Requirements</h1>
+
+<ul>
+<li>In the method that generates the square, there must be a call to Thread.sleep(Y) before returning.  Y represents number of milliseconds to sleep, and will be a random number between 0 and 5000.</li>
+<li>The server can handle multiple client requests in parallel (as opposed to handling them in serial).  In other words, if client1 contacts the server, and then client2 contacts the server a few milliseconds later, there is a chance that client2 will receive a response before client1, depending on the random sleep described above.</li>
+<li>In order to avoid needlessly generating the same image twice, if the server is asked to generate a square of size X by client1, and then again asked to generate another square of size X by client2 before it has returned the square to client1, it will simply wait for the square for client1 is finished being generated and return that same square data to both client2 and client1.  Here is an example timeline to show how events would roughly be ordered:
+
+<ul>
+<li>At 12:00:00 Client1 asks for square of size 6</li>
+<li>At 12:00:01 The server starts to generate the square for client1</li>
+<li>At 12:00:01 Client2 asks for square of size 6 (the server does <em>not</em> try to generate a new square, since there is already a pending request for an identical square)</li>
+<li>At 12:00:06 The server finishes generating the square of size 6, as originally requested by client1</li>
+<li>At 12:00:07 The server returns the square to client1</li>
+<li>At 12:00:07 The server returns the same square to client2</li>
+</ul>
+</li>
+</ul>
+
+
+<h1>Deliverables</h1>
+
+<ul>
+<li>server.sh &ndash; starts the server that listens on 8000</li>
+<li>client.sh X &ndash; runs a client that:
+
+<ul>
+<li>connects to localhost:8000</li>
+<li>passes the parameter X (the size of the checkboard image) to the server</li>
+<li>reads the PNG into a file called X.png</li>
+<li>prints a message to say its finished.</li>
+</ul>
+</li>
+<li>A zip file that contains all jar file dependencies <em>or</em> a document that describes on how to download the required dependencies</li>
+</ul>
+
+
+<h1>Shortcuts</h1>
+
+<p>If this feels like too much work, take the following shortcut:</p>
+
+<ul>
+<li>Rather than return an image, just create a string which would represent the image, where X represents black and O represents white.  Eg, if it was a 2x2 square, return &ldquo;X00X&rdquo;</li>
+</ul>
+
+
+<h1>Bonus points</h1>
+
+<ul>
+<li>Record your commits in a local git repository as you work, and submit a zip file of the repository along with the other deliverables</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>

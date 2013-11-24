@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2013-11-22T16:47:32-08:00</updated>
+  <updated>2013-11-24T15:48:15-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,138 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Understanding chan chan's in Go]]></title>
+    <link href="http://tleyden.github.io/blog/2013/11/23/understanding-chan-chans-in-go/"/>
+    <updated>2013-11-23T07:58:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2013/11/23/understanding-chan-chans-in-go</id>
+    <content type="html"><![CDATA[<p>A channel describes a transport of sorts.  You can send a thing down that transport.  When using a chan chan, the thing you want to send down the transport is another transport to send things back.</p>
+
+<p>They are useful when you want to get a response to something, and you don&rsquo;t want to setup two channels (it&rsquo;s generally considered bad practice to have data moving bidirectionally on a single channel)</p>
+
+<h2>Visual time lapse walkthrough</h2>
+
+<p>Keep in mind that Goroutine C is the &ldquo;real consumer&rdquo; even though it will be the one which writes to the request channel.</p>
+
+<p>The request channel starts out empty.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_1.png" alt="Screenshot" /></p>
+
+<p>Goroutine C passes a &ldquo;response channel&rdquo; to go routine D via the request channel</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_2.png" alt="Screenshot" /></p>
+
+<p>Goroutine C starts reading from the (still empty) response channel.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_3.png" alt="Screenshot" /></p>
+
+<p>Goroutine D writes a string to the response channel</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_4.png" alt="Screenshot" /></p>
+
+<p>Goroutine C now is able to read a value from response channel, and get&rsquo;s the &ldquo;wassup!&rdquo; message</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_5.png" alt="Screenshot" /></p>
+
+<p>And now we are back to where we started</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_1.png" alt="Screenshot" /></p>
+
+<h2>And here is some code</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>package main
+</span><span class='line'>
+</span><span class='line'>import "fmt"
+</span><span class='line'>import "time"
+</span><span class='line'>
+</span><span class='line'>func main() {
+</span><span class='line'>
+</span><span class='line'>     // make the request chan chan that both go-routines will be given
+</span><span class='line'>     requestChan := make(chan chan string)
+</span><span class='line'>
+</span><span class='line'>     // start the goroutines
+</span><span class='line'>     go goroutineC(requestChan)
+</span><span class='line'>     go goroutineD(requestChan)
+</span><span class='line'>
+</span><span class='line'>     // sleep for a second to let the goroutines complete
+</span><span class='line'>     time.Sleep(time.Second)
+</span><span class='line'>
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>func goroutineC(requestChan chan chan string) {
+</span><span class='line'>
+</span><span class='line'>     // make a new response chan
+</span><span class='line'>     responseChan := make(chan string)
+</span><span class='line'>
+</span><span class='line'>     // send the responseChan to goRoutineD
+</span><span class='line'>     requestChan &lt;- responseChan
+</span><span class='line'>
+</span><span class='line'>     // read the response
+</span><span class='line'>     response := &lt;-responseChan
+</span><span class='line'>
+</span><span class='line'>     fmt.Printf("Response: %v\n", response)
+</span><span class='line'>
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>func goroutineD(requestChan chan chan string) {
+</span><span class='line'>
+</span><span class='line'>     // read the responseChan from the requestChan
+</span><span class='line'>     responseChan := &lt;-requestChan
+</span><span class='line'>
+</span><span class='line'>     // send a value down the responseChan
+</span><span class='line'>     responseChan &lt;- "wassup!"
+</span><span class='line'>
+</span><span class='line'>}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This code can be run on <a href="http://play.golang.org/p/chi6P2XGTO">Go playground</a></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Android Studio + Genymotion Emulator]]></title>
@@ -392,6 +524,32 @@
 <p>Here&rsquo;s what the HTTP JSON response looks like in the proxy:</p>
 
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/charles_proxy_screenshot.png" alt="Screenshot" /></p>
+
+<h2>If you are using the Genymotion emulator</h2>
+
+<p>The Genymotion emulator has a different method of modifying the proxy setting:</p>
+
+<p>In your virtual device:</p>
+
+<ul>
+<li>Go to Android settings menu</li>
+<li>In Wireless &amp; Networks section, select Wi-Fi</li>
+<li>Press and hold for 2 seconds WiredSSID network in the list</li>
+<li>Choose Modify Network</li>
+<li>Check Show advanced options</li>
+<li>Select Manual for Proxy settings menu entry</li>
+<li>Now enter the proxy settings provided by your network administrator
+
+<ul>
+<li>Ip: 10.0.3.2 (this is a special ip that Genymotion uses to connect back to the host)</li>
+<li>Port: 8888</li>
+</ul>
+</li>
+<li>Finally press the Save button</li>
+</ul>
+
+
+<p>If you don&rsquo;t have Genymotion running, you should check it out, it runs <em>much</em> faster than the default emulator.  <a href="http://tleyden.github.io/blog/2013/11/22/android-studio-plus-genymotion-emulator/">How to get Android Studio + Genymotion working</a></p>
 ]]></content>
   </entry>
   
