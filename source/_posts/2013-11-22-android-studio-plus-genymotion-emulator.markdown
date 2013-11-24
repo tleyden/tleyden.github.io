@@ -3,7 +3,7 @@ layout: post
 title: "Android Studio + Genymotion Emulator"
 date: 2013-11-22 15:51
 comments: true
-categories: 
+categories: [android]
 ---
 
 The Android emulator is dog slow.  The x86 intel emulators only work with certain versions of OSX, otherwise they crash miserably.

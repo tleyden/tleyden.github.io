@@ -3,7 +3,7 @@ layout: post
 title: "Docker on OSX"
 date: 2013-11-12 21:01
 comments: true
-categories: 
+categories: [docker]
 ---
 
 ![Docker.png](http://cl.ly/image/302X103n330L/docker.png)

@@ -3,7 +3,7 @@ layout: post
 title: "A simple data race in Go and how to fix it"
 date: 2013-11-21 08:16
 comments: true
-categories: 
+categories: [golang]
 ---
 
 Suppose you want to add an http handler which can show some things that in memory.  

@@ -3,7 +3,7 @@ layout: post
 title: "Investigating an Android SQLite threading deadlock"
 date: 2013-11-14 11:24
 comments: true
-categories: 
+categories: [android, java]
 ---
 
 In an unreleased version of Couchbase Lite for Android, I was seeing the following error:

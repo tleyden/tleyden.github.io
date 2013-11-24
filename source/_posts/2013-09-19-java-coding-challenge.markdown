@@ -3,7 +3,7 @@ layout: post
 title: "Java coding challenge"
 date: 2013-09-19 13:42
 comments: true
-categories: 
+categories: [java, hiring]
 ---
 
 

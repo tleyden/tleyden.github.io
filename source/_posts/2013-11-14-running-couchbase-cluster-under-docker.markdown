@@ -3,7 +3,7 @@ layout: post
 title: "Running couchbase cluster under docker"
 date: 2013-11-14 15:45
 comments: true
-categories: 
+categories: [docker, couchbase]
 ---
 
 This tutorial will show you how to run a cluster of Couchbase Servers, where each node is running inside of a docker image.

@@ -3,7 +3,7 @@ layout: post
 title: "Deciphering some Go code"
 date: 2013-09-20 11:11
 comments: true
-categories: 
+categories: [golang]
 ---
 
 While trying to use [couch-go](http://godoc.org/code.google.com/p/dsallings-couch-go) and looking at the source, I've come across some things I don't understand.
