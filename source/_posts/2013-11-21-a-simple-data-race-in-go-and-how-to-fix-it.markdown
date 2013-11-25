@@ -136,20 +136,55 @@ func main() {
 
 If you now re-run the code with the `-race` flag and access `http://localhost:8080`, it won't panic.  
 
-## Fix #2 - Don't communicate by sharing memory, share memory by communicating.
-
-In this approach, rather than using `sync.Mutex`, we will use channels.
-
 ## Digression - chan chan
 
-A channel describes a transport of sorts.  You can send a thing down that transport.  When using a chan chan, the thing you want to send down the transport is another transport to send things back.
+Before we can talk about Fix #2, we need to take a digression to talk about chan chan's -- channels which contain other channels as the morsels of data that pass through the channel tubes (metachannels, if you will).
 
-Before you can understand Fix #2, you will need to understand `chan chan`'s -- in other words, channels of channels, or put another way -- channels which are for exchanging other channels.  You could also call them "metachannels", if you are a metahead.
+**tl;dr** A channel describes a transport of sorts.  You can send a thing down that transport.  When using a chan chan, the thing you want to send down the transport is another transport to send things back.
 
-## Fix #2 - Continued
+If it's still a little fuzzy for you, here's the [long description of chan chan's with diagrams](http://tleyden.github.io/blog/2013/11/23/understanding-chan-chans-in-go/)
 
-Sorry, this blog post isn't finished yet, stay tuned.  
-
- 
+## Fix #2 - Use channels instead of `sync.Mutex`
 
 
+In this version of the fix, the goroutine running the http handler (the main goroutine in this case), makes a response chan and passes it into a request chan chan that both goroutines can access.  It then reads the response from the response chan, which will contain a copy of the FooSlice.
+
+```
+func installHttpHandler(fooSlice FooSlice) {
+        handler := func(w http.ResponseWriter, r *http.Request) {
+                response := make(chan FooSlice)
+                request <- response
+                fooSliceCopy := <-response
+                for _, foo := range fooSliceCopy {
+                        if foo != nil {
+                                fmt.Fprintf(w, "foo: %v ", (*foo).content)
+                        }
+                }
+        }
+        http.HandleFunc("/", handler)
+}
+```
+
+The other goroutine updates the FooSlice and is also checking the request chan chan for new messages.  If it gets a new request message, it makes a copy of the FooSlice and sends it to the response chan.
+
+```
+func updateFooSlice(fooSlice FooSlice) {
+        t := time.Tick(time.Second)
+        for {
+                select {
+                case <-t:
+                        foo := &Foo{content: "new"}
+                        fooSlice[0] = foo
+                        fooSlice[1] = nil
+                case ch := <-request:
+                        fooSliceCopy := make(FooSlice, len(fooSlice))
+                        copy(fooSliceCopy, fooSlice)
+                        ch <- fooSliceCopy
+                }
+        }
+}
+```
+
+Again, if you now re-run this code with the `-race` flag and access `http://localhost:8080`, it won't panic.  
+
+The full code sample is [available on gihub](https://github.com/tleyden/go-scratchpad/blob/e92685b35c2d6f61274c7e72a3cdebf85817878a/concurrentaccess/main.go)
