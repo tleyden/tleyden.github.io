@@ -4,7 +4,7 @@
   <title><![CDATA[Category: golang | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/golang/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2013-11-24T15:48:15-08:00</updated>
+  <updated>2013-11-24T16:26:16-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -271,19 +271,63 @@ http.ListenAndServe(":8080", nil)
 
 <p>If you now re-run the code with the <code>-race</code> flag and access <code>http://localhost:8080</code>, it won&rsquo;t panic.</p>
 
-<h2>Fix #2 &ndash; Don&rsquo;t communicate by sharing memory, share memory by communicating.</h2>
-
-<p>In this approach, rather than using <code>sync.Mutex</code>, we will use channels.</p>
-
 <h2>Digression &ndash; chan chan</h2>
 
-<p>A channel describes a transport of sorts.  You can send a thing down that transport.  When using a chan chan, the thing you want to send down the transport is another transport to send things back.</p>
+<p>Before we can talk about Fix #2, we need to take a digression to talk about chan chan&rsquo;s &mdash; channels which contain other channels as the morsels of data that pass through the channel tubes (metachannels, if you will).</p>
 
-<p>Before you can understand Fix #2, you will need to understand <code>chan chan</code>&rsquo;s &mdash; in other words, channels of channels, or put another way &mdash; channels which are for exchanging other channels.  You could also call them &ldquo;metachannels&rdquo;, if you are a metahead.</p>
+<p><strong>tl;dr</strong> A channel describes a transport of sorts.  You can send a thing down that transport.  When using a chan chan, the thing you want to send down the transport is another transport to send things back.</p>
 
-<h2>Fix #2 &ndash; Continued</h2>
+<p>If it&rsquo;s still a little fuzzy for you, here&rsquo;s the <a href="http://tleyden.github.io/blog/2013/11/23/understanding-chan-chans-in-go/">long description of chan chan&rsquo;s with diagrams</a></p>
 
-<p>Sorry, this blog post isn&rsquo;t finished yet, stay tuned.</p>
+<h2>Fix #2 &ndash; Use channels instead of <code>sync.Mutex</code></h2>
+
+<p>In this version of the fix, the goroutine running the http handler (the main goroutine in this case), makes a response chan and passes it into a request chan chan that both goroutines can access.  It then reads the response from the response chan, which will contain a copy of the FooSlice.</p>
+
+<p>```
+func installHttpHandler(fooSlice FooSlice) {</p>
+
+<pre><code>    handler := func(w http.ResponseWriter, r *http.Request) {
+            response := make(chan FooSlice)
+            request &lt;- response
+            fooSliceCopy := &lt;-response
+            for _, foo := range fooSliceCopy {
+                    if foo != nil {
+                            fmt.Fprintf(w, "foo: %v ", (*foo).content)
+                    }
+            }
+    }
+    http.HandleFunc("/", handler)
+</code></pre>
+
+<p>}
+```</p>
+
+<p>The other goroutine updates the FooSlice and is also checking the request chan chan for new messages.  If it gets a new request message, it makes a copy of the FooSlice and sends it to the response chan.</p>
+
+<p>```
+func updateFooSlice(fooSlice FooSlice) {</p>
+
+<pre><code>    t := time.Tick(time.Second)
+    for {
+            select {
+            case &lt;-t:
+                    foo := &amp;Foo{content: "new"}
+                    fooSlice[0] = foo
+                    fooSlice[1] = nil
+            case ch := &lt;-request:
+                    fooSliceCopy := make(FooSlice, len(fooSlice))
+                    copy(fooSliceCopy, fooSlice)
+                    ch &lt;- fooSliceCopy
+            }
+    }
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Again, if you now re-run this code with the <code>-race</code> flag and access <code>http://localhost:8080</code>, it won&rsquo;t panic.</p>
+
+<p>The full code sample is <a href="https://github.com/tleyden/go-scratchpad/blob/e92685b35c2d6f61274c7e72a3cdebf85817878a/concurrentaccess/main.go">available on gihub</a></p>
 ]]></content>
   </entry>
   
