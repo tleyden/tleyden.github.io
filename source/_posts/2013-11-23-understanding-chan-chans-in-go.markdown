@@ -39,7 +39,7 @@ And now we are back to where we started
 
 ![Screenshot](http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_1.png)
 
-## And here is some code
+## Here is some code that uses chan chan's
 
 ```
 package main
@@ -89,3 +89,7 @@ func goroutineD(requestChan chan chan string) {
 ```
 
 This code can be run on [Go playground](http://play.golang.org/p/chi6P2XGTO)
+
+## For more information
+
+See [Google I/O 2013 - Advanced Go Concurrency Patterns](https://www.youtube.com/watch?v=QDDwwePbDtw) around 17:00.  This contains another explanation of chan chan's.
