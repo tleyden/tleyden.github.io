@@ -5,13 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Investigating an Android SQLite threading deadlock - Seven Story Rabbit Hole</title>
+  <title>How to downgrade Android Studio - Seven Story Rabbit Hole</title>
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="In an unreleased version of Couchbase Lite for Android, I was seeing the following error: 1
-2
-SQLiteConnectionPool The connection pool for database &hellip;">
+  <meta name="description" content="I just tried to update to Android Studio 0.4, however was stung by Issue 61573: Gradle duplicate file exception when package apk file with jar &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -20,7 +18,7 @@ SQLiteConnectionPool The connection pool for database &hellip;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://tleyden.github.io/blog/2013/11/14/investigating-an-android-sqlite-threading-deadlock">
+  <link rel="canonical" href="http://tleyden.github.io/blog/2013/12/19/how-to-downgrade-android-studio">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
@@ -77,7 +75,7 @@ SQLiteConnectionPool The connection pool for database &hellip;">
   
   <header>
     
-      <h1 class="entry-title">Investigating an Android SQLite Threading Deadlock</h1>
+      <h1 class="entry-title">How to Downgrade Android Studio</h1>
     
     
       <p class="meta">
@@ -93,73 +91,35 @@ SQLiteConnectionPool The connection pool for database &hellip;">
   
 
 
-<time datetime="2013-11-14T11:24:00-08:00" pubdate data-updated="true">Nov 14<span>th</span>, 2013</time>
+<time datetime="2013-12-19T17:01:00-08:00" pubdate data-updated="true">Dec 19<span>th</span>, 2013</time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><p>In an unreleased version of Couchbase Lite for Android, I was seeing the following error:</p>
+<div class="entry-content"><p>I just tried to update to Android Studio 0.4, however was stung by <a href="https://code.google.com/p/android/issues/detail?id=61573#c14">Issue 61573: Gradle duplicate file exception when package apk file with jar dependencies that contains resources.</a></p>
+
+<p>The good news is that it&rsquo;s very easy to downgrade!  Thank Google, because there is nothing more annoying than not being able to back out of an upgrade gone bad.</p>
+
+<p>Here&rsquo;s how I did it on OSX Mavericks:</p>
+
+<ul>
+<li><p>Download 0.3.7 from <a href="http://tools.android.com/download/studio/canary/0-3-7">http://tools.android.com/download/studio/canary/0-3-7</a></p></li>
+<li><p>Unzip it by double clicking it.</p></li>
+<li><p>In a command line, run the following:</p></li>
+</ul>
+
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>SQLiteConnectionPool The connection pool for database has been unable to grant a connection to thread
-</span><span class='line'>SQLiteConnectionPool(14004): Connections: 0 active, 1 idle, 0 available.</span></code></pre></td></tr></table></div></figure>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ mv /Applications/Android\ Studio.app/ tmp/
+</span><span class='line'>$ mv ~/Downloads/Android\ Studio.app/ /Applications/
+</span><span class='line'>$ cp -R tmp/Android\ Studio.app/sdk /Applications/Android\ Studio.app/</span></code></pre></td></tr></table></div></figure>
 
 
-<h2>Here&rsquo;s what turned out to be happening</h2>
-
-<p><img src="http://cl.ly/image/0H40001q3T1Q/android_sqlite_deadlock.png" alt="Diagram" /></p>
-
-<ul>
-<li>Create a single SQLiteDatabase object that is shared among all threads</li>
-<li>WriterThread spawned</li>
-<li>t0: WriterThread opens a transaction and inserts some data</li>
-<li>t1: WriterThread spawns ReaderThread</li>
-<li>t2: ReaderThread attempts to read some data</li>
-<li>t3: WriterThread calls .join() on ReaderThread to wait for it to finish</li>
-<li>Deadlock!</li>
-</ul>
-
-
-<h2>Digging into the deadlock</h2>
-
-<ul>
-<li>WriterThread has an open transaction, and therefore is holding on to the one and only connection owned by the single SQLiteDatabase object</li>
-<li>ReaderThread is trying to get a new connection to execute its statement, but cannot because WriterThread is holding the only one available</li>
-<li>WriterThread is waiting for ReaderThread to finish so it can finish it&rsquo;s transaction and release the connection.</li>
-<li>Deadlock!</li>
-</ul>
-
-
-<h2>Code to reproduce the issue</h2>
-
-<p><a href="https://github.com/couchbaselabs/android-sqlite-experiments/blob/master/AndroidSQLiteExperiments/src/main/java/com/couchbaselabs/droidsqliteexprmnts/experiments/ThreadsSingleConnectionDeadlock.java">ThreadsSingleConnectionDeadlock.java</a></p>
-
-<h2>Fix Idea #1 &ndash; Don&rsquo;t make WriterThread join ReaderThread</h2>
-
-<p>This is the somewhat naive and obvious fix.</p>
-
-<p>In the case of this particular bug, it looks like the code can be reworked to avoid this problem altogether, and should end up with a cleaner design anyway.</p>
-
-<h2>(Bad) Fix Idea #2 &ndash; Each thread gets its own SQLiteDatabase object (for the same database)</h2>
-
-<p>You would think this could solve the problem, and it probably would, but there are some major caveats here.</p>
-
-<p>As explained in <a href="http://touchlabblog.tumblr.com/post/24474398246/android-sqlite-locking">Android Sqlite Locking</a>:</p>
-
-<blockquote><p>If you try to write to the database from actual distinct connections at the same time, one will fail.  It will not wait till the first is done and then write.  It will simply not write your change.  Worse, if you don’t call the right version of insert/update on the SQLiteDatabase, you won’t get an exception.  You’ll just get a message in your LogCat, and that will be it.</p></blockquote>
-
-<p>So to avoid this kind of hellish scenario, it&rsquo;s definitely safer to stick with a <a href="http://touchlabblog.tumblr.com/post/24474750219/single-sqlite-connection">Single SQLite connection</a></p>
-
-<h2>Is there really a good fix?</h2>
-
-<p>So what if you absolutely needed to have the ability to have WriterThread join ReaderThread, and you wanted to avoid giving each thread it&rsquo;s own SQLiteDatabase object, how could that be accomplished?</p>
-
-<p>Or is that just a silly scenario and it&rsquo;s better to just not do that?  (it seems fairly easy to do it by accident in any scenarios where threads are waiting on another and both accessing the same database)</p>
-
-<p>Actually, I don&rsquo;t know &mdash; it&rsquo;s an open question.  Comments welcome.</p>
+<p>The last step is necessary because the dowloaded 0.3.7 Android Studio will not have an SDK directory.  (Note: at this point you can also use <code>mv</code> instead of <code>cp</code> if you don&rsquo;t want to use the extra disk space)</p>
 </div>
 
 
@@ -182,21 +142,15 @@ SQLiteConnectionPool The connection pool for database &hellip;">
   
 
 
-<time datetime="2013-11-14T11:24:00-08:00" pubdate data-updated="true">Nov 14<span>th</span>, 2013</time>
+<time datetime="2013-12-19T17:01:00-08:00" pubdate data-updated="true">Dec 19<span>th</span>, 2013</time>
       
-
-<span class="categories">
-  
-    <a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/java/'>java</a>
-  
-</span>
 
 
     </p>
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2013/11/14/investigating-an-android-sqlite-threading-deadlock/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2013/11/14/investigating-an-android-sqlite-threading-deadlock/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2013/12/19/how-to-downgrade-android-studio/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2013/12/19/how-to-downgrade-android-studio/" >Tweet</a>
   
   
   
@@ -205,10 +159,8 @@ SQLiteConnectionPool The connection pool for database &hellip;">
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2013/11/12/docker-on-osx/" title="Previous Post: Docker on OSX">&laquo; Docker on OSX</a>
+        <a class="basic-alignment left" href="/blog/2013/11/23/understanding-chan-chans-in-go/" title="Previous Post: Understanding chan chan's in Go">&laquo; Understanding chan chan's in Go</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2013/11/14/running-couchbase-cluster-under-docker/" title="Next Post: Running couchbase cluster under docker">Running couchbase cluster under docker &raquo;</a>
       
     </p>
   </footer>
@@ -317,8 +269,8 @@ SQLiteConnectionPool The connection pool for database &hellip;">
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://tleyden.github.io/blog/2013/11/14/investigating-an-android-sqlite-threading-deadlock/';
-        var disqus_url = 'http://tleyden.github.io/blog/2013/11/14/investigating-an-android-sqlite-threading-deadlock/';
+        var disqus_identifier = 'http://tleyden.github.io/blog/2013/12/19/how-to-downgrade-android-studio/';
+        var disqus_url = 'http://tleyden.github.io/blog/2013/12/19/how-to-downgrade-android-studio/';
         var disqus_script = 'embed.js';
       
     (function () {

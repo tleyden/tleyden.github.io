@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2013-11-24T16:26:16-08:00</updated>
+  <updated>2014-01-08T11:27:45-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,36 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[How to downgrade Android Studio]]></title>
+    <link href="http://tleyden.github.io/blog/2013/12/19/how-to-downgrade-android-studio/"/>
+    <updated>2013-12-19T17:01:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2013/12/19/how-to-downgrade-android-studio</id>
+    <content type="html"><![CDATA[<p>I just tried to update to Android Studio 0.4, however was stung by <a href="https://code.google.com/p/android/issues/detail?id=61573#c14">Issue 61573: Gradle duplicate file exception when package apk file with jar dependencies that contains resources.</a></p>
+
+<p>The good news is that it&rsquo;s very easy to downgrade!  Thank Google, because there is nothing more annoying than not being able to back out of an upgrade gone bad.</p>
+
+<p>Here&rsquo;s how I did it on OSX Mavericks:</p>
+
+<ul>
+<li><p>Download 0.3.7 from <a href="http://tools.android.com/download/studio/canary/0-3-7">http://tools.android.com/download/studio/canary/0-3-7</a></p></li>
+<li><p>Unzip it by double clicking it.</p></li>
+<li><p>In a command line, run the following:</p></li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ mv /Applications/Android\ Studio.app/ tmp/
+</span><span class='line'>$ mv ~/Downloads/Android\ Studio.app/ /Applications/
+</span><span class='line'>$ cp -R tmp/Android\ Studio.app/sdk /Applications/Android\ Studio.app/</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The last step is necessary because the dowloaded 0.3.7 Android Studio will not have an SDK directory.  (Note: at this point you can also use <code>mv</code> instead of <code>cp</code> if you don&rsquo;t want to use the extra disk space)</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Understanding chan chan's in Go]]></title>
@@ -50,7 +80,7 @@
 
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_1.png" alt="Screenshot" /></p>
 
-<h2>And here is some code</h2>
+<h2>Here is some code that uses chan chan&rsquo;s</h2>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -142,6 +172,10 @@
 
 
 <p>This code can be run on <a href="http://play.golang.org/p/chi6P2XGTO">Go playground</a></p>
+
+<h2>For more information</h2>
+
+<p>See <a href="https://www.youtube.com/watch?v=QDDwwePbDtw">Google I/O 2013 &ndash; Advanced Go Concurrency Patterns</a> around 17:00.  This contains another explanation of chan chan&rsquo;s.</p>
 ]]></content>
   </entry>
   

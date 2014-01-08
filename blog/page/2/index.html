@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="I&rsquo;m writing this blog entry as I&rsquo;m creating my blog. I have decided to use Octopress, and I&rsquo;m initially going to host it on Github &hellip;">
+  <meta name="description" content="Showing my tweets on my blog What&rsquo;s a blog without a few tweets to spice it up? Here&rsquo;s my first attempt, which didn&rsquo;t work. I &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +72,112 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/09/07/octopress-setup-part-ii/">Octopress Setup Part II</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-09-07T11:46:00-07:00" pubdate data-updated="true">Sep 7<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>Showing my tweets on my blog</h1>
+
+<p>What&rsquo;s a blog without a few tweets to spice it up?</p>
+
+<p>Here&rsquo;s my first attempt, which didn&rsquo;t work.  I modified my _config.yml file to have:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>twitter_user: tleydn</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After some desperate googling, I came across <a href="http://blog.jmac.org/blog/2013/03/30/putting-twitter-back-into-octopress/">this blog post</a> which seems to suggest that twitter support has been remoted from Octopress, with instructions on how to embed a twitter widget.</p>
+
+<p>Here&rsquo;s a few tricks to make it looks slightly less butt-ugly:</p>
+
+<ul>
+<li>In the twitter widget generator, choose the &ldquo;dark&rdquo; theme.</li>
+<li>Modify the widget class to have dimensions <code>width="300" height="350"</code> so that it is slightly less distracting when viewing content.</li>
+</ul>
+
+
+<h1>Adding an &ldquo;About&rdquo; page</h1>
+
+<p>I followed the instructions on <a href="http://octopress.org/docs/theme/template/">Theming &amp; Customization</a>, which added an About section on the top of the sidebar on the right side.</p>
+
+<h1>Enabling Disqus comments</h1>
+
+<p>This was trivial:</p>
+
+<ul>
+<li>Go to <a href="http://disqus.com">Disqus</a> and register a new site</li>
+<li>Add the &ldquo;shortname&rdquo; to the _config.yml file</li>
+</ul>
+
+
+<h1>Let&rsquo;s pimp this thing &mdash; Adding an image in the header</h1>
+
+<ul>
+<li>Open octopress/source/_includes/custom/header.html</li>
+<li>Find an image graphic and save it into octopress/source/images (in my case, it was /images/rabbit_hole_graphic.png)</li>
+<li>Add a new html table element, and in one cell add a link to the image with the appropriate size dimensions.</li>
+</ul>
+
+
+<p>Example header.html file:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>  &lt;table&gt;&lt;tr&gt;&lt;td&gt;
+</span><span class='line'>  &lt;h1&gt;&lt;a href="{{ root_url }}/"&gt;{{ site.title }}&lt;/a&gt;&lt;/h1&gt;
+</span><span class='line'>  {% if site.subtitle %}
+</span><span class='line'>    &lt;h2&gt;{{ site.subtitle }}&lt;/h2&gt;
+</span><span class='line'>  {% endif %}
+</span><span class='line'>  &lt;/td&gt;&lt;td&gt;&nbsp;&nbsp;
+</span><span class='line'>  {% img left /images/rabbit_hole_graphic.png 295 105 'image' 'images' %}
+</span><span class='line'>  &lt;/td&gt;&lt;/tr&gt;
+</span><span class='line'>  &lt;/table&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I&rsquo;m not a hipster, it&rsquo;s just that my HTML coding skillz are stuck at about 1995.  If you are seething with the overwhelming urge to tell me how to do this in 2013 CSS style, go right ahead and add a comment.</p>
+
+<p>Anyway, the end justifies the means:</p>
+
+<p><img class="center" src="/images/ScreenShotBlogIIa.png" title="image" alt="images"></p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -295,6 +401,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2013/12/19/how-to-downgrade-android-studio/">How to Downgrade Android Studio</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2013/11/23/understanding-chan-chans-in-go/">Understanding Chan Chan&#8217;s in Go</a>
       </li>
     
@@ -308,10 +418,6 @@
     
       <li class="post">
         <a href="/blog/2013/11/20/debugging-http-traffic-in-android-apps-with-a-proxy/">Debugging HTTP Traffic in Android Apps With a Proxy</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/11/14/running-couchbase-cluster-under-docker/">Running Couchbase Cluster Under Docker</a>
       </li>
     
   </ul>
@@ -359,7 +465,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2013 - Traun Leyden -
+  Copyright &copy; 2014 - Traun Leyden -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: golang | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/golang/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2013-11-24T16:26:16-08:00</updated>
+  <updated>2014-01-08T11:27:45-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -50,7 +50,7 @@
 
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_1.png" alt="Screenshot" /></p>
 
-<h2>And here is some code</h2>
+<h2>Here is some code that uses chan chan&rsquo;s</h2>
 
 <p>```
 package main</p>
@@ -103,6 +103,10 @@ import &ldquo;time&rdquo;</p>
 <p>```</p>
 
 <p>This code can be run on <a href="http://play.golang.org/p/chi6P2XGTO">Go playground</a></p>
+
+<h2>For more information</h2>
+
+<p>See <a href="https://www.youtube.com/watch?v=QDDwwePbDtw">Google I/O 2013 &ndash; Advanced Go Concurrency Patterns</a> around 17:00.  This contains another explanation of chan chan&rsquo;s.</p>
 ]]></content>
   </entry>
   
