@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-01-08T11:27:45-08:00</updated>
+  <updated>2014-01-31T10:57:58-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,116 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[A stubbed out gradle multi-project hierarchy using git submodules]]></title>
+    <link href="http://tleyden.github.io/blog/2014/01/31/a-stubbed-out-gradle-multi-project-hierarchy-using-git-submodules/"/>
+    <updated>2014-01-31T10:50:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2014/01/31/a-stubbed-out-gradle-multi-project-hierarchy-using-git-submodules</id>
+    <content type="html"><![CDATA[<p>I&rsquo;m about to split up the <a href="https://github.com/couchbase/couchbase-lite-android">couchbase-lite</a> android library into two parts: a pure-java and an android specific library.  The android library will depend on the pure-java library.</p>
+
+<p>Before going down this project refactoring rabbit hole for the real project, I decided to stub out a complete project hierarchy to validate that it was going to actually work.  (I&rsquo;m calling this project hierarchy &ldquo;stubworld&rdquo; for lack of a sillier name)</p>
+
+<p>There are five projects in total, here are the two top-level projects</p>
+
+<p><a href="https://github.com/tleyden/stubworld-app-android">https://github.com/tleyden/stubworld-app-android</a>  (an Android app)</p>
+
+<p><img src="http://cl.ly/image/3O31321l0b0n/stubworld_architecture_android.png" alt="" /></p>
+
+<p><a href="https://github.com/tleyden/stubworld-app-cmdline">https://github.com/tleyden/stubworld-app-cmdline</a>  (a pure java Command Line application)</p>
+
+<p><img src="http://cl.ly/image/1M2C333S2s0u/stubworld_architecture_desktop.png" alt="" /></p>
+
+<p>The projects are all self contained gradle projects and can be imported in either Android Studio or IntelliJ CE 13, and the dependencies on lower level projects are done via git submodules (and even git sub-submodules, <em>gulp</em>).   In either top level project you can easily debug and edit the code in the lower level projects, since they use source level dependencies.</p>
+
+<p>The biggest sticking point I ran into was that initially I tried to include a dependency via:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>compile project(':libraries:stubworld-corelib-java')</span></code></pre></td></tr></table></div></figure>
+
+
+<p>which totally broke when trying to embed this project into another parent project. The fix was to change it to use a relative path by removing the leading colon:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>compile project('libraries:stubworld-corelib-java')</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I&rsquo;m posting this in case it&rsquo;s useful to anyone who needs to do something similar, or if any Gradle / Android Studio Jedi masters have any feedback like &ldquo;why did you do X, when you just could have done Y?&rdquo;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Objective C coding interview challenge: URLPuller]]></title>
+    <link href="http://tleyden.github.io/blog/2014/01/13/objective-c-coding-interview-challenge-urlpuller/"/>
+    <updated>2014-01-13T11:45:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2014/01/13/objective-c-coding-interview-challenge-urlpuller</id>
+    <content type="html"><![CDATA[<h1>Programming Challenge</h1>
+
+<p>The goal is to create a UrlPuller Objective-C class which takes an array of NSURL&rsquo;s that point to PNG images and downloads them asynchronously and writes the contents of each URL to a file.</p>
+
+<p>It should do some basic error handling, which is described below.</p>
+
+<p>The UrlPuller class should have the following instance methods:</p>
+
+<ul>
+<li><code>- (bool) downloadUrlsAsync: (NSArray*)urls</code></li>
+<li><code>- (void) waitUntilAllDownloadsFinish</code></li>
+<li><code>- (NSString*) downloadedPathForURL: (NSURL*)url</code></li>
+</ul>
+
+
+<p>Here are the detailed descriptions of each method:</p>
+
+<h2><code>- (bool) downloadUrlsAsync: (NSArray*)urls</code></h2>
+
+<p>The urls array will contain an array of NSURL&rsquo;s, each of which points to a PNG image on the web.</p>
+
+<p>As long as there is not a download in progress, this will kick off the URLPuller to asynchronously download the PNG image data from each of the given URLs and save the PNG data to a file.  This method should true in this case, and return immediately.</p>
+
+<p>If there is still a download in progress from a previous call to downloadUrlsAsync, then this method will return false immediately and do nothing.</p>
+
+<p>The downloaded files can be stored in any directory, where the filename is {sha1 hash of url}.png</p>
+
+<p>Downloads should happen concurrently, however it should also be &ldquo;nice&rdquo; and not completely exhaust system resources if it is called with a list of 10K URL&rsquo;s.</p>
+
+<p>Retry behavior: if any of the downloads fail in a way that could be transient, it should wait 10 seconds and retry that URL. The delay doubles after each failure.  After 3 attempts, it gives up on that URL.</p>
+
+<h2><code>- (void) waitUntilAllDownloadsFinish</code></h2>
+
+<p>Block until all of the URLs have been downloaded.</p>
+
+<p>If this is called while there is no download in progress, it should return immediately.  Otherwise, it should block until all the downloads have finished or fail after 3 attempts.</p>
+
+<h2><code>- (NSString*) downloadedPathForURL: (NSURL*)url</code></h2>
+
+<p>If this is called but downloadUrlsAsync was never previously called on this instance, it should return nil.</p>
+
+<p>If a download is in progress, it should wait until all downloads have finished (by calling waitUntilAllDownloadsFinish), and then return the downloaded path for the given url.</p>
+
+<p>If a download is not in progress, but one has completed previously, it should return the downloaded path for the given url in the last previously completed download.</p>
+
+<h1>Expectations/Requirements</h1>
+
+<ul>
+<li>Write a program that satisfies the API methods and described behavior.</li>
+<li>The code should be easy to read and understand.</li>
+<li>An instance of the URLPuller class would only be accessed by a single thread.</li>
+<li>You are not required to write any unit tests.</li>
+<li>URL downloads should happen concurrently, but it should be &ldquo;nice&rdquo; in terms of not exhausting system resources.</li>
+</ul>
+
+
+<h1>Rules</h1>
+
+<ul>
+<li>You can use any available resource you can find on the Internet &mdash; eg, Stack Overflow, API docs, etc.</li>
+<li>You may not ask questions related to the problem on Stack Overflow, IRC, etc.  (eg, the Internet is &ldquo;read-only&rdquo;)</li>
+<li>You cannot use any 3rd party libraries or products, you can only use classes and API&rsquo;s in the standard iOS/Cocoa Objective-C runtime</li>
+<li>It should be possible to run this project via XCode (it can be an OSX command line app, or an iOS app, whatever is convenient)</li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[How to downgrade Android Studio]]></title>

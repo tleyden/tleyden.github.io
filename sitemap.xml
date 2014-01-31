@@ -59,12 +59,24 @@
         <lastmod>2013-12-19T17:22:50-08:00</lastmod>
     </url>
     <url>
+        <loc>
+            http://tleyden.github.io/blog/2014/01/13/objective-c-coding-interview-challenge-urlpuller/
+        </loc>
+        <lastmod>2014-01-13T11:46:44-08:00</lastmod>
+    </url>
+    <url>
+        <loc>
+            http://tleyden.github.io/blog/2014/01/31/a-stubbed-out-gradle-multi-project-hierarchy-using-git-submodules/
+        </loc>
+        <lastmod>2014-01-31T10:54:57-08:00</lastmod>
+    </url>
+    <url>
         <loc>http://tleyden.github.io/blog/archives/</loc>
-        <lastmod>2013-12-19T17:22:50-08:00</lastmod>
+        <lastmod>2014-01-31T10:54:57-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/</loc>
-        <lastmod>2013-12-19T17:22:50-08:00</lastmod>
+        <lastmod>2014-01-31T10:54:57-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/robots.txt</loc>

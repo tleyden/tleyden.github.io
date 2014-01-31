@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>How to downgrade Android Studio - Seven Story Rabbit Hole</title>
+  <title>Objective C coding interview challenge: URLPuller - Seven Story Rabbit Hole</title>
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="I just tried to update to Android Studio 0.4, however was stung by Issue 61573: Gradle duplicate file exception when package apk file with jar &hellip;">
+  <meta name="description" content="Programming Challenge The goal is to create a UrlPuller Objective-C class which takes an array of NSURL&rsquo;s that point to PNG images and &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://tleyden.github.io/blog/2013/12/19/how-to-downgrade-android-studio">
+  <link rel="canonical" href="http://tleyden.github.io/blog/2014/01/13/objective-c-coding-interview-challenge-urlpuller">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
@@ -75,7 +75,7 @@
   
   <header>
     
-      <h1 class="entry-title">How to Downgrade Android Studio</h1>
+      <h1 class="entry-title">Objective C Coding Interview Challenge: URLPuller</h1>
     
     
       <p class="meta">
@@ -91,35 +91,78 @@
   
 
 
-<time datetime="2013-12-19T17:01:00-08:00" pubdate data-updated="true">Dec 19<span>th</span>, 2013</time>
+<time datetime="2014-01-13T11:45:00-08:00" pubdate data-updated="true">Jan 13<span>th</span>, 2014</time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><p>I just tried to update to Android Studio 0.4, however was stung by <a href="https://code.google.com/p/android/issues/detail?id=61573#c14">Issue 61573: Gradle duplicate file exception when package apk file with jar dependencies that contains resources.</a></p>
+<div class="entry-content"><h1>Programming Challenge</h1>
 
-<p>The good news is that it&rsquo;s very easy to downgrade!  Thank Google, because there is nothing more annoying than not being able to back out of an upgrade gone bad.</p>
+<p>The goal is to create a UrlPuller Objective-C class which takes an array of NSURL&rsquo;s that point to PNG images and downloads them asynchronously and writes the contents of each URL to a file.</p>
 
-<p>Here&rsquo;s how I did it on OSX Mavericks:</p>
+<p>It should do some basic error handling, which is described below.</p>
+
+<p>The UrlPuller class should have the following instance methods:</p>
 
 <ul>
-<li><p>Download 0.3.7 from <a href="http://tools.android.com/download/studio/canary/0-3-7">http://tools.android.com/download/studio/canary/0-3-7</a></p></li>
-<li><p>Unzip it by double clicking it.</p></li>
-<li><p>In a command line, run the following:</p></li>
+<li><code>- (bool) downloadUrlsAsync: (NSArray*)urls</code></li>
+<li><code>- (void) waitUntilAllDownloadsFinish</code></li>
+<li><code>- (NSString*) downloadedPathForURL: (NSURL*)url</code></li>
 </ul>
 
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ mv /Applications/Android\ Studio.app/ tmp/
-</span><span class='line'>$ mv ~/Downloads/Android\ Studio.app/ /Applications/
-</span><span class='line'>$ cp -R tmp/Android\ Studio.app/sdk /Applications/Android\ Studio.app/</span></code></pre></td></tr></table></div></figure>
+<p>Here are the detailed descriptions of each method:</p>
+
+<h2><code>- (bool) downloadUrlsAsync: (NSArray*)urls</code></h2>
+
+<p>The urls array will contain an array of NSURL&rsquo;s, each of which points to a PNG image on the web.</p>
+
+<p>As long as there is not a download in progress, this will kick off the URLPuller to asynchronously download the PNG image data from each of the given URLs and save the PNG data to a file.  This method should true in this case, and return immediately.</p>
+
+<p>If there is still a download in progress from a previous call to downloadUrlsAsync, then this method will return false immediately and do nothing.</p>
+
+<p>The downloaded files can be stored in any directory, where the filename is {sha1 hash of url}.png</p>
+
+<p>Downloads should happen concurrently, however it should also be &ldquo;nice&rdquo; and not completely exhaust system resources if it is called with a list of 10K URL&rsquo;s.</p>
+
+<p>Retry behavior: if any of the downloads fail in a way that could be transient, it should wait 10 seconds and retry that URL. The delay doubles after each failure.  After 3 attempts, it gives up on that URL.</p>
+
+<h2><code>- (void) waitUntilAllDownloadsFinish</code></h2>
+
+<p>Block until all of the URLs have been downloaded.</p>
+
+<p>If this is called while there is no download in progress, it should return immediately.  Otherwise, it should block until all the downloads have finished or fail after 3 attempts.</p>
+
+<h2><code>- (NSString*) downloadedPathForURL: (NSURL*)url</code></h2>
+
+<p>If this is called but downloadUrlsAsync was never previously called on this instance, it should return nil.</p>
+
+<p>If a download is in progress, it should wait until all downloads have finished (by calling waitUntilAllDownloadsFinish), and then return the downloaded path for the given url.</p>
+
+<p>If a download is not in progress, but one has completed previously, it should return the downloaded path for the given url in the last previously completed download.</p>
+
+<h1>Expectations/Requirements</h1>
+
+<ul>
+<li>Write a program that satisfies the API methods and described behavior.</li>
+<li>The code should be easy to read and understand.</li>
+<li>An instance of the URLPuller class would only be accessed by a single thread.</li>
+<li>You are not required to write any unit tests.</li>
+<li>URL downloads should happen concurrently, but it should be &ldquo;nice&rdquo; in terms of not exhausting system resources.</li>
+</ul>
 
 
-<p>The last step is necessary because the dowloaded 0.3.7 Android Studio will not have an SDK directory.  (Note: at this point you can also use <code>mv</code> instead of <code>cp</code> if you don&rsquo;t want to use the extra disk space)</p>
+<h1>Rules</h1>
+
+<ul>
+<li>You can use any available resource you can find on the Internet &mdash; eg, Stack Overflow, API docs, etc.</li>
+<li>You may not ask questions related to the problem on Stack Overflow, IRC, etc.  (eg, the Internet is &ldquo;read-only&rdquo;)</li>
+<li>You cannot use any 3rd party libraries or products, you can only use classes and API&rsquo;s in the standard iOS/Cocoa Objective-C runtime</li>
+<li>It should be possible to run this project via XCode (it can be an OSX command line app, or an iOS app, whatever is convenient)</li>
+</ul>
+
 </div>
 
 
@@ -142,15 +185,21 @@
   
 
 
-<time datetime="2013-12-19T17:01:00-08:00" pubdate data-updated="true">Dec 19<span>th</span>, 2013</time>
+<time datetime="2014-01-13T11:45:00-08:00" pubdate data-updated="true">Jan 13<span>th</span>, 2014</time>
       
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/objectivec/'>objectivec</a>
+  
+</span>
 
 
     </p>
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2013/12/19/how-to-downgrade-android-studio/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2013/12/19/how-to-downgrade-android-studio/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2014/01/13/objective-c-coding-interview-challenge-urlpuller/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2014/01/13/objective-c-coding-interview-challenge-urlpuller/" >Tweet</a>
   
   
   
@@ -159,10 +208,10 @@
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2013/11/23/understanding-chan-chans-in-go/" title="Previous Post: Understanding chan chan's in Go">&laquo; Understanding chan chan's in Go</a>
+        <a class="basic-alignment left" href="/blog/2013/12/19/how-to-downgrade-android-studio/" title="Previous Post: How to downgrade Android Studio">&laquo; How to downgrade Android Studio</a>
       
       
-        <a class="basic-alignment right" href="/blog/2014/01/13/objective-c-coding-interview-challenge-urlpuller/" title="Next Post: Objective C coding interview challenge: URLPuller">Objective C coding interview challenge: URLPuller &raquo;</a>
+        <a class="basic-alignment right" href="/blog/2014/01/31/a-stubbed-out-gradle-multi-project-hierarchy-using-git-submodules/" title="Next Post: A stubbed out gradle multi-project hierarchy using git submodules">A stubbed out gradle multi-project hierarchy using git submodules &raquo;</a>
       
     </p>
   </footer>
@@ -271,8 +320,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://tleyden.github.io/blog/2013/12/19/how-to-downgrade-android-studio/';
-        var disqus_url = 'http://tleyden.github.io/blog/2013/12/19/how-to-downgrade-android-studio/';
+        var disqus_identifier = 'http://tleyden.github.io/blog/2014/01/13/objective-c-coding-interview-challenge-urlpuller/';
+        var disqus_url = 'http://tleyden.github.io/blog/2014/01/13/objective-c-coding-interview-challenge-urlpuller/';
         var disqus_script = 'embed.js';
       
     (function () {

@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="I just tried to update to Android Studio 0.4, however was stung by Issue 61573: Gradle duplicate file exception when package apk file with jar &hellip;">
+  <meta name="description" content="I&rsquo;m about to split up the couchbase-lite android library into two parts: a pure-java and an android specific library. The android library will &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +72,170 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/01/31/a-stubbed-out-gradle-multi-project-hierarchy-using-git-submodules/">A Stubbed Out Gradle Multi-project Hierarchy Using Git Submodules</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-31T10:50:00-08:00" pubdate data-updated="true">Jan 31<span>st</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I&rsquo;m about to split up the <a href="https://github.com/couchbase/couchbase-lite-android">couchbase-lite</a> android library into two parts: a pure-java and an android specific library.  The android library will depend on the pure-java library.</p>
+
+<p>Before going down this project refactoring rabbit hole for the real project, I decided to stub out a complete project hierarchy to validate that it was going to actually work.  (I&rsquo;m calling this project hierarchy &ldquo;stubworld&rdquo; for lack of a sillier name)</p>
+
+<p>There are five projects in total, here are the two top-level projects</p>
+
+<p><a href="https://github.com/tleyden/stubworld-app-android">https://github.com/tleyden/stubworld-app-android</a>  (an Android app)</p>
+
+<p><img src="http://cl.ly/image/3O31321l0b0n/stubworld_architecture_android.png" alt="" /></p>
+
+<p><a href="https://github.com/tleyden/stubworld-app-cmdline">https://github.com/tleyden/stubworld-app-cmdline</a>  (a pure java Command Line application)</p>
+
+<p><img src="http://cl.ly/image/1M2C333S2s0u/stubworld_architecture_desktop.png" alt="" /></p>
+
+<p>The projects are all self contained gradle projects and can be imported in either Android Studio or IntelliJ CE 13, and the dependencies on lower level projects are done via git submodules (and even git sub-submodules, <em>gulp</em>).   In either top level project you can easily debug and edit the code in the lower level projects, since they use source level dependencies.</p>
+
+<p>The biggest sticking point I ran into was that initially I tried to include a dependency via:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>compile project(':libraries:stubworld-corelib-java')</span></code></pre></td></tr></table></div></figure>
+
+
+<p>which totally broke when trying to embed this project into another parent project. The fix was to change it to use a relative path by removing the leading colon:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>compile project('libraries:stubworld-corelib-java')</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I&rsquo;m posting this in case it&rsquo;s useful to anyone who needs to do something similar, or if any Gradle / Android Studio Jedi masters have any feedback like &ldquo;why did you do X, when you just could have done Y?&rdquo;</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/01/13/objective-c-coding-interview-challenge-urlpuller/">Objective C Coding Interview Challenge: URLPuller</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-13T11:45:00-08:00" pubdate data-updated="true">Jan 13<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>Programming Challenge</h1>
+
+<p>The goal is to create a UrlPuller Objective-C class which takes an array of NSURL&rsquo;s that point to PNG images and downloads them asynchronously and writes the contents of each URL to a file.</p>
+
+<p>It should do some basic error handling, which is described below.</p>
+
+<p>The UrlPuller class should have the following instance methods:</p>
+
+<ul>
+<li><code>- (bool) downloadUrlsAsync: (NSArray*)urls</code></li>
+<li><code>- (void) waitUntilAllDownloadsFinish</code></li>
+<li><code>- (NSString*) downloadedPathForURL: (NSURL*)url</code></li>
+</ul>
+
+
+<p>Here are the detailed descriptions of each method:</p>
+
+<h2><code>- (bool) downloadUrlsAsync: (NSArray*)urls</code></h2>
+
+<p>The urls array will contain an array of NSURL&rsquo;s, each of which points to a PNG image on the web.</p>
+
+<p>As long as there is not a download in progress, this will kick off the URLPuller to asynchronously download the PNG image data from each of the given URLs and save the PNG data to a file.  This method should true in this case, and return immediately.</p>
+
+<p>If there is still a download in progress from a previous call to downloadUrlsAsync, then this method will return false immediately and do nothing.</p>
+
+<p>The downloaded files can be stored in any directory, where the filename is {sha1 hash of url}.png</p>
+
+<p>Downloads should happen concurrently, however it should also be &ldquo;nice&rdquo; and not completely exhaust system resources if it is called with a list of 10K URL&rsquo;s.</p>
+
+<p>Retry behavior: if any of the downloads fail in a way that could be transient, it should wait 10 seconds and retry that URL. The delay doubles after each failure.  After 3 attempts, it gives up on that URL.</p>
+
+<h2><code>- (void) waitUntilAllDownloadsFinish</code></h2>
+
+<p>Block until all of the URLs have been downloaded.</p>
+
+<p>If this is called while there is no download in progress, it should return immediately.  Otherwise, it should block until all the downloads have finished or fail after 3 attempts.</p>
+
+<h2><code>- (NSString*) downloadedPathForURL: (NSURL*)url</code></h2>
+
+<p>If this is called but downloadUrlsAsync was never previously called on this instance, it should return nil.</p>
+
+<p>If a download is in progress, it should wait until all downloads have finished (by calling waitUntilAllDownloadsFinish), and then return the downloaded path for the given url.</p>
+
+<p>If a download is not in progress, but one has completed previously, it should return the downloaded path for the given url in the last previously completed download.</p>
+
+<h1>Expectations/Requirements</h1>
+
+<ul>
+<li>Write a program that satisfies the API methods and described behavior.</li>
+<li>The code should be easy to read and understand.</li>
+<li>An instance of the URLPuller class would only be accessed by a single thread.</li>
+<li>You are not required to write any unit tests.</li>
+<li>URL downloads should happen concurrently, but it should be &ldquo;nice&rdquo; in terms of not exhausting system resources.</li>
+</ul>
+
+
+<h1>Rules</h1>
+
+<ul>
+<li>You can use any available resource you can find on the Internet &mdash; eg, Stack Overflow, API docs, etc.</li>
+<li>You may not ask questions related to the problem on Stack Overflow, IRC, etc.  (eg, the Internet is &ldquo;read-only&rdquo;)</li>
+<li>You cannot use any 3rd party libraries or products, you can only use classes and API&rsquo;s in the standard iOS/Cocoa Objective-C runtime</li>
+<li>It should be possible to run this project via XCode (it can be an OSX command line app, or an iOS app, whatever is convenient)</li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1190,371 +1354,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/09/20/deciphering-some-go-code/">Deciphering Some Go Code</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-09-20T11:11:00-07:00" pubdate data-updated="true">Sep 20<span>th</span>, 2013</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>While trying to use <a href="http://godoc.org/code.google.com/p/dsallings-couch-go">couch-go</a> and looking at the source, I&rsquo;ve come across some things I don&rsquo;t understand.</p>
-
-<h1>Is function wrapper needed?</h1>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>resp, err := client.Get(full_url)
-</span><span class='line'>log.Printf("resp: %v err: %v", resp, err)
-</span><span class='line'>if err == nil {
-</span><span class='line'>    func() {
-</span><span class='line'>        defer resp.Body.Close()
-</span><span class='line'>        defer conn.Close()
-</span><span class='line'>
-</span><span class='line'>        tc := timeoutClient{resp.Body, conn, timeout}
-</span><span class='line'>        largest = handler(&tc)
-</span><span class='line'>    }()
-</span><span class='line'>} else {
-</span><span class='line'>    log.Printf("Error in stream: %v", err)
-</span><span class='line'>    time.Sleep(time.Second * 1)
-</span><span class='line'>}
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Why the separate function wrapper here?  Why not just call:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>defer resp.Body.Close()
-</span><span class='line'>defer conn.Close()
-</span><span class='line'>tc := timeoutClient{resp.Body, conn, timeout}
-</span><span class='line'>largest = handler(&tc)</span></code></pre></td></tr></table></div></figure>
-
-
-<p>directly?</p>
-
-<h1>How to elegantly dump a request body?</h1>
-
-<p>I was trying to debug something, and I wanted to print out the json string before it was being parsed, and here&rsquo;s what I ended up doing:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>body, err0 := ioutil.ReadAll(r.Body)
-</span><span class='line'>bodyStr := string(body)
-</span><span class='line'>log.Printf("body: %v err: %v", bodyStr, err0)
-</span><span class='line'>newBody := bytes.NewBuffer(body)
-</span><span class='line'>d := json.NewDecoder(newBody)
-</span><span class='line'>// d := json.NewDecoder(r.Body) &lt;-- orig code
-</span><span class='line'>if err := d.Decode(results); err != nil {
-</span><span class='line'>    log.Printf("Decode err: %v", err)
-</span><span class='line'>    return err
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>it seems like there should be a slicker way, like maybe rewinding the r.Body Reader?</p>
-
-<p><strong>Answer</strong>: yes, there is a <em>much</em> slicker way, <code>io.TeeReader</code></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>d := json.NewDecoder(io.TeeReader(r.Body, os.Stdout))</span></code></pre></td></tr></table></div></figure>
-
-
-<h1>Using new() with a map &mdash; does this look right?</h1>
-
-<p>According to &ldquo;The Way To Go&rdquo; (book), you are not supposed to be using new() with maps.  However I did this in one case:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>type Document map[string]interface{}
-</span><span class='line'>
-</span><span class='line'>func (game Game) fetchLatestGameDoc() (doc Document, err error) {
-</span><span class='line'>        fetchedDoc := new(Document)
-</span><span class='line'>        err = game.db.Retrieve(GAME_DOC_ID, fetchedDoc)
-</span><span class='line'>        if err == nil {
-</span><span class='line'>     doc = *fetchedDoc
-</span><span class='line'>        }
-</span><span class='line'>        return
-</span><span class='line'>}
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>is there a better way?  When I tried using make(), I got the error <code>err: json: Unmarshal(non-pointer checkerlution.Document)</code>.  Using make() followed by &amp; didn&rsquo;t work either.</p>
-
-<h1>Type Assertion hell</h1>
-
-<p>I&rsquo;m trying to get some data that&rsquo;s fairly deep in some json, and ended up doing a lot of awkward feeling type assertions:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>func (game Game) checkGameDocInChanges(changes Changes) bool {
-</span><span class='line'>        foundGameDoc := false
-</span><span class='line'>        changeResultsRaw := changes["results"]
-</span><span class='line'>        changeResults := changeResultsRaw.([]interface{})
-</span><span class='line'>        for _, changeResultRaw := range changeResults {
-</span><span class='line'>                changeResult := changeResultRaw.(map[string]interface{})
-</span><span class='line'>                docIdRaw := changeResult["id"]
-</span><span class='line'>                docId := docIdRaw.(string)
-</span><span class='line'>                if strings.Contains(docId, GAME_DOC_ID) {
-</span><span class='line'>                        foundGameDoc = true
-</span><span class='line'>              }
-</span><span class='line'>        }
-</span><span class='line'>        return foundGameDoc
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>there must be a better way?</p>
-
-<p>Also I didn&rsquo;t get why this didn&rsquo;t work:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>type ChangeItem map[string]interface{}
-</span><span class='line'>...
-</span><span class='line'>changeResult := changeResultRaw.(ChangeItem)</span></code></pre></td></tr></table></div></figure>
-
-
-<p>to make it work I had to change it to:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>changeResult := changeResultRaw.(map[string]interface{})</span></code></pre></td></tr></table></div></figure>
-
-
-<h1>Getting unexpected float64 back from JSON, had to do awkward type conversions</h1>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>func (game Game) isOurTurn(gameDoc Document) bool {
-</span><span class='line'>        activeTeamRaw := gameDoc["activeTeam"]
-</span><span class='line'>        activeTeam := int(activeTeamRaw.(float64))
-</span><span class='line'>        return activeTeam == game.ourTeamId
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Json snippet:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>{"_id":"game:checkers","activeTeam":0}</span></code></pre></td></tr></table></div></figure>
-
-
-<h1>Can&rsquo;t check for nil</h1>
-
-<p>I have these structs:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>type Game struct {
-</span><span class='line'>    gameState            GameState
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>type GameState struct {
-</span><span class='line'>   ...
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and in a loop, I set the gameState field of the Game object to value.  I&rsquo;m trying to detect if it&rsquo;s the first pass through the loop with this:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>isFirstGame := (game.gameState == nil)</span></code></pre></td></tr></table></div></figure>
-
-
-<p>but I get the error <code>cannot convert nil to type GameState</code></p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/09/19/java-coding-challenge/">Java Coding Challenge</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-09-19T13:42:00-07:00" pubdate data-updated="true">Sep 19<span>th</span>, 2013</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Write a server that uses tcp sockets which returns images to clients, and avoids duplicate work for concurrent requests for the same image.</p>
-
-<h1>Description</h1>
-
-<p>A server will listen for tcp client connections and generate PNG checkerboard images and return them to clients that request them.  Example checkerboard image:</p>
-
-<p><img src="/images/checkerboard.png" width="295" height="105" title="image" alt="images"></p>
-
-<p>The client will send a single parameter to the server after it opens the tcp socket connection to the server:</p>
-
-<ul>
-<li> The size of the &ldquo;checkboard image&rdquo;, which will be a single scalar value like 5, which will result in a 5x5 square, as shown above.</li>
-</ul>
-
-
-<p>The server will use the following default values when generating the checkerboard image:</p>
-
-<ul>
-<li> size: each square will be 60 x 60 pixels.</li>
-<li> color: squares will be alternating black and white, with black for the square in the 0th row and 0th column, and white for the square in the 1st row and 0th column, etc.  Exactly as shown above.</li>
-</ul>
-
-
-<h1>Basic Requirements</h1>
-
-<ul>
-<li>Written in either Java or Scala</li>
-<li>To generate the actual image, you can use anything you want.  The image format can be any popular image format (PNG, JPEG, GIF, etc..)</li>
-<li>For the data structures required by the server, you can use any existing data structures within Java itself or a 3rd party, there is no requirement to develop your own.</li>
-<li>The server will respond with the image data in PNG format, and then close the connection.</li>
-</ul>
-
-
-<h1>Advanced Requirements</h1>
-
-<ul>
-<li>In the method that generates the square, there must be a call to Thread.sleep(Y) before returning.  Y represents number of milliseconds to sleep, and will be a random number between 0 and 5000.</li>
-<li>The server can handle multiple client requests in parallel (as opposed to handling them in serial).  In other words, if client1 contacts the server, and then client2 contacts the server a few milliseconds later, there is a chance that client2 will receive a response before client1, depending on the random sleep described above.</li>
-<li>In order to avoid needlessly generating the same image twice, if the server is asked to generate a square of size X by client1, and then again asked to generate another square of size X by client2 before it has returned the square to client1, it will simply wait for the square for client1 is finished being generated and return that same square data to both client2 and client1.  Here is an example timeline to show how events would roughly be ordered:
-
-<ul>
-<li>At 12:00:00 Client1 asks for square of size 6</li>
-<li>At 12:00:01 The server starts to generate the square for client1</li>
-<li>At 12:00:01 Client2 asks for square of size 6 (the server does <em>not</em> try to generate a new square, since there is already a pending request for an identical square)</li>
-<li>At 12:00:06 The server finishes generating the square of size 6, as originally requested by client1</li>
-<li>At 12:00:07 The server returns the square to client1</li>
-<li>At 12:00:07 The server returns the same square to client2</li>
-</ul>
-</li>
-</ul>
-
-
-<h1>Deliverables</h1>
-
-<ul>
-<li>server.sh &ndash; starts the server that listens on 8000</li>
-<li>client.sh X &ndash; runs a client that:
-
-<ul>
-<li>connects to localhost:8000</li>
-<li>passes the parameter X (the size of the checkboard image) to the server</li>
-<li>reads the PNG into a file called X.png</li>
-<li>prints a message to say its finished.</li>
-</ul>
-</li>
-<li>A zip file that contains all jar file dependencies <em>or</em> a document that describes on how to download the required dependencies</li>
-</ul>
-
-
-<h1>Shortcuts</h1>
-
-<p>If this feels like too much work, take the following shortcut:</p>
-
-<ul>
-<li>Rather than return an image, just create a string which would represent the image, where X represents black and O represents white.  Eg, if it was a 2x2 square, return &ldquo;X00X&rdquo;</li>
-</ul>
-
-
-<h1>Bonus points</h1>
-
-<ul>
-<li>Record your commits in a local git repository as you work, and submit a zip file of the repository along with the other deliverables</li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -1581,6 +1380,14 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/01/31/a-stubbed-out-gradle-multi-project-hierarchy-using-git-submodules/">A Stubbed Out Gradle Multi-project Hierarchy Using Git Submodules</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/13/objective-c-coding-interview-challenge-urlpuller/">Objective C Coding Interview Challenge: URLPuller</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2013/12/19/how-to-downgrade-android-studio/">How to Downgrade Android Studio</a>
       </li>
     
@@ -1590,14 +1397,6 @@
     
       <li class="post">
         <a href="/blog/2013/11/22/android-studio-plus-genymotion-emulator/">Android Studio + Genymotion Emulator</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/11/21/a-simple-data-race-in-go-and-how-to-fix-it/">A Simple Data Race in Go and How to Fix It</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/11/20/debugging-http-traffic-in-android-apps-with-a-proxy/">Debugging HTTP Traffic in Android Apps With a Proxy</a>
       </li>
     
   </ul>

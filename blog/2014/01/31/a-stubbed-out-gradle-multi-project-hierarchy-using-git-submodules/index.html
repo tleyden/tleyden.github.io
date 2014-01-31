@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Category: java - Seven Story Rabbit Hole</title>
+  <title>A stubbed out gradle multi-project hierarchy using git submodules - Seven Story Rabbit Hole</title>
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Category: java">
+  <meta name="description" content="I&rsquo;m about to split up the couchbase-lite android library into two parts: a pure-java and an android specific library. The android library will &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://tleyden.github.ioblog/categories/java">
+  <link rel="canonical" href="http://tleyden.github.io/blog/2014/01/31/a-stubbed-out-gradle-multi-project-hierarchy-using-git-submodules">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
@@ -71,56 +71,130 @@
   <div id="main">
     <div id="content">
       <div>
-<article role="article">
+<article class="hentry" role="article">
   
   <header>
-    <h1 class="entry-title">Category: Java</h1>
+    
+      <h1 class="entry-title">A Stubbed Out Gradle Multi-project Hierarchy Using Git Submodules</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-31T10:50:00-08:00" pubdate data-updated="true">Jan 31<span>st</span>, 2014</time>
+        
+      </p>
     
   </header>
-  
-  <div id="blog-archives" class="category">
 
 
+<div class="entry-content"><p>I&rsquo;m about to split up the <a href="https://github.com/couchbase/couchbase-lite-android">couchbase-lite</a> android library into two parts: a pure-java and an android specific library.  The android library will depend on the pure-java library.</p>
 
-  
-  <h2>2013</h2>
+<p>Before going down this project refactoring rabbit hole for the real project, I decided to stub out a complete project hierarchy to validate that it was going to actually work.  (I&rsquo;m calling this project hierarchy &ldquo;stubworld&rdquo; for lack of a sillier name)</p>
 
-<article>
-  
-<h1><a href="/blog/2013/11/14/investigating-an-android-sqlite-threading-deadlock/">Investigating an Android SQLite threading deadlock</a></h1>
-<time datetime="2013-11-14T11:24:00-08:00" pubdate><span class='month'>Nov</span> <span class='day'>14</span> <span class='year'>2013</span></time>
+<p>There are five projects in total, here are the two top-level projects</p>
 
-<footer>
-  <span class="categories">posted in <a class='category' href='/blog/categories/android/'>android</a>, <a class='category' href='/blog/categories/java/'>java</a></span>
-</footer>
+<p><a href="https://github.com/tleyden/stubworld-app-android">https://github.com/tleyden/stubworld-app-android</a>  (an Android app)</p>
 
+<p><img src="http://cl.ly/image/3O31321l0b0n/stubworld_architecture_android.png" alt="" /></p>
 
-</article>
+<p><a href="https://github.com/tleyden/stubworld-app-cmdline">https://github.com/tleyden/stubworld-app-cmdline</a>  (a pure java Command Line application)</p>
 
+<p><img src="http://cl.ly/image/1M2C333S2s0u/stubworld_architecture_desktop.png" alt="" /></p>
 
+<p>The projects are all self contained gradle projects and can be imported in either Android Studio or IntelliJ CE 13, and the dependencies on lower level projects are done via git submodules (and even git sub-submodules, <em>gulp</em>).   In either top level project you can easily debug and edit the code in the lower level projects, since they use source level dependencies.</p>
 
-<article>
-  
-<h1><a href="/blog/2013/09/19/java-coding-challenge/">Java coding challenge</a></h1>
-<time datetime="2013-09-19T13:42:00-07:00" pubdate><span class='month'>Sep</span> <span class='day'>19</span> <span class='year'>2013</span></time>
+<p>The biggest sticking point I ran into was that initially I tried to include a dependency via:</p>
 
-<footer>
-  <span class="categories">posted in <a class='category' href='/blog/categories/hiring/'>hiring</a>, <a class='category' href='/blog/categories/java/'>java</a></span>
-</footer>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>compile project(':libraries:stubworld-corelib-java')</span></code></pre></td></tr></table></div></figure>
 
 
-</article>
+<p>which totally broke when trying to embed this project into another parent project. The fix was to change it to use a relative path by removing the leading colon:</p>
 
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>compile project('libraries:stubworld-corelib-java')</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I&rsquo;m posting this in case it&rsquo;s useful to anyone who needs to do something similar, or if any Gradle / Android Studio Jedi masters have any feedback like &ldquo;why did you do X, when you just could have done Y?&rdquo;</p>
 </div>
 
+
+  <footer>
+    <p class="meta">
+      
   
+
+<span class="byline author vcard">Posted by <span class="fn">Traun Leyden</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-31T10:50:00-08:00" pubdate data-updated="true">Jan 31<span>st</span>, 2014</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2014/01/31/a-stubbed-out-gradle-multi-project-hierarchy-using-git-submodules/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2014/01/31/a-stubbed-out-gradle-multi-project-hierarchy-using-git-submodules/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/01/13/objective-c-coding-interview-challenge-urlpuller/" title="Previous Post: Objective C coding interview challenge: URLPuller">&laquo; Objective C coding interview challenge: URLPuller</a>
+      
+      
+    </p>
+  </footer>
 </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
 
 </div>
 
 <aside class="sidebar">
   
     <section>
+  <h1>About Me</h1>
+  <p>
+  I'm a startup engineer at Couchbase, working on <a href="https://github.com/couchbase/couchbase-lite-android">Couchbase Lite for Android</a> -- a mobile NoSQL database with Sync built-in.
+  </p>
+
+  <p>
+  In my spare time I am working on a <a href="https://github.com/tleyden/neurgo">Neural Network in Go</a>.
+  </p>
+
+</section>
+<section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
     
@@ -201,7 +275,10 @@
       var disqus_shortname = 'sevenstoryrabbithole';
       
         
-        var disqus_script = 'count.js';
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://tleyden.github.io/blog/2014/01/31/a-stubbed-out-gradle-multi-project-hierarchy-using-git-submodules/';
+        var disqus_url = 'http://tleyden.github.io/blog/2014/01/31/a-stubbed-out-gradle-multi-project-hierarchy-using-git-submodules/';
+        var disqus_script = 'embed.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
