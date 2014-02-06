@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Category: couchbase - Seven Story Rabbit Hole</title>
+  <title>Why use Go when you can just use C++? - Seven Story Rabbit Hole</title>
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Category: couchbase">
+  <meta name="description" content="I recently saw this on a mailing list: What are the advantages of Go against C++ or other languages? Go has sane concurrency. In C++ the main tool to &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://tleyden.github.ioblog/categories/couchbase">
+  <link rel="canonical" href="http://tleyden.github.io/blog/2014/02/06/why-use-go-when-you-can-just-use-c-plus-plus">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
@@ -71,42 +71,130 @@
   <div id="main">
     <div id="content">
       <div>
-<article role="article">
+<article class="hentry" role="article">
   
   <header>
-    <h1 class="entry-title">Category: Couchbase</h1>
+    
+      <h1 class="entry-title">Why Use Go When You Can Just Use C++?</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-02-06T08:25:00-08:00" pubdate data-updated="true">Feb 6<span>th</span>, 2014</time>
+        
+      </p>
     
   </header>
-  
-  <div id="blog-archives" class="category">
 
 
+<div class="entry-content"><p>I recently saw this on a mailing list:</p>
 
-  
-  <h2>2013</h2>
+<blockquote><p>What are the advantages of Go against C++ or other languages?</p></blockquote>
 
-<article>
-  
-<h1><a href="/blog/2013/11/14/running-couchbase-cluster-under-docker/">Running couchbase cluster under docker</a></h1>
-<time datetime="2013-11-14T15:45:00-08:00" pubdate><span class='month'>Nov</span> <span class='day'>14</span> <span class='year'>2013</span></time>
+<h1>Go has sane concurrency.</h1>
 
-<footer>
-  <span class="categories">posted in <a class='category' href='/blog/categories/couchbase/'>couchbase</a>, <a class='category' href='/blog/categories/docker/'>docker</a></span>
-</footer>
+<p>In C++ the main tool to deal with concurrency is pthreads, but making threaded programming correct is extremely difficult and error prone.  Trying to make it performant by minimizing locking makes it even more challenging.</p>
 
+<p>Go, OTOH, has a concept of goroutines and channels for concurrency.  The idea has its roots in CSP (communicating sequential processing), and is not unlike Erlang&rsquo;s style of having processes that communicating by message passing.  So in Go, instead of having threads communicating by sharing memory (and locking), goroutines share memory by communicating over channels.  Eg, concurrent goroutines communicate over channels, and each goroutine&rsquo;s internal state is private to that goroutine.  Also, concurrency and their constructs like channels are built right into the Go language, which affords many advantages over languages that have had concurrency slapped on as an afterthought.</p>
 
-</article>
+<h1>Go is safer</h1>
 
+<p>Go has pointers, but no pointer arithmetic.</p>
+
+<h1>Go does not have IFDEF&rsquo;s</h1>
+
+<p>No IFDEF hell and unmaintainable code.</p>
+
+<h1>Go compiles faster.</h1>
+
+<p>Much, much faster.</p>
+
+<h1>Gofmt</h1>
+
+<p>All code is uniformly formatted, making codebases much easier to read.  (a la Python)</p>
+
+<h1>Go has garbage collection</h1>
+
+<p>This is a double edged sword of course, but lifting the burden from programmers to manage their own memory keeps the codebase a lot cleaner and less error prone than it otherwise would be..</p>
 </div>
 
+
+  <footer>
+    <p class="meta">
+      
   
+
+<span class="byline author vcard">Posted by <span class="fn">Traun Leyden</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-02-06T08:25:00-08:00" pubdate data-updated="true">Feb 6<span>th</span>, 2014</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2014/02/06/why-use-go-when-you-can-just-use-c-plus-plus/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2014/02/06/why-use-go-when-you-can-just-use-c-plus-plus/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/01/31/a-stubbed-out-gradle-multi-project-hierarchy-using-git-submodules/" title="Previous Post: A stubbed out gradle multi-project hierarchy using git submodules">&laquo; A stubbed out gradle multi-project hierarchy using git submodules</a>
+      
+      
+    </p>
+  </footer>
 </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
 
 </div>
 
 <aside class="sidebar">
   
     <section>
+  <h1>About Me</h1>
+  <p>
+  I'm a startup engineer at Couchbase, working on <a href="https://github.com/couchbase/couchbase-lite-android">Couchbase Lite for Android</a> -- a mobile NoSQL database with Sync built-in.
+  </p>
+
+  <p>
+  In my spare time I am working on a <a href="https://github.com/tleyden/neurgo">Neural Network in Go</a>.
+  </p>
+
+</section>
+<section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
     
@@ -187,7 +275,10 @@
       var disqus_shortname = 'sevenstoryrabbithole';
       
         
-        var disqus_script = 'count.js';
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://tleyden.github.io/blog/2014/02/06/why-use-go-when-you-can-just-use-c-plus-plus/';
+        var disqus_url = 'http://tleyden.github.io/blog/2014/02/06/why-use-go-when-you-can-just-use-c-plus-plus/';
+        var disqus_script = 'embed.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;

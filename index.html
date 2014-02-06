@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="I&rsquo;m about to split up the couchbase-lite android library into two parts: a pure-java and an android specific library. The android library will &hellip;">
+  <meta name="description" content="I recently saw this on a mailing list: What are the advantages of Go against C++ or other languages? Go has sane concurrency. In C++ the main tool to &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +72,70 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/02/06/why-use-go-when-you-can-just-use-c-plus-plus/">Why Use Go When You Can Just Use C++?</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-02-06T08:25:00-08:00" pubdate data-updated="true">Feb 6<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I recently saw this on a mailing list:</p>
+
+<blockquote><p>What are the advantages of Go against C++ or other languages?</p></blockquote>
+
+<h1>Go has sane concurrency.</h1>
+
+<p>In C++ the main tool to deal with concurrency is pthreads, but making threaded programming correct is extremely difficult and error prone.  Trying to make it performant by minimizing locking makes it even more challenging.</p>
+
+<p>Go, OTOH, has a concept of goroutines and channels for concurrency.  The idea has its roots in CSP (communicating sequential processing), and is not unlike Erlang&rsquo;s style of having processes that communicating by message passing.  So in Go, instead of having threads communicating by sharing memory (and locking), goroutines share memory by communicating over channels.  Eg, concurrent goroutines communicate over channels, and each goroutine&rsquo;s internal state is private to that goroutine.  Also, concurrency and their constructs like channels are built right into the Go language, which affords many advantages over languages that have had concurrency slapped on as an afterthought.</p>
+
+<h1>Go is safer</h1>
+
+<p>Go has pointers, but no pointer arithmetic.</p>
+
+<h1>Go does not have IFDEF&rsquo;s</h1>
+
+<p>No IFDEF hell and unmaintainable code.</p>
+
+<h1>Go compiles faster.</h1>
+
+<p>Much, much faster.</p>
+
+<h1>Gofmt</h1>
+
+<p>All code is uniformly formatted, making codebases much easier to read.  (a la Python)</p>
+
+<h1>Go has garbage collection</h1>
+
+<p>This is a double edged sword of course, but lifting the burden from programmers to manage their own memory keeps the codebase a lot cleaner and less error prone than it otherwise would be..</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -167,14 +231,12 @@
 
   <div class="entry-content"><h1>Programming Challenge</h1>
 
-<p>The goal is to create a UrlPuller Objective-C class which takes an array of NSURL&rsquo;s that point to PNG images and downloads them asynchronously and writes the contents of each URL to a file.</p>
+<p>The goal is to create an Objective-C class which takes an array of NSURL&rsquo;s, downloads their contents asynchronously, and writes the contents of each URL to a unique file.</p>
 
-<p>It should do some basic error handling, which is described below.</p>
-
-<p>The UrlPuller class should have the following instance methods:</p>
+<p>The class should be named URLPuller and should have the following instance methods:</p>
 
 <ul>
-<li><code>- (bool) downloadUrlsAsync: (NSArray*)urls</code></li>
+<li><code>- (void) downloadUrlsAsync: (NSArray*)urls</code></li>
 <li><code>- (void) waitUntilAllDownloadsFinish</code></li>
 <li><code>- (NSString*) downloadedPathForURL: (NSURL*)url</code></li>
 </ul>
@@ -182,42 +244,45 @@
 
 <p>Here are the detailed descriptions of each method:</p>
 
-<h2><code>- (bool) downloadUrlsAsync: (NSArray*)urls</code></h2>
+<h2>downloadUrlsAsync</h2>
 
-<p>The urls array will contain an array of NSURL&rsquo;s, each of which points to a PNG image on the web.</p>
+<p><code>- (void) downloadUrlsAsync: (NSArray*)urls</code></p>
 
-<p>As long as there is not a download in progress, this will kick off the URLPuller to asynchronously download the PNG image data from each of the given URLs and save the PNG data to a file.  This method should true in this case, and return immediately.</p>
+<p>The urls array will contain an array of NSURL&rsquo;s.  The method should return immediately, eg, it&rsquo;s an asynchronous API call that will run in the background.</p>
 
-<p>If there is still a download in progress from a previous call to downloadUrlsAsync, then this method will return false immediately and do nothing.</p>
+<p>The downloaded files can be stored in any directory, where the filename is {sha1 hash of url}.downloaded</p>
 
-<p>The downloaded files can be stored in any directory, where the filename is {sha1 hash of url}.png</p>
+<h2>waitUntilAllDownloadsFinish</h2>
 
-<p>Downloads should happen concurrently, however it should also be &ldquo;nice&rdquo; and not completely exhaust system resources if it is called with a list of 10K URL&rsquo;s.</p>
-
-<p>Retry behavior: if any of the downloads fail in a way that could be transient, it should wait 10 seconds and retry that URL. The delay doubles after each failure.  After 3 attempts, it gives up on that URL.</p>
-
-<h2><code>- (void) waitUntilAllDownloadsFinish</code></h2>
+<p><code>- (void) waitUntilAllDownloadsFinish</code></p>
 
 <p>Block until all of the URLs have been downloaded.</p>
 
-<p>If this is called while there is no download in progress, it should return immediately.  Otherwise, it should block until all the downloads have finished or fail after 3 attempts.</p>
+<p>If this is called while there is no download in progress, it should return immediately.  Otherwise, it should block until all the downloads have finished.</p>
 
-<h2><code>- (NSString*) downloadedPathForURL: (NSURL*)url</code></h2>
+<h2>downloadedPathForURL</h2>
 
-<p>If this is called but downloadUrlsAsync was never previously called on this instance, it should return nil.</p>
+<p><code>- (NSString*) downloadedPathForURL: (NSURL*)url</code></p>
 
-<p>If a download is in progress, it should wait until all downloads have finished (by calling waitUntilAllDownloadsFinish), and then return the downloaded path for the given url.</p>
+<p>Return the path where the given url was downloaded to.</p>
 
-<p>If a download is not in progress, but one has completed previously, it should return the downloaded path for the given url in the last previously completed download.</p>
+<p>If the given url has not been downloaded yet, or was never requested to be downloaded, then it should return nil.</p>
 
-<h1>Expectations/Requirements</h1>
+<h1>Objectives</h1>
+
+<p>Demonstrate that:</p>
 
 <ul>
-<li>Write a program that satisfies the API methods and described behavior.</li>
-<li>The code should be easy to read and understand.</li>
-<li>An instance of the URLPuller class would only be accessed by a single thread.</li>
-<li>You are not required to write any unit tests.</li>
-<li>URL downloads should happen concurrently, but it should be &ldquo;nice&rdquo; in terms of not exhausting system resources.</li>
+<li>You can write a program that satisfies the API methods and described behavior.</li>
+<li>You can write code that is well factored, and easy to understand.</li>
+<li>You can clearly communicate questions (if any arise) regarding this specification.</li>
+</ul>
+
+
+<h1>Deliverable</h1>
+
+<ul>
+<li>Zipped Xcode project directory or a link to github repo that contains the Xcode project.  It can be either an iOS or MacOS project.</li>
 </ul>
 
 
@@ -226,8 +291,8 @@
 <ul>
 <li>You can use any available resource you can find on the Internet &mdash; eg, Stack Overflow, API docs, etc.</li>
 <li>You may not ask questions related to the problem on Stack Overflow, IRC, etc.  (eg, the Internet is &ldquo;read-only&rdquo;)</li>
-<li>You cannot use any 3rd party libraries or products, you can only use classes and API&rsquo;s in the standard iOS/Cocoa Objective-C runtime</li>
-<li>It should be possible to run this project via XCode (it can be an OSX command line app, or an iOS app, whatever is convenient)</li>
+<li>You cannot use any 3rd party libraries or products, you can only use classes and API&rsquo;s in the standard iOS/Cocoa Objective-C runtime.  If in doubt, just ask.</li>
+<li>You are welcome to go above and beyond the call of duty in any way that you see fit, however with the constraint that you must provide the above methods with signatures exactly matching with the specification.</li>
 </ul>
 
 </div>
@@ -1251,109 +1316,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/11/12/docker-on-osx/">Docker on OSX</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-11-12T21:01:00-08:00" pubdate data-updated="true">Nov 12<span>th</span>, 2013</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><img src="http://cl.ly/image/302X103n330L/docker.png" alt="Docker.png" /></p>
-
-<h1>Goal</h1>
-
-<p>Get Docker running under OSX.</p>
-
-<h2>Environment</h2>
-
-<ul>
-<li><p>OSX Mavericks</p></li>
-<li><p>Macbook Retina</p></li>
-</ul>
-
-
-<h2>Understanding the tools</h2>
-
-<ul>
-<li>Vagrant is a tool to provision VMs.</li>
-<li>Virtualbox is VM software.</li>
-<li>CoreOS is an operating system based on linux that&rsquo;s all about running docker.</li>
-</ul>
-
-
-<h2>Install VirtualBox + Vagrant</h2>
-
-<ul>
-<li><p>Install VirtualBox via <a href="http://download.virtualbox.org/virtualbox/4.3.2/VirtualBox-4.3.2-90405-OSX.dmg">VirtualBox OSX installer</a></p></li>
-<li><p>Install Vagrant via <a href="http://files.vagrantup.com/packages/a40522f5fabccb9ddabad03d836e120ff5d14093/Vagrant-1.3.5.dmg">Vagrant OSX installer</a></p></li>
-</ul>
-
-
-<h2>Vagrant Smoke Test: run Ubuntu Precise</h2>
-
-<p>To make sure Vagrant is installed correctly, run the following commands to see if Ubuntu Precise comes up and you are able to ssh into it.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>vagrant init precise32 http://files.vagrantup.com/precise32.box
-</span><span class='line'>vagrant up
-</span><span class='line'>vagrant ssh</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If that doesn&rsquo;t work, you should probably fix it before moving on.  Otherwise, keep reading.</p>
-
-<h2>Install/Run CoreOS</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git clone https://github.com/coreos/coreos-vagrant/
-</span><span class='line'>cd coreos-vagrant
-</span><span class='line'>vagrant up</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>SSH into CoreOS</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>vagrant ssh</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Run stock ubuntu docker image</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>docker run -t -i ubuntu bash</span></code></pre></td></tr></table></div></figure>
-
-
-<p>After running this, you should be ssh&rsquo;d inside of an Ubuntu shell, running under docker (running inside of VirtualBox .. etc, all the way up the onion)</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -1380,6 +1342,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/02/06/why-use-go-when-you-can-just-use-c-plus-plus/">Why Use Go When You Can Just Use C++?</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/01/31/a-stubbed-out-gradle-multi-project-hierarchy-using-git-submodules/">A Stubbed Out Gradle Multi-project Hierarchy Using Git Submodules</a>
       </li>
     
@@ -1393,10 +1359,6 @@
     
       <li class="post">
         <a href="/blog/2013/11/23/understanding-chan-chans-in-go/">Understanding Chan Chan&#8217;s in Go</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/11/22/android-studio-plus-genymotion-emulator/">Android Studio + Genymotion Emulator</a>
       </li>
     
   </ul>

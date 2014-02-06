@@ -62,7 +62,7 @@
         <loc>
             http://tleyden.github.io/blog/2014/01/13/objective-c-coding-interview-challenge-urlpuller/
         </loc>
-        <lastmod>2014-01-13T11:46:44-08:00</lastmod>
+        <lastmod>2014-02-04T12:23:29-08:00</lastmod>
     </url>
     <url>
         <loc>
@@ -71,12 +71,18 @@
         <lastmod>2014-01-31T10:54:57-08:00</lastmod>
     </url>
     <url>
+        <loc>
+            http://tleyden.github.io/blog/2014/02/06/why-use-go-when-you-can-just-use-c-plus-plus/
+        </loc>
+        <lastmod>2014-02-06T08:27:18-08:00</lastmod>
+    </url>
+    <url>
         <loc>http://tleyden.github.io/blog/archives/</loc>
-        <lastmod>2014-01-31T10:54:57-08:00</lastmod>
+        <lastmod>2014-02-06T08:27:18-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/</loc>
-        <lastmod>2014-01-31T10:54:57-08:00</lastmod>
+        <lastmod>2014-02-06T08:27:18-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/robots.txt</loc>
