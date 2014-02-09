@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-02-06T09:04:35-08:00</updated>
+  <updated>2014-02-08T17:10:33-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,40 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Playing with Go and OpenGL]]></title>
+    <link href="http://tleyden.github.io/blog/2014/02/08/playing-with-go-and-opengl/"/>
+    <updated>2014-02-08T16:01:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2014/02/08/playing-with-go-and-opengl</id>
+    <content type="html"><![CDATA[<p>Get this spinning gopher working with Go and OpenGL on OSX Mavericks via <a href="https://github.com/chsc/gogl/">gogl</a></p>
+
+<iframe width="420" height="315" src="http://tleyden.github.io//www.youtube.com/embed/yae-bRLdfaU" frameborder="0" allowfullscreen></iframe>
+
+
+<h1>Steps</h1>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ brew install glfw2
+</span><span class='line'>$ go get -u -v github.com/tleyden/gogl
+</span><span class='line'>$ go get -u -v github.com/go-gl/glfw  
+</span><span class='line'>$ cd $GOPATH/src/github.com/tleyden/gogl
+</span><span class='line'>$ make bindings
+</span><span class='line'>$ go get -u -v github.com/chsc/gogl
+</span><span class='line'>$ cd $GOPATH/src/github.com/tleyden/gogl/examples/gopher
+</span><span class='line'>$ go run gopher.go</span></code></pre></td></tr></table></div></figure>
+
+
+<p>NOTE: if <a href="https://github.com/chsc/gogl/pull/37">pull request #37</a> has already been merged into <a href="https://github.com/chsc/gogl/">gogl</a>, then replace <code>github.com/tleyden/gogl</code> with <code>https://github.com/chsc/gogl</code> in steps above.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Why use Go when you can just use C++?]]></title>
