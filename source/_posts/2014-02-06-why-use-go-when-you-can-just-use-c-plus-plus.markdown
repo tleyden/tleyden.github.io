@@ -27,7 +27,7 @@ In Go, instead of having threads communicating by sharing memory (and locking), 
 * Closures (eg, lambdas)
 * Functions are first class objects
 * Multiple return values
-* Does not have IFDEF's, so o IFDEF hell and unmaintainable code.
+* Does not have IFDEF's, so no IFDEF hell and unmaintainable code.
 * Compiles blazingly fast
 * Gofmt - All code is uniformly formatted, making codebases much easier to read.  (a la Python)
 * Garbage collection
