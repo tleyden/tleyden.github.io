@@ -19,9 +19,9 @@ Here's how I did it on OSX Mavericks:
 * In a command line, run the following:
 
 ```
-$ mv /Applications/Android\ Studio.app/ tmp/
-$ mv ~/Downloads/Android\ Studio.app/ /Applications/
-$ cp -R tmp/Android\ Studio.app/sdk /Applications/Android\ Studio.app/
+$ mv /Applications/Android\ Studio.app /tmp/
+$ mv ~/Downloads/Android\ Studio.app /Applications/
+$ cp -R /tmp/Android\ Studio.app/sdk /Applications/Android\ Studio.app/
 ```
 
 The last step is necessary because the dowloaded 0.3.7 Android Studio will not have an SDK directory.  (Note: at this point you can also use `mv` instead of `cp` if you don't want to use the extra disk space)
