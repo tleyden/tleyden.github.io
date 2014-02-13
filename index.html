@@ -425,9 +425,9 @@ $ go get -u -v github.com/ &hellip;">
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ mv /Applications/Android\ Studio.app/ tmp/
-</span><span class='line'>$ mv ~/Downloads/Android\ Studio.app/ /Applications/
-</span><span class='line'>$ cp -R tmp/Android\ Studio.app/sdk /Applications/Android\ Studio.app/</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ mv /Applications/Android\ Studio.app /tmp/
+</span><span class='line'>$ mv ~/Downloads/Android\ Studio.app /Applications/
+</span><span class='line'>$ cp -R /tmp/Android\ Studio.app/sdk /Applications/Android\ Studio.app/</span></code></pre></td></tr></table></div></figure>
 
 
 <p>The last step is necessary because the dowloaded 0.3.7 Android Studio will not have an SDK directory.  (Note: at this point you can also use <code>mv</code> instead of <code>cp</code> if you don&rsquo;t want to use the extra disk space)</p>
