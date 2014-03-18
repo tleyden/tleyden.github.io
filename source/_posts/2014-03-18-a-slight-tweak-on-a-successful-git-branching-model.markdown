@@ -27,9 +27,9 @@ To that end, I've tweaked the original diagram to be.
 
 ## Every branch solves a problem
 
-The natural reaction to most people seeing this diagram is *dude, that's way too many branches, this is way more complicated than it needs to be*.  Actually, I'd argue that it's minimally complex to solve the problems that these branches are designed to solve.  In other words, each type of branch jsutifies it's existence by the problem it's designed to solve.
+The natural reaction to most people seeing this diagram is *dude, that's way too many branches, this is way more complicated than it needs to be*.  Actually, I'd argue that it's minimally complex to solve the problems that these branches are designed to solve.  In other words, each type of branch justifies it's existence by the problem it's designed to solve.
 
-From the perspective of a library developer (in my case, [Couchbase Lite for Android](https://github.com/couchbase/couchbase-lite-android)), here are the problems each branch is purported to solve.
+From the perspective of a library developer (in my case, [Couchbase Lite for Android](https://github.com/couchbase/couchbase-lite-android)), here are the problems each branch is intended to solve.
 
 ### Permanent and External Facing Branches
 
