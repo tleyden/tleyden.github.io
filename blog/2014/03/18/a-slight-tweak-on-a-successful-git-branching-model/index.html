@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>How to downgrade Android Studio - Seven Story Rabbit Hole</title>
+  <title>A slight tweak on A Successful Git Branching Model - Seven Story Rabbit Hole</title>
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="I just tried to update to Android Studio 0.4, however was stung by Issue 61573: Gradle duplicate file exception when package apk file with jar &hellip;">
+  <meta name="description" content="A great &ldquo;best practices&rdquo; for juggling git branches in a release cycle is A successful git branching model. It is also accompanied with a &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://tleyden.github.io/blog/2013/12/19/how-to-downgrade-android-studio">
+  <link rel="canonical" href="http://tleyden.github.io/blog/2014/03/18/a-slight-tweak-on-a-successful-git-branching-model">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
@@ -75,7 +75,7 @@
   
   <header>
     
-      <h1 class="entry-title">How to Downgrade Android Studio</h1>
+      <h1 class="entry-title">A Slight Tweak on a Successful Git Branching Model</h1>
     
     
       <p class="meta">
@@ -91,35 +91,92 @@
   
 
 
-<time datetime="2013-12-19T17:01:00-08:00" pubdate data-updated="true">Dec 19<span>th</span>, 2013</time>
+<time datetime="2014-03-18T10:32:00-07:00" pubdate data-updated="true">Mar 18<span>th</span>, 2014</time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><p>I just tried to update to Android Studio 0.4, however was stung by <a href="https://code.google.com/p/android/issues/detail?id=61573#c14">Issue 61573: Gradle duplicate file exception when package apk file with jar dependencies that contains resources.</a></p>
+<div class="entry-content"><p>A great &ldquo;best practices&rdquo; for juggling git branches in a release cycle is <a href="http://nvie.com/posts/a-successful-git-branching-model/">A successful git branching model</a>.  It is also accompanied with a tool called <a href="https://github.com/nvie/gitflow">git flow</a> that makes it easy to implement in practice.</p>
 
-<p>The good news is that it&rsquo;s very easy to downgrade!  Thank Google, because there is nothing more annoying than not being able to back out of an upgrade gone bad.</p>
+<p>It does however have one major issue: many people use a different naming scheme.</p>
 
-<p>Here&rsquo;s how I did it on OSX Mavericks:</p>
+<p>Instead of:</p>
 
 <ul>
-<li><p>Download 0.3.7 from <a href="http://tools.android.com/download/studio/canary/0-3-7">http://tools.android.com/download/studio/canary/0-3-7</a></p></li>
-<li><p>Unzip it by double clicking it.</p></li>
-<li><p>In a command line, run the following:</p></li>
+<li><strong>Master</strong> &ndash; the latest &ldquo;stable&rdquo; branch</li>
+<li><strong>Development</strong> &ndash; bleeding edge development branch</li>
 </ul>
 
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ mv /Applications/Android\ Studio.app /tmp/
-</span><span class='line'>$ mv ~/Downloads/Android\ Studio.app /Applications/
-</span><span class='line'>$ cp -R /tmp/Android\ Studio.app/sdk /Applications/Android\ Studio.app/</span></code></pre></td></tr></table></div></figure>
+<p>a slightly more common naming pattern is:</p>
+
+<ul>
+<li><strong>Master</strong> &ndash; bleeding edge development branch</li>
+<li><strong>Stable</strong> &ndash; the latest &ldquo;stable&rdquo; branch</li>
+</ul>
 
 
-<p>The last step is necessary because the dowloaded 0.3.7 Android Studio will not have an SDK directory.  (Note: at this point you can also use <code>mv</code> instead of <code>cp</code> if you don&rsquo;t want to use the extra disk space)</p>
+<p>To that end, I&rsquo;ve tweaked the original diagram to be.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/proposed_couchbaselite_branchingmodel.png" alt="diagram" /></p>
+
+<h2>Every branch solves a problem</h2>
+
+<p>The natural reaction to most people seeing this diagram is <em>dude, that&rsquo;s way too many branches, this is way more complicated than it needs to be</em>.  Actually, I&rsquo;d argue that it&rsquo;s minimally complex to solve the problems that these branches are designed to solve.  In other words, each type of branch jsutifies it&rsquo;s existence by the problem it&rsquo;s designed to solve.</p>
+
+<p>From the perspective of a library developer (in my case, <a href="https://github.com/couchbase/couchbase-lite-android">Couchbase Lite for Android</a>), here are the problems each branch is purported to solve.</p>
+
+<h3>Permanent and External Facing Branches</h3>
+
+<p><em>These branches are permanent, in the sense they have a continuous lifetime.  They are also external, and consumers of the library would typically depend on one or both of these branches</em></p>
+
+<p><strong>Master</strong></p>
+
+<ul>
+<li>A home for the latest &ldquo;feature complete&rdquo; / reviewed code.</li>
+<li>Anyone internal or external who wants to stay up to date with latest project developments needs this branch.</li>
+</ul>
+
+
+<p><strong>Stable</strong></p>
+
+<ul>
+<li>A home for the code that corresponds to the latest tagged release.</li>
+<li>This branch would be the basis for post-release bugfixes, eg an external developer who finds a bug in the latest release would send a pull request against this branch.</li>
+<li>Developers depending on this code directly in their app would likely point to this branch on their own stable branch.</li>
+</ul>
+
+
+<h3>Ephemeral and Internal Only Branches</h3>
+
+<p><em>These branches are emphemeral in nature, and are thrown away once they are no longer useful.  Developers consuming the library would typically ignore these</em></p>
+
+<p><strong>FeatureX</strong></p>
+
+<ul>
+<li>A place for in progress features to live without de-stabilizing the master branch.  Can be many of these.</li>
+</ul>
+
+
+<p><strong>Hotfix</strong></p>
+
+<ul>
+<li>An in progress fix would go here, where that fix is destined to be merged back into latest stable but not part of a new release that is branched off of master.</li>
+<li>While this hotfix is in progress, since these commits are not part of a tagged release, they cannot go on stable (yet), otherwise it would be a violation of the stable branch contract that says that stable reflects the latest tagged release.</li>
+<li>They could go directly on a &ldquo;local stable&rdquo; branch, which is only on the developers workstation, but that prevents sharing the branch or running CI unit tests against it, so it&rsquo;s not a good solution.</li>
+<li>NOTE: when hotfix merged, new release tagged simultaneously with a merge to stable, so the stable branch contract stays satisfied.</li>
+</ul>
+
+
+<p><strong>Release</strong></p>
+
+<ul>
+<li>During QA release process, need a place to QA and apply bugfixes, while isolated from destabilizing changes such as merging feature branches.</li>
+<li>Release branch allows feature branch merging to happen concurrently on master branch, which is especially crucial if release gets delayed.</li>
+</ul>
+
 </div>
 
 
@@ -142,7 +199,7 @@
   
 
 
-<time datetime="2013-12-19T17:01:00-08:00" pubdate data-updated="true">Dec 19<span>th</span>, 2013</time>
+<time datetime="2014-03-18T10:32:00-07:00" pubdate data-updated="true">Mar 18<span>th</span>, 2014</time>
       
 
 
@@ -150,7 +207,7 @@
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2013/12/19/how-to-downgrade-android-studio/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2013/12/19/how-to-downgrade-android-studio/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2014/03/18/a-slight-tweak-on-a-successful-git-branching-model/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2014/03/18/a-slight-tweak-on-a-successful-git-branching-model/" >Tweet</a>
   
   
   
@@ -159,10 +216,8 @@
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2013/11/23/understanding-chan-chans-in-go/" title="Previous Post: Understanding chan chan's in Go">&laquo; Understanding chan chan's in Go</a>
+        <a class="basic-alignment left" href="/blog/2014/02/08/playing-with-go-and-opengl/" title="Previous Post: Playing with Go and OpenGL">&laquo; Playing with Go and OpenGL</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2014/01/13/objective-c-coding-interview-challenge-urlpuller/" title="Next Post: Objective C coding interview challenge: URLPuller">Objective C coding interview challenge: URLPuller &raquo;</a>
       
     </p>
   </footer>
@@ -271,8 +326,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://tleyden.github.io/blog/2013/12/19/how-to-downgrade-android-studio/';
-        var disqus_url = 'http://tleyden.github.io/blog/2013/12/19/how-to-downgrade-android-studio/';
+        var disqus_identifier = 'http://tleyden.github.io/blog/2014/03/18/a-slight-tweak-on-a-successful-git-branching-model/';
+        var disqus_url = 'http://tleyden.github.io/blog/2014/03/18/a-slight-tweak-on-a-successful-git-branching-model/';
         var disqus_script = 'embed.js';
       
     (function () {

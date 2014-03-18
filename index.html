@@ -9,16 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Get this spinning gopher working with Go and OpenGL on OSX Mavericks via gogl Steps 1
-2
-3
-4
-5
-6
-7
-8
-$ brew install glfw2
-$ go get -u -v github.com/ &hellip;">
+  <meta name="description" content="A great &ldquo;best practices&rdquo; for juggling git branches in a release cycle is A successful git branching model. It is also accompanied with a &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -81,6 +72,120 @@ $ go get -u -v github.com/ &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/03/18/a-slight-tweak-on-a-successful-git-branching-model/">A Slight Tweak on a Successful Git Branching Model</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-18T10:32:00-07:00" pubdate data-updated="true">Mar 18<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>A great &ldquo;best practices&rdquo; for juggling git branches in a release cycle is <a href="http://nvie.com/posts/a-successful-git-branching-model/">A successful git branching model</a>.  It is also accompanied with a tool called <a href="https://github.com/nvie/gitflow">git flow</a> that makes it easy to implement in practice.</p>
+
+<p>It does however have one major issue: many people use a different naming scheme.</p>
+
+<p>Instead of:</p>
+
+<ul>
+<li><strong>Master</strong> &ndash; the latest &ldquo;stable&rdquo; branch</li>
+<li><strong>Development</strong> &ndash; bleeding edge development branch</li>
+</ul>
+
+
+<p>a slightly more common naming pattern is:</p>
+
+<ul>
+<li><strong>Master</strong> &ndash; bleeding edge development branch</li>
+<li><strong>Stable</strong> &ndash; the latest &ldquo;stable&rdquo; branch</li>
+</ul>
+
+
+<p>To that end, I&rsquo;ve tweaked the original diagram to be.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/proposed_couchbaselite_branchingmodel.png" alt="diagram" /></p>
+
+<h2>Every branch solves a problem</h2>
+
+<p>The natural reaction to most people seeing this diagram is <em>dude, that&rsquo;s way too many branches, this is way more complicated than it needs to be</em>.  Actually, I&rsquo;d argue that it&rsquo;s minimally complex to solve the problems that these branches are designed to solve.  In other words, each type of branch jsutifies it&rsquo;s existence by the problem it&rsquo;s designed to solve.</p>
+
+<p>From the perspective of a library developer (in my case, <a href="https://github.com/couchbase/couchbase-lite-android">Couchbase Lite for Android</a>), here are the problems each branch is purported to solve.</p>
+
+<h3>Permanent and External Facing Branches</h3>
+
+<p><em>These branches are permanent, in the sense they have a continuous lifetime.  They are also external, and consumers of the library would typically depend on one or both of these branches</em></p>
+
+<p><strong>Master</strong></p>
+
+<ul>
+<li>A home for the latest &ldquo;feature complete&rdquo; / reviewed code.</li>
+<li>Anyone internal or external who wants to stay up to date with latest project developments needs this branch.</li>
+</ul>
+
+
+<p><strong>Stable</strong></p>
+
+<ul>
+<li>A home for the code that corresponds to the latest tagged release.</li>
+<li>This branch would be the basis for post-release bugfixes, eg an external developer who finds a bug in the latest release would send a pull request against this branch.</li>
+<li>Developers depending on this code directly in their app would likely point to this branch on their own stable branch.</li>
+</ul>
+
+
+<h3>Ephemeral and Internal Only Branches</h3>
+
+<p><em>These branches are emphemeral in nature, and are thrown away once they are no longer useful.  Developers consuming the library would typically ignore these</em></p>
+
+<p><strong>FeatureX</strong></p>
+
+<ul>
+<li>A place for in progress features to live without de-stabilizing the master branch.  Can be many of these.</li>
+</ul>
+
+
+<p><strong>Hotfix</strong></p>
+
+<ul>
+<li>An in progress fix would go here, where that fix is destined to be merged back into latest stable but not part of a new release that is branched off of master.</li>
+<li>While this hotfix is in progress, since these commits are not part of a tagged release, they cannot go on stable (yet), otherwise it would be a violation of the stable branch contract that says that stable reflects the latest tagged release.</li>
+<li>They could go directly on a &ldquo;local stable&rdquo; branch, which is only on the developers workstation, but that prevents sharing the branch or running CI unit tests against it, so it&rsquo;s not a good solution.</li>
+<li>NOTE: when hotfix merged, new release tagged simultaneously with a merge to stable, so the stable branch contract stays satisfied.</li>
+</ul>
+
+
+<p><strong>Release</strong></p>
+
+<ul>
+<li>During QA release process, need a place to QA and apply bugfixes, while isolated from destabilizing changes such as merging feature branches.</li>
+<li>Release branch allows feature branch merging to happen concurrently on master branch, which is especially crucial if release gets delayed.</li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1154,152 +1259,6 @@ $ go get -u -v github.com/ &hellip;">
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/11/14/running-couchbase-cluster-under-docker/">Running Couchbase Cluster Under Docker</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-11-14T15:45:00-08:00" pubdate data-updated="true">Nov 14<span>th</span>, 2013</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>This tutorial will show you how to run a cluster of Couchbase Servers, where each node is running inside of a docker image.</p>
-
-<p><img src="http://cl.ly/image/2G0h381N3o42/docker%20couchbase%20cluster.png" alt="Diagram" /></p>
-
-<p>This probably looks like <em>a lot</em> of layers, and you might be wondering if this will make your system crawl &mdash; but bear in mind that the Docker virtualization model is very lightweight, and so basically everything under CoreOS has very little resource overhead.</p>
-
-<h2>Install Docker and dependencies</h2>
-
-<p>If you are on OSX and don&rsquo;t have Docker installed, check out <a href="http://tleyden.github.io/blog/2013/11/12/docker-on-osx/">Install Docker on OSX</a> before proceeding.</p>
-
-<h2>Edit vagrant file to add port mappings</h2>
-
-<p>In order to access all the Couchbase Server nodes from the host, <em>which doesn&rsquo;t currently work</em>, you would need to add the following entries to your Vagrantfile:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>config.vm.network "forwarded_port", guest: 8091, host: 8091
-</span><span class='line'>config.vm.network "forwarded_port", guest: 8092, host: 8092
-</span><span class='line'>config.vm.network "forwarded_port", guest: 11210, host:   11210</span></code></pre></td></tr></table></div></figure>
-
-
-<p>As mentioned, accessing all of the Couchbase Server nodes from the host does not currently work.  However, I think at least some of these entries are needed, so to be on the safe side just add all of them.</p>
-
-<h2>Start CoreOS and ssh in</h2>
-
-<p>Execute the following commands in the directory where you have your CoreOS Vagrantfile.  In my case, I have it under <code>~/Tools/coreos-vagrant</code> and it contains a Vagrantfile, a README.md file, and a few others.</p>
-
-<p>Start CoreOS</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ vagrant up</span></code></pre></td></tr></table></div></figure>
-
-
-<p>SSH into CoreOS</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ vagrant ssh</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Start docker image for a single node</h2>
-
-<p>Here&rsquo;s how to fire up the first docker image</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>docker run -i -t -d -p 11210:11210 -p 8091:7081 -p 8092:8092 dustin/couchbase:latest</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and you should see:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>Unable to find image 'dustin/couchbase:latest' (tag: latest) locally
-</span><span class='line'>Pulling repository dustin/couchbase
-</span><span class='line'>9e0279ab340d: Download complete
-</span><span class='line'>...
-</span><span class='line'>845987ce946b</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Find the name of the docker instance by running <code>$ docker ps</code></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>core@localhost ~ $ docker ps
-</span><span class='line'>CONTAINER ID        IMAGE                     COMMAND                CREATED              STATUS              PORTS                                                                      NAMES
-</span><span class='line'>845987ce946b        dustin/couchbase:latest   /bin/sh -c /usr/loca   About a minute ago   Up About a minute   0.0.0.0:11210-&gt;11210/tcp, 0.0.0.0:8091-&gt;7081/tcp, 0.0.0.0:8092-&gt;8092/tcp   purple_kangaroo</span></code></pre></td></tr></table></div></figure>
-
-
-<p>In this case it&rsquo;s <em>purple_kangaroo</em>.</p>
-
-<p>Now take a look at the logs for that docker instance:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>core@localhost ~ $ docker logs purple_kangaroo
-</span><span class='line'>/opt/couchbase/etc/couchbase_init.d: 45: ulimit: error setting limit (Operation not permitted)
-</span><span class='line'>/opt/couchbase/etc/couchbase_init.d: 47: ulimit: error setting limit (Operation not permitted)
-</span><span class='line'> * Started couchbase-server
-</span><span class='line'>Starting cluster
-</span><span class='line'>SUCCESS: init 127.0.0.1
-</span><span class='line'>SUCCESS: bucket-create</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If you only want to run one Couchbase Server node, you are pretty much done and you can skip to the section below to login to the Couchbase Server admin</p>
-
-<p>If you want to run a cluster of Couchbase Server nodes, read on.</p>
-
-<h2>Start docker images for other nodes</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run -i -t -d -link purple_kangaroo:alpha dustin/couchbase:latest</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This will start another node that is linked to the initial node, and will be in the same cluster.  There is some Weird Magic behind the scenes that makes that all work.</p>
-
-<h1>Go to Couchbase Server admin</h1>
-
-<p>Open <a href="http://localhost:8091/">http://localhost:8091/</a> in your browser, and you should see a login screen, where the default credentials are Administrator/password.</p>
-
-<p>After you login, you should see the Admin UI with three nodes in your cluster:</p>
-
-<p><img src="http://cl.ly/image/2K3i1v2w3H0E/Screen%20Shot%202013-11-14%20at%204.47.18%20PM.png" alt="Screenshot" /></p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -1326,6 +1285,10 @@ $ go get -u -v github.com/ &hellip;">
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/03/18/a-slight-tweak-on-a-successful-git-branching-model/">A Slight Tweak on a Successful Git Branching Model</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/02/08/playing-with-go-and-opengl/">Playing With Go and OpenGL</a>
       </li>
     
@@ -1339,10 +1302,6 @@ $ go get -u -v github.com/ &hellip;">
     
       <li class="post">
         <a href="/blog/2014/01/13/objective-c-coding-interview-challenge-urlpuller/">Objective C Coding Interview Challenge: URLPuller</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/12/19/how-to-downgrade-android-studio/">How to Downgrade Android Studio</a>
       </li>
     
   </ul>
