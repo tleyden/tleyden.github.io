@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-04-09T11:54:52-07:00</updated>
+  <updated>2014-04-09T11:56:01-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -18,7 +18,7 @@
     <link href="http://tleyden.github.io/blog/2014/04/09/a-successful-git-branching-model-with-enterprise-support/"/>
     <updated>2014-04-09T11:39:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2014/04/09/a-successful-git-branching-model-with-enterprise-support</id>
-    <content type="html"><![CDATA[<p>This further extends <a href="http://tleyden.github.io/blog/2014/03/18/a-slight-tweak-on-a-successful-git-branching-model/">A Slight Tweak on a Successful Git Branching Model</a>, which mainly renamed the branches,  with the addition of the concept of support branches.</p>
+    <content type="html"><![CDATA[<p>This further extends <a href="http://tleyden.github.io/blog/2014/03/18/a-slight-tweak-on-a-successful-git-branching-model/">A Slight Tweak on a Successful Git Branching Model</a> with the addition of the concept of support branches.</p>
 
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/release-branching-strategy.png" alt="diagram" /></p>
 
