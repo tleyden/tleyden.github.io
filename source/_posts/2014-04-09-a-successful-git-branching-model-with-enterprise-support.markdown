@@ -6,7 +6,7 @@ comments: true
 categories: 
 ---
 
-This further extends [A Slight Tweak on a Successful Git Branching Model](http://tleyden.github.io/blog/2014/03/18/a-slight-tweak-on-a-successful-git-branching-model/), which mainly renamed the branches,  with the addition of the concept of support branches.
+This further extends [A Slight Tweak on a Successful Git Branching Model](http://tleyden.github.io/blog/2014/03/18/a-slight-tweak-on-a-successful-git-branching-model/) with the addition of the concept of support branches.
 
 ![diagram](http://tleyden-misc.s3.amazonaws.com/blog_images/release-branching-strategy.png)
 
