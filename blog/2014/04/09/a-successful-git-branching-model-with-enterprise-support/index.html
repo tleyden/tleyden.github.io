@@ -5,13 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Docker on OSX - Seven Story Rabbit Hole</title>
+  <title>A successful git branching model with enterprise support - Seven Story Rabbit Hole</title>
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Goal Get Docker running under OSX. Environment OSX Mavericks
-Macbook Retina Understanding the tools Vagrant is a tool to provision VMs.
-Virtualbox &hellip;">
+  <meta name="description" content="This further extends A Slight Tweak on a Successful Git Branching Model, which mainly renamed the branches, with the addition of the concept of &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -20,7 +18,7 @@ Virtualbox &hellip;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://tleyden.github.io/blog/2013/11/12/docker-on-osx">
+  <link rel="canonical" href="http://tleyden.github.io/blog/2014/04/09/a-successful-git-branching-model-with-enterprise-support">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
@@ -77,7 +75,7 @@ Virtualbox &hellip;">
   
   <header>
     
-      <h1 class="entry-title">Docker on OSX</h1>
+      <h1 class="entry-title">A Successful Git Branching Model With Enterprise Support</h1>
     
     
       <p class="meta">
@@ -93,81 +91,77 @@ Virtualbox &hellip;">
   
 
 
-<time datetime="2013-11-12T21:01:00-08:00" pubdate data-updated="true">Nov 12<span>th</span>, 2013</time>
+<time datetime="2014-04-09T11:39:00-07:00" pubdate data-updated="true">Apr 9<span>th</span>, 2014</time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><p><img src="http://cl.ly/image/302X103n330L/docker.png" alt="Docker.png" /></p>
+<div class="entry-content"><p>This further extends <a href="http://tleyden.github.io/blog/2014/03/18/a-slight-tweak-on-a-successful-git-branching-model/">A Slight Tweak on a Successful Git Branching Model</a>, which mainly renamed the branches,  with the addition of the concept of support branches.</p>
 
-<h1>Goal</h1>
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/release-branching-strategy.png" alt="diagram" /></p>
 
-<p>Get Docker running under OSX.</p>
-
-<h2>Environment</h2>
+<h2>Release Branches</h2>
 
 <ul>
-<li><p>OSX Mavericks</p></li>
-<li><p>Macbook Retina</p></li>
+<li><p>When completed the release branch would be merged into both the master and stable branches, the commit on the stable branch would be tagged with a release tag (eg, 1.0.0).</p></li>
+<li><p>The release branch would be discarded after being merged back into master and stable.</p></li>
+<li><p>Release branches would be named “release/xxx”, where xxx is the target release tag for that release.  Eg, “release/1.0.0”.</p></li>
+<li><p>Release branches should only have bugfixes related to the release being committed to them.  All other changes should be on feature branches or the master branch, isolated from the release process.</p></li>
+<li><p>Release branches would help avoid making developers having to “double-commit” bugfixes related to a release to both the release branch and the master branch &mdash; because the release branch will be merged into master at the time of release, they only need to commit the fix to the release branch.</p></li>
+<li><p>Release branches should be periodically merged back into the master branch if they run longer than normal (eg, if it was expected to last 3 weeks and ended up lasting 8 weeks), rather than waiting until the time of release.  This will reduce the chance of having major merge conflicts trying to merge back into master.</p></li>
+<li><p>When a release is ready to be tagged, if the release branch does not easily merge into master, it is up to the dev lead on that team to handle the merge (not the build engineer).  In this case, the build engineer should not be blocked, because the merge into stable will be a fast-forward merge, and so the release can proceed despite not having been merged into master yet.</p></li>
 </ul>
 
 
-<h2>Understanding the tools</h2>
+<h2>Support Branches</h2>
 
 <ul>
-<li>Vagrant is a tool to provision VMs.</li>
-<li>Virtualbox is VM software.</li>
-<li>CoreOS is an operating system based on linux that&rsquo;s all about running docker.</li>
+<li><p>Support branches would be created “on demand” when requested by customers who are stuck on legacy releases and are not able to move forward to current releases, but need security and other bug fixes.</p></li>
+<li><p>Support branches should be avoided if possible, by encouraging customers to move to the current release, because they create extra work for the entire team.</p></li>
+<li><p>Support branches would follow a similar naming scheme and would be named “support/xxx”, where xxx is the release tag from which they were branched off of.  Eg, “support/1.0.1”.</p></li>
+<li><p>Support branches are essentially dead-end branches, since their changes would unlikely need to be merged back into master (or stable) as the support branch contains “ancient code” and most likely those fixes would already have been integrated into the codebase.</p></li>
+<li><p>If a customer is on the current release, then there is no need to create a support branch for their required fix.  Instead, a hotfix branch should be used and a new release tag should be created.</p></li>
 </ul>
 
 
-<h2>Install VirtualBox + Vagrant</h2>
+<h2>Hotfix Branches</h2>
 
 <ul>
-<li><p>Install VirtualBox via <a href="http://download.virtualbox.org/virtualbox/4.3.2/VirtualBox-4.3.2-90405-OSX.dmg">VirtualBox OSX installer</a></p></li>
-<li><p>Install Vagrant via <a href="http://files.vagrantup.com/packages/a40522f5fabccb9ddabad03d836e120ff5d14093/Vagrant-1.3.5.dmg">Vagrant OSX installer</a></p></li>
+<li><p>Hotfix branches would branch off of the stable branch, and be used for minor post-release bugfixes.</p></li>
+<li><p>Hotfix branches would be named “hotfix/xxx”, where xxx might typically be an issue id.  Once their changes have been merged into master and stable, they should be deleted.</p></li>
+<li><p>Hotfix branches are expected to undergo less QA compared to release branches, and therefore are expected to contain minimum changes to fix showstopper bugs in a release.   The changes should not include refactoring or any other risky changes.</p></li>
+<li><p>If it’s being branched off the master branch, it’s not a hotfix branch.  Hotfixes are only branched off the stable branch.</p></li>
+<li><p>Hotfix branches should verified on the CI server using the automated QA suite before being considered complete.</p></li>
+<li><p>After being accepted by QA, hotfix branches are merged back into master and stable, and the latest commit on stable is tagged with a release tag.  (eg, 1.0.1)</p></li>
+<li><p>Similar to release branches, if hotfixes do not easily merge back into master, the build engineer would assign the dev lead the responsibility for completing the merge, but this should not block the release.  However since hotfix branches are so short-lived, this is very unlikely to happen.</p></li>
 </ul>
 
 
-<h2>Vagrant Smoke Test: run Ubuntu Precise</h2>
+<h2>Stable Branch</h2>
 
-<p>To make sure Vagrant is installed correctly, run the following commands to see if Ubuntu Precise comes up and you are able to ssh into it.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>vagrant init precise32 http://files.vagrantup.com/precise32.box
-</span><span class='line'>vagrant up
-</span><span class='line'>vagrant ssh</span></code></pre></td></tr></table></div></figure>
+<ul>
+<li><p>The stable branch would represent the “released” mainline development.</p></li>
+<li><p>The latest commit on stable should always correspond to the latest release tag.</p></li>
+<li><p>All release tags should be made against commits on stable, except for those on legacy support branches.</p></li>
+<li><p>Developers who wanted to subscribe to the latest released code would follow the stable branch.</p></li>
+</ul>
 
 
-<p>If that doesn&rsquo;t work, you should probably fix it before moving on.  Otherwise, keep reading.</p>
+<h2>Master Branch</h2>
 
-<h2>Install/Run CoreOS</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git clone https://github.com/coreos/coreos-vagrant/
-</span><span class='line'>cd coreos-vagrant
-</span><span class='line'>vagrant up</span></code></pre></td></tr></table></div></figure>
+<ul>
+<li>The master branch would represent the “as-yet-unreleased” mainline development.</li>
+</ul>
 
 
-<h2>SSH into CoreOS</h2>
+<h2>Feature Branches</h2>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>vagrant ssh</span></code></pre></td></tr></table></div></figure>
+<ul>
+<li>All non-trivial changes should be done on feature branches and undergo code review before being merged into the master branch.</li>
+</ul>
 
-
-<h2>Run stock ubuntu docker image</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>docker run -t -i ubuntu bash</span></code></pre></td></tr></table></div></figure>
-
-
-<p>After running this, you should be ssh&rsquo;d inside of an Ubuntu shell, running under docker (running inside of VirtualBox .. etc, all the way up the onion)</p>
 </div>
 
 
@@ -190,21 +184,15 @@ Virtualbox &hellip;">
   
 
 
-<time datetime="2013-11-12T21:01:00-08:00" pubdate data-updated="true">Nov 12<span>th</span>, 2013</time>
+<time datetime="2014-04-09T11:39:00-07:00" pubdate data-updated="true">Apr 9<span>th</span>, 2014</time>
       
-
-<span class="categories">
-  
-    <a class='category' href='/blog/categories/docker/'>docker</a>
-  
-</span>
 
 
     </p>
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2013/11/12/docker-on-osx/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2013/11/12/docker-on-osx/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2014/04/09/a-successful-git-branching-model-with-enterprise-support/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2014/04/09/a-successful-git-branching-model-with-enterprise-support/" >Tweet</a>
   
   
   
@@ -213,10 +201,8 @@ Virtualbox &hellip;">
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2013/09/20/deciphering-some-go-code/" title="Previous Post: Deciphering some Go code">&laquo; Deciphering some Go code</a>
+        <a class="basic-alignment left" href="/blog/2014/03/18/a-slight-tweak-on-a-successful-git-branching-model/" title="Previous Post: A slight tweak on A Successful Git Branching Model">&laquo; A slight tweak on A Successful Git Branching Model</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2013/11/14/investigating-an-android-sqlite-threading-deadlock/" title="Next Post: Investigating an Android SQLite threading deadlock">Investigating an Android SQLite threading deadlock &raquo;</a>
       
     </p>
   </footer>
@@ -325,8 +311,8 @@ Virtualbox &hellip;">
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://tleyden.github.io/blog/2013/11/12/docker-on-osx/';
-        var disqus_url = 'http://tleyden.github.io/blog/2013/11/12/docker-on-osx/';
+        var disqus_identifier = 'http://tleyden.github.io/blog/2014/04/09/a-successful-git-branching-model-with-enterprise-support/';
+        var disqus_url = 'http://tleyden.github.io/blog/2014/04/09/a-successful-git-branching-model-with-enterprise-support/';
         var disqus_script = 'embed.js';
       
     (function () {
