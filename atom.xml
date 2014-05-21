@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-05-21T16:50:41-07:00</updated>
+  <updated>2014-05-21T16:57:22-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -23,8 +23,8 @@
 <p>What is Couchbase Mobile?</p>
 
 <ul>
-<li>Couchbase Lite is an Open Source iOS/Android NoSQL DB with built-in sync capability.</li>
-<li>Couchbase Mobile refers to the &ldquo;full stack&rdquo; solution, which includes the Open Source server components that Couchbase Lite uses for sync.</li>
+<li>Couchbase Lite is an open source iOS/Android NoSQL DB with built-in sync capability.</li>
+<li>Couchbase Mobile refers to the &ldquo;full stack&rdquo; solution, which includes the (also open source) server components that Couchbase Lite uses for sync.</li>
 </ul>
 
 
@@ -109,7 +109,7 @@
 
 <h1>What&rsquo;s the dark side of Couchbase Lite?</h1>
 
-<h2>Querying can be faster, but they must be pre-defined</h2>
+<h2>Queries can be faster, but they have certain limitations</h2>
 
 <p>With SQL, you can run arbitrary queries, irregardless if there is an index or not.</p>
 
