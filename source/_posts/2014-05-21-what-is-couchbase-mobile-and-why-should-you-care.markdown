@@ -10,8 +10,8 @@ Couchbase Mobile just announced it's [1.0 release](http://www.couchbase.com/pres
 
 What is Couchbase Mobile?
 
-* Couchbase Lite is an Open Source iOS/Android NoSQL DB with built-in sync capability.  
-* Couchbase Mobile refers to the "full stack" solution, which includes the Open Source server components that Couchbase Lite uses for sync.
+* Couchbase Lite is an open source iOS/Android NoSQL DB with built-in sync capability.  
+* Couchbase Mobile refers to the "full stack" solution, which includes the (also open source) server components that Couchbase Lite uses for sync.
 
 To give a deeper look at what problem Couchbase Mobile is meant to solve, let me tell you the story of how I came to discover Couchbase Lite as a developer.  In my [previous startup](http://techcrunch.com/2012/01/26/signature-launches-to-bring-a-personalized-mobile-shopping-service-to-brick-and-mortar-retailers/), we built a mobile CRM app for sales associates.  
 
@@ -82,7 +82,7 @@ And you'll never have to worry about getting yourself stuck in Core Data schema 
 
 # What's the dark side of Couchbase Lite?
 
-## Querying can be faster, but they must be pre-defined
+## Queries can be faster, but they have certain limitations
 
 With SQL, you can run arbitrary queries, irregardless if there is an index or not.
 
