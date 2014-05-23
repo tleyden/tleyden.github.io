@@ -4,7 +4,7 @@
   <title><![CDATA[Category: golang | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/golang/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-05-23T11:28:31-07:00</updated>
+  <updated>2014-05-23T11:30:04-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -190,7 +190,7 @@ export GOPATH=~/Development/gocode
 
 <h2>Is this too easy for you?</h2>
 
-<p>If you&rsquo;re yawning and you already know all this stuff, or your ready to take it to the next level, check out <a href="http://www.youtube.com/watch?v=5wipWZKvNSo">5 minutes of go in emacs</a></p>
+<p>If you&rsquo;re yawning and you already know all this stuff, or you&rsquo;re ready to take it to the next level, check out <a href="http://www.youtube.com/watch?v=5wipWZKvNSo">5 minutes of go in emacs</a></p>
 
 <h2>To be continued ..</h2>
 
