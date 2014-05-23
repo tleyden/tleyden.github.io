@@ -43,6 +43,8 @@ The following is a brief summary of [Dominik Honnef's instructions](http://domin
 
 Restart Emacs and open a .go file, you should see the mode as "Go" rather than "Fundamental".
 
+For a full description of what go-mode can do for you, see [Dominik Honnef's blog](http://dominik.honnef.co/posts/2013/03/writing_go_in_emacs/), but one really useful thing to be aware of is that you can quickly import packages via `C-c C-a`
+
 ## Update Emacs config for `godoc`
 
 It's really useful to be able to able to pull up 3rd party or standard library docs from within Emacs using the `godoc` tool.
@@ -154,7 +156,7 @@ To do that, edit your ~/.emacs and replace your go-mode hook with:
 
 After that, restart emacs, and when you type `M-x compile`, it should try to execute `go build -v && go test -v && go vet` instead of the default behavior.
 
-**Power tip**: you can jump straight to each compile error by running ``Ctl-x ` ``.  Each time you do it, it will jump to the next error.
+**Power tip**: you can jump straight to each compile error by running ``C-x ` ``.  Each time you do it, it will jump to the next error.
 
 ## Is this too easy for you?
 
