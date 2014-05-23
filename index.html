@@ -259,6 +259,38 @@
 
 <p>At this point, after you restart emacs, when you start typing something, you should see a popup menu with choices, like <a href="http://tleyden-misc.s3.amazonaws.com/blog_images/emacs_autocomplete.png">this screenshot</a>.</p>
 
+<h2>Customize compile command to run <code>go build</code></h2>
+
+<p>It&rsquo;s convenient to be able to run <code>M-x compile</code> to compile and test your Go code from within emacs.</p>
+
+<p>To do that, edit your ~/.emacs and replace your go-mode hook with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>(defun my-go-mode-hook ()
+</span><span class='line'>  ; Call Gofmt before saving
+</span><span class='line'>  (add-hook 'before-save-hook 'gofmt-before-save)
+</span><span class='line'>  ; Customize compile command to run go build
+</span><span class='line'>  (if (not (string-match "go" compile-command))
+</span><span class='line'>      (set (make-local-variable 'compile-command)
+</span><span class='line'>           "go build -v && go test -v && go vet"))
+</span><span class='line'>  ; Godef jump key binding
+</span><span class='line'>  (local-set-key (kbd "M-.") 'godef-jump))
+</span><span class='line'>(add-hook 'go-mode-hook 'my-go-mode-hook)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After that, restart emacs, and when you type <code>M-x compile</code>, it should try to execute <code>go build -v &amp;&amp; go test -v &amp;&amp; go vet</code> instead of the default behavior.</p>
+
+<p><strong>Power tip</strong>: you can jump straight to each compile error by running <code>Ctl-x `</code>.  Each time you do it, it will jump to the next error.</p>
+
 <h2>Is this too easy for you?</h2>
 
 <p>If you&rsquo;re yawning and you already know all this stuff, or your ready to take it to the next level, check out <a href="http://www.youtube.com/watch?v=5wipWZKvNSo">5 minutes of go in emacs</a></p>
