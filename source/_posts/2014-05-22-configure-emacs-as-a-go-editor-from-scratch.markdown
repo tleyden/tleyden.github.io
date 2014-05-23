@@ -158,7 +158,7 @@ After that, restart emacs, and when you type `M-x compile`, it should try to exe
 
 ## Is this too easy for you?
 
-If you're yawning and you already know all this stuff, or your ready to take it to the next level, check out [5 minutes of go in emacs](http://www.youtube.com/watch?v=5wipWZKvNSo)
+If you're yawning and you already know all this stuff, or you're ready to take it to the next level, check out [5 minutes of go in emacs](http://www.youtube.com/watch?v=5wipWZKvNSo)
 
 ## To be continued ..
 
