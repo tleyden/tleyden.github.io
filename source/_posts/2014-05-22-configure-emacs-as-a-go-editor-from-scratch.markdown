@@ -133,6 +133,29 @@ The following is a brief summary of the [gocode README](https://github.com/nsf/g
 
 At this point, after you restart emacs, when you start typing something, you should see a popup menu with choices, like [this screenshot](http://tleyden-misc.s3.amazonaws.com/blog_images/emacs_autocomplete.png).
 
+## Customize compile command to run `go build`
+
+It's convenient to be able to run `M-x compile` to compile and test your Go code from within emacs.  
+
+To do that, edit your ~/.emacs and replace your go-mode hook with:
+
+```
+(defun my-go-mode-hook ()
+  ; Call Gofmt before saving
+  (add-hook 'before-save-hook 'gofmt-before-save)
+  ; Customize compile command to run go build
+  (if (not (string-match "go" compile-command))
+      (set (make-local-variable 'compile-command)
+           "go build -v && go test -v && go vet"))
+  ; Godef jump key binding
+  (local-set-key (kbd "M-.") 'godef-jump))
+(add-hook 'go-mode-hook 'my-go-mode-hook)
+```
+
+After that, restart emacs, and when you type `M-x compile`, it should try to execute `go build -v && go test -v && go vet` instead of the default behavior.
+
+**Power tip**: you can jump straight to each compile error by running ``Ctl-x ` ``.  Each time you do it, it will jump to the next error.
+
 ## Is this too easy for you?
 
 If you're yawning and you already know all this stuff, or your ready to take it to the next level, check out [5 minutes of go in emacs](http://www.youtube.com/watch?v=5wipWZKvNSo)
