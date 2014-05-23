@@ -49,7 +49,7 @@ It's really useful to be able to able to pull up 3rd party or standard library d
 
 *Unfortunately, it was necessary to duplicate the $PATH and $GOPATH environment variables in the .emacs file, so that the GUI Emacs app can see it.  If you know of a better way, please leave a comment.*
 
-**NOTE** you will need to modify the snippet below to reflect the $PATH and $GOPATH variables, don't just blindly copy and paste these.
+**NOTE**: you will need to modify the snippet below to reflect the $PATH and $GOPATH variables, don't just blindly copy and paste these.
 
 * Add your $PATH and $GOPATH to your ~/.emacs
 
@@ -63,7 +63,7 @@ After doing this step, you should be able to run `M-x godoc` and it should be ab
 
 ## Automatically call gofmt on save
 
-Gofmt reformats code into the One True Go Style Coding Standard.  You'll want to call it every time you save a file.
+`gofmt` reformats code into the One True Go Style Coding Standard.  You'll want to call it every time you save a file.
 
 Add these to your ~/.emacs:
 
@@ -73,9 +73,9 @@ Add these to your ~/.emacs:
 (add-hook 'before-save-hook 'gofmt-before-save)
 ```
 
-After this step, whenever you save a Go file, it will automatically reformat the file with gofmt.
+After this step, whenever you save a Go file, it will automatically reformat the file with `gofmt`.
 
-## Godef
+## Godef 
 
 Godef is essential: it lets you quickly jump around the code, as you might be used to with a full featured IDE.
 
@@ -99,7 +99,7 @@ In order to add godef key bindings, add these to your ~/.emacs:
 
 and remove your previous call to `(add-hook 'before-save-hook 'gofmt-before-save)` since it's now redundant
 
-Now you can jump into code with `M-.` and jump back with `M-.`
+Now you can jump into code with `M-.` and jump back with `M-*`
 
 ## Autocomplete
 
