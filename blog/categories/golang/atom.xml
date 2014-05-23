@@ -4,7 +4,7 @@
   <title><![CDATA[Category: golang | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/golang/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-05-23T09:41:37-07:00</updated>
+  <updated>2014-05-23T09:47:43-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -67,7 +67,7 @@ export GOPATH=~/Development/gocode
 
 <p><em>Unfortunately, it was necessary to duplicate the $PATH and $GOPATH environment variables in the .emacs file, so that the GUI Emacs app can see it.  If you know of a better way, please leave a comment.</em></p>
 
-<p><strong>NOTE</strong> you will need to modify the snippet below to reflect the $PATH and $GOPATH variables, don&rsquo;t just blindly copy and paste these.</p>
+<p><strong>NOTE</strong>: you will need to modify the snippet below to reflect the $PATH and $GOPATH variables, don&rsquo;t just blindly copy and paste these.</p>
 
 <ul>
 <li>Add your $PATH and $GOPATH to your ~/.emacs</li>
@@ -83,7 +83,7 @@ export GOPATH=~/Development/gocode
 
 <h2>Automatically call gofmt on save</h2>
 
-<p>Gofmt reformats code into the One True Go Style Coding Standard.  You&rsquo;ll want to call it every time you save a file.</p>
+<p><code>gofmt</code> reformats code into the One True Go Style Coding Standard.  You&rsquo;ll want to call it every time you save a file.</p>
 
 <p>Add these to your ~/.emacs:</p>
 
@@ -93,7 +93,7 @@ export GOPATH=~/Development/gocode
 (add-hook 'before-save-hook 'gofmt-before-save)
 </code></p>
 
-<p>After this step, whenever you save a Go file, it will automatically reformat the file with gofmt.</p>
+<p>After this step, whenever you save a Go file, it will automatically reformat the file with <code>gofmt</code>.</p>
 
 <h2>Godef</h2>
 
@@ -122,7 +122,7 @@ export GOPATH=~/Development/gocode
 
 <p>and remove your previous call to <code>(add-hook 'before-save-hook 'gofmt-before-save)</code> since it&rsquo;s now redundant</p>
 
-<p>Now you can jump into code with <code>M-.</code> and jump back with <code>M-.</code></p>
+<p>Now you can jump into code with <code>M-.</code> and jump back with <code>M-*</code></p>
 
 <h2>Autocomplete</h2>
 
