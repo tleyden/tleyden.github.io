@@ -47,8 +47,7 @@ Restart Emacs and open a .go file, you should see the mode as "Go" rather than "
 
 It's really useful to be able to able to pull up 3rd party or standard library docs from within Emacs using the `godoc` tool.
 
-* Create ~/.emacs if it doesn't already exist
-* Add 
+* Add the following to your ~/.emacs
 
 ```
 (setenv "PATH" "/Users/tleyden/.rbenv/shims:/Users/tleyden/.rbenv/shims:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/go/bin")
@@ -104,7 +103,7 @@ The following is a brief summary of the [emacs autocomplete manual](http://cx4a.
 
 * Download and extract http://cx4a.org/pub/auto-complete/auto-complete-1.3.1.tar.bz2
 * Cd into extracted dir and run `emacs -batch -l etc/install.el`
-* It will tell you to add the following to .emacs
+* It will tell you to add the following to your ~/.emacs:
 
 ```
 (add-to-list 'load-path "/Users/tleyden/.emacs.d/")
