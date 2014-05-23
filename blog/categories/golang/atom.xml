@@ -4,7 +4,7 @@
   <title><![CDATA[Category: golang | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/golang/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-05-23T11:30:04-07:00</updated>
+  <updated>2014-05-23T11:34:19-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -60,6 +60,8 @@ export GOPATH=~/Development/gocode
 </code></p>
 
 <p>Restart Emacs and open a .go file, you should see the mode as &ldquo;Go&rdquo; rather than &ldquo;Fundamental&rdquo;.</p>
+
+<p>For a full description of what go-mode can do for you, see <a href="http://dominik.honnef.co/posts/2013/03/writing_go_in_emacs/">Dominik Honnef&rsquo;s blog</a>, but one really useful thing to be aware of is that you can quickly import packages via <code>C-c C-a</code></p>
 
 <h2>Update Emacs config for <code>godoc</code></h2>
 
@@ -186,7 +188,7 @@ export GOPATH=~/Development/gocode
 
 <p>After that, restart emacs, and when you type <code>M-x compile</code>, it should try to execute <code>go build -v &amp;&amp; go test -v &amp;&amp; go vet</code> instead of the default behavior.</p>
 
-<p><strong>Power tip</strong>: you can jump straight to each compile error by running <code>Ctl-x `</code>.  Each time you do it, it will jump to the next error.</p>
+<p><strong>Power tip</strong>: you can jump straight to each compile error by running <code>C-x `</code>.  Each time you do it, it will jump to the next error.</p>
 
 <h2>Is this too easy for you?</h2>
 
