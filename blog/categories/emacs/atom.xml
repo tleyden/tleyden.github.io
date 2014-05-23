@@ -4,7 +4,7 @@
   <title><![CDATA[Category: emacs | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/emacs/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-05-23T09:22:30-07:00</updated>
+  <updated>2014-05-23T09:41:37-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -48,7 +48,7 @@ export GOPATH=~/Development/gocode
 <ul>
 <li><code>mkdir -p ~/Misc/emacs &amp;&amp; cd ~/Misc/emacs</code></li>
 <li><code>git clone git@github.com:dominikh/go-mode.el.git</code></li>
-<li>From within Emacs, run M-x <code>update-file-autoloads</code>, point it at the <strong>go-mode.el</strong> file in the cloned directory.</li>
+<li>From within Emacs, run <code>M-x update-file-autoloads</code>, point it at the <strong>go-mode.el</strong> file in the cloned directory.</li>
 <li>Emacs will prompt you for a result file, and you should enter <strong>go-mode-load.el</strong></li>
 <li>Add these two lines to your ~/.emacs</li>
 </ul>
