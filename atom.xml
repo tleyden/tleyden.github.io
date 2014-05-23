@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-05-23T09:06:58-07:00</updated>
+  <updated>2014-05-23T09:16:38-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -68,8 +68,7 @@
 <p>It&rsquo;s really useful to be able to able to pull up 3rd party or standard library docs from within Emacs using the <code>godoc</code> tool.</p>
 
 <ul>
-<li>Create ~/.emacs if it doesn&rsquo;t already exist</li>
-<li>Add</li>
+<li>Add the following to your ~/.emacs</li>
 </ul>
 
 
@@ -138,7 +137,7 @@
 <ul>
 <li>Download and extract <a href="http://cx4a.org/pub/auto-complete/auto-complete-1.3.1.tar.bz2">http://cx4a.org/pub/auto-complete/auto-complete-1.3.1.tar.bz2</a></li>
 <li>Cd into extracted dir and run <code>emacs -batch -l etc/install.el</code></li>
-<li>It will tell you to add the following to .emacs</li>
+<li>It will tell you to add the following to your ~/.emacs:</li>
 </ul>
 
 
