@@ -47,7 +47,11 @@ Restart Emacs and open a .go file, you should see the mode as "Go" rather than "
 
 It's really useful to be able to able to pull up 3rd party or standard library docs from within Emacs using the `godoc` tool.
 
-* Add the following to your ~/.emacs
+*Unfortunately, it was necessary to duplicate the $PATH and $GOPATH environment variables in the .emacs file, so that the GUI Emacs app can see it.  If you know of a better way, please leave a comment.*
+
+**NOTE** you will need to modify the snippet below to reflect the $PATH and $GOPATH variables, don't just blindly copy and paste these.
+
+* Add your $PATH and $GOPATH to your ~/.emacs
 
 ```
 (setenv "PATH" "/Users/tleyden/.rbenv/shims:/Users/tleyden/.rbenv/shims:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/go/bin")
@@ -56,10 +60,10 @@ It's really useful to be able to able to pull up 3rd party or standard library d
 
 After doing this step, you should be able to run `M-x godoc` and it should be able to autocomplete paths of packages.  (of course, you may want to `go get` some packages first if you don't have any)
 
-*Unfortunately, it was necessary to duplicate the $PATH and $GOPATH environment variables in the .emacs file, so that the GUI Emacs app can see it.  If you know of a better way, please leave a comment.*
-
 
 ## Automatically call gofmt on save
+
+Gofmt reformats code into the One True Go Style Coding Standard.  You'll want to call it every time you save a file.
 
 Add these to your ~/.emacs:
 
