@@ -49,7 +49,7 @@ For a full description of what go-mode can do for you, see [Dominik Honnef's blo
 
 It's really useful to be able to able to pull up 3rd party or standard library docs from within Emacs using the `godoc` tool.
 
-*Unfortunately, it was necessary to duplicate the $PATH and $GOPATH environment variables in the .emacs file, so that the GUI Emacs app can see it.  If you know of a better way, please leave a comment.*
+*Unfortunately, it was necessary to duplicate the $PATH and $GOPATH environment variables in the .emacs file, so that the GUI Emacs app can see it.  @eentzel tweeted me a [blog post](http://blog.gaz-jones.com/2012/02/01/setting_up_emacs_for_clojure_development.html) that explains how to deal with this, and I will update this blog post to reflect that at some point.*
 
 **NOTE**: you will need to modify the snippet below to reflect the $PATH and $GOPATH variables, don't just blindly copy and paste these.
 
