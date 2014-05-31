@@ -106,11 +106,11 @@ This package works with go-oracle (I tested it out while writhing this blog post
 go get github.com/tleyden/checkers-bot-minimax
 ```
 
-From within emacs, open `$GOPATH/src/github.com/tleyden/checkers-bot-minimax/thinker.go`
-
 ### Set the oracle analysis scope
 
-Within emacs, run:
+From within emacs, open `$GOPATH/src/github.com/tleyden/checkers-bot-minimax/thinker.go`
+
+You need to tell Go Oracle the **main** package scope under which you want it to operate:
 
 `M-x go-oracle-set-scope`
 
@@ -147,6 +147,8 @@ Emacs should open a new buffer on the right hand side with all of the places whe
 To go to the call site, position your cursor on the red underscore to the left of "dynamic method call" and hit Enter.  It should take you to line 240 in gamecontroller.go:
 
 ![screenshot](http://tleyden-misc.s3.amazonaws.com/blog_images/Emacs_go_oracle2)
+
+Note that it actually crossed package boundaries, since the called function (`Think`) was in the `main` package, while the call site was in the `checkersbot` package.
 
 If you got this far, you are up and running with The Go Oracle on Emacs!  
 
