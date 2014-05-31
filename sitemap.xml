@@ -18,7 +18,7 @@
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/2013/11/12/docker-on-osx/</loc>
-        <lastmod>2014-05-22T14:02:03-07:00</lastmod>
+        <lastmod>2014-05-29T11:49:26-07:00</lastmod>
     </url>
     <url>
         <loc>
@@ -102,15 +102,21 @@
         <loc>
             http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/
         </loc>
-        <lastmod>2014-05-23T17:13:12-07:00</lastmod>
+        <lastmod>2014-05-31T10:04:39-07:00</lastmod>
+    </url>
+    <url>
+        <loc>
+            http://tleyden.github.io/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2/
+        </loc>
+        <lastmod>2014-05-31T10:39:19-07:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/archives/</loc>
-        <lastmod>2014-05-23T17:13:12-07:00</lastmod>
+        <lastmod>2014-05-31T10:39:19-07:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/</loc>
-        <lastmod>2014-05-23T17:13:12-07:00</lastmod>
+        <lastmod>2014-05-31T10:39:19-07:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/robots.txt</loc>

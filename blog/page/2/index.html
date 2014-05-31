@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="The Android emulator is dog slow. The x86 intel emulators only work with certain versions of OSX, otherwise they crash miserably. Genymotion is &hellip;">
+  <meta name="description" content="A channel describes a transport of sorts. You can send a thing down that transport. When using a chan chan, the thing you want to send down the &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +72,169 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/11/23/understanding-chan-chans-in-go/">Understanding Chan Chan&#8217;s in Go</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-23T07:58:00-08:00" pubdate data-updated="true">Nov 23<span>rd</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>A channel describes a transport of sorts.  You can send a thing down that transport.  When using a chan chan, the thing you want to send down the transport is another transport to send things back.</p>
+
+<p>They are useful when you want to get a response to something, and you don&rsquo;t want to setup two channels (it&rsquo;s generally considered bad practice to have data moving bidirectionally on a single channel)</p>
+
+<h2>Visual time lapse walkthrough</h2>
+
+<p>Keep in mind that Goroutine C is the &ldquo;real consumer&rdquo; even though it will be the one which writes to the request channel.</p>
+
+<p>The request channel starts out empty.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_1.png" alt="Screenshot" /></p>
+
+<p>Goroutine C passes a &ldquo;response channel&rdquo; to go routine D via the request channel</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_2.png" alt="Screenshot" /></p>
+
+<p>Goroutine C starts reading from the (still empty) response channel.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_3.png" alt="Screenshot" /></p>
+
+<p>Goroutine D writes a string to the response channel</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_4.png" alt="Screenshot" /></p>
+
+<p>Goroutine C now is able to read a value from response channel, and get&rsquo;s the &ldquo;wassup!&rdquo; message</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_5.png" alt="Screenshot" /></p>
+
+<p>And now we are back to where we started</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_1.png" alt="Screenshot" /></p>
+
+<h2>Here is some code that uses chan chan&rsquo;s</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>package main
+</span><span class='line'>
+</span><span class='line'>import "fmt"
+</span><span class='line'>import "time"
+</span><span class='line'>
+</span><span class='line'>func main() {
+</span><span class='line'>
+</span><span class='line'>     // make the request chan chan that both go-routines will be given
+</span><span class='line'>     requestChan := make(chan chan string)
+</span><span class='line'>
+</span><span class='line'>     // start the goroutines
+</span><span class='line'>     go goroutineC(requestChan)
+</span><span class='line'>     go goroutineD(requestChan)
+</span><span class='line'>
+</span><span class='line'>     // sleep for a second to let the goroutines complete
+</span><span class='line'>     time.Sleep(time.Second)
+</span><span class='line'>
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>func goroutineC(requestChan chan chan string) {
+</span><span class='line'>
+</span><span class='line'>     // make a new response chan
+</span><span class='line'>     responseChan := make(chan string)
+</span><span class='line'>
+</span><span class='line'>     // send the responseChan to goRoutineD
+</span><span class='line'>     requestChan &lt;- responseChan
+</span><span class='line'>
+</span><span class='line'>     // read the response
+</span><span class='line'>     response := &lt;-responseChan
+</span><span class='line'>
+</span><span class='line'>     fmt.Printf("Response: %v\n", response)
+</span><span class='line'>
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>func goroutineD(requestChan chan chan string) {
+</span><span class='line'>
+</span><span class='line'>     // read the responseChan from the requestChan
+</span><span class='line'>     responseChan := &lt;-requestChan
+</span><span class='line'>
+</span><span class='line'>     // send a value down the responseChan
+</span><span class='line'>     responseChan &lt;- "wassup!"
+</span><span class='line'>
+</span><span class='line'>}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This code can be run on <a href="http://play.golang.org/p/chi6P2XGTO">Go playground</a></p>
+
+<h2>For more information</h2>
+
+<p>See <a href="https://www.youtube.com/watch?v=QDDwwePbDtw">Google I/O 2013 &ndash; Advanced Go Concurrency Patterns</a> around 17:00.  This contains another explanation of chan chan&rsquo;s.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -922,7 +1085,7 @@
 
 <ul>
 <li><p>Install VirtualBox via <a href="http://download.virtualbox.org/virtualbox/4.3.2/VirtualBox-4.3.2-90405-OSX.dmg">VirtualBox OSX installer</a></p></li>
-<li><p>Install Vagrant via <a href="http://files.vagrantup.com/packages/a40522f5fabccb9ddabad03d836e120ff5d14093/Vagrant-1.3.5.dmg">Vagrant OSX installer</a></p></li>
+<li><p>Install Vagrant via <a href="https://dl.bintray.com/mitchellh/vagrant/vagrant_1.6.2.dmg">Vagrant OSX installer</a></p></li>
 </ul>
 
 
@@ -1441,203 +1604,9 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/09/07/octopress-setup-part-i/">Octopress Setup Part I</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-09-07T11:26:00-07:00" pubdate data-updated="true">Sep 7<span>th</span>, 2013</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>I&rsquo;m writing this blog entry as I&rsquo;m creating my blog.  I have decided to use <a href="http://octopress.org/">Octopress</a>, and I&rsquo;m initially going to host it on <a href="http://pages.github.com/">Github Pages</a>.</p>
-
-<h2>Step 1: create a github pages repo</h2>
-
-<p>In my case, I made a new repo called tleyden/tleyden.github.io.</p>
-
-<h2>Step 2: push an index.html</h2>
-
-<p>Clone the repo</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ git clone git@github.com:tleyden/tleyden.github.io.git</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Add some content</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd tleyden.github.io
-</span><span class='line'>$ echo "&lt;h1&gt;hello&lt;/h1&gt;" &gt; index.html</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Commit and push</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ git add index.html
-</span><span class='line'>$ git commit -m "empty blog"
-</span><span class='line'>$ git push origin master</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Step 3: see if it actually worked</h2>
-
-<p>Go to <a href="http://tleyden.github.io/">http://tleyden.github.io/</a> to see if it works.</p>
-
-<p><strong>It did not work.  WTH!?</strong></p>
-
-<p>Oh wait, it says: <em>It may take up to ten minutes until your page is available.</em></p>
-
-<p>Patiently hit reload 5 times / minute, and 7 minutes later .. <strong>IT WORKS!</strong></p>
-
-<h2>Step 4: get rvm (octopress dependency)</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ \curl -L https://get.rvm.io | bash
-</span><span class='line'>$ source /Users/traun/.rvm/scripts/rvm
-</span><span class='line'>$ rvm notes</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Step 5: get ruby 1.9.3 (octopress dependency)</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ rvm install 1.9.3
-</span><span class='line'>Searching for binary rubies, this might take some time.
-</span><span class='line'>No binary rubies available for: osx/10.8/x86_64/ruby-1.9.3-p448.
-</span><span class='line'>Continuing with compilation. Please read 'rvm help mount' to get more information on binary rubies.
-</span><span class='line'>Checking requirements for osx.
-</span><span class='line'>Installing requirements for osx.
-</span><span class='line'>Updating system......
-</span><span class='line'>Error running 'requirements_osx_brew_update_system ruby-1.9.3-p448',
-</span><span class='line'>please read /Users/traun/.rvm/log/1378534467_ruby-1.9.3-p448/update_system.log
-</span><span class='line'>Requirements installation failed with status: 1.</span></code></pre></td></tr></table></div></figure>
-
-
-<p>I managed to get past this error by following this <a href="http://stackoverflow.com/questions/14113427/brew-update-failed">stack overflow post</a></p>
-
-<p>Let&rsquo;s try this again ..</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>Installing required packages: gcc46, libyaml, libksba, openssl......................................................................................................</span></code></pre></td></tr></table></div></figure>
-
-
-<p>45 minutes later, it finally worked.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ rvm use 1.9.3
-</span><span class='line'>$ rvm rubygems latest</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Step 6: get octopress</h2>
-
-<p>Follow the <a href="http://octopress.org/docs/setup/">Setup Ocotpress</a> instructions</p>
-
-<h2>Step 7: recreate repo</h2>
-
-<p>So this is a little <em>awkward</em>, and looking back I wish I hadn&rsquo;t pushed that index.html earlier, because it interferes with the github push in the next step.</p>
-
-<ul>
-<li>Delete your entire github repository: <code>username/username.github.io</code></li>
-<li>Create a new empty github repository: <code>username/username.github.io</code></li>
-</ul>
-
-
-<h2>Step 8: deploy to github pages</h2>
-
-<p>Follow the <a href="http://octopress.org/docs/deploying/github/">Deploy to Github pages</a> instructions.</p>
-
-<p>There is one step that is crucial if you don&rsquo;t want to accidentally lose your blog content:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git add .
-</span><span class='line'>git commit -m 'your message'
-</span><span class='line'>git push origin source</span></code></pre></td></tr></table></div></figure>
-
-
-<p>After doing that, your github repo should have two branches:</p>
-
-<ul>
-<li>Master: the &ldquo;published blog&rdquo; goes here, and will have a top-level index.html</li>
-<li>Source: the entire octopress source tree, plus a &ldquo;source&rdquo; and &ldquo;sass&rdquo; directory.  The &ldquo;source&rdquo; directory is where your blog markdown content will actually live.</li>
-</ul>
-
-
-<h2>Step 9: write a blog entry</h2>
-
-<p>Follow the <a href="http://octopress.org/docs/blogging/">New blog post</a> instructions.</p>
-
-<h2>Step 10: re-deploy</h2>
-
-<p>From the last step in the <a href="http://octopress.org/docs/deploying/github/">Deploy to Github pages</a> instructions, do the following:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ rake generate
-</span><span class='line'>$ rake deploy</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Step 11: revel in it&rsquo;s beauty</h2>
-
-<p><img src="http://cl.ly/image/1e2x3I293X3w/Screen%20Shot%202013-09-07%20at%2012.21.57%20AM.png" alt="screenshot" /></p>
-
-<h2>Step 12: Oops, don&rsquo;t forget to push the source changes!</h2>
-
-<p>Even though the blog content is deployed (eg, your master branch with your content has been pushed to github), the source is still sitting on your computer.  If your hard drive crashes, you&rsquo;ll lose your markdown, which is no fun.</p>
-
-<p>Here&rsquo;s how to push the latest changes of your source files up to github:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git add .
-</span><span class='line'>git commit -m 'I just added a new blog entry'
-</span><span class='line'>git push origin source</span></code></pre></td></tr></table></div></figure>
-
-
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
+    
+      <a class="prev" href="/blog/page/3/">&larr; Older</a>
     
     <a href="/blog/archives">Blog Archives</a>
     
@@ -1663,6 +1632,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2/">Configure Emacs as a Go Editor From Scratch Part 2</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">Configure Emacs as a Go Editor From Scratch</a>
       </li>
     
@@ -1676,10 +1649,6 @@
     
       <li class="post">
         <a href="/blog/2014/03/18/a-slight-tweak-on-a-successful-git-branching-model/">A Slight Tweak on a Successful Git Branching Model</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/02/08/playing-with-go-and-opengl/">Playing With Go and OpenGL</a>
       </li>
     
   </ul>

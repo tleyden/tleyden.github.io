@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-05-23T17:13:21-07:00</updated>
+  <updated>2014-05-31T10:40:25-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,189 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Configure Emacs as a Go Editor From Scratch Part 2]]></title>
+    <link href="http://tleyden.github.io/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2/"/>
+    <updated>2014-05-27T12:03:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2</id>
+    <content type="html"><![CDATA[<p>This is a continuation of <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">Part 1</a>, so if you haven&rsquo;t read that already, you should do so now.</p>
+
+<h2>goimports</h2>
+
+<p>The idea of goimports is that every time you save a file, it will automatically update all of your imports, so you don&rsquo;t have to.  This can save a lot of time.  Kudos to <a href="https://twitter.com/bradfitz">@bradfitz</a> for taking the time to build this nifty tool.</p>
+
+<p>Since this project is hosted on Google Code&rsquo;s mercurial repository, if you don&rsquo;t have mercurial installed already, you&rsquo;ll first need to install it with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ brew install hg</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Next, go get goimports with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go get code.google.com/p/go.tools/cmd/goimports</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Continuing on previous .emacs in <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">Part 1</a>, update your .emacs to:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>(defun my-go-mode-hook ()
+</span><span class='line'>  ; Use goimports instead of go-fmt
+</span><span class='line'>  (setq gofmt-command "goimports")
+</span><span class='line'>  ; Call Gofmt before saving
+</span><span class='line'>  (add-hook 'before-save-hook 'gofmt-before-save)
+</span><span class='line'>  ; Customize compile command to run go build
+</span><span class='line'>  (if (not (string-match "go" compile-command))
+</span><span class='line'>      (set (make-local-variable 'compile-command)
+</span><span class='line'>           "go build -v && go test -v && go vet"))
+</span><span class='line'>  ; Godef jump key binding
+</span><span class='line'>  (local-set-key (kbd "M-.") 'godef-jump))
+</span><span class='line'>(add-hook 'go-mode-hook 'my-go-mode-hook)</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Restart emacs</strong> to force it to reload the configuration</p>
+
+<h3>Testing out goimports</h3>
+
+<ul>
+<li>Open an existing .go file that contains imports</li>
+<li>Remove one or more of the imports</li>
+<li>Save the file</li>
+</ul>
+
+
+<p>After you save the file, it should re-add the imports.  Yay!</p>
+
+<p>Basically any time you add or remove code that requires a different set of imports, saving the file will cause it to re-write the file with the correct imports.</p>
+
+<h2>The Go Oracle</h2>
+
+<p>The Go Oracle will blow your mind!  It can do things like find all the callers of a given function/method.  It can also show you all the functions that read or write from a given channel.  In short, it rocks.</p>
+
+<p>Here&rsquo;s what you need to do in order to wield this powerful tool from within Emacs.</p>
+
+<h3>Go get oracle</h3>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>go get code.google.com/p/go.tools/cmd/oracle</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Move oracle binary so Emacs can find it</h3>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>sudo mv $GOPATH/bin/oracle $GOROOT/bin/</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Update .emacs</h3>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>; Go Oracle
+</span><span class='line'>(load-file "$GOPATH/src/code.google.com/p/go.tools/cmd/oracle/oracle.el")
+</span><span class='line'>
+</span><span class='line'>(defun my-go-mode-hook ()
+</span><span class='line'>  ; Use goimports instead of go-fmt
+</span><span class='line'>  (setq gofmt-command "goimports")
+</span><span class='line'>  ; Call Gofmt before saving
+</span><span class='line'>  (add-hook 'before-save-hook 'gofmt-before-save)
+</span><span class='line'>  ; Customize compile command to run go build
+</span><span class='line'>  (if (not (string-match "go" compile-command))
+</span><span class='line'>      (set (make-local-variable 'compile-command)
+</span><span class='line'>           "go build -v && go test -v && go vet"))
+</span><span class='line'>  ; Godef jump key binding
+</span><span class='line'>  (local-set-key (kbd "M-.") 'godef-jump))
+</span><span class='line'>  ; Go Oracle
+</span><span class='line'>  (go-oracle-mode)
+</span><span class='line'>(add-hook 'go-mode-hook 'my-go-mode-hook)
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Restart Emacs</strong> to make these changes take effect.</p>
+
+<h3>Get a test package to play with</h3>
+
+<p>This package works with go-oracle (I tested it out while writhing this blog post), so you should use it to give Go Oracle a spin:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>go get github.com/tleyden/checkers-bot-minimax</span></code></pre></td></tr></table></div></figure>
+
+
+<p>From within emacs, open <code>$GOPATH/src/github.com/tleyden/checkers-bot-minimax/thinker.go</code></p>
+
+<h3>Set the oracle analysis scope</h3>
+
+<p>Within emacs, run:</p>
+
+<p><code>M-x go-oracle-set-scope</code></p>
+
+<p>it will prompt you with:</p>
+
+<p><code>Go oracle scope:</code></p>
+
+<p>and you should enter:</p>
+
+<p><code>github.com/tleyden/checkers-bot-minimax</code> and hit Enter.</p>
+
+<p>Nothing will appear to happen, but now Go Oracle is now ready to show it&rsquo;s magic.  (<em>note</em> it will <strong>not</strong> autocomplete packages in this dialog, which is mildly annoying.  Make sure to spell them correctly.)</p>
+
+<p><strong>Important:</strong> When you call <code>go-oracle-set-scope</code>, you always need to give it a <strong>main</strong> package.  This is something that will probably frequently trip you up while using Go Oracle.</p>
+
+<h3>Use oracle to find the callers of a method</h3>
+
+<p>You should still have the <code>$GOPATH/src/github.com/tleyden/checkers-bot-minimax/thinker.go</code> file open within emacs.</p>
+
+<p>Position the cursor on the &ldquo;T&rdquo; in the <code>Think</code> method (line 13 of thinker.go):</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/Emacs_go_oracle_0" alt="screenshot" /></p>
+
+<p>And then run</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>M-x go-oracle-callers</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Emacs should open a new buffer on the right hand side with all of the places where the <code>Think</code> method is called.  In this case, there is only one place in the code that calls it:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/Emacs_go_oracle" alt="screenshot" /></p>
+
+<p>To go to the call site, position your cursor on the red underscore to the left of &ldquo;dynamic method call&rdquo; and hit Enter.  It should take you to line 240 in gamecontroller.go:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/Emacs_go_oracle2" alt="screenshot" /></p>
+
+<p>If you got this far, you are up and running with The Go Oracle on Emacs!</p>
+
+<p>Now you should try it with one of your own packages.</p>
+
+<p>This is just scratching the surface &mdash; to get more information on how to use Go Oracle, see <a href="https://docs.google.com/document/d/1SLk36YRjjMgKqe490mSRzOPYEDe0Y_WQNRv-EiFYUyw/view">go oracle: user manual</a>.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Configure Emacs as a Go editor from scratch]]></title>
@@ -36,8 +219,10 @@
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>export PATH=$PATH:/usr/local/go/bin
-</span><span class='line'>export GOPATH=~/Development/gocode</span></code></pre></td></tr></table></div></figure>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>export GOROOT=/usr/local/go
+</span><span class='line'>export GOPATH=~/Development/gocode
+</span><span class='line'>export PATH=$PATH:$GOROOT/bin</span></code></pre></td></tr></table></div></figure>
 
 
 <h2>Configure go-mode</h2>
@@ -214,11 +399,11 @@
 
 <p>If you&rsquo;re yawning and you already know all this stuff, or you&rsquo;re ready to take it to the next level, check out <a href="http://www.youtube.com/watch?v=5wipWZKvNSo">5 minutes of go in emacs</a></p>
 
-<h2>To be continued ..</h2>
+<p>(PS: thanks <a href="https://twitter.com/dlsspy">@dlsspy</a> for taking the time to teach me the Emacs wrestling techniques needed to get this far.)</p>
 
-<p>There&rsquo;s actually a bunch of other stuff I still need to add here (like Go Oracle and that thing that automatically manages go imports).  Check back in a while.</p>
+<h2>Continue to Part 2</h2>
 
-<p>Thanks <a href="https://twitter.com/dlsspy">@dlsspy</a> for taking the time to teach me the Emacs wrestling techniques needed to get this far.</p>
+<p>go-imports and go-oracle are covered in <a href="../../27/configure-emacs-as-a-go-editor-from-scratch-part-2/">Part 2</a></p>
 ]]></content>
   </entry>
   
@@ -1547,7 +1732,7 @@
 
 <ul>
 <li><p>Install VirtualBox via <a href="http://download.virtualbox.org/virtualbox/4.3.2/VirtualBox-4.3.2-90405-OSX.dmg">VirtualBox OSX installer</a></p></li>
-<li><p>Install Vagrant via <a href="http://files.vagrantup.com/packages/a40522f5fabccb9ddabad03d836e120ff5d14093/Vagrant-1.3.5.dmg">Vagrant OSX installer</a></p></li>
+<li><p>Install Vagrant via <a href="https://dl.bintray.com/mitchellh/vagrant/vagrant_1.6.2.dmg">Vagrant OSX installer</a></p></li>
 </ul>
 
 
@@ -1978,175 +2163,6 @@
 <p>Anyway, the end justifies the means:</p>
 
 <p><img class="center" src="http://tleyden.github.io/images/ScreenShotBlogIIa.png" title="image" alt="images"></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Octopress Setup Part I]]></title>
-    <link href="http://tleyden.github.io/blog/2013/09/07/octopress-setup-part-i/"/>
-    <updated>2013-09-07T11:26:00-07:00</updated>
-    <id>http://tleyden.github.io/blog/2013/09/07/octopress-setup-part-i</id>
-    <content type="html"><![CDATA[<p>I&rsquo;m writing this blog entry as I&rsquo;m creating my blog.  I have decided to use <a href="http://octopress.org/">Octopress</a>, and I&rsquo;m initially going to host it on <a href="http://pages.github.com/">Github Pages</a>.</p>
-
-<h2>Step 1: create a github pages repo</h2>
-
-<p>In my case, I made a new repo called tleyden/tleyden.github.io.</p>
-
-<h2>Step 2: push an index.html</h2>
-
-<p>Clone the repo</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ git clone git@github.com:tleyden/tleyden.github.io.git</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Add some content</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd tleyden.github.io
-</span><span class='line'>$ echo "&lt;h1&gt;hello&lt;/h1&gt;" &gt; index.html</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Commit and push</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ git add index.html
-</span><span class='line'>$ git commit -m "empty blog"
-</span><span class='line'>$ git push origin master</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Step 3: see if it actually worked</h2>
-
-<p>Go to <a href="http://tleyden.github.io/">http://tleyden.github.io/</a> to see if it works.</p>
-
-<p><strong>It did not work.  WTH!?</strong></p>
-
-<p>Oh wait, it says: <em>It may take up to ten minutes until your page is available.</em></p>
-
-<p>Patiently hit reload 5 times / minute, and 7 minutes later .. <strong>IT WORKS!</strong></p>
-
-<h2>Step 4: get rvm (octopress dependency)</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ \curl -L https://get.rvm.io | bash
-</span><span class='line'>$ source /Users/traun/.rvm/scripts/rvm
-</span><span class='line'>$ rvm notes</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Step 5: get ruby 1.9.3 (octopress dependency)</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ rvm install 1.9.3
-</span><span class='line'>Searching for binary rubies, this might take some time.
-</span><span class='line'>No binary rubies available for: osx/10.8/x86_64/ruby-1.9.3-p448.
-</span><span class='line'>Continuing with compilation. Please read 'rvm help mount' to get more information on binary rubies.
-</span><span class='line'>Checking requirements for osx.
-</span><span class='line'>Installing requirements for osx.
-</span><span class='line'>Updating system......
-</span><span class='line'>Error running 'requirements_osx_brew_update_system ruby-1.9.3-p448',
-</span><span class='line'>please read /Users/traun/.rvm/log/1378534467_ruby-1.9.3-p448/update_system.log
-</span><span class='line'>Requirements installation failed with status: 1.</span></code></pre></td></tr></table></div></figure>
-
-
-<p>I managed to get past this error by following this <a href="http://stackoverflow.com/questions/14113427/brew-update-failed">stack overflow post</a></p>
-
-<p>Let&rsquo;s try this again ..</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>Installing required packages: gcc46, libyaml, libksba, openssl......................................................................................................</span></code></pre></td></tr></table></div></figure>
-
-
-<p>45 minutes later, it finally worked.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ rvm use 1.9.3
-</span><span class='line'>$ rvm rubygems latest</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Step 6: get octopress</h2>
-
-<p>Follow the <a href="http://octopress.org/docs/setup/">Setup Ocotpress</a> instructions</p>
-
-<h2>Step 7: recreate repo</h2>
-
-<p>So this is a little <em>awkward</em>, and looking back I wish I hadn&rsquo;t pushed that index.html earlier, because it interferes with the github push in the next step.</p>
-
-<ul>
-<li>Delete your entire github repository: <code>username/username.github.io</code></li>
-<li>Create a new empty github repository: <code>username/username.github.io</code></li>
-</ul>
-
-
-<h2>Step 8: deploy to github pages</h2>
-
-<p>Follow the <a href="http://octopress.org/docs/deploying/github/">Deploy to Github pages</a> instructions.</p>
-
-<p>There is one step that is crucial if you don&rsquo;t want to accidentally lose your blog content:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git add .
-</span><span class='line'>git commit -m 'your message'
-</span><span class='line'>git push origin source</span></code></pre></td></tr></table></div></figure>
-
-
-<p>After doing that, your github repo should have two branches:</p>
-
-<ul>
-<li>Master: the &ldquo;published blog&rdquo; goes here, and will have a top-level index.html</li>
-<li>Source: the entire octopress source tree, plus a &ldquo;source&rdquo; and &ldquo;sass&rdquo; directory.  The &ldquo;source&rdquo; directory is where your blog markdown content will actually live.</li>
-</ul>
-
-
-<h2>Step 9: write a blog entry</h2>
-
-<p>Follow the <a href="http://octopress.org/docs/blogging/">New blog post</a> instructions.</p>
-
-<h2>Step 10: re-deploy</h2>
-
-<p>From the last step in the <a href="http://octopress.org/docs/deploying/github/">Deploy to Github pages</a> instructions, do the following:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ rake generate
-</span><span class='line'>$ rake deploy</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Step 11: revel in it&rsquo;s beauty</h2>
-
-<p><img src="http://cl.ly/image/1e2x3I293X3w/Screen%20Shot%202013-09-07%20at%2012.21.57%20AM.png" alt="screenshot" /></p>
-
-<h2>Step 12: Oops, don&rsquo;t forget to push the source changes!</h2>
-
-<p>Even though the blog content is deployed (eg, your master branch with your content has been pushed to github), the source is still sitting on your computer.  If your hard drive crashes, you&rsquo;ll lose your markdown, which is no fun.</p>
-
-<p>Here&rsquo;s how to push the latest changes of your source files up to github:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git add .
-</span><span class='line'>git commit -m 'I just added a new blog entry'
-</span><span class='line'>git push origin source</span></code></pre></td></tr></table></div></figure>
-
-
-
 ]]></content>
   </entry>
   

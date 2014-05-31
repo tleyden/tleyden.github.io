@@ -4,7 +4,7 @@
   <title><![CDATA[Category: emacs | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/emacs/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-05-23T17:13:21-07:00</updated>
+  <updated>2014-05-31T10:40:25-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,168 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Configure Emacs as a Go Editor From Scratch Part 2]]></title>
+    <link href="http://tleyden.github.io/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2/"/>
+    <updated>2014-05-27T12:03:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2</id>
+    <content type="html"><![CDATA[<p>This is a continuation of <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">Part 1</a>, so if you haven&rsquo;t read that already, you should do so now.</p>
+
+<h2>goimports</h2>
+
+<p>The idea of goimports is that every time you save a file, it will automatically update all of your imports, so you don&rsquo;t have to.  This can save a lot of time.  Kudos to <a href="https://twitter.com/bradfitz">@bradfitz</a> for taking the time to build this nifty tool.</p>
+
+<p>Since this project is hosted on Google Code&rsquo;s mercurial repository, if you don&rsquo;t have mercurial installed already, you&rsquo;ll first need to install it with:</p>
+
+<p><code>
+$ brew install hg
+</code></p>
+
+<p>Next, go get goimports with:</p>
+
+<p><code>
+$ go get code.google.com/p/go.tools/cmd/goimports
+</code></p>
+
+<p>Continuing on previous .emacs in <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">Part 1</a>, update your .emacs to:</p>
+
+<p>```
+(defun my-go-mode-hook ()
+  ; Use goimports instead of go-fmt
+  (setq gofmt-command &ldquo;goimports&rdquo;)
+  ; Call Gofmt before saving
+  (add-hook &lsquo;before-save-hook 'gofmt-before-save)
+  ; Customize compile command to run go build
+  (if (not (string-match &ldquo;go&rdquo; compile-command))</p>
+
+<pre><code>  (set (make-local-variable 'compile-command)
+       "go build -v &amp;&amp; go test -v &amp;&amp; go vet"))
+</code></pre>
+
+<p>  ; Godef jump key binding
+  (local-set-key (kbd &ldquo;M-.&rdquo;) &lsquo;godef-jump))
+(add-hook 'go-mode-hook 'my-go-mode-hook)
+```</p>
+
+<p><strong>Restart emacs</strong> to force it to reload the configuration</p>
+
+<h3>Testing out goimports</h3>
+
+<ul>
+<li>Open an existing .go file that contains imports</li>
+<li>Remove one or more of the imports</li>
+<li>Save the file</li>
+</ul>
+
+
+<p>After you save the file, it should re-add the imports.  Yay!</p>
+
+<p>Basically any time you add or remove code that requires a different set of imports, saving the file will cause it to re-write the file with the correct imports.</p>
+
+<h2>The Go Oracle</h2>
+
+<p>The Go Oracle will blow your mind!  It can do things like find all the callers of a given function/method.  It can also show you all the functions that read or write from a given channel.  In short, it rocks.</p>
+
+<p>Here&rsquo;s what you need to do in order to wield this powerful tool from within Emacs.</p>
+
+<h3>Go get oracle</h3>
+
+<p><code>
+go get code.google.com/p/go.tools/cmd/oracle
+</code></p>
+
+<h3>Move oracle binary so Emacs can find it</h3>
+
+<p><code>
+sudo mv $GOPATH/bin/oracle $GOROOT/bin/
+</code></p>
+
+<h3>Update .emacs</h3>
+
+<p>```
+; Go Oracle
+(load-file &ldquo;$GOPATH/src/code.google.com/p/go.tools/cmd/oracle/oracle.el&rdquo;)</p>
+
+<p>(defun my-go-mode-hook ()
+  ; Use goimports instead of go-fmt
+  (setq gofmt-command &ldquo;goimports&rdquo;)
+  ; Call Gofmt before saving
+  (add-hook &lsquo;before-save-hook 'gofmt-before-save)
+  ; Customize compile command to run go build
+  (if (not (string-match &ldquo;go&rdquo; compile-command))</p>
+
+<pre><code>  (set (make-local-variable 'compile-command)
+       "go build -v &amp;&amp; go test -v &amp;&amp; go vet"))
+</code></pre>
+
+<p>  ; Godef jump key binding
+  (local-set-key (kbd &ldquo;M-.&rdquo;) &lsquo;godef-jump))
+  ; Go Oracle
+  (go-oracle-mode)
+(add-hook 'go-mode-hook 'my-go-mode-hook)</p>
+
+<p>```</p>
+
+<p><strong>Restart Emacs</strong> to make these changes take effect.</p>
+
+<h3>Get a test package to play with</h3>
+
+<p>This package works with go-oracle (I tested it out while writhing this blog post), so you should use it to give Go Oracle a spin:</p>
+
+<p><code>
+go get github.com/tleyden/checkers-bot-minimax
+</code></p>
+
+<p>From within emacs, open <code>$GOPATH/src/github.com/tleyden/checkers-bot-minimax/thinker.go</code></p>
+
+<h3>Set the oracle analysis scope</h3>
+
+<p>Within emacs, run:</p>
+
+<p><code>M-x go-oracle-set-scope</code></p>
+
+<p>it will prompt you with:</p>
+
+<p><code>Go oracle scope:</code></p>
+
+<p>and you should enter:</p>
+
+<p><code>github.com/tleyden/checkers-bot-minimax</code> and hit Enter.</p>
+
+<p>Nothing will appear to happen, but now Go Oracle is now ready to show it&rsquo;s magic.  (<em>note</em> it will <strong>not</strong> autocomplete packages in this dialog, which is mildly annoying.  Make sure to spell them correctly.)</p>
+
+<p><strong>Important:</strong> When you call <code>go-oracle-set-scope</code>, you always need to give it a <strong>main</strong> package.  This is something that will probably frequently trip you up while using Go Oracle.</p>
+
+<h3>Use oracle to find the callers of a method</h3>
+
+<p>You should still have the <code>$GOPATH/src/github.com/tleyden/checkers-bot-minimax/thinker.go</code> file open within emacs.</p>
+
+<p>Position the cursor on the &ldquo;T&rdquo; in the <code>Think</code> method (line 13 of thinker.go):</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/Emacs_go_oracle_0" alt="screenshot" /></p>
+
+<p>And then run</p>
+
+<p><code>
+M-x go-oracle-callers
+</code></p>
+
+<p>Emacs should open a new buffer on the right hand side with all of the places where the <code>Think</code> method is called.  In this case, there is only one place in the code that calls it:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/Emacs_go_oracle" alt="screenshot" /></p>
+
+<p>To go to the call site, position your cursor on the red underscore to the left of &ldquo;dynamic method call&rdquo; and hit Enter.  It should take you to line 240 in gamecontroller.go:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/Emacs_go_oracle2" alt="screenshot" /></p>
+
+<p>If you got this far, you are up and running with The Go Oracle on Emacs!</p>
+
+<p>Now you should try it with one of your own packages.</p>
+
+<p>This is just scratching the surface &mdash; to get more information on how to use Go Oracle, see <a href="https://docs.google.com/document/d/1SLk36YRjjMgKqe490mSRzOPYEDe0Y_WQNRv-EiFYUyw/view">go oracle: user manual</a>.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Configure Emacs as a Go editor from scratch]]></title>
@@ -35,8 +197,9 @@
 
 
 <p><code>
-export PATH=$PATH:/usr/local/go/bin
+export GOROOT=/usr/local/go
 export GOPATH=~/Development/gocode
+export PATH=$PATH:$GOROOT/bin
 </code></p>
 
 <h2>Configure go-mode</h2>
@@ -194,11 +357,11 @@ export GOPATH=~/Development/gocode
 
 <p>If you&rsquo;re yawning and you already know all this stuff, or you&rsquo;re ready to take it to the next level, check out <a href="http://www.youtube.com/watch?v=5wipWZKvNSo">5 minutes of go in emacs</a></p>
 
-<h2>To be continued ..</h2>
+<p>(PS: thanks <a href="https://twitter.com/dlsspy">@dlsspy</a> for taking the time to teach me the Emacs wrestling techniques needed to get this far.)</p>
 
-<p>There&rsquo;s actually a bunch of other stuff I still need to add here (like Go Oracle and that thing that automatically manages go imports).  Check back in a while.</p>
+<h2>Continue to Part 2</h2>
 
-<p>Thanks <a href="https://twitter.com/dlsspy">@dlsspy</a> for taking the time to teach me the Emacs wrestling techniques needed to get this far.</p>
+<p>go-imports and go-oracle are covered in <a href="../../27/configure-emacs-as-a-go-editor-from-scratch-part-2/">Part 2</a></p>
 ]]></content>
   </entry>
   
