@@ -20,8 +20,9 @@ It has a GUI installer so I won't say much more about it.
 * After installing the package, you'll want to define the following environment variables in your `~/.bash_profile`:
 
 ```
-export PATH=$PATH:/usr/local/go/bin
+export GOROOT=/usr/local/go
 export GOPATH=~/Development/gocode
+export PATH=$PATH:$GOROOT/bin
 ```
 
 ## Configure go-mode
@@ -162,11 +163,12 @@ After that, restart emacs, and when you type `M-x compile`, it should try to exe
 
 If you're yawning and you already know all this stuff, or you're ready to take it to the next level, check out [5 minutes of go in emacs](http://www.youtube.com/watch?v=5wipWZKvNSo)
 
-## To be continued ..
+(PS: thanks [@dlsspy](https://twitter.com/dlsspy) for taking the time to teach me the Emacs wrestling techniques needed to get this far.)
 
-There's actually a bunch of other stuff I still need to add here (like Go Oracle and that thing that automatically manages go imports).  Check back in a while.
+## Continue to Part 2
 
-Thanks [@dlsspy](https://twitter.com/dlsspy) for taking the time to teach me the Emacs wrestling techniques needed to get this far. 
+go-imports and go-oracle are covered in [Part 2](../../27/configure-emacs-as-a-go-editor-from-scratch-part-2/)
+
 
 
 
