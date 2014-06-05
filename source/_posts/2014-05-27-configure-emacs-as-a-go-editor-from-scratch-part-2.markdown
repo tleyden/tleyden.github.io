@@ -100,7 +100,7 @@ sudo mv $GOPATH/bin/oracle $GOROOT/bin/
 
 ### Get a test package to play with
 
-This package works with go-oracle (I tested it out while writhing this blog post), so you should use it to give Go Oracle a spin:
+This package works with go-oracle (I tested it out while writing this blog post), so you should use it to give Go Oracle a spin:
 
 ```
 go get github.com/tleyden/checkers-bot-minimax
