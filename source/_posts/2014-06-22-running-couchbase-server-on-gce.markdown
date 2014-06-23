@@ -102,6 +102,10 @@ Your external ip is listed under the externalIP column, eg `142.222.178.49` in t
 
 Go to http://142.222.178.49:8091 into your web browser (replacing w/ your external ip)
 
+You should see a screen like this:
+
+![screenshot](http://cl.ly/image/2m1i01192U0G/Screen%20Shot%202014-06-22%20at%207.07.36%20PM.png)
+
 Default credentials:
 
 * Username: Administrator
