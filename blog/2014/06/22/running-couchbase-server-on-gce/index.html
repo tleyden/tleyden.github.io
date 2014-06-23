@@ -119,7 +119,7 @@
 <p>On the GCE instance, run:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker inspect -format '' cb1</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker inspect -format '{{ .NetworkSettings.IPAddress }}' cb1</span></code></pre></td></tr></table></div></figure>
 
 
 <p>This should return an ip address, eg:</p>
