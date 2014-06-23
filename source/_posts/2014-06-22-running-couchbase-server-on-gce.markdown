@@ -8,6 +8,8 @@ categories:
 
 The easiest way to run Couchbase Server on Google Compute Engine is to run it in a Docker container.
 
+The following instructions walk you through running a single node.  In a later blog post, I'll cover running a cluster.
+
 ## Create GCE instance and ssh in
 
 Follow the instructions on [Running Docker on Google Compute Engine](http://docs.docker.com/installation/google/).
