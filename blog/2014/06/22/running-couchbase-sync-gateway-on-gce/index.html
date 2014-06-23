@@ -1,0 +1,427 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Running Couchbase Sync Gateway on GCE - Seven Story Rabbit Hole</title>
+  <meta name="author" content="Traun Leyden">
+
+  
+  <meta name="description" content="For a background primer on what Sync Gateway is, check out the Official Docs. Here&rsquo;s how to run Sync Gateway in a Docker container on Google &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-sync-gateway-on-gce">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+
+  <table><tr><td>
+  <h1><a href="/">Seven Story Rabbit Hole</a></h1>
+  
+    <h2>Sometimes awesome things happen in deep rabbit holes.  Or not.</h2>
+  
+  </td><td>&nbsp;&nbsp;
+  <img class="left" src="/images/rabbit_hole_graphic.png" width="295" height="105" title="image" alt="images">
+  </td></tr>
+  </table>
+
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:tleyden.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Running Couchbase Sync Gateway on GCE</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-06-22T19:10:00-07:00" pubdate data-updated="true">Jun 22<span>nd</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>For a background primer on what Sync Gateway is, check out the <a href="http://developer.couchbase.com/mobile/develop/guides/sync-gateway/index.html">Official Docs</a>.</p>
+
+<p>Here&rsquo;s how to run Sync Gateway in a Docker container on Google Compute Engine.</p>
+
+<h2>Create GCE instance and ssh in</h2>
+
+<p>Follow the instructions on <a href="http://docs.docker.com/installation/google/">Running Docker on Google Compute Engine</a>.</p>
+
+<p>At this point you should be ssh&rsquo;d into your GCE instance</p>
+
+<h2>Create a configuration JSON</h2>
+
+<p>Here&rsquo;s a sample <a href="https://gist.github.com/tleyden/d97d985eb1e0725e858e">example JSON configuration</a> for Sync Gateway.  You can use this, or use your own.</p>
+
+<p>This configuration uses <a href="https://github.com/couchbaselabs/walrus">walrus</a> as it&rsquo;s backing store, rather than Couchbase Server.  As a start example, this is good enough.  Later we can swap in Couchbase Server as a backing store.</p>
+
+<h2>Run Sync Gateway docker container</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -d -name sg -p 4984:4984 -p 4985:4985 tleyden5iwx/couchbase-sync-gateway sync_gateway "https://gist.githubusercontent.com/tleyden/d97d985eb1e0725e858e/raw/7a30998ac12d478334dd171ab316aeb3c8cdbc63/gistfile1.txt#"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This will return a container id, eg <code>8ffb83fd1f</code>.</p>
+
+<p>Check the logs to make sure there are no serious errors in the logs:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker logs 8ffb83fd1f</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see something along the lines of:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>02:23:58.905587 Enabling logging: [REST]
+</span><span class='line'>02:23:58.905818 ==== Couchbase Sync Gateway/1.00 (unofficial) ====
+</span><span class='line'>02:23:58.905863 Opening db /sync_gateway as bucket "sync_gateway", pool "default", server &lt;walrus:/opt/sync_gateway/data&gt;
+</span><span class='line'>02:23:58.905964 Opening Walrus database sync_gateway on &lt;walrus:/opt/sync_gateway/data&gt;
+</span><span class='line'>02:23:58.909659 Starting admin server on :4985
+</span><span class='line'>02:23:58.913260 Starting server on :4984 ...</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Expose API port 4984 via Firewall rule</h2>
+
+<p>On your workstation with the <code>gcloud</code> tool installed, run:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ gcloud compute firewalls create sg-4984 --allow tcp:4984</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Verify that it&rsquo;s running</h2>
+
+<h3>Find out external ip address of instance</h3>
+
+<p>On your workstation with the <code>gcloud</code> tool installed, run:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ gcloud compute instances list
+</span><span class='line'>name     status  zone          machineType internalIP   externalIP
+</span><span class='line'>couchbse RUNNING us-central1-a f1-micro    10.240.74.44 142.222.178.49</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Your external ip is listed under the externalIP column, eg <code>142.222.178.49</code> in this example.</p>
+
+<h3>Run curl request</h3>
+
+<p>On your workstation, replace the ip below with your own ip, and run:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl http://142.222.178.49:4984</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should get a response like:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/1.00 (unofficial)"}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Re-run it with Couchbase Server backing store</h2>
+
+<h3>Start Couchbase Server</h3>
+
+<p>You will need to go through the instructions in <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">Running Couchbase Server on GCE</a>.</p>
+
+<h3>Stop Sync Gateway</h3>
+
+<p>Run this command to stop the Sync Gateway container and completely remove it, using the same container id you used earlier:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker stop 8ffb83fd1f && sudo docker rm 8ffb83fd1f</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Update config</h3>
+
+<p>Here&rsquo;s a sample <a href="https://gist.github.com/tleyden/c9e6396f7183c0f3e28c">example JSON configuration</a> for Sync Gateway that expects a Couchbase Server running on <code>http://172.17.0.2:8091</code>.</p>
+
+<p><strong>You must customize this to match the ip address of your Couchbase Server</strong>.</p>
+
+<p>The instructions to get this ip address is described <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">here</a> in the &ldquo;Find the Docker instance IP address&rdquo; section.</p>
+
+<h3>Run Sync Gateway</h3>
+
+<p>Run Sync Gateway again, this time using Couchbase Server as a backing store due to the new configuration.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -d -name sg -p 4984:4984 -p 4985:4985 tleyden5iwx/couchbase-sync-gateway sync_gateway "https://gist.githubusercontent.com/tleyden/c9e6396f7183c0f3e28c/raw/de6c6eea40e27644934f3ebd05c2c6bd14396ef7/gistfile1.txt"</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Verify it&rsquo;s working</h2>
+
+<h3>Save a document via curl</h3>
+
+<p>The easiest way to add a document is via the Admin port, since there is no authentication to worry about.  Since there is no firewall rule to expose the admin port (4985), this must be run on the GCE instance.</p>
+
+<p>Add a new document using curl:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ curl -H "Content-Type: application/json" -d '{"such":"json"}' http://localhost:4985/sync_gateway/</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If it worked, you should see a response like:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{"id":"3cbfbe43e76b7eb5c4c221a78b2cf0cc","ok":true,"rev":"1-cd809becc169215072fd567eebd8b8de"}</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>View document on Couchbase Server</h3>
+
+<p>You&rsquo;ll need to login to the Couchbase Server Web Admin UI.  There are instructions <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">here</a> on how to do that.</p>
+
+<p>From there, navigate to Data Buckets / default / Documents, and you should see:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_server_docs.png" alt="screenshot" /></p>
+
+<p>Click on the document that has a UUID (eg, &ldquo;29f8d7..&rdquo; in the screenshot above), and you should see the doc contents:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_server_doc.png" alt="screenshot" /></p>
+
+<p>The <code>_sync</code> metadata field is used internally by the Sync Gateway and can be ignored.  The actual doc contents are towards the end of the file: <code>.."such":"json"}</code></p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Traun Leyden</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-06-22T19:10:00-07:00" pubdate data-updated="true">Jun 22<span>nd</span>, 2014</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2014/06/22/running-couchbase-sync-gateway-on-gce/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2014/06/22/running-couchbase-sync-gateway-on-gce/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/06/22/running-couchbase-server-on-gce/" title="Previous Post: Running Couchbase Server on GCE">&laquo; Running Couchbase Server on GCE</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>About Me</h1>
+  <p>
+  I'm a startup engineer at Couchbase, working on <a href="https://github.com/couchbase/couchbase-lite-android">Couchbase Lite for Android</a> -- a mobile NoSQL database with Sync built-in.
+  </p>
+
+  <p>
+  In my spare time I am working on a <a href="https://github.com/tleyden/neurgo">Neural Network in Go</a>.
+  </p>
+
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/06/22/running-couchbase-sync-gateway-on-gce/">Running Couchbase Sync Gateway on GCE</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/06/22/running-couchbase-server-on-gce/">Running Couchbase Server on GCE</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2/">Configure Emacs as a Go Editor From Scratch Part 2</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">Configure Emacs as a Go Editor From Scratch</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/05/21/what-is-couchbase-mobile-and-why-should-you-care/">What Is Couchbase Mobile and Why Should You Care?</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/tleyden">@tleyden</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'tleyden',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+<section>
+     <h1>Twitter</h1>
+<a class="twitter-timeline" width="300" height="350" href="https://twitter.com/tleydn" data-widget-id="376419812865368064">Tweets by @tleydn</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+ </section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Traun Leyden -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'sevenstoryrabbithole';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://tleyden.github.io/blog/2014/06/22/running-couchbase-sync-gateway-on-gce/';
+        var disqus_url = 'http://tleyden.github.io/blog/2014/06/22/running-couchbase-sync-gateway-on-gce/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

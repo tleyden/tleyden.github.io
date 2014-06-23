@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-06-22T18:14:53-07:00</updated>
+  <updated>2014-06-22T20:12:40-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,159 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Running Couchbase Sync Gateway on GCE]]></title>
+    <link href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-sync-gateway-on-gce/"/>
+    <updated>2014-06-22T19:10:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2014/06/22/running-couchbase-sync-gateway-on-gce</id>
+    <content type="html"><![CDATA[<p>For a background primer on what Sync Gateway is, check out the <a href="http://developer.couchbase.com/mobile/develop/guides/sync-gateway/index.html">Official Docs</a>.</p>
+
+<p>Here&rsquo;s how to run Sync Gateway in a Docker container on Google Compute Engine.</p>
+
+<h2>Create GCE instance and ssh in</h2>
+
+<p>Follow the instructions on <a href="http://docs.docker.com/installation/google/">Running Docker on Google Compute Engine</a>.</p>
+
+<p>At this point you should be ssh&rsquo;d into your GCE instance</p>
+
+<h2>Create a configuration JSON</h2>
+
+<p>Here&rsquo;s a sample <a href="https://gist.github.com/tleyden/d97d985eb1e0725e858e">example JSON configuration</a> for Sync Gateway.  You can use this, or use your own.</p>
+
+<p>This configuration uses <a href="https://github.com/couchbaselabs/walrus">walrus</a> as it&rsquo;s backing store, rather than Couchbase Server.  As a start example, this is good enough.  Later we can swap in Couchbase Server as a backing store.</p>
+
+<h2>Run Sync Gateway docker container</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -d -name sg -p 4984:4984 -p 4985:4985 tleyden5iwx/couchbase-sync-gateway sync_gateway "https://gist.githubusercontent.com/tleyden/d97d985eb1e0725e858e/raw/7a30998ac12d478334dd171ab316aeb3c8cdbc63/gistfile1.txt#"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This will return a container id, eg <code>8ffb83fd1f</code>.</p>
+
+<p>Check the logs to make sure there are no serious errors in the logs:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker logs 8ffb83fd1f</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see something along the lines of:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>02:23:58.905587 Enabling logging: [REST]
+</span><span class='line'>02:23:58.905818 ==== Couchbase Sync Gateway/1.00 (unofficial) ====
+</span><span class='line'>02:23:58.905863 Opening db /sync_gateway as bucket "sync_gateway", pool "default", server &lt;walrus:/opt/sync_gateway/data&gt;
+</span><span class='line'>02:23:58.905964 Opening Walrus database sync_gateway on &lt;walrus:/opt/sync_gateway/data&gt;
+</span><span class='line'>02:23:58.909659 Starting admin server on :4985
+</span><span class='line'>02:23:58.913260 Starting server on :4984 ...</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Expose API port 4984 via Firewall rule</h2>
+
+<p>On your workstation with the <code>gcloud</code> tool installed, run:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ gcloud compute firewalls create sg-4984 --allow tcp:4984</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Verify that it&rsquo;s running</h2>
+
+<h3>Find out external ip address of instance</h3>
+
+<p>On your workstation with the <code>gcloud</code> tool installed, run:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ gcloud compute instances list
+</span><span class='line'>name     status  zone          machineType internalIP   externalIP
+</span><span class='line'>couchbse RUNNING us-central1-a f1-micro    10.240.74.44 142.222.178.49</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Your external ip is listed under the externalIP column, eg <code>142.222.178.49</code> in this example.</p>
+
+<h3>Run curl request</h3>
+
+<p>On your workstation, replace the ip below with your own ip, and run:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl http://142.222.178.49:4984</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should get a response like:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/1.00 (unofficial)"}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Re-run it with Couchbase Server backing store</h2>
+
+<h3>Start Couchbase Server</h3>
+
+<p>You will need to go through the instructions in <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">Running Couchbase Server on GCE</a>.</p>
+
+<h3>Stop Sync Gateway</h3>
+
+<p>Run this command to stop the Sync Gateway container and completely remove it, using the same container id you used earlier:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker stop 8ffb83fd1f && sudo docker rm 8ffb83fd1f</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Update config</h3>
+
+<p>Here&rsquo;s a sample <a href="https://gist.github.com/tleyden/c9e6396f7183c0f3e28c">example JSON configuration</a> for Sync Gateway that expects a Couchbase Server running on <code>http://172.17.0.2:8091</code>.</p>
+
+<p><strong>You must customize this to match the ip address of your Couchbase Server</strong>.</p>
+
+<p>The instructions to get this ip address is described <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">here</a> in the &ldquo;Find the Docker instance IP address&rdquo; section.</p>
+
+<h3>Run Sync Gateway</h3>
+
+<p>Run Sync Gateway again, this time using Couchbase Server as a backing store due to the new configuration.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -d -name sg -p 4984:4984 -p 4985:4985 tleyden5iwx/couchbase-sync-gateway sync_gateway "https://gist.githubusercontent.com/tleyden/c9e6396f7183c0f3e28c/raw/de6c6eea40e27644934f3ebd05c2c6bd14396ef7/gistfile1.txt"</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Verify it&rsquo;s working</h2>
+
+<h3>Save a document via curl</h3>
+
+<p>The easiest way to add a document is via the Admin port, since there is no authentication to worry about.  Since there is no firewall rule to expose the admin port (4985), this must be run on the GCE instance.</p>
+
+<p>Add a new document using curl:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ curl -H "Content-Type: application/json" -d '{"such":"json"}' http://localhost:4985/sync_gateway/</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If it worked, you should see a response like:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{"id":"3cbfbe43e76b7eb5c4c221a78b2cf0cc","ok":true,"rev":"1-cd809becc169215072fd567eebd8b8de"}</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>View document on Couchbase Server</h3>
+
+<p>You&rsquo;ll need to login to the Couchbase Server Web Admin UI.  There are instructions <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">here</a> on how to do that.</p>
+
+<p>From there, navigate to Data Buckets / default / Documents, and you should see:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_server_docs.png" alt="screenshot" /></p>
+
+<p>Click on the document that has a UUID (eg, &ldquo;29f8d7..&rdquo; in the screenshot above), and you should see the doc contents:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_server_doc.png" alt="screenshot" /></p>
+
+<p>The <code>_sync</code> metadata field is used internally by the Sync Gateway and can be ignored.  The actual doc contents are towards the end of the file: <code>.."such":"json"}</code></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Running Couchbase Server on GCE]]></title>
@@ -113,7 +266,7 @@
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ gcloud compute instances list -l
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ gcloud compute instances list
 </span><span class='line'>name     status  zone          machineType internalIP   externalIP
 </span><span class='line'>couchbse RUNNING us-central1-a f1-micro    10.240.74.44 142.222.178.49</span></code></pre></td></tr></table></div></figure>
 
@@ -123,6 +276,10 @@
 <h3>Go to admin in web browser</h3>
 
 <p>Go to <a href="http://142.222.178.49:8091">http://142.222.178.49:8091</a> into your web browser (replacing w/ your external ip)</p>
+
+<p>You should see a screen like this:</p>
+
+<p><img src="http://cl.ly/image/2m1i01192U0G/Screen%20Shot%202014-06-22%20at%207.07.36%20PM.png" alt="screenshot" /></p>
 
 <p>Default credentials:</p>
 
@@ -2131,98 +2288,6 @@
 
 
 <p>but I get the error <code>cannot convert nil to type GameState</code></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Java coding challenge]]></title>
-    <link href="http://tleyden.github.io/blog/2013/09/19/java-coding-challenge/"/>
-    <updated>2013-09-19T13:42:00-07:00</updated>
-    <id>http://tleyden.github.io/blog/2013/09/19/java-coding-challenge</id>
-    <content type="html"><![CDATA[<p>Write a server that uses tcp sockets which returns images to clients, and avoids duplicate work for concurrent requests for the same image.</p>
-
-<h1>Description</h1>
-
-<p>A server will listen for tcp client connections and generate PNG checkerboard images and return them to clients that request them.  Example checkerboard image:</p>
-
-<p><img src="http://tleyden.github.io/images/checkerboard.png" width="295" height="105" title="image" alt="images"></p>
-
-<p>The client will send a single parameter to the server after it opens the tcp socket connection to the server:</p>
-
-<ul>
-<li> The size of the &ldquo;checkboard image&rdquo;, which will be a single scalar value like 5, which will result in a 5x5 square, as shown above.</li>
-</ul>
-
-
-<p>The server will use the following default values when generating the checkerboard image:</p>
-
-<ul>
-<li> size: each square will be 60 x 60 pixels.</li>
-<li> color: squares will be alternating black and white, with black for the square in the 0th row and 0th column, and white for the square in the 1st row and 0th column, etc.  Exactly as shown above.</li>
-</ul>
-
-
-<h1>Basic Requirements</h1>
-
-<ul>
-<li>Written in either Java or Scala</li>
-<li>To generate the actual image, you can use anything you want.  The image format can be any popular image format (PNG, JPEG, GIF, etc..)</li>
-<li>For the data structures required by the server, you can use any existing data structures within Java itself or a 3rd party, there is no requirement to develop your own.</li>
-<li>The server will respond with the image data in PNG format, and then close the connection.</li>
-</ul>
-
-
-<h1>Advanced Requirements</h1>
-
-<ul>
-<li>In the method that generates the square, there must be a call to Thread.sleep(Y) before returning.  Y represents number of milliseconds to sleep, and will be a random number between 0 and 5000.</li>
-<li>The server can handle multiple client requests in parallel (as opposed to handling them in serial).  In other words, if client1 contacts the server, and then client2 contacts the server a few milliseconds later, there is a chance that client2 will receive a response before client1, depending on the random sleep described above.</li>
-<li>In order to avoid needlessly generating the same image twice, if the server is asked to generate a square of size X by client1, and then again asked to generate another square of size X by client2 before it has returned the square to client1, it will simply wait for the square for client1 is finished being generated and return that same square data to both client2 and client1.  Here is an example timeline to show how events would roughly be ordered:
-
-<ul>
-<li>At 12:00:00 Client1 asks for square of size 6</li>
-<li>At 12:00:01 The server starts to generate the square for client1</li>
-<li>At 12:00:01 Client2 asks for square of size 6 (the server does <em>not</em> try to generate a new square, since there is already a pending request for an identical square)</li>
-<li>At 12:00:06 The server finishes generating the square of size 6, as originally requested by client1</li>
-<li>At 12:00:07 The server returns the square to client1</li>
-<li>At 12:00:07 The server returns the same square to client2</li>
-</ul>
-</li>
-</ul>
-
-
-<h1>Deliverables</h1>
-
-<ul>
-<li>server.sh &ndash; starts the server that listens on 8000</li>
-<li>client.sh X &ndash; runs a client that:
-
-<ul>
-<li>connects to localhost:8000</li>
-<li>passes the parameter X (the size of the checkboard image) to the server</li>
-<li>reads the PNG into a file called X.png</li>
-<li>prints a message to say its finished.</li>
-</ul>
-</li>
-<li>A zip file that contains all jar file dependencies <em>or</em> a document that describes on how to download the required dependencies</li>
-</ul>
-
-
-<h1>Shortcuts</h1>
-
-<p>If this feels like too much work, take the following shortcut:</p>
-
-<ul>
-<li>Rather than return an image, just create a string which would represent the image, where X represents black and O represents white.  Eg, if it was a 2x2 square, return &ldquo;X00X&rdquo;</li>
-</ul>
-
-
-<h1>Bonus points</h1>
-
-<ul>
-<li>Record your commits in a local git repository as you work, and submit a zip file of the repository along with the other deliverables</li>
-</ul>
-
 ]]></content>
   </entry>
   
