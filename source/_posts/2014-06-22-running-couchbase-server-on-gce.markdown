@@ -1,12 +1,12 @@
 ---
 layout: post
-title: "Running Couchbase Server on GCE"
+title: "Running a Couchbase Cluster on Google Compute Engine"
 date: 2014-06-22 15:52
 comments: true
 categories: 
 ---
 
-The easiest way to run Couchbase Server on Google Compute Engine is to run it in a Docker container.
+The easiest way to run Couchbase cluster on Google Compute Engine is to run all of the nodes in Docker containers.
 
 ## Create GCE instance and ssh in
 
@@ -30,11 +30,7 @@ On the GCE instance, run:
 {% raw  %}gce:~$ sudo docker inspect -format '{{ .NetworkSettings.IPAddress }}' cb1{% endraw %}
 ```
 
-This should return an ip address, eg:
-
-```
-172.17.0.2
-```
+This should return an ip address, eg `172.17.0.2`
 
 Set it as an environment variable so we can use it in later steps:
 
@@ -50,7 +46,7 @@ To verify that couchbase server is running, use the `couchbase-cli` to ask for s
 gce:~$ sudo docker run -rm ncolomer/couchbase couchbase-cli server-info -c ${CB1_IP} -u Administrator -p couchbase
 ```
 
-If everything is working correclty, this should return a json response, eg:
+If everything is working correctly, this should return a json response, eg:
 
 ```
 {
@@ -79,13 +75,19 @@ gce:~$ sudo docker run -rm ncolomer/couchbase couchbase-cli rebalance -c ${CB1_I
 
 ## Connect to admin web UI
 
-### Expose port 8091 via Firewall rule
+### Expose port 8091 via firewall rule for your machine
+
+Go to [whatismyip.com](http://www.whatismyip.com/) or equivalent, and find your ip address.  Eg, `67.161.66.7`
 
 On your workstation with the `gcloud` tool installed, run:
 
 ```
-$ gcloud compute firewalls create cb-8091 --allow tcp:8091
+$ gcloud compute firewalls create cb-8091 --allow tcp:8091 --source-ranges 67.161.66.7/32
 ```
+
+This will allow your machine, as well any other machine behind your internet router, to connect to the Couchbase Web UI running on GCE.
+
+To increase security, you should use ipv6 and pass your workstation's ipv6 hostname in the `--source-ranges` parameter.
 
 ### Find out external ip address of instance
 
@@ -110,8 +112,6 @@ Default credentials:
 
 * Username: Administrator
 * Password: couchbase
-
-At this point, you should either change the default password, or delete the firewall rule added above.
 
 ## Known issues
 
