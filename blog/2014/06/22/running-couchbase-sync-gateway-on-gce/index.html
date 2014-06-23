@@ -116,14 +116,12 @@
 
 <h2>Create a configuration JSON</h2>
 
-<p>Here&rsquo;s a sample <a href="https://gist.github.com/tleyden/d97d985eb1e0725e858e">example JSON configuration</a> for Sync Gateway.  You can use this, or use your own.</p>
-
-<p>This configuration uses <a href="https://github.com/couchbaselabs/walrus">walrus</a> as it&rsquo;s backing store, rather than Couchbase Server.  As an initial example, this is good enough.  Later we will swap in Couchbase Server as a backing store.</p>
+<p>Here&rsquo;s a sample <a href="https://gist.github.com/tleyden/d97d985eb1e0725e858e">example JSON configuration</a> for Sync Gateway which uses <a href="https://github.com/couchbaselabs/walrus">walrus</a> as it&rsquo;s backing store, rather than Couchbase Server.  Later we will swap in Couchbase Server as a backing store.</p>
 
 <h2>Run Sync Gateway docker container</h2>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -d -name sg -p 4984:4984 -p 4985:4985 tleyden5iwx/couchbase-sync-gateway sync_gateway "https://gist.githubusercontent.com/tleyden/d97d985eb1e0725e858e/raw/7a30998ac12d478334dd171ab316aeb3c8cdbc63/gistfile1.txt#"</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -d -name sg -p 4984:4984 -p 4985:4985 tleyden5iwx/couchbase-sync-gateway sync_gateway "https://gist.githubusercontent.com/tleyden/d97d985eb1e0725e858e/raw"</span></code></pre></td></tr></table></div></figure>
 
 
 <p>This will return a container id, eg <code>8ffb83fd1f</code>.</p>
