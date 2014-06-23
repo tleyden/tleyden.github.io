@@ -121,7 +121,7 @@
 
 <p>Here&rsquo;s a sample <a href="https://gist.github.com/tleyden/d97d985eb1e0725e858e">example JSON configuration</a> for Sync Gateway.  You can use this, or use your own.</p>
 
-<p>This configuration uses <a href="https://github.com/couchbaselabs/walrus">walrus</a> as it&rsquo;s backing store, rather than Couchbase Server.  As an initial example, this is good enough.  Later we can swap in Couchbase Server as a backing store.</p>
+<p>This configuration uses <a href="https://github.com/couchbaselabs/walrus">walrus</a> as it&rsquo;s backing store, rather than Couchbase Server.  As an initial example, this is good enough.  Later we will swap in Couchbase Server as a backing store.</p>
 
 <h2>Run Sync Gateway docker container</h2>
 
@@ -193,11 +193,13 @@
 
 <h2>Re-run it with Couchbase Server backing store</h2>
 
-<p><em>OK, so we&rsquo;ve gotten it working with walrus.  But have you looked at the walrus website lately?  One <a href="https://camo.githubusercontent.com/1bd1955b96628260b27320f099aeac0585229c2f/687474703a2f2f7777772e69686173616275636b65742e636f6d2f696d616765732f77616c7275735f6275636b65742e6a7067">click</a> and it&rsquo;s pretty obvious that this thing is more of a joke rather than something meant to be a scalable production-ready backend.  Move over bacon, now there&rsquo;s something meatier.</em></p>
+<p><em>OK, so we&rsquo;ve gotten it working with walrus.  But have you looked at the walrus website lately?  One <a href="https://camo.githubusercontent.com/1bd1955b96628260b27320f099aeac0585229c2f/687474703a2f2f7777772e69686173616275636b65742e636f6d2f696d616765732f77616c7275735f6275636b65742e6a7067">click</a> and it&rsquo;s pretty obvious that this thing is more of a joke rather than something meant to be a scalable production-ready backend.</em></p>
+
+<p>Let&rsquo;s dump walrus for now and use Couchbase Server from this point onwards.</p>
 
 <h3>Start Couchbase Server</h3>
 
-<p>Before moving on, you will need to go through the instructions in <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">Running Couchbase Server on GCE</a>.</p>
+<p>Before moving on, you will need to go through the instructions in <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">Running Couchbase Server on GCE</a> in order to get a Couchbase Server instance running.</p>
 
 <h3>Stop Sync Gateway</h3>
 
@@ -209,27 +211,41 @@
 
 <h3>Update config</h3>
 
-<p>Here&rsquo;s a sample <a href="https://gist.github.com/tleyden/c9e6396f7183c0f3e28c">example JSON configuration</a> for Sync Gateway that expects a Couchbase Server running on <code>http://172.17.0.2:8091</code>.</p>
+<p>Copy this <a href="https://gist.github.com/tleyden/c9e6396f7183c0f3e28c">example JSON configuration</a>, which expects a Couchbase Server running on <code>http://172.17.0.2:8091</code>, and update it with the ip address of the docker instance where your Couchbase Server is running.  To get this ip address, follow the <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">these instructions</a> in the &ldquo;Find the Docker instance IP address&rdquo; section.</p>
 
-<p><em>You must customize this to match the ip address of your Couchbase Server, or else it won&rsquo;t work</em>.</p>
-
-<p>The instructions to get this ip address is described <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">here</a> in the &ldquo;Find the Docker instance IP address&rdquo; section.</p>
+<p>Now upload your modified JSON configuration to a website that is publicly accessible, for example in a <a href="http://gist.github.com">Github Gist</a>.</p>
 
 <h3>Run Sync Gateway</h3>
 
-<p>Run Sync Gateway again, this time using Couchbase Server as a backing store due to the new configuration.</p>
+<p>Run Sync Gateway again, this time using Couchbase Server as a backing store this time.</p>
+
+<p>Replace <code>http://yourserver.co/yourconfig.json</code> with the URL where you&rsquo;ve uploaded your JSON configuration from the previous step.</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -d -name sg -p 4984:4984 -p 4985:4985 tleyden5iwx/couchbase-sync-gateway sync_gateway "https://gist.githubusercontent.com/tleyden/c9e6396f7183c0f3e28c/raw/de6c6eea40e27644934f3ebd05c2c6bd14396ef7/gistfile1.txt"</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -d -name sg -p 4984:4984 -p 4985:4985 tleyden5iwx/couchbase-sync-gateway sync_gateway "http://yourserver.co/yourconfig.json"</span></code></pre></td></tr></table></div></figure>
 
+
+<p>This will return a container id, eg <code>9ffb83fd1f</code>.  Again, check the logs to make sure there are no serious errors in the logs:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker logs 9ffb83fd1f</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see something along the lines of:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>... 
+</span><span class='line'>02:23:58.913260 Starting server on :4984 ...</span></code></pre></td></tr></table></div></figure>
+
+
+<p>with no errors.</p>
 
 <h2>Verify it&rsquo;s working</h2>
 
 <h3>Save a document via curl</h3>
 
-<p>The easiest way to add a document is via the Admin port, since there is no authentication to worry about.  Since there is no firewall rule to expose the admin port (4985), this must be run on the GCE instance.</p>
-
-<p>Add a new document using curl:</p>
+<p>The easiest way to add a document is via the Admin port, since there is no authentication to worry about.  Since we haven&rsquo;t added a firewall rule to expose the admin port (4985), (and doing so without tight filtering would be a major security hole), this command to create a new document must be run on the GCE instance.</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ curl -H "Content-Type: application/json" -d '{"such":"json"}' http://localhost:4985/sync_gateway/</span></code></pre></td></tr></table></div></figure>
@@ -243,13 +259,13 @@
 
 <h3>View document on Couchbase Server</h3>
 
-<p>You&rsquo;ll need to login to the Couchbase Server Web Admin UI.  There are instructions <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">here</a> on how to do that.</p>
+<p>To verify the document was successfully stored on Couchbase Server, you&rsquo;ll need to login to the Couchbase Server Web Admin UI.  There are instructions <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">here</a> on how to do that.</p>
 
 <p>From there, navigate to Data Buckets / default / Documents, and you should see:</p>
 
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_server_docs.png" alt="screenshot" /></p>
 
-<p>Click on the document that has a UUID (eg, &ldquo;29f8d7..&rdquo; in the screenshot above), and you should see the doc contents:</p>
+<p>Click on the document that has a UUID (eg, &ldquo;29f8d7..&rdquo; in the screenshot above), and you should see the document&rsquo;s contents:</p>
 
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_server_doc.png" alt="screenshot" /></p>
 
