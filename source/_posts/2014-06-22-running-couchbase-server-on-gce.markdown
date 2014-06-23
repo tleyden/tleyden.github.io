@@ -112,10 +112,14 @@ You should see a screen like this:
 
 ![screenshot](http://cl.ly/image/2m1i01192U0G/Screen%20Shot%202014-06-22%20at%207.07.36%20PM.png)
 
-Default credentials:
+Login with the default credentials:
 
 * Username: Administrator
 * Password: couchbase
+
+And you should see the Web Admin dashboard:
+
+![screenshot](http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_dashboard.png)
 
 ## Known issues
 
