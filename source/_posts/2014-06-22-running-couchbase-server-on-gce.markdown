@@ -92,7 +92,7 @@ $ gcloud compute firewalls create cb-8091 --allow tcp:8091
 On your workstation with the `gcloud` tool installed, run:
 
 ```
-$ gcloud compute instances list -l
+$ gcloud compute instances list
 name     status  zone          machineType internalIP   externalIP
 couchbse RUNNING us-central1-a f1-micro    10.240.74.44 142.222.178.49
 ```
