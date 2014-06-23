@@ -142,7 +142,7 @@ with no errors.
 
 ### Save a document via curl
 
-The easiest way to add a document is via the Admin port, since there is no authentication to worry about.  Since we haven't added a firewall rule to expose the admin port (4985), (and doing so without tight filtering would be a major security hole), this command to create a new document must be run on the GCE instance.
+The easiest way to add a document is via the Admin port, since there is no authentication to worry about.  Since we haven't added a firewall rule to expose the admin port (4985), (and doing so without tight filtering would be a major security hole), the following command to create a new document must be run on the GCE instance.
 
 ```
 gce:~$ curl -H "Content-Type: application/json" -d '{"such":"json"}' http://localhost:4985/sync_gateway/
