@@ -27,7 +27,7 @@ gce:~$ sudo docker run -d -name cb1 -p 8091:8091 -p 8092:8092 -p 11210:11210 -p 
 On the GCE instance, run:
 
 ```
-gce:~$ sudo docker inspect -format '{{ .NetworkSettings.IPAddress }}' cb1
+{% raw  %}gce:~$ sudo docker inspect -format '{{ .NetworkSettings.IPAddress }}' cb1{% endraw %}
 ```
 
 This should return an ip address, eg:
