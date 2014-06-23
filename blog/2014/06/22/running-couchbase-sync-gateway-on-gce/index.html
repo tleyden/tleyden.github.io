@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="For a background primer on what Sync Gateway is, check out the Official Docs. Here&rsquo;s how to run Sync Gateway in a Docker container on Google &hellip;">
+  <meta name="description" content="What is Couchbase Sync Gateway? Here&rsquo;s a birds-eye-view of the Couchbase Mobile architecture: Sync Gateway allows Couchbase Lite mobile apps to &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -98,9 +98,15 @@
   </header>
 
 
-<div class="entry-content"><p>For a background primer on what Sync Gateway is, check out the <a href="http://developer.couchbase.com/mobile/develop/guides/sync-gateway/index.html">Official Docs</a>.</p>
+<div class="entry-content"><p>What is Couchbase Sync Gateway?</p>
 
-<p>Here&rsquo;s how to run Sync Gateway in a Docker container on Google Compute Engine.</p>
+<p>Here&rsquo;s a birds-eye-view of the <a href="http://developer.couchbase.com/mobile">Couchbase Mobile</a> architecture:</p>
+
+<p><img src="https://camo.githubusercontent.com/c1aa705fde3eb12245c06730d850c23e5a84ad8d/687474703a2f2f746c657964656e2d6d6973632e73332e616d617a6f6e6177732e636f6d2f636f756368626173652d6c6974652f636f756368626173652d6c6974652d6172636869746563747572652e706e67" alt="diagram" /></p>
+
+<p>Sync Gateway allows Couchbase Lite mobile apps to sync data between each other and the Couchbase Server running on the backend.</p>
+
+<p>This blog post will walk you through how to run Sync Gateway in a Docker container on Google Compute Engine.</p>
 
 <h2>Create GCE instance and ssh in</h2>
 
