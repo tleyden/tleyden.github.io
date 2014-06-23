@@ -8,8 +8,6 @@ categories:
 
 The easiest way to run Couchbase Server on Google Compute Engine is to run it in a Docker container.
 
-The following instructions walk you through running a single node.  In a later blog post, I'll cover running a cluster.
-
 ## Create GCE instance and ssh in
 
 Follow the instructions on [Running Docker on Google Compute Engine](http://docs.docker.com/installation/google/).
@@ -19,7 +17,7 @@ At this point you should be ssh'd into your GCE instance
 ## Start Couchbase Server
 
 ```
-gce:~$ sudo docker run -d -name cb -p 8091:8091 -p 8092:8092 -p 11210:11210 -p 11211:11211 ncolomer/couchbase
+gce:~$ sudo docker run -d -name cb1 -p 8091:8091 -p 8092:8092 -p 11210:11210 -p 11211:11211 ncolomer/couchbase
 ```
 
 ## Verify it's running
@@ -29,7 +27,7 @@ gce:~$ sudo docker run -d -name cb -p 8091:8091 -p 8092:8092 -p 11210:11210 -p 1
 On the GCE instance, run:
 
 ```
-gce:~$ sudo docker inspect -format '{{ .NetworkSettings.IPAddress }}' cb
+gce:~$ sudo docker inspect -format '{{ .NetworkSettings.IPAddress }}' cb1
 ```
 
 This should return an ip address, eg:
@@ -38,15 +36,21 @@ This should return an ip address, eg:
 172.17.0.2
 ```
 
+Set it as an environment variable so we can use it in later steps:
+
+```
+gce:~$ export CB1_IP=172.17.0.2
+```
+
 ### Run couchbase-cli
 
-Using the ip address found in the step above:
+To verify that couchbase server is running, use the `couchbase-cli` to ask for server info:
 
 ```
-gce:~$ sudo docker run -rm ncolomer/couchbase couchbase-cli server-info -c 172.17.0.2 -u Administrator -p couchbase
+gce:~$ sudo docker run -rm ncolomer/couchbase couchbase-cli server-info -c ${CB1_IP} -u Administrator -p couchbase
 ```
 
-This should return a json response, eg:
+If everything is working correclty, this should return a json response, eg:
 
 ```
 {
@@ -56,6 +60,21 @@ This should return a json response, eg:
         "path": "/",
   ...
 }
+```
+
+## Start a 3-node cluster
+
+On the GCE instance, run the following commands:
+
+```
+gce:~$ sudo docker run -d -name cb2 ncolomer/couchbase couchbase-start ${CB1_IP}
+gce:~$ sudo docker run -d -name cb3 ncolomer/couchbase couchbase-start ${CB1_IP}
+```
+
+The nodes `cb2` and `cb3` will automatically join the cluster via `cb1`. The cluster needs a rebalance to be fully operational. To do so, run the following command:
+
+```
+gce:~$ sudo docker run -rm ncolomer/couchbase couchbase-cli rebalance -c ${CB1_IP} -u Administrator -p couchbase
 ```
 
 ## Connect to admin web UI
@@ -93,3 +112,7 @@ At this point, you should either change the default password, or delete the fire
 ## Known issues
 
 * [File descriptor warning in logs](http://stackoverflow.com/questions/24356815/running-couchbase-under-gce-docker-and-getting-error-about-max-number-of-files)
+
+## References
+
+* [ncolomer/couchbase Docker instructions](https://registry.hub.docker.com/u/ncolomer/couchbase/)
