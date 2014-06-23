@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="What is Couchbase Sync Gateway? Here&rsquo;s a birds-eye-view of the Couchbase Mobile architecture: Sync Gateway allows Couchbase Lite mobile apps to &hellip;">
+  <meta name="description" content="First, a quick refresh of what Couchbase Sync Gateway actually is. So here&rsquo;s a birds-eye-view of the Couchbase Mobile architecture: Sync &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -98,9 +98,9 @@
   </header>
 
 
-<div class="entry-content"><p>What is Couchbase Sync Gateway?</p>
+<div class="entry-content"><p>First, a quick refresh of what Couchbase Sync Gateway actually <em>is</em>.</p>
 
-<p>Here&rsquo;s a birds-eye-view of the <a href="http://developer.couchbase.com/mobile">Couchbase Mobile</a> architecture:</p>
+<p>So here&rsquo;s a birds-eye-view of the <a href="http://developer.couchbase.com/mobile">Couchbase Mobile</a> architecture:</p>
 
 <p><img src="https://camo.githubusercontent.com/c1aa705fde3eb12245c06730d850c23e5a84ad8d/687474703a2f2f746c657964656e2d6d6973632e73332e616d617a6f6e6177732e636f6d2f636f756368626173652d6c6974652f636f756368626173652d6c6974652d6172636869746563747572652e706e67" alt="diagram" /></p>
 
@@ -192,7 +192,7 @@
 
 <h3>Start Couchbase Server</h3>
 
-<p>You will need to go through the instructions in <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">Running Couchbase Server on GCE</a>.</p>
+<p>Before moving on, you will need to go through the instructions in <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">Running Couchbase Server on GCE</a>.</p>
 
 <h3>Stop Sync Gateway</h3>
 
@@ -206,7 +206,7 @@
 
 <p>Here&rsquo;s a sample <a href="https://gist.github.com/tleyden/c9e6396f7183c0f3e28c">example JSON configuration</a> for Sync Gateway that expects a Couchbase Server running on <code>http://172.17.0.2:8091</code>.</p>
 
-<p><strong>You must customize this to match the ip address of your Couchbase Server</strong>.</p>
+<p><em>You must customize this to match the ip address of your Couchbase Server, or else it won&rsquo;t work</em>.</p>
 
 <p>The instructions to get this ip address is described <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">here</a> in the &ldquo;Find the Docker instance IP address&rdquo; section.</p>
 
