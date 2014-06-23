@@ -24,14 +24,12 @@ At this point you should be ssh'd into your GCE instance
 
 ## Create a configuration JSON
 
-Here's a sample [example JSON configuration](https://gist.github.com/tleyden/d97d985eb1e0725e858e) for Sync Gateway.  You can use this, or use your own.
-
-This configuration uses [walrus](https://github.com/couchbaselabs/walrus) as it's backing store, rather than Couchbase Server.  As an initial example, this is good enough.  Later we will swap in Couchbase Server as a backing store.
+Here's a sample [example JSON configuration](https://gist.github.com/tleyden/d97d985eb1e0725e858e) for Sync Gateway which uses [walrus](https://github.com/couchbaselabs/walrus) as it's backing store, rather than Couchbase Server.  Later we will swap in Couchbase Server as a backing store.
 
 ## Run Sync Gateway docker container 
 
 ```
-gce:~$ sudo docker run -d -name sg -p 4984:4984 -p 4985:4985 tleyden5iwx/couchbase-sync-gateway sync_gateway "https://gist.githubusercontent.com/tleyden/d97d985eb1e0725e858e/raw/7a30998ac12d478334dd171ab316aeb3c8cdbc63/gistfile1.txt#"
+gce:~$ sudo docker run -d -name sg -p 4984:4984 -p 4985:4985 tleyden5iwx/couchbase-sync-gateway sync_gateway "https://gist.githubusercontent.com/tleyden/d97d985eb1e0725e858e/raw"
 ```
 
 This will return a container id, eg `8ffb83fd1f`.
