@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-06-22T17:14:00-07:00</updated>
+  <updated>2014-06-22T17:26:47-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -20,8 +20,6 @@
     <id>http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce</id>
     <content type="html"><![CDATA[<p>The easiest way to run Couchbase Server on Google Compute Engine is to run it in a Docker container.</p>
 
-<p>The following instructions walk you through running a single node.  In a later blog post, I&rsquo;ll cover running a cluster.</p>
-
 <h2>Create GCE instance and ssh in</h2>
 
 <p>Follow the instructions on <a href="http://docs.docker.com/installation/google/">Running Docker on Google Compute Engine</a>.</p>
@@ -31,7 +29,7 @@
 <h2>Start Couchbase Server</h2>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -d -name cb -p 8091:8091 -p 8092:8092 -p 11210:11210 -p 11211:11211 ncolomer/couchbase</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -d -name cb1 -p 8091:8091 -p 8092:8092 -p 11210:11210 -p 11211:11211 ncolomer/couchbase</span></code></pre></td></tr></table></div></figure>
 
 
 <h2>Verify it&rsquo;s running</h2>
@@ -41,7 +39,7 @@
 <p>On the GCE instance, run:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker inspect -format '' cb</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker inspect -format '' cb1</span></code></pre></td></tr></table></div></figure>
 
 
 <p>This should return an ip address, eg:</p>
@@ -50,15 +48,21 @@
 </pre></td><td class='code'><pre><code class=''><span class='line'>172.17.0.2</span></code></pre></td></tr></table></div></figure>
 
 
-<h3>Run couchbase-cli</h3>
-
-<p>Using the ip address found in the step above:</p>
+<p>Set it as an environment variable so we can use it in later steps:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -rm ncolomer/couchbase couchbase-cli server-info -c 172.17.0.2 -u Administrator -p couchbase</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ export CB1_IP=172.17.0.2</span></code></pre></td></tr></table></div></figure>
 
 
-<p>This should return a json response, eg:</p>
+<h3>Run couchbase-cli</h3>
+
+<p>To verify that couchbase server is running, use the <code>couchbase-cli</code> to ask for server info:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -rm ncolomer/couchbase couchbase-cli server-info -c ${CB1_IP} -u Administrator -p couchbase</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If everything is working correclty, this should return a json response, eg:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -74,6 +78,22 @@
 </span><span class='line'>        "path": "/",
 </span><span class='line'>  ...
 </span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Start a 3-node cluster</h2>
+
+<p>On the GCE instance, run the following commands:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -d -name cb2 ncolomer/couchbase couchbase-start ${CB1_IP}
+</span><span class='line'>gce:~$ sudo docker run -d -name cb3 ncolomer/couchbase couchbase-start ${CB1_IP}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The nodes <code>cb2</code> and <code>cb3</code> will automatically join the cluster via <code>cb1</code>. The cluster needs a rebalance to be fully operational. To do so, run the following command:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -rm ncolomer/couchbase couchbase-cli rebalance -c ${CB1_IP} -u Administrator -p couchbase</span></code></pre></td></tr></table></div></figure>
 
 
 <h2>Connect to admin web UI</h2>
@@ -118,6 +138,13 @@
 
 <ul>
 <li><a href="http://stackoverflow.com/questions/24356815/running-couchbase-under-gce-docker-and-getting-error-about-max-number-of-files">File descriptor warning in logs</a></li>
+</ul>
+
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://registry.hub.docker.com/u/ncolomer/couchbase/">ncolomer/couchbase Docker instructions</a></li>
 </ul>
 
 ]]></content>
