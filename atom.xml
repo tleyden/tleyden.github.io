@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-05-31T10:46:29-07:00</updated>
+  <updated>2014-06-22T17:07:54-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,114 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Running Couchbase Server on GCE]]></title>
+    <link href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/"/>
+    <updated>2014-06-22T15:52:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce</id>
+    <content type="html"><![CDATA[<p>The easiest way to run Couchbase Server on Google Compute Engine is to run it in a Docker container.</p>
+
+<h2>Create GCE instance and ssh in</h2>
+
+<p>Follow the instructions on <a href="http://docs.docker.com/installation/google/">Running Docker on Google Compute Engine</a>.</p>
+
+<p>At this point you should be ssh&rsquo;d into your GCE instance</p>
+
+<h2>Start Couchbase Server</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -d -name cb -p 8091:8091 -p 8092:8092 -p 11210:11210 -p 11211:11211 ncolomer/couchbase</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Verify it&rsquo;s running</h2>
+
+<h3>Find the Docker instance IP address</h3>
+
+<p>On the GCE instance, run:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker inspect -format '' cb</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This should return an ip address, eg:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>172.17.0.2</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Run couchbase-cli</h3>
+
+<p>Using the ip address found in the step above:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -rm ncolomer/couchbase couchbase-cli server-info -c 172.17.0.2 -u Administrator -p couchbase</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This should return a json response, eg:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>  "availableStorage": {
+</span><span class='line'>    "hdd": [
+</span><span class='line'>      {
+</span><span class='line'>        "path": "/",
+</span><span class='line'>  ...
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Connect to admin web UI</h2>
+
+<h3>Expose port 8091 via Firewall rule</h3>
+
+<p>On your workstation with the <code>gcloud</code> tool installed, run:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ gcloud compute firewalls create cb-8091 --allow tcp:8091</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Find out external ip address of instance</h3>
+
+<p>On your workstation with the <code>gcloud</code> tool installed, run:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ gcloud compute instances list -l
+</span><span class='line'>name     status  zone          machineType internalIP   externalIP
+</span><span class='line'>couchbse RUNNING us-central1-a f1-micro    10.240.74.44 142.222.178.49</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Your external ip is listed under the externalIP column, eg <code>142.222.178.49</code> in this example.</p>
+
+<h3>Go to admin in web browser</h3>
+
+<p>Go to <a href="http://142.222.178.49:8091">http://142.222.178.49:8091</a> into your web browser (replacing w/ your external ip)</p>
+
+<p>Default credentials:</p>
+
+<ul>
+<li>Username: Administrator</li>
+<li>Password: couchbase</li>
+</ul>
+
+
+<p>At this point, you should either change the default password, or delete the firewall rule added above.</p>
+
+<h2>Known issues</h2>
+
+<ul>
+<li><a href="http://stackoverflow.com/questions/24356815/running-couchbase-under-gce-docker-and-getting-error-about-max-number-of-files">File descriptor warning in logs</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Configure Emacs as a Go Editor From Scratch Part 2]]></title>
@@ -140,7 +248,7 @@
 
 <h3>Get a test package to play with</h3>
 
-<p>This package works with go-oracle (I tested it out while writhing this blog post), so you should use it to give Go Oracle a spin:</p>
+<p>This package works with go-oracle (I tested it out while writing this blog post), so you should use it to give Go Oracle a spin:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>go get github.com/tleyden/checkers-bot-minimax</span></code></pre></td></tr></table></div></figure>
@@ -2086,85 +2194,6 @@
 <li>Record your commits in a local git repository as you work, and submit a zip file of the repository along with the other deliverables</li>
 </ul>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Octopress Setup Part II]]></title>
-    <link href="http://tleyden.github.io/blog/2013/09/07/octopress-setup-part-ii/"/>
-    <updated>2013-09-07T11:46:00-07:00</updated>
-    <id>http://tleyden.github.io/blog/2013/09/07/octopress-setup-part-ii</id>
-    <content type="html"><![CDATA[<h1>Showing my tweets on my blog</h1>
-
-<p>What&rsquo;s a blog without a few tweets to spice it up?</p>
-
-<p>Here&rsquo;s my first attempt, which didn&rsquo;t work.  I modified my _config.yml file to have:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>twitter_user: tleydn</span></code></pre></td></tr></table></div></figure>
-
-
-<p>After some desperate googling, I came across <a href="http://blog.jmac.org/blog/2013/03/30/putting-twitter-back-into-octopress/">this blog post</a> which seems to suggest that twitter support has been remoted from Octopress, with instructions on how to embed a twitter widget.</p>
-
-<p>Here&rsquo;s a few tricks to make it looks slightly less butt-ugly:</p>
-
-<ul>
-<li>In the twitter widget generator, choose the &ldquo;dark&rdquo; theme.</li>
-<li>Modify the widget class to have dimensions <code>width="300" height="350"</code> so that it is slightly less distracting when viewing content.</li>
-</ul>
-
-
-<h1>Adding an &ldquo;About&rdquo; page</h1>
-
-<p>I followed the instructions on <a href="http://octopress.org/docs/theme/template/">Theming &amp; Customization</a>, which added an About section on the top of the sidebar on the right side.</p>
-
-<h1>Enabling Disqus comments</h1>
-
-<p>This was trivial:</p>
-
-<ul>
-<li>Go to <a href="http://disqus.com">Disqus</a> and register a new site</li>
-<li>Add the &ldquo;shortname&rdquo; to the _config.yml file</li>
-</ul>
-
-
-<h1>Let&rsquo;s pimp this thing &mdash; Adding an image in the header</h1>
-
-<ul>
-<li>Open octopress/source/_includes/custom/header.html</li>
-<li>Find an image graphic and save it into octopress/source/images (in my case, it was /images/rabbit_hole_graphic.png)</li>
-<li>Add a new html table element, and in one cell add a link to the image with the appropriate size dimensions.</li>
-</ul>
-
-
-<p>Example header.html file:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>  &lt;table&gt;&lt;tr&gt;&lt;td&gt;
-</span><span class='line'>  &lt;h1&gt;&lt;a href="{{ root_url }}/"&gt;{{ site.title }}&lt;/a&gt;&lt;/h1&gt;
-</span><span class='line'>  {% if site.subtitle %}
-</span><span class='line'>    &lt;h2&gt;{{ site.subtitle }}&lt;/h2&gt;
-</span><span class='line'>  {% endif %}
-</span><span class='line'>  &lt;/td&gt;&lt;td&gt;&nbsp;&nbsp;
-</span><span class='line'>  {% img left /images/rabbit_hole_graphic.png 295 105 'image' 'images' %}
-</span><span class='line'>  &lt;/td&gt;&lt;/tr&gt;
-</span><span class='line'>  &lt;/table&gt;
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>I&rsquo;m not a hipster, it&rsquo;s just that my HTML coding skillz are stuck at about 1995.  If you are seething with the overwhelming urge to tell me how to do this in 2013 CSS style, go right ahead and add a comment.</p>
-
-<p>Anyway, the end justifies the means:</p>
-
-<p><img class="center" src="http://tleyden.github.io/images/ScreenShotBlogIIa.png" title="image" alt="images"></p>
 ]]></content>
   </entry>
   

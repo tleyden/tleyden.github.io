@@ -4,7 +4,7 @@
   <title><![CDATA[Category: emacs | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/emacs/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-05-31T10:46:29-07:00</updated>
+  <updated>2014-06-22T17:07:54-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -119,7 +119,7 @@ sudo mv $GOPATH/bin/oracle $GOROOT/bin/
 
 <h3>Get a test package to play with</h3>
 
-<p>This package works with go-oracle (I tested it out while writhing this blog post), so you should use it to give Go Oracle a spin:</p>
+<p>This package works with go-oracle (I tested it out while writing this blog post), so you should use it to give Go Oracle a spin:</p>
 
 <p><code>
 go get github.com/tleyden/checkers-bot-minimax
