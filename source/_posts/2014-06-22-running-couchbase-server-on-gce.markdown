@@ -75,6 +75,10 @@ gce:~$ sudo docker run -rm ncolomer/couchbase couchbase-cli rebalance -c ${CB1_I
 
 ## Connect to admin web UI
 
+The easiest way to manage a Couchbase Server cluster is via the built-in Web Admin UI.
+
+In order to access it, we will need to make some network changes.
+
 ### Expose port 8091 via firewall rule for your machine
 
 Go to [whatismyip.com](http://www.whatismyip.com/) or equivalent, and find your ip address.  Eg, `67.161.66.7`

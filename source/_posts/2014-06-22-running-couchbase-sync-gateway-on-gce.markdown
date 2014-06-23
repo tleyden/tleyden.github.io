@@ -91,7 +91,7 @@ You should get a response like:
 
 ## Re-run it with Couchbase Server backing store
 
-*OK, so we've gotten it working with walrus.  But have you looked at the walrus website lately?  One [click](https://camo.githubusercontent.com/1bd1955b96628260b27320f099aeac0585229c2f/687474703a2f2f7777772e69686173616275636b65742e636f6d2f696d616765732f77616c7275735f6275636b65742e6a7067) and it's pretty obvious that this thing is more of a joke rather than something meant to be a scalable production-ready backend.*
+*OK, so we've gotten it working with walrus.  But have you looked at the walrus website lately?  One [click](https://camo.githubusercontent.com/1bd1955b96628260b27320f099aeac0585229c2f/687474703a2f2f7777772e69686173616275636b65742e636f6d2f696d616765732f77616c7275735f6275636b65742e6a7067) and it's pretty obvious that this thing is not exactly meant to be a scalable production-ready backend, nor has it ever claimed to be so.*
 
 Let's dump walrus for now and use Couchbase Server from this point onwards.
 
