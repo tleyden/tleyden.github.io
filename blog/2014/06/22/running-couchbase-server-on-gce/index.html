@@ -106,6 +106,29 @@
 
 <p>At this point you should be ssh&rsquo;d into your GCE instance</p>
 
+<h2>Increase max number of files limit</h2>
+
+<p>If you try to run Couchbase Server at this point, you will get <a href="http://stackoverflow.com/questions/24356815/running-couchbase-under-gce-docker-and-getting-error-about-max-number-of-files">this warning</a> because the file ulimit is too low.</p>
+
+<p>Here&rsquo;s how to fix it:</p>
+
+<ul>
+<li>Edit <code>/etc/default/docker</code></li>
+<li>Add a new line in the file with:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ulimit -n 262144</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Restart the GCE instance in the GCE web admin by going to Compute Engine / VM Instances / <your instance> and hitting the &ldquo;Reboot&rdquo; button.</li>
+</ul>
+
+
+<p><em>Note: in theory it should be possible to just restart docker via <code>sudo service docker restart</code>, however this didn&rsquo;t work for me when I tried it, so I ended up restarting the whole GCE instance</em></p>
+
 <h2>Start Couchbase Server</h2>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -226,10 +249,14 @@
 
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_dashboard.png" alt="screenshot" /></p>
 
-<h2>Known issues</h2>
+<h2>Increase default bucket size</h2>
+
+<p>The default bucket size is set to a very low number by default (128M in my case).  To increase this:</p>
 
 <ul>
-<li><a href="http://stackoverflow.com/questions/24356815/running-couchbase-under-gce-docker-and-getting-error-about-max-number-of-files">File descriptor warning in logs</a></li>
+<li>In Web Admin UI, go to Data Buckets / Default / Edit</li>
+<li>Change Per Node RAM Quota to 1024 MB</li>
+<li>Hit &ldquo;Save&rdquo; button</li>
 </ul>
 
 
@@ -263,6 +290,12 @@
 
 <time datetime="2014-06-22T15:52:00-07:00" pubdate data-updated="true">Jun 22<span>nd</span>, 2014</time>
       
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/couchbase/'>couchbase,</a>, <a class='category' href='/blog/categories/google-compute-engine/'>google-compute-engine</a>
+  
+</span>
 
 
     </p>
