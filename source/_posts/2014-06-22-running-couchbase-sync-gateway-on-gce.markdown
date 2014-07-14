@@ -3,7 +3,7 @@ layout: post
 title: "Running Couchbase Sync Gateway on Google Compute Engine"
 date: 2014-06-22 19:10
 comments: true
-categories: 
+categories: couchbase, mobile, google-compute-engine
 ---
 
 First, a quick refresh of what Couchbase Sync Gateway actually *is*.  

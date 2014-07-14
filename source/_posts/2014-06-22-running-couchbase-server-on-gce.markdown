@@ -3,7 +3,7 @@ layout: post
 title: "Running a Couchbase Cluster on Google Compute Engine"
 date: 2014-06-22 15:52
 comments: true
-categories: 
+categories: couchbase, google-compute-engine
 ---
 
 The easiest way to run Couchbase cluster on Google Compute Engine is to run all of the nodes in Docker containers.
@@ -13,6 +13,23 @@ The easiest way to run Couchbase cluster on Google Compute Engine is to run all 
 Follow the instructions on [Running Docker on Google Compute Engine](http://docs.docker.com/installation/google/).
 
 At this point you should be ssh'd into your GCE instance
+
+## Increase max number of files limit
+
+If you try to run Couchbase Server at this point, you will get [this warning](http://stackoverflow.com/questions/24356815/running-couchbase-under-gce-docker-and-getting-error-about-max-number-of-files) because the file ulimit is too low.
+
+Here's how to fix it:
+
+* Edit `/etc/default/docker`
+* Add a new line in the file with:
+
+```
+ulimit -n 262144
+```
+* Restart the GCE instance in the GCE web admin by going to Compute Engine / VM Instances / <your instance> and hitting the "Reboot" button.
+
+*Note: in theory it should be possible to just restart docker via `sudo service docker restart`, however this didn't work for me when I tried it, so I ended up restarting the whole GCE instance*
+
 
 ## Start Couchbase Server
 
@@ -121,9 +138,13 @@ And you should see the Web Admin dashboard:
 
 ![screenshot](http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_dashboard.png)
 
-## Known issues
+## Increase default bucket size
 
-* [File descriptor warning in logs](http://stackoverflow.com/questions/24356815/running-couchbase-under-gce-docker-and-getting-error-about-max-number-of-files)
+The default bucket size is set to a very low number by default (128M in my case).  To increase this:
+
+* In Web Admin UI, go to Data Buckets / Default / Edit
+* Change Per Node RAM Quota to 1024 MB
+* Hit "Save" button
 
 ## References
 
