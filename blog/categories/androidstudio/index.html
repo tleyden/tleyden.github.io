@@ -5,13 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Docker on OSX - Seven Story Rabbit Hole</title>
+  <title>Category: androidstudio - Seven Story Rabbit Hole</title>
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Goal Get Docker running under OSX. Environment OSX Mavericks
-Macbook Retina Understanding the tools Vagrant is a tool to provision VMs.
-Virtualbox &hellip;">
+  <meta name="description" content="Category: androidstudio">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -20,7 +18,7 @@ Virtualbox &hellip;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://tleyden.github.io/blog/2013/11/12/docker-on-osx">
+  <link rel="canonical" href="http://tleyden.github.ioblog/categories/androidstudio">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
@@ -73,177 +71,42 @@ Virtualbox &hellip;">
   <div id="main">
     <div id="content">
       <div>
-<article class="hentry" role="article">
+<article role="article">
   
   <header>
-    
-      <h1 class="entry-title">Docker on OSX</h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-11-12T21:01:00-08:00" pubdate data-updated="true">Nov 12<span>th</span>, 2013</time>
-        
-      </p>
+    <h1 class="entry-title">Category: Androidstudio</h1>
     
   </header>
-
-
-<div class="entry-content"><p><img src="http://cl.ly/image/302X103n330L/docker.png" alt="Docker.png" /></p>
-
-<h1>Goal</h1>
-
-<p>Get Docker running under OSX.</p>
-
-<h2>Environment</h2>
-
-<ul>
-<li><p>OSX Mavericks</p></li>
-<li><p>Macbook Retina</p></li>
-</ul>
-
-
-<h2>Understanding the tools</h2>
-
-<ul>
-<li>Vagrant is a tool to provision VMs.</li>
-<li>Virtualbox is VM software.</li>
-<li>CoreOS is an operating system based on linux that&rsquo;s all about running docker.</li>
-</ul>
-
-
-<h2>Install VirtualBox + Vagrant</h2>
-
-<ul>
-<li><p>Install VirtualBox via <a href="http://download.virtualbox.org/virtualbox/4.3.2/VirtualBox-4.3.2-90405-OSX.dmg">VirtualBox OSX installer</a></p></li>
-<li><p>Install Vagrant via <a href="https://dl.bintray.com/mitchellh/vagrant/vagrant_1.6.2.dmg">Vagrant OSX installer</a></p></li>
-</ul>
-
-
-<h2>Vagrant Smoke Test: run Ubuntu Precise</h2>
-
-<p>To make sure Vagrant is installed correctly, run the following commands to see if Ubuntu Precise comes up and you are able to ssh into it.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>vagrant init precise32 http://files.vagrantup.com/precise32.box
-</span><span class='line'>vagrant up
-</span><span class='line'>vagrant ssh</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If that doesn&rsquo;t work, you should probably fix it before moving on.  Otherwise, keep reading.</p>
-
-<h2>Install/Run CoreOS</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git clone https://github.com/coreos/coreos-vagrant/
-</span><span class='line'>cd coreos-vagrant
-</span><span class='line'>vagrant up</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>SSH into CoreOS</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>vagrant ssh</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Run stock ubuntu docker image</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>docker run -t -i ubuntu bash</span></code></pre></td></tr></table></div></figure>
-
-
-<p>After running this, you should be ssh&rsquo;d inside of an Ubuntu shell, running under docker (running inside of VirtualBox .. etc, all the way up the onion)</p>
-</div>
-
-
-  <footer>
-    <p class="meta">
-      
   
-
-<span class="byline author vcard">Posted by <span class="fn">Traun Leyden</span></span>
-
-      
-
-
-
-
-
+  <div id="blog-archives" class="category">
 
 
 
   
+  <h2>2014</h2>
+
+<article>
+  
+<h1><a href="/blog/2014/09/10/debugging-into-android-source/">Debugging into Android source</a></h1>
+<time datetime="2014-09-10T15:57:00-07:00" pubdate><span class='month'>Sep</span> <span class='day'>10</span> <span class='year'>2014</span></time>
+
+<footer>
+  <span class="categories">posted in <a class='category' href='/blog/categories/android/'>android,</a>, <a class='category' href='/blog/categories/androidstudio/'>androidstudio</a></span>
+</footer>
 
 
-<time datetime="2013-11-12T21:01:00-08:00" pubdate data-updated="true">Nov 12<span>th</span>, 2013</time>
-      
-
-<span class="categories">
-  
-    <a class='category' href='/blog/categories/docker/'>docker</a>
-  
-</span>
-
-
-    </p>
-    
-      <div class="sharing">
-  
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2013/11/12/docker-on-osx/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2013/11/12/docker-on-osx/" >Tweet</a>
-  
-  
-  
-</div>
-
-    
-    <p class="meta">
-      
-        <a class="basic-alignment left" href="/blog/2013/09/20/deciphering-some-go-code/" title="Previous Post: Deciphering some Go code">&laquo; Deciphering some Go code</a>
-      
-      
-        <a class="basic-alignment right" href="/blog/2013/11/14/investigating-an-android-sqlite-threading-deadlock/" title="Next Post: Investigating an Android SQLite threading deadlock">Investigating an Android SQLite threading deadlock &raquo;</a>
-      
-    </p>
-  </footer>
 </article>
 
-  <section>
-    <h1>Comments</h1>
-    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 </div>
-  </section>
+
+  
+</article>
 
 </div>
 
 <aside class="sidebar">
   
     <section>
-  <h1>About Me</h1>
-  <p>
-  I'm a startup engineer at Couchbase, working on <a href="https://github.com/couchbase/couchbase-lite-android">Couchbase Lite for Android</a> -- a mobile NoSQL database with Sync built-in.
-  </p>
-
-  <p>
-  In my spare time I am working on a <a href="https://github.com/tleyden/neurgo">Neural Network in Go</a>.
-  </p>
-
-</section>
-<section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
     
@@ -324,10 +187,7 @@ Virtualbox &hellip;">
       var disqus_shortname = 'sevenstoryrabbithole';
       
         
-        // var disqus_developer = 1;
-        var disqus_identifier = 'http://tleyden.github.io/blog/2013/11/12/docker-on-osx/';
-        var disqus_url = 'http://tleyden.github.io/blog/2013/11/12/docker-on-osx/';
-        var disqus_script = 'embed.js';
+        var disqus_script = 'count.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;

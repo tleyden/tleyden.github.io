@@ -48,7 +48,7 @@
         <loc>
             http://tleyden.github.io/blog/2013/11/22/android-studio-plus-genymotion-emulator/
         </loc>
-        <lastmod>2014-05-22T14:02:03-07:00</lastmod>
+        <lastmod>2014-10-21T15:29:06-07:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/2013/11/23/understanding-chan-chans-in-go/</loc>
@@ -119,12 +119,16 @@
         <lastmod>2014-07-08T07:56:21-07:00</lastmod>
     </url>
     <url>
+        <loc>http://tleyden.github.io/blog/2014/09/10/debugging-into-android-source/</loc>
+        <lastmod>2014-09-10T16:48:33-07:00</lastmod>
+    </url>
+    <url>
         <loc>http://tleyden.github.io/blog/archives/</loc>
-        <lastmod>2014-07-14T09:53:40-07:00</lastmod>
+        <lastmod>2014-10-21T15:29:06-07:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/</loc>
-        <lastmod>2014-07-14T09:53:40-07:00</lastmod>
+        <lastmod>2014-10-21T15:29:06-07:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/robots.txt</loc>
