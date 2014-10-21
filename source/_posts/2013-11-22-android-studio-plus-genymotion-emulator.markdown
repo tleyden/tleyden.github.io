@@ -18,7 +18,7 @@ Here's how to do it.
 
 ## Signup with Genymotion + Download installer
 
-* Go to [genymotion.com](genymotion.com) and signup
+* Go to [genymotion.com](http://www.genymotion.com) and signup
 
 * Click the "Get Genymotion" button and [download](https://cloud.genymotion.com/page/launchpad/download/) the appropriate version for your OS.
 
