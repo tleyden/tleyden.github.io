@@ -10,6 +10,7 @@ Create a new EC2 instance:
 
 * Image: Ubuntu Server 14.04 LTS (HVM), SSD Volume Type
 * Instance type: g2.2xlarge
+* Storage: Use at least 8 GB, 20+ GB recommended
 
 Install build-essential:
 
@@ -137,8 +138,7 @@ $ ./cuda-samples-linux-6.5.14-18745345.run
 ## Verify CUDA is correctly installed
 
 ```
-$ cd /usr/local/cuda/samples
-$ cd 1_Utilities/deviceQuery
+$ cd /usr/local/cuda/samples/1_Utilities/deviceQuery
 $ make
 $ ./deviceQuery   
 ```
