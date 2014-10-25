@@ -9,9 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Create a new EC2 instance: Image: Ubuntu Server 14.04 LTS (HVM), SSD Volume Type
-Instance type: g2.2xlarge
-Storage: Use at least 8 GB, 20+ GB &hellip;">
+  <meta name="description" content="Using a pre-built public AMI After following the instructions below, I&rsquo;ve created an AMI and shared it publicly. Image: ami-2cbf3e44 (Ubuntu &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -100,10 +98,27 @@ Storage: Use at least 8 GB, 20+ GB &hellip;">
   </header>
 
 
-<div class="entry-content"><p>Create a new EC2 instance:</p>
+<div class="entry-content"><h2>Using a pre-built public AMI</h2>
+
+<p>After following the instructions below, I&rsquo;ve created an AMI and shared it publicly.</p>
 
 <ul>
-<li>Image: Ubuntu Server 14.04 LTS (HVM), SSD Volume Type</li>
+<li>Image: ami-2cbf3e44 (Ubuntu Server 14.04 LTS (HVM) &ndash; CUDA 6.5)</li>
+<li>Instance type: g2.2xlarge</li>
+<li>Storage: Use at least 8 GB, 20+ GB recommended</li>
+</ul>
+
+
+<p>If you use the pre-built AMI, then you can skip the rest of this article.</p>
+
+<h2>Building from scratch</h2>
+
+<p>Of if you prefer to build your own instance from scratch, keep reading.</p>
+
+<p>Create a new EC2 instance:</p>
+
+<ul>
+<li>Image: ami-9eaa1cf6 (Ubuntu Server 14.04 LTS (HVM), SSD Volume Type)</li>
 <li>Instance type: g2.2xlarge</li>
 <li>Storage: Use at least 8 GB, 20+ GB recommended</li>
 </ul>
