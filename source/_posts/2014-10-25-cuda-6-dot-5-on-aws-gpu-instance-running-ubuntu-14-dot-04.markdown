@@ -8,13 +8,13 @@ categories: aws, gpu
 
 ## Using a pre-built public AMI
 
-After following the instructions below, I've created an AMI and shared it publicly.  
+Based on the instructions in this article, I've created an AMI and shared it publicly.  So the easiest thing to do is just use that pre-built AMI:
 
 * Image: ami-2cbf3e44 (Ubuntu Server 14.04 LTS (HVM) - CUDA 6.5) 
 * Instance type: g2.2xlarge
 * Storage: Use at least 8 GB, 20+ GB recommended
 
-If you use the pre-built AMI, then you can skip the rest of this article.
+If you use the pre-built AMI, then you can skip the rest of this article, since all of these steps are "baked in" to the AMI.
 
 ## Building from scratch
 
