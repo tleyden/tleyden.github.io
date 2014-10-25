@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: aws, | Seven Story Rabbit Hole]]></title>
+  <link href="http://tleyden.github.io/blog/categories/aws/atom.xml" rel="self"/>
+  <link href="http://tleyden.github.io/"/>
+  <updated>2014-10-25T12:51:00-07:00</updated>
+  <id>http://tleyden.github.io/</id>
+  <author>
+    <name><![CDATA[Traun Leyden]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[CUDA 6.5 on AWS GPU instance running Ubuntu 14.04]]></title>
+    <link href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/"/>
+    <updated>2014-10-25T11:56:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04</id>
+    <content type="html"><![CDATA[<p>Create a new EC2 instance:</p>
+
+<ul>
+<li>Image: Ubuntu Server 14.04 LTS (HVM), SSD Volume Type</li>
+<li>Instance type: g2.2xlarge</li>
+</ul>
+
+
+<p>Install build-essential:</p>
+
+<p><code>
+$ apt-get update &amp;&amp; apt-get install build-essential
+</code></p>
+
+<p>Get CUDA installer:</p>
+
+<p><code>
+$ wget http://developer.download.nvidia.com/compute/cuda/6_5/rel/installers/cuda_6.5.14_linux_64.run
+</code></p>
+
+<p>Extract CUDA installer:</p>
+
+<p><code>
+$ chmod +x cuda_6.5.14_linux_64.run
+$ mkdir nvidia_installers
+$ ./cuda_6.5.14_linux_64.run -extract=`pwd`/nvidia_installers
+</code></p>
+
+<p>Run Nvidia driver installer:</p>
+
+<p><code>
+$ cd nvidia_installers
+$ ./NVIDIA-Linux-x86_64-340.29.run
+</code></p>
+
+<p>At this point it will popup an 8-bit UI that will ask you to accept a license agreement, and then start installing.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/install_cuda.png" alt="screenshot" /></p>
+
+<p>At this point, I got an error:</p>
+
+<p>```
+Unable to load the kernel module &lsquo;nvidia.ko&rsquo;.  This happens most frequently when this kernel module was built against the wrong or</p>
+
+<pre><code>     improperly configured kernel sources, with a version of gcc that differs from the one used to build the target kernel, or if a driver
+     such as rivafb, nvidiafb, or nouveau is present and prevents the NVIDIA kernel module from obtaining ownership of the NVIDIA graphics
+     device(s), or no NVIDIA GPU installed in this system is supported by this NVIDIA Linux graphics driver release.
+
+     Please see the log entries 'Kernel module load error' and 'Kernel messages' at the end of the file '/var/log/nvidia-installer.log'
+     for more information.
+</code></pre>
+
+<p>```</p>
+
+<p>After <a href="https://devtalk.nvidia.com/default/topic/547588/error-installing-nvidia-drivers-on-x86_64-amazon-ec2-gpu-cluster-t20-gpu-/">reading this forum post</a> I installed:</p>
+
+<p><code>
+$ sudo apt-get install linux-image-extra-virtual
+</code></p>
+
+<p>When it prompted me what do to about the grub changes, I chose &ldquo;choose package maintainers version&rdquo;.</p>
+
+<p>Reboot:</p>
+
+<p><code>
+$ reboot
+</code></p>
+
+<h2>Disable Nouveua</h2>
+
+<p>At this point you need to disable nouveau, since it conflicts with the nvidia kernel module.</p>
+
+<p>Open a new file</p>
+
+<p><code>
+$ vi /etc/modprobe.d/blacklist-nouveau.conf
+</code></p>
+
+<p>and add these lines to it</p>
+
+<p><code>
+blacklist nouveau
+blacklist lbm-nouveau
+options nouveau modeset=0
+alias nouveau off
+alias lbm-nouveau off
+</code></p>
+
+<p>and then save the file.</p>
+
+<p>Disable the Kernel Nouveau:</p>
+
+<p><code>
+$ echo options nouveau modeset=0 | sudo tee -a /etc/modprobe.d/nouveau-kms.conf
+</code></p>
+
+<p>Reboot:</p>
+
+<p><code>
+$ update-initramfs -u
+$ reboot
+</code></p>
+
+<h2>One more try &mdash; this time it works</h2>
+
+<p>Get Kernel source:</p>
+
+<p>```
+$ apt-get install linux-source
+$ apt-get install linux-headers-3.13.0-37-generic</p>
+
+<p>```</p>
+
+<p>Rerun Nvidia driver installer:</p>
+
+<p><code>
+$ cd nvidia_installers
+$ ./NVIDIA-Linux-x86_64-340.29.run
+</code></p>
+
+<p>Load nvidia kernel module:</p>
+
+<p><code>
+$ modprobe nvidia
+</code></p>
+
+<p>Run CUDA + samples installer:</p>
+
+<p><code>
+$ ./cuda-linux64-rel-6.5.14-18749181.run
+$ ./cuda-samples-linux-6.5.14-18745345.run
+</code></p>
+
+<h2>Verify CUDA is correctly installed</h2>
+
+<p><code>
+$ cd /usr/local/cuda/samples
+$ cd 1_Utilities/deviceQuery
+$ make
+$ ./deviceQuery   
+</code></p>
+
+<p>You should see the following output:</p>
+
+<p><code>
+deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 6.5, CUDA Runtime Version = 6.5, NumDevs = 1, Device0 = GRID K520
+Result = PASS
+</code></p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="http://www.r-tutor.com/gpu-computing/cuda-installation/cuda6.5-ubuntu">http://www.r-tutor.com/gpu-computing/cuda-installation/cuda6.5-ubuntu</a></li>
+<li><a href="http://askubuntu.com/questions/451672/installing-and-testing-cuda-in-ubuntu-14-04">http://askubuntu.com/questions/451672/installing-and-testing-cuda-in-ubuntu-14-04</a></li>
+<li><a href="https://devtalk.nvidia.com/default/topic/547588/error-installing-nvidia-drivers-on-x86_64-amazon-ec2-gpu-cluster-t20-gpu-/">https://devtalk.nvidia.com/default/topic/547588/error-installing-nvidia-drivers-on-x86_64-amazon-ec2-gpu-cluster-t20-gpu-/</a></li>
+<li><a href="https://devtalk.nvidia.com/default/topic/769719/drm-ko-missing-on-ubuntu-14-04-1-lts-aws-ec2-g2-2xlarge-instance/">https://devtalk.nvidia.com/default/topic/769719/drm-ko-missing-on-ubuntu-14-04-1-lts-aws-ec2-g2-2xlarge-instance/</a></li>
+<li><a href="http://askubuntu.com/questions/451221/ubuntu-14-04-install-nvidia-driver">http://askubuntu.com/questions/451221/ubuntu-14-04-install-nvidia-driver</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>
