@@ -110,9 +110,7 @@
 </ul>
 
 
-<h2>Install Docker with LXC support</h2>
-
-<p><em>If you are wondering why LXC is being used: Docker has announced that they will be moving to <code>libcontainer</code>, but the only instructions I could find for GPU support required docker to use LXC.  If you know of a better way, please leave a comment.</em></p>
+<h2>Install Docker</h2>
 
 <p>Setup the key for the docker repo:</p>
 
@@ -128,53 +126,15 @@
 </span><span class='line'>$ sudo apt-get update</span></code></pre></td></tr></table></div></figure>
 
 
-<p>Install lxc and docker:</p>
+<p>Install docker:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get install lxc lxc-docker</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get install lxc-docker</span></code></pre></td></tr></table></div></figure>
 
-
-<p><em>Note: future versions of lxc-docker will hopefully require lxc as an explicit dependency, but for now lxc must be installed separately.  See <a href="https://github.com/bflad/chef-docker/issues/101">this issue</a></em></p>
-
-<h2>Configure Docker Daemon to use lxc</h2>
-
-<p>Stop the docker daemon:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo service docker stop</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Update docker config to use lxc:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo vi /etc/default/docker</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and add the following:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>DOCKER_OPTS="-e lxc"</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If you already have <code>DOCKER_OPTS</code> defined, then tack on an extra <code>-e lxc</code> to the existing <code>DOCKER_OPTS</code></p>
-
-<p>Restart docker:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo service docker restart</span></code></pre></td></tr></table></div></figure>
-
-
-<p>And verify that it&rsquo;s using lxc by running</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker info | grep -i "execution"</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should see <strong>Execution Driver: lxc-1.0.5</strong></p>
 
 <h2>Run GPU enabled docker image</h2>
 
-<p>Identify the the major number associated with your device:</p>
+<p>Find all your nvidia devices:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ ls -la /dev | grep nvidia</span></code></pre></td></tr></table></div></figure>
@@ -190,17 +150,15 @@
 </span><span class='line'>crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm</span></code></pre></td></tr></table></div></figure>
 
 
-<p>The two major numbers we care about are 195 and 251.</p>
-
 <p>Run ubuntu and tell lxc to allow access to the nvidia devices:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run -ti -v /home/ubuntu/:/mnt --lxc-conf='lxc.cgroup.devices.allow = c 195:* rwm' --lxc-conf='lxc.cgroup.devices.allow = c 251:* rwm' ubuntu:14.04 /bin/bash</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run -ti -v /home/ubuntu/:/mnt --device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm ubuntu:14.04 /bin/bash</span></code></pre></td></tr></table></div></figure>
 
 
 <p><em>Note: the above command mounts a volume and makes a lot of assumptions about what is inside /home/ubuntu, based on previous things downloaded in the companion blog article on <a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">setting up an Ubuntu 14.04 box running on a GPU-enabled AWS instance</a>.  Hopefully this will get cleaned up.</em></p>
 
-<p>After running the above command, you should be at a shell insider your docker container:</p>
+<p>After running the above command, you should be at a shell inside your docker container:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>root@1149788c731c:# </span></code></pre></td></tr></table></div></figure>
@@ -218,18 +176,18 @@
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /mnt
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /mnt/nvidia_installers
 </span><span class='line'>$ ./NVIDIA-Linux-x86_64-340.29.run -s -N --no-kernel-module</span></code></pre></td></tr></table></div></figure>
 
 
-<p>and don&rsquo;t freak out about the warning about <code>--no-kernel-module</code>.</p>
+<p>and don&rsquo;t worry about the warning about <code>--no-kernel-module</code>.</p>
 
 <p>Install CUDA + samples:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ ./cuda-linux64-rel-6.5.14-18749181.run -noprompt
-</span><span class='line'>$ ./cuda-samples-linux-6.5.14-18745345.run -noprompt -noprompt -cudaprefix=/usr/local/cuda-6.5/
+</span><span class='line'>$ ./cuda-samples-linux-6.5.14-18745345.run -noprompt -cudaprefix=/usr/local/cuda-6.5/
 </span></code></pre></td></tr></table></div></figure>
 
 
