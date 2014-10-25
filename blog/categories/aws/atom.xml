@@ -4,7 +4,7 @@
   <title><![CDATA[Category: aws, | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/aws/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-10-25T15:11:31-07:00</updated>
+  <updated>2014-10-25T15:17:45-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -20,7 +20,7 @@
     <id>http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04</id>
     <content type="html"><![CDATA[<h2>Using a pre-built public AMI</h2>
 
-<p>After following the instructions below, I&rsquo;ve created an AMI and shared it publicly.</p>
+<p>Based on the instructions in this article, I&rsquo;ve created an AMI and shared it publicly.  So the easiest thing to do is just use that pre-built AMI:</p>
 
 <ul>
 <li>Image: ami-2cbf3e44 (Ubuntu Server 14.04 LTS (HVM) &ndash; CUDA 6.5)</li>
@@ -29,7 +29,7 @@
 </ul>
 
 
-<p>If you use the pre-built AMI, then you can skip the rest of this article.</p>
+<p>If you use the pre-built AMI, then you can skip the rest of this article, since all of these steps are &ldquo;baked in&rdquo; to the AMI.</p>
 
 <h2>Building from scratch</h2>
 
