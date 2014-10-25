@@ -5,13 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>CUDA 6.5 on AWS GPU instance running Ubuntu 14.04 - Seven Story Rabbit Hole</title>
+  <title>Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5 - Seven Story Rabbit Hole</title>
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Create a new EC2 instance: Image: Ubuntu Server 14.04 LTS (HVM), SSD Volume Type
-Instance type: g2.2xlarge
-Storage: Use at least 8 GB, 20+ GB &hellip;">
+  <meta name="description" content="Setup host instance Follow the instructions in setting up an Ubuntu 14.04 box running on a GPU-enabled AWS instance. You will end up with a host OS: &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -20,7 +18,7 @@ Storage: Use at least 8 GB, 20+ GB &hellip;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04">
+  <link rel="canonical" href="http://tleyden.github.io/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
@@ -77,7 +75,7 @@ Storage: Use at least 8 GB, 20+ GB &hellip;">
   
   <header>
     
-      <h1 class="entry-title">CUDA 6.5 on AWS GPU Instance Running Ubuntu 14.04</h1>
+      <h1 class="entry-title">Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5</h1>
     
     
       <p class="meta">
@@ -93,159 +91,146 @@ Storage: Use at least 8 GB, 20+ GB &hellip;">
   
 
 
-<time datetime="2014-10-25T11:56:00-07:00" pubdate data-updated="true">Oct 25<span>th</span>, 2014</time>
+<time datetime="2014-10-25T13:25:00-07:00" pubdate data-updated="true">Oct 25<span>th</span>, 2014</time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><p>Create a new EC2 instance:</p>
+<div class="entry-content"><h2>Setup host instance</h2>
+
+<p>Follow the instructions in <a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">setting up an Ubuntu 14.04 box running on a GPU-enabled AWS instance</a>.  You will end up with a host OS:</p>
 
 <ul>
-<li>Image: Ubuntu Server 14.04 LTS (HVM), SSD Volume Type</li>
-<li>Instance type: g2.2xlarge</li>
-<li>Storage: Use at least 8 GB, 20+ GB recommended</li>
+<li>A GPU enabled AWS instance running Ubuntu 14.04</li>
+<li>Nvidia kernel module</li>
+<li>Nvidia device drivers</li>
+<li>CUDA 6.5 installed and verified</li>
 </ul>
 
 
-<p>Install build-essential:</p>
+<h2>Install Docker with LXC support</h2>
+
+<p><em>If you are wondering why LXC is being used: Docker has announced that they will be moving to <code>libcontainer</code>, but the only instructions I could find for GPU support required docker to use LXC.  If you know of a better way, please leave a comment.</em></p>
+
+<p>Setup the key for the docker repo:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ apt-get update && apt-get install build-essential</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9</span></code></pre></td></tr></table></div></figure>
 
 
-<p>Get CUDA installer:</p>
+<p>Add the docker repo:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget http://developer.download.nvidia.com/compute/cuda/6_5/rel/installers/cuda_6.5.14_linux_64.run</span></code></pre></td></tr></table></div></figure>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo sh -c "echo deb https://get.docker.com/ubuntu docker main &gt; /etc/apt/sources.list.d/docker.list"
+</span><span class='line'>$ sudo apt-get update</span></code></pre></td></tr></table></div></figure>
 
 
-<p>Extract CUDA installer:</p>
+<p>Install lxc and docker:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get install lxc lxc-docker</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>Note: future versions of lxc-docker will hopefully require lxc as an explicit dependency, but for now lxc must be installed separately.  See <a href="https://github.com/bflad/chef-docker/issues/101">this issue</a></em></p>
+
+<h2>Configure Docker Daemon to use lxc</h2>
+
+<p>Stop the docker daemon:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo service docker stop</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Update docker config to use lxc:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo vi /etc/default/docker</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and add the following:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>DOCKER_OPTS="-e lxc"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If you already have <code>DOCKER_OPTS</code> defined, then tack on an extra <code>-e lxc</code> to the existing <code>DOCKER_OPTS</code></p>
+
+<p>Restart docker:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo service docker restart</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And verify that it&rsquo;s using lxc by running</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker info | grep -i "execution"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see <strong>Execution Driver: lxc-1.0.5</strong></p>
+
+<h2>Run GPU enabled docker image</h2>
+
+<p>Identify the the major number associated with your device:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ls -la /dev | grep nvidia</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ chmod +x cuda_6.5.14_linux_64.run
-</span><span class='line'>$ mkdir nvidia_installers
-</span><span class='line'>$ ./cuda_6.5.14_linux_64.run -extract=`pwd`/nvidia_installers</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>crw-rw-rw-  1 root root    195,   0 Oct 25 19:37 nvidia0
+</span><span class='line'>crw-rw-rw-  1 root root    195, 255 Oct 25 19:37 nvidiactl
+</span><span class='line'>crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm</span></code></pre></td></tr></table></div></figure>
 
 
-<p>Run Nvidia driver installer:</p>
+<p>The two major numbers we care about are 195 and 251.</p>
+
+<p>Run ubuntu and tell lxc to allow access to the nvidia devices:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run -ti -v /home/ubuntu/:/mnt --lxc-conf='lxc.cgroup.devices.allow = c 195:* rwm' --lxc-conf='lxc.cgroup.devices.allow = c 251:* rwm' ubuntu:14.04 /bin/bash</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>Note: the above command mounts a volume and makes a lot of assumptions about what is inside /home/ubuntu, based on previous things downloaded in the companion blog article on <a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">setting up an Ubuntu 14.04 box running on a GPU-enabled AWS instance</a>.  Hopefully this will get cleaned up.</em></p>
+
+<p>After running the above command, you should be at a shell insider your docker container:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>root@1149788c731c:# </span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Inside the docker image</h2>
+
+<p>Get build tools:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ apt-get update && apt-get install -y build-essential</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Install NVIDIA driver:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd nvidia_installers
-</span><span class='line'>$ ./NVIDIA-Linux-x86_64-340.29.run</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /mnt
+</span><span class='line'>$ ./NVIDIA-Linux-x86_64-340.29.run -s -N --no-kernel-module</span></code></pre></td></tr></table></div></figure>
 
 
-<p>At this point it will popup an 8-bit UI that will ask you to accept a license agreement, and then start installing.</p>
+<p>and don&rsquo;t freak out about the warning about <code>--no-kernel-module</code>.</p>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/install_cuda.png" alt="screenshot" /></p>
-
-<p>At this point, I got an error:</p>
+<p>Install CUDA + samples:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>Unable to load the kernel module 'nvidia.ko'.  This happens most frequently when this kernel module was built against the wrong or
-</span><span class='line'>         improperly configured kernel sources, with a version of gcc that differs from the one used to build the target kernel, or if a driver
-</span><span class='line'>         such as rivafb, nvidiafb, or nouveau is present and prevents the NVIDIA kernel module from obtaining ownership of the NVIDIA graphics
-</span><span class='line'>         device(s), or no NVIDIA GPU installed in this system is supported by this NVIDIA Linux graphics driver release.
-</span><span class='line'>
-</span><span class='line'>         Please see the log entries 'Kernel module load error' and 'Kernel messages' at the end of the file '/var/log/nvidia-installer.log'
-</span><span class='line'>         for more information.</span></code></pre></td></tr></table></div></figure>
-
-
-<p>After <a href="https://devtalk.nvidia.com/default/topic/547588/error-installing-nvidia-drivers-on-x86_64-amazon-ec2-gpu-cluster-t20-gpu-/">reading this forum post</a> I installed:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get install linux-image-extra-virtual</span></code></pre></td></tr></table></div></figure>
-
-
-<p>When it prompted me what do to about the grub changes, I chose &ldquo;choose package maintainers version&rdquo;.</p>
-
-<p>Reboot:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ reboot</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Disable Nouveua</h2>
-
-<p>At this point you need to disable nouveau, since it conflicts with the nvidia kernel module.</p>
-
-<p>Open a new file</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ vi /etc/modprobe.d/blacklist-nouveau.conf</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and add these lines to it</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>blacklist nouveau
-</span><span class='line'>blacklist lbm-nouveau
-</span><span class='line'>options nouveau modeset=0
-</span><span class='line'>alias nouveau off
-</span><span class='line'>alias lbm-nouveau off</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and then save the file.</p>
-
-<p>Disable the Kernel Nouveau:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ echo options nouveau modeset=0 | sudo tee -a /etc/modprobe.d/nouveau-kms.conf</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Reboot:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ update-initramfs -u
-</span><span class='line'>$ reboot</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>One more try &mdash; this time it works</h2>
-
-<p>Get Kernel source:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ apt-get install linux-source
-</span><span class='line'>$ apt-get install linux-headers-3.13.0-37-generic
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./cuda-linux64-rel-6.5.14-18749181.run -noprompt
+</span><span class='line'>$ ./cuda-samples-linux-6.5.14-18745345.run -noprompt -noprompt -cudaprefix=/usr/local/cuda-6.5/
 </span></code></pre></td></tr></table></div></figure>
-
-
-<p>Rerun Nvidia driver installer:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd nvidia_installers
-</span><span class='line'>$ ./NVIDIA-Linux-x86_64-340.29.run</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Load nvidia kernel module:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ modprobe nvidia</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Run CUDA + samples installer:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./cuda-linux64-rel-6.5.14-18749181.run
-</span><span class='line'>$ ./cuda-samples-linux-6.5.14-18745345.run</span></code></pre></td></tr></table></div></figure>
 
 
 <h2>Verify CUDA is correctly installed</h2>
@@ -269,11 +254,8 @@ Storage: Use at least 8 GB, 20+ GB &hellip;">
 <h2>References</h2>
 
 <ul>
-<li><a href="http://www.r-tutor.com/gpu-computing/cuda-installation/cuda6.5-ubuntu">http://www.r-tutor.com/gpu-computing/cuda-installation/cuda6.5-ubuntu</a></li>
-<li><a href="http://askubuntu.com/questions/451672/installing-and-testing-cuda-in-ubuntu-14-04">http://askubuntu.com/questions/451672/installing-and-testing-cuda-in-ubuntu-14-04</a></li>
-<li><a href="https://devtalk.nvidia.com/default/topic/547588/error-installing-nvidia-drivers-on-x86_64-amazon-ec2-gpu-cluster-t20-gpu-/">https://devtalk.nvidia.com/default/topic/547588/error-installing-nvidia-drivers-on-x86_64-amazon-ec2-gpu-cluster-t20-gpu-/</a></li>
-<li><a href="https://devtalk.nvidia.com/default/topic/769719/drm-ko-missing-on-ubuntu-14-04-1-lts-aws-ec2-g2-2xlarge-instance/">https://devtalk.nvidia.com/default/topic/769719/drm-ko-missing-on-ubuntu-14-04-1-lts-aws-ec2-g2-2xlarge-instance/</a></li>
-<li><a href="http://askubuntu.com/questions/451221/ubuntu-14-04-install-nvidia-driver">http://askubuntu.com/questions/451221/ubuntu-14-04-install-nvidia-driver</a></li>
+<li><a href="http://stackoverflow.com/questions/25185405/using-gpu-from-a-docker-container">http://stackoverflow.com/questions/25185405/using-gpu-from-a-docker-container</a></li>
+<li><a href="http://docs.docker.com/installation/ubuntulinux/#ubuntu-trusty-1404-lts-64-bit">http://docs.docker.com/installation/ubuntulinux/#ubuntu-trusty-1404-lts-64-bit</a></li>
 </ul>
 
 </div>
@@ -298,21 +280,15 @@ Storage: Use at least 8 GB, 20+ GB &hellip;">
   
 
 
-<time datetime="2014-10-25T11:56:00-07:00" pubdate data-updated="true">Oct 25<span>th</span>, 2014</time>
+<time datetime="2014-10-25T13:25:00-07:00" pubdate data-updated="true">Oct 25<span>th</span>, 2014</time>
       
-
-<span class="categories">
-  
-    <a class='category' href='/blog/categories/aws/'>aws,</a>, <a class='category' href='/blog/categories/gpu/'>gpu</a>
-  
-</span>
 
 
     </p>
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5/" >Tweet</a>
   
   
   
@@ -321,10 +297,8 @@ Storage: Use at least 8 GB, 20+ GB &hellip;">
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2014/09/10/debugging-into-android-source/" title="Previous Post: Debugging into Android source">&laquo; Debugging into Android source</a>
+        <a class="basic-alignment left" href="/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/" title="Previous Post: CUDA 6.5 on AWS GPU instance running Ubuntu 14.04">&laquo; CUDA 6.5 on AWS GPU instance running Ubuntu 14.04</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5/" title="Next Post: Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5">Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5 &raquo;</a>
       
     </p>
   </footer>
@@ -433,8 +407,8 @@ Storage: Use at least 8 GB, 20+ GB &hellip;">
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/';
-        var disqus_url = 'http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/';
+        var disqus_identifier = 'http://tleyden.github.io/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5/';
+        var disqus_url = 'http://tleyden.github.io/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5/';
         var disqus_script = 'embed.js';
       
     (function () {

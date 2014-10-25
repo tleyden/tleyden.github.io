@@ -9,9 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Create a new EC2 instance: Image: Ubuntu Server 14.04 LTS (HVM), SSD Volume Type
-Instance type: g2.2xlarge Install build-essential: 1
-$ apt-get &hellip;">
+  <meta name="description" content="Setup host instance Follow the instructions in setting up an Ubuntu 14.04 box running on a GPU-enabled AWS instance. You will end up with a host OS: &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -80,6 +78,201 @@ $ apt-get &hellip;">
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5/">Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-25T13:25:00-07:00" pubdate data-updated="true">Oct 25<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>Setup host instance</h2>
+
+<p>Follow the instructions in <a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">setting up an Ubuntu 14.04 box running on a GPU-enabled AWS instance</a>.  You will end up with a host OS:</p>
+
+<ul>
+<li>A GPU enabled AWS instance running Ubuntu 14.04</li>
+<li>Nvidia kernel module</li>
+<li>Nvidia device drivers</li>
+<li>CUDA 6.5 installed and verified</li>
+</ul>
+
+
+<h2>Install Docker with LXC support</h2>
+
+<p><em>If you are wondering why LXC is being used: Docker has announced that they will be moving to <code>libcontainer</code>, but the only instructions I could find for GPU support required docker to use LXC.  If you know of a better way, please leave a comment.</em></p>
+
+<p>Setup the key for the docker repo:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Add the docker repo:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo sh -c "echo deb https://get.docker.com/ubuntu docker main &gt; /etc/apt/sources.list.d/docker.list"
+</span><span class='line'>$ sudo apt-get update</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Install lxc and docker:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get install lxc lxc-docker</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>Note: future versions of lxc-docker will hopefully require lxc as an explicit dependency, but for now lxc must be installed separately.  See <a href="https://github.com/bflad/chef-docker/issues/101">this issue</a></em></p>
+
+<h2>Configure Docker Daemon to use lxc</h2>
+
+<p>Stop the docker daemon:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo service docker stop</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Update docker config to use lxc:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo vi /etc/default/docker</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and add the following:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>DOCKER_OPTS="-e lxc"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If you already have <code>DOCKER_OPTS</code> defined, then tack on an extra <code>-e lxc</code> to the existing <code>DOCKER_OPTS</code></p>
+
+<p>Restart docker:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo service docker restart</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And verify that it&rsquo;s using lxc by running</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker info | grep -i "execution"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see <strong>Execution Driver: lxc-1.0.5</strong></p>
+
+<h2>Run GPU enabled docker image</h2>
+
+<p>Identify the the major number associated with your device:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ls -la /dev | grep nvidia</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>crw-rw-rw-  1 root root    195,   0 Oct 25 19:37 nvidia0
+</span><span class='line'>crw-rw-rw-  1 root root    195, 255 Oct 25 19:37 nvidiactl
+</span><span class='line'>crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The two major numbers we care about are 195 and 251.</p>
+
+<p>Run ubuntu and tell lxc to allow access to the nvidia devices:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run -ti -v /home/ubuntu/:/mnt --lxc-conf='lxc.cgroup.devices.allow = c 195:* rwm' --lxc-conf='lxc.cgroup.devices.allow = c 251:* rwm' ubuntu:14.04 /bin/bash</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>Note: the above command mounts a volume and makes a lot of assumptions about what is inside /home/ubuntu, based on previous things downloaded in the companion blog article on <a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">setting up an Ubuntu 14.04 box running on a GPU-enabled AWS instance</a>.  Hopefully this will get cleaned up.</em></p>
+
+<p>After running the above command, you should be at a shell insider your docker container:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>root@1149788c731c:# </span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Inside the docker image</h2>
+
+<p>Get build tools:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ apt-get update && apt-get install -y build-essential</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Install NVIDIA driver:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /mnt
+</span><span class='line'>$ ./NVIDIA-Linux-x86_64-340.29.run -s -N --no-kernel-module</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and don&rsquo;t freak out about the warning about <code>--no-kernel-module</code>.</p>
+
+<p>Install CUDA + samples:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./cuda-linux64-rel-6.5.14-18749181.run -noprompt
+</span><span class='line'>$ ./cuda-samples-linux-6.5.14-18745345.run -noprompt -noprompt -cudaprefix=/usr/local/cuda-6.5/
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Verify CUDA is correctly installed</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /usr/local/cuda/samples/1_Utilities/deviceQuery
+</span><span class='line'>$ make
+</span><span class='line'>$ ./deviceQuery   </span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see the following output:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 6.5, CUDA Runtime Version = 6.5, NumDevs = 1, Device0 = GRID K520
+</span><span class='line'>Result = PASS</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>References</h2>
+
+<ul>
+<li><a href="http://stackoverflow.com/questions/25185405/using-gpu-from-a-docker-container">http://stackoverflow.com/questions/25185405/using-gpu-from-a-docker-container</a></li>
+<li><a href="http://docs.docker.com/installation/ubuntulinux/#ubuntu-trusty-1404-lts-64-bit">http://docs.docker.com/installation/ubuntulinux/#ubuntu-trusty-1404-lts-64-bit</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">CUDA 6.5 on AWS GPU Instance Running Ubuntu 14.04</a></h1>
     
     
@@ -108,6 +301,7 @@ $ apt-get &hellip;">
 <ul>
 <li>Image: Ubuntu Server 14.04 LTS (HVM), SSD Volume Type</li>
 <li>Instance type: g2.2xlarge</li>
+<li>Storage: Use at least 8 GB, 20+ GB recommended</li>
 </ul>
 
 
@@ -255,9 +449,7 @@ $ apt-get &hellip;">
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /usr/local/cuda/samples
-</span><span class='line'>$ cd 1_Utilities/deviceQuery
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /usr/local/cuda/samples/1_Utilities/deviceQuery
 </span><span class='line'>$ make
 </span><span class='line'>$ ./deviceQuery   </span></code></pre></td></tr></table></div></figure>
 
@@ -1556,67 +1748,6 @@ $ apt-get &hellip;">
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/02/08/playing-with-go-and-opengl/">Playing With Go and OpenGL</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-02-08T16:01:00-08:00" pubdate data-updated="true">Feb 8<span>th</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Get this spinning gopher working with Go and OpenGL on OSX Mavericks via <a href="https://github.com/chsc/gogl/">gogl</a></p>
-
-<iframe width="420" height="315" src="//www.youtube.com/embed/yae-bRLdfaU" frameborder="0" allowfullscreen></iframe>
-
-
-<h1>Steps</h1>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ brew install glfw2
-</span><span class='line'>$ go get -u -v github.com/tleyden/gogl
-</span><span class='line'>$ go get -u -v github.com/go-gl/glfw  
-</span><span class='line'>$ cd $GOPATH/src/github.com/tleyden/gogl
-</span><span class='line'>$ make bindings
-</span><span class='line'>$ go get -u -v github.com/chsc/gogl
-</span><span class='line'>$ cd $GOPATH/src/github.com/tleyden/gogl/examples/gopher
-</span><span class='line'>$ go run gopher.go</span></code></pre></td></tr></table></div></figure>
-
-
-<p>NOTE: if <a href="https://github.com/chsc/gogl/pull/37">pull request #37</a> has already been merged into <a href="https://github.com/chsc/gogl/">gogl</a>, then replace <code>github.com/tleyden/gogl</code> with <code>https://github.com/chsc/gogl</code> in steps above.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -1643,6 +1774,10 @@ $ apt-get &hellip;">
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5/">Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">CUDA 6.5 on AWS GPU Instance Running Ubuntu 14.04</a>
       </li>
     
@@ -1656,10 +1791,6 @@ $ apt-get &hellip;">
     
       <li class="post">
         <a href="/blog/2014/06/22/running-couchbase-server-on-gce/">Running a Couchbase Cluster on Google Compute Engine</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2/">Configure Emacs as a Go Editor From Scratch Part 2</a>
       </li>
     
   </ul>
