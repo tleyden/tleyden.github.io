@@ -55,10 +55,13 @@ crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm
 
 I've created a [docker image](https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/) that has the cuda drivers pre-installed.  The [dockerfile](https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/dockerfile/) is available on dockerhub if you want to know how this image was built.
 
-To run it:
+You may have to adapt the following `docker run` command to match your particular devices.
+
+To start the docker container, run:
 
 ```
-$ sudo docker run -ti --device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm tleyden5iwx/ubuntu-cuda /bin/bash
+$ export DOCKER_NVIDIA_DEVICES="--device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm"
+$ sudo docker run -ti $DOCKER_NVIDIA_DEVICES tleyden5iwx/ubuntu-cuda /bin/bash
 ```
 
 After running the above command, you should be at a shell inside your docker container:
