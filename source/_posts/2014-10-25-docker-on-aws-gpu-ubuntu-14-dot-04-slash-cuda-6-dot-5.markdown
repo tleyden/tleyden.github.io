@@ -8,7 +8,9 @@ categories:
 
 ## Setup host instance
 
-Follow the instructions in [setting up an Ubuntu 14.04 box running on a GPU-enabled AWS instance](http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/).  You will end up with a host OS:
+Follow the instructions in [setting up an Ubuntu 14.04 box running on a GPU-enabled AWS instance](http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/).  
+
+You will end up with a host OS with the following properties:
 
 * A GPU enabled AWS instance running Ubuntu 14.04
 * Nvidia kernel module
