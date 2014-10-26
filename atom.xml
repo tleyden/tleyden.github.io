@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-10-25T17:43:09-07:00</updated>
+  <updated>2014-10-25T20:00:31-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -72,10 +72,14 @@
 
 <p>I&rsquo;ve created a <a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/">docker image</a> that has the cuda drivers pre-installed.  The <a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/dockerfile/">dockerfile</a> is available on dockerhub if you want to know how this image was built.</p>
 
-<p>To run it:</p>
+<p>You may have to adapt the following <code>docker run</code> command to match your particular devices.</p>
+
+<p>To start the docker container, run:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run -ti --device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm tleyden5iwx/ubuntu-cuda /bin/bash</span></code></pre></td></tr></table></div></figure>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ export DOCKER_NVIDIA_DEVICES="--device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm"
+</span><span class='line'>$ sudo docker run -ti $DOCKER_NVIDIA_DEVICES tleyden5iwx/ubuntu-cuda /bin/bash</span></code></pre></td></tr></table></div></figure>
 
 
 <p>After running the above command, you should be at a shell inside your docker container:</p>
