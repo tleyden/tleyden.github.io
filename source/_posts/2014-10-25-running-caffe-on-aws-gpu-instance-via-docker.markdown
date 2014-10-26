@@ -12,13 +12,43 @@ This is a tutorial to help you get the [Caffe deep learning framework](http://ca
 
 ![architecture diagram](http://tleyden-misc.s3.amazonaws.com/blog_images/caffe_docker_aws_onion.png)
 
-## Host setup
+## Setup host 
 
-Your host OS (eg, the thing that runs the docker container, in this case Ubuntu 14.04 running on an AWS instance) will need to have the Nvidia kernel module loaded and the CUDA drivers installed.
+Before you can start your docker container, you will need to go **deeper down the rabbit hole**.  
 
-The easiest way to get it working is to follow these instructions on [setting up CUDA 6.5 on AWS GPU Instance Running Ubuntu 14.04](http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/).  
+You'll first need to complete the steps here:
 
-You can either use the pre-built AMI, or build it from scratch yourself. 
+[Setting up an Ubuntu 14.04 box running on a GPU-enabled AWS instance](http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/)
+
+After you're done, you'll end up with a host OS with the following properties:
+
+* A GPU enabled AWS instance running Ubuntu 14.04
+* Nvidia kernel module
+* Nvidia device drivers
+* CUDA 6.5 installed and verified
+
+## Install Docker 
+
+Once your host OS is setup, you're ready to install docker.  (version 1.3 at the time of this writing)
+
+Setup the key for the docker repo:
+
+```
+$ sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9
+```
+
+Add the docker repo:
+
+```
+$ sudo sh -c "echo deb https://get.docker.com/ubuntu docker main > /etc/apt/sources.list.d/docker.list"
+$ sudo apt-get update
+```
+
+Install docker:
+
+```
+$ sudo apt-get install lxc-docker
+```
 
 ## Run the docker container
 
@@ -36,12 +66,12 @@ crw-rw-rw-  1 root root    195, 255 Oct 25 19:37 nvidiactl
 crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm
 ```
 
-You'll need to customize the `docker run` command below to match your particular nvidia devices.
+You'll have to adapt the `DOCKER_NVIDIA_DEVICES` variable below to match your particular devices.
 
 Here's how to start the docker container:
 
 ```
-$ export DOCKER_NVIDIA_DEVICES="--device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm"
+$ DOCKER_NVIDIA_DEVICES="--device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm"
 $ sudo docker run -ti $DOCKER_NVIDIA_DEVICES tleyden5iwx/caffe-gpu /bin/bash
 ```
 
@@ -49,10 +79,9 @@ It's a large docker image, so this might take a few minutes, depending on your n
 
 ## Run caffe test suite
 
-After the above `docker run` command completes, your shell will now be inside a docker container.  
+After the above `docker run` command completes, your shell will now be inside a docker container that has Caffe installed.  
 
-The first thing you'll want to do is to run the Caffe test suite and make sure it passes.  This will validate your environment, including your GPU drivers.
-
+You'll want run the Caffe test suite and make sure it passes.  This will validate your environment, including your GPU drivers.
 
 ```
 $ cd /opt/caffe
@@ -89,8 +118,8 @@ Congratulations, you've got GPU-powered Caffe running in a docker container -- c
 
 # References
 
- - [tleyden5iwx/caffe-gpu](https://registry.hub.docker.com/u/tleyden5iwx/caffe-gpu) Docker image
- - [tleyden5iwx/caffe](https://registry.hub.docker.com/u/tleyden5iwx/caffe) Docker image (CPU-only)
+ - [tleyden5iwx/caffe-gpu](https://registry.hub.docker.com/u/tleyden5iwx/caffe-gpu) Caffe Docker image (GPU)
+ - [tleyden5iwx/caffe](https://registry.hub.docker.com/u/tleyden5iwx/caffe) Caffe Docker image (CPU-only)
  - [Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5](http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/)
  - [CUDA 6.5 on AWS GPU Instance Running Ubuntu 14.04](http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/)
  

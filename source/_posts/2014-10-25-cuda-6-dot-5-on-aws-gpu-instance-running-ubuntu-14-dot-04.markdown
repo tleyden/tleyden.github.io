@@ -8,7 +8,7 @@ categories: aws, gpu
 
 ## Using a pre-built public AMI
 
-Based on the instructions in this article, I've created an AMI and shared it publicly.  So the easiest thing to do is just use that pre-built AMI:
+Based on the instructions in this blog post, I've created an AMI and shared it publicly.  So the easiest thing to do is just use that pre-built AMI:
 
 * Image: ami-2cbf3e44 (Ubuntu Server 14.04 LTS (HVM) - CUDA 6.5) 
 * Instance type: g2.2xlarge

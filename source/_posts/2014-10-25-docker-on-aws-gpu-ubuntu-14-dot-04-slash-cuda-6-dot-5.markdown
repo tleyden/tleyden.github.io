@@ -6,11 +6,17 @@ comments: true
 categories: 
 ---
 
-## Setup host instance
+## Architecture
+
+After going through the steps in this blog post, you'll end up with this:
+
+![architecture diagram](http://tleyden-misc.s3.amazonaws.com/blog_images/docker_gpu_aws_onion.png)
+
+## Setup host 
 
 Before you can start your docker container, you will need to go **deeper down the rabbit hole**.  
 
-You'll need to do the steps outlined in this blog post:
+You'll first need to complete the steps here:
 
 [Setting up an Ubuntu 14.04 box running on a GPU-enabled AWS instance](http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/)
 
@@ -21,13 +27,9 @@ After you're done, you'll end up with a host OS with the following properties:
 * Nvidia device drivers
 * CUDA 6.5 installed and verified
 
-## Architecture
-
-![architecture diagram](http://tleyden-misc.s3.amazonaws.com/blog_images/docker_gpu_aws_onion.png)
-
 ## Install Docker 
 
-If you don't already have docker installed on your host, you'll need to install it.  At the time of this writing, this will install docker version 1.3.
+Once your host OS is setup, you're ready to install docker.  (version 1.3 at the time of this writing)
 
 Setup the key for the docker repo:
 
@@ -51,8 +53,6 @@ $ sudo apt-get install lxc-docker
 
 ## Run GPU enabled docker image
 
-If you search stack overflow about how to enable docker to access the GPU, you'll probably end up on this [stack overflow post](http://stackoverflow.com/questions/25185405/using-gpu-from-a-docker-container).  The current winning answer is actually *the wrong way to do it* according to the docker folks I talked to on irc.  Here's the right way:
-
 **Find all your nvidia devices**
 
 ```
@@ -69,14 +69,14 @@ crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm
 
 **Launch docker container**
 
-I've created a [docker image](https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/) that has the cuda drivers pre-installed.  The [dockerfile](https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/dockerfile/) is available on dockerhub if you want to know how this image was built.
+The easiest way to get going is to use this pre-built [docker image](https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/) that has the cuda drivers pre-installed.  Or if you want to build your own, [the accompanying dockerfile](https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/dockerfile/) will be a useful starting point.
 
-You may have to adapt the following `docker run` command to match your particular devices.
+You'll have to adapt the `DOCKER_NVIDIA_DEVICES` variable below to match your particular devices.
 
 To start the docker container, run:
 
 ```
-$ export DOCKER_NVIDIA_DEVICES="--device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm"
+$ DOCKER_NVIDIA_DEVICES="--device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm"
 $ sudo docker run -ti $DOCKER_NVIDIA_DEVICES tleyden5iwx/ubuntu-cuda /bin/bash
 ```
 
