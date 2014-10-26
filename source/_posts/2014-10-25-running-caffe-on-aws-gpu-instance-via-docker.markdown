@@ -57,7 +57,7 @@ $ ./create_mnist.sh
 $ ./train_lenet.sh
 ```
 
-This will also take a few minutes -- consider checking out [Asteroids: The Movie](https://www.youtube.com/watch?v=oHgAZRA-el4&list=UUR8lIOsBqrhxRrfwkMgIbWA&index=9) in the meantime.
+This will take a few minutes -- consider checking out [Asteroids: The Movie](https://www.youtube.com/watch?v=oHgAZRA-el4&list=UUR8lIOsBqrhxRrfwkMgIbWA&index=9) in the meantime.
 
 **Expected output:**
 
