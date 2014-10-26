@@ -47,6 +47,8 @@ $ make test && make runtest
 
 ## Run the MNIST LeNet example
 
+A more comprehensive way to verify your environment is to train the MNIST LeNet example:
+
 ```
 $ cd /opt/caffe/data/mnist
 $ ./get_mnist.sh
