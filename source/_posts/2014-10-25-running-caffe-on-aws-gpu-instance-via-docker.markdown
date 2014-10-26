@@ -85,7 +85,7 @@ I1018 17:02:23.553583    66 solver.cpp:32] Initializing solver from parameters:
 I1018 17:17:58.684598    66 caffe.cpp:102] Optimization Done.
 ```
 
-Congratulations, you've got GPU-powered Caffe running -- celebrate with a cup of [Philz](http://www.yelp.com/biz/philz-coffee-berkeley-2)!
+Congratulations, you've got GPU-powered Caffe running in a docker container -- celebrate with a cup of [Philz](http://www.yelp.com/biz/philz-coffee-berkeley-2)!
 
 # References
 
