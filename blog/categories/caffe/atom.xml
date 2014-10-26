@@ -4,7 +4,7 @@
   <title><![CDATA[Category: caffe | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/caffe/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-10-25T21:48:07-07:00</updated>
+  <updated>2014-10-25T21:53:21-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -72,12 +72,7 @@ I1018 17:02:23.553583    66 solver.cpp:32] Initializing solver from parameters:
 I1018 17:17:58.684598    66 caffe.cpp:102] Optimization Done.
 </code></p>
 
-<h2>Troubleshooting</h2>
-
-<p>If you get the error &ldquo;error while loading shared libraries: libglog.so.0: cannot open shared object file: No such file or directory&rdquo;, try running:</p>
-
-<pre><code>$ ldconfig
-</code></pre>
+<p>Congratulations, you&rsquo;ve got GPU-powered Caffe running!</p>
 
 <h1>References</h1>
 
