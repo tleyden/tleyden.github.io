@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-10-25T20:00:31-07:00</updated>
+  <updated>2014-10-25T20:06:52-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -20,7 +20,9 @@
     <id>http://tleyden.github.io/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5</id>
     <content type="html"><![CDATA[<h2>Setup host instance</h2>
 
-<p>Follow the instructions in <a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">setting up an Ubuntu 14.04 box running on a GPU-enabled AWS instance</a>.  You will end up with a host OS:</p>
+<p>Follow the instructions in <a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">setting up an Ubuntu 14.04 box running on a GPU-enabled AWS instance</a>.</p>
+
+<p>You will end up with a host OS with the following properties:</p>
 
 <ul>
 <li>A GPU enabled AWS instance running Ubuntu 14.04</li>
