@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-10-25T23:16:07-07:00</updated>
+  <updated>2014-10-25T23:26:22-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -34,7 +34,25 @@
 
 <h2>Run the docker container</h2>
 
-<p>You will need to adapt this command to match your particular nvidia devices.  See  <a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5</a> for more details.</p>
+<p><strong>Find your nvidia devices</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ls -la /dev | grep nvidia</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>crw-rw-rw-  1 root root    195,   0 Oct 25 19:37 nvidia0
+</span><span class='line'>crw-rw-rw-  1 root root    195, 255 Oct 25 19:37 nvidiactl
+</span><span class='line'>crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You&rsquo;ll need to customize the <code>docker run</code> command below to match your particular nvidia devices.</p>
+
+<p>Here&rsquo;s how to start the docker container:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -42,7 +60,7 @@
 </span><span class='line'>$ sudo docker run -ti $DOCKER_NVIDIA_DEVICES tleyden5iwx/caffe-gpu /bin/bash</span></code></pre></td></tr></table></div></figure>
 
 
-<p>It&rsquo;s a large docker image, so this might be a good time to <a href="https://www.youtube.com/watch?v=zz-7d3HZE7o">watch Portlandia on YouTube</a> while it downloads.</p>
+<p>It&rsquo;s a large docker image, so this might take a few minutes, depending on your network connection.</p>
 
 <h2>Run caffe test suite</h2>
 
@@ -74,7 +92,7 @@
 </span><span class='line'>$ ./train_lenet.sh</span></code></pre></td></tr></table></div></figure>
 
 
-<p>This will take a few minutes &mdash; consider checking out <a href="https://www.youtube.com/watch?v=oHgAZRA-el4&amp;list=UUR8lIOsBqrhxRrfwkMgIbWA&amp;index=9">Asteroids: The Movie</a> in the meantime.</p>
+<p>This will take a few minutes.</p>
 
 <p><strong>Expected output:</strong></p>
 
