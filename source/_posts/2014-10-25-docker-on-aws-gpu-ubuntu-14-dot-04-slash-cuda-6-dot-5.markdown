@@ -17,6 +17,10 @@ You will end up with a host OS with the following properties:
 * Nvidia device drivers
 * CUDA 6.5 installed and verified
 
+## Architecture
+
+![architecture diagram](http://tleyden-misc.s3.amazonaws.com/blog_images/docker_gpu_aws_onion.png)
+
 ## Install Docker 
 
 Setup the key for the docker repo:
