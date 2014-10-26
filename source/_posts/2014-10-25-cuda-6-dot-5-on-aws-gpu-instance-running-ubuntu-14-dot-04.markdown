@@ -18,7 +18,7 @@ If you use the pre-built AMI, then you can skip the rest of this article, since 
 
 ## Building from scratch
 
-Of if you prefer to build your own instance from scratch, keep reading.
+Or if you prefer to build your own instance from scratch, keep reading.
 
 Create a new EC2 instance:
 
@@ -84,7 +84,7 @@ Reboot:
 $ reboot
 ```
 
-## Disable Nouveua
+## Disable nouveau
 
 At this point you need to disable nouveau, since it conflicts with the nvidia kernel module.
 

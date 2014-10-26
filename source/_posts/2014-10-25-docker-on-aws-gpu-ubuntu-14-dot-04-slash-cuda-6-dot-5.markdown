@@ -53,13 +53,13 @@ crw-rw-rw-  1 root root    195, 255 Oct 25 19:37 nvidiactl
 crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm
 ```
 
-Run ubuntu and tell lxc to allow access to the nvidia devices:
+I've created a [docker image](https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/) that has the cuda drivers pre-installed.  The [dockerfile](https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/dockerfile/) is available on dockerhub if you want to know how this image was built.
+
+To run it:
 
 ```
-$ sudo docker run -ti -v /home/ubuntu/:/mnt --device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm ubuntu:14.04 /bin/bash
+$ sudo docker run -ti --device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm tleyden5iwx/ubuntu-cuda /bin/bash
 ```
-
-*Note: the above command mounts a volume and makes a lot of assumptions about what is inside /home/ubuntu, based on previous things downloaded in the companion blog article on [setting up an Ubuntu 14.04 box running on a GPU-enabled AWS instance](http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/).  Hopefully this will get cleaned up.*
 
 After running the above command, you should be at a shell inside your docker container:
 
@@ -67,32 +67,16 @@ After running the above command, you should be at a shell inside your docker con
 root@1149788c731c:# 
 ```
 
-## Inside the docker image
-
-Get build tools:
-
-```
-$ apt-get update && apt-get install -y build-essential
-```
-
-Install NVIDIA driver:
-
-```
-$ cd /mnt/nvidia_installers
-$ ./NVIDIA-Linux-x86_64-340.29.run -s -N --no-kernel-module
-```
-
-and don't worry about the warning about `--no-kernel-module`.
-
-Install CUDA + samples:
-
-```
-$ ./cuda-linux64-rel-6.5.14-18749181.run -noprompt
-$ ./cuda-samples-linux-6.5.14-18745345.run -noprompt -cudaprefix=/usr/local/cuda-6.5/
-
-```
-
 ## Verify CUDA is correctly installed
+
+Install CUDA samples:
+
+```
+$ cd /opt/nvidia_installers
+$ ./cuda-samples-linux-6.5.14-18745345.run -noprompt -cudaprefix=/usr/local/cuda-6.5/
+```
+
+Build deviceQuery sample:
 
 ```
 $ cd /usr/local/cuda/samples/1_Utilities/deviceQuery
@@ -109,5 +93,6 @@ Result = PASS
 
 ## References
 
+* https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/
 * http://stackoverflow.com/questions/25185405/using-gpu-from-a-docker-container
 * http://docs.docker.com/installation/ubuntulinux/#ubuntu-trusty-1404-lts-64-bit
