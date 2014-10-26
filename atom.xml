@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-10-25T23:26:22-07:00</updated>
+  <updated>2014-10-25T23:27:16-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -108,7 +108,7 @@
 </span><span class='line'>I1018 17:17:58.684598    66 caffe.cpp:102] Optimization Done.</span></code></pre></td></tr></table></div></figure>
 
 
-<p>Congratulations, you&rsquo;ve got GPU-powered Caffe running &mdash; celebrate with a cup of <a href="http://www.yelp.com/biz/philz-coffee-berkeley-2">Philz</a>!</p>
+<p>Congratulations, you&rsquo;ve got GPU-powered Caffe running in a docker container &mdash; celebrate with a cup of <a href="http://www.yelp.com/biz/philz-coffee-berkeley-2">Philz</a>!</p>
 
 <h1>References</h1>
 
