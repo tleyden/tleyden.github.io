@@ -4,7 +4,7 @@
   <title><![CDATA[Category: caffe | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/caffe/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-10-25T22:53:26-07:00</updated>
+  <updated>2014-10-25T23:04:50-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -44,6 +44,10 @@ $ sudo docker run -ti $DOCKER_NVIDIA_DEVICES tleyden5iwx/caffe-gpu /bin/bash
 <p>It&rsquo;s a large docker image, so this might be a good time to <a href="https://www.youtube.com/watch?v=zz-7d3HZE7o">watch Portlandia on YouTube</a> while it downloads.</p>
 
 <h2>Run caffe test suite</h2>
+
+<p>After the above <code>docker run</code> command completes, your shell will now be inside a docker container.</p>
+
+<p>The first thing you&rsquo;ll want to do is to run the Caffe test suite and make sure it passes.  This will validate your environment, including your GPU drivers.</p>
 
 <p><code>
 $ cd /opt/caffe
