@@ -60,11 +60,7 @@ I1018 17:02:23.553583    66 solver.cpp:32] Initializing solver from parameters:
 I1018 17:17:58.684598    66 caffe.cpp:102] Optimization Done.
 ```
 
-## Troubleshooting
-
-If you get the error "error while loading shared libraries: libglog.so.0: cannot open shared object file: No such file or directory", try running:
-
-    $ ldconfig
+Congratulations, you've got GPU-powered Caffe running!
 
 # References
 
