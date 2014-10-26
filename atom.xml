@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-10-25T22:40:37-07:00</updated>
+  <updated>2014-10-25T22:53:26-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -103,9 +103,13 @@
     <id>http://tleyden.github.io/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5</id>
     <content type="html"><![CDATA[<h2>Setup host instance</h2>
 
-<p>Follow the instructions in <a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">setting up an Ubuntu 14.04 box running on a GPU-enabled AWS instance</a>.</p>
+<p>Before you can start your docker container, you will need to go <strong>deeper down the rabbit hole</strong>.</p>
 
-<p>You will end up with a host OS with the following properties:</p>
+<p>You&rsquo;ll need to do the steps outlined in this blog post:</p>
+
+<p><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">Setting up an Ubuntu 14.04 box running on a GPU-enabled AWS instance</a></p>
+
+<p>After you&rsquo;re done, you&rsquo;ll end up with a host OS with the following properties:</p>
 
 <ul>
 <li>A GPU enabled AWS instance running Ubuntu 14.04</li>
@@ -120,6 +124,8 @@
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/docker_gpu_aws_onion.png" alt="architecture diagram" /></p>
 
 <h2>Install Docker</h2>
+
+<p>If you don&rsquo;t already have docker installed on your host, you&rsquo;ll need to install it.  At the time of this writing, this will install docker version 1.3.</p>
 
 <p>Setup the key for the docker repo:</p>
 
@@ -143,7 +149,9 @@
 
 <h2>Run GPU enabled docker image</h2>
 
-<p>Find all your nvidia devices:</p>
+<p>If you search stack overflow about how to enable docker to access the GPU, you&rsquo;ll probably end up on this <a href="http://stackoverflow.com/questions/25185405/using-gpu-from-a-docker-container">stack overflow post</a>.  The current winning answer is actually <em>the wrong way to do it</em> according to the docker folks I talked to on irc.  Here&rsquo;s the right way:</p>
+
+<p><strong>Find all your nvidia devices</strong></p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ ls -la /dev | grep nvidia</span></code></pre></td></tr></table></div></figure>
@@ -158,6 +166,8 @@
 </span><span class='line'>crw-rw-rw-  1 root root    195, 255 Oct 25 19:37 nvidiactl
 </span><span class='line'>crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm</span></code></pre></td></tr></table></div></figure>
 
+
+<p><strong>Launch docker container</strong></p>
 
 <p>I&rsquo;ve created a <a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/">docker image</a> that has the cuda drivers pre-installed.  The <a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/dockerfile/">dockerfile</a> is available on dockerhub if you want to know how this image was built.</p>
 
@@ -177,9 +187,9 @@
 </pre></td><td class='code'><pre><code class=''><span class='line'>root@1149788c731c:# </span></code></pre></td></tr></table></div></figure>
 
 
-<h2>Verify CUDA is correctly installed</h2>
+<h2>Verify CUDA access from inside the docker container</h2>
 
-<p>Install CUDA samples:</p>
+<p><strong>Install CUDA samples</strong></p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -187,7 +197,7 @@
 </span><span class='line'>$ ./cuda-samples-linux-6.5.14-18745345.run -noprompt -cudaprefix=/usr/local/cuda-6.5/</span></code></pre></td></tr></table></div></figure>
 
 
-<p>Build deviceQuery sample:</p>
+<p><strong>Build deviceQuery sample</strong></p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -197,7 +207,7 @@
 </span><span class='line'>$ ./deviceQuery   </span></code></pre></td></tr></table></div></figure>
 
 
-<p>You should see the following output:</p>
+<p><strong>You should see the following output</strong></p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
