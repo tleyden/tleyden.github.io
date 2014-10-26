@@ -107,13 +107,47 @@
 
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/caffe_docker_aws_onion.png" alt="architecture diagram" /></p>
 
-<h2>Host setup</h2>
+<h2>Setup host</h2>
 
-<p>Your host OS (eg, the thing that runs the docker container, in this case Ubuntu 14.04 running on an AWS instance) will need to have the Nvidia kernel module loaded and the CUDA drivers installed.</p>
+<p>Before you can start your docker container, you will need to go <strong>deeper down the rabbit hole</strong>.</p>
 
-<p>The easiest way to get it working is to follow these instructions on <a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">setting up CUDA 6.5 on AWS GPU Instance Running Ubuntu 14.04</a>.</p>
+<p>You&rsquo;ll first need to complete the steps here:</p>
 
-<p>You can either use the pre-built AMI, or build it from scratch yourself.</p>
+<p><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">Setting up an Ubuntu 14.04 box running on a GPU-enabled AWS instance</a></p>
+
+<p>After you&rsquo;re done, you&rsquo;ll end up with a host OS with the following properties:</p>
+
+<ul>
+<li>A GPU enabled AWS instance running Ubuntu 14.04</li>
+<li>Nvidia kernel module</li>
+<li>Nvidia device drivers</li>
+<li>CUDA 6.5 installed and verified</li>
+</ul>
+
+
+<h2>Install Docker</h2>
+
+<p>Once your host OS is setup, you&rsquo;re ready to install docker.  (version 1.3 at the time of this writing)</p>
+
+<p>Setup the key for the docker repo:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Add the docker repo:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo sh -c "echo deb https://get.docker.com/ubuntu docker main &gt; /etc/apt/sources.list.d/docker.list"
+</span><span class='line'>$ sudo apt-get update</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Install docker:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get install lxc-docker</span></code></pre></td></tr></table></div></figure>
+
 
 <h2>Run the docker container</h2>
 
@@ -133,13 +167,13 @@
 </span><span class='line'>crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm</span></code></pre></td></tr></table></div></figure>
 
 
-<p>You&rsquo;ll need to customize the <code>docker run</code> command below to match your particular nvidia devices.</p>
+<p>You&rsquo;ll have to adapt the <code>DOCKER_NVIDIA_DEVICES</code> variable below to match your particular devices.</p>
 
 <p>Here&rsquo;s how to start the docker container:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ export DOCKER_NVIDIA_DEVICES="--device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm"
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ DOCKER_NVIDIA_DEVICES="--device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm"
 </span><span class='line'>$ sudo docker run -ti $DOCKER_NVIDIA_DEVICES tleyden5iwx/caffe-gpu /bin/bash</span></code></pre></td></tr></table></div></figure>
 
 
@@ -147,9 +181,9 @@
 
 <h2>Run caffe test suite</h2>
 
-<p>After the above <code>docker run</code> command completes, your shell will now be inside a docker container.</p>
+<p>After the above <code>docker run</code> command completes, your shell will now be inside a docker container that has Caffe installed.</p>
 
-<p>The first thing you&rsquo;ll want to do is to run the Caffe test suite and make sure it passes.  This will validate your environment, including your GPU drivers.</p>
+<p>You&rsquo;ll want run the Caffe test suite and make sure it passes.  This will validate your environment, including your GPU drivers.</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -196,8 +230,8 @@
 <h1>References</h1>
 
 <ul>
-<li><a href="https://registry.hub.docker.com/u/tleyden5iwx/caffe-gpu">tleyden5iwx/caffe-gpu</a> Docker image</li>
-<li><a href="https://registry.hub.docker.com/u/tleyden5iwx/caffe">tleyden5iwx/caffe</a> Docker image (CPU-only)</li>
+<li><a href="https://registry.hub.docker.com/u/tleyden5iwx/caffe-gpu">tleyden5iwx/caffe-gpu</a> Caffe Docker image (GPU)</li>
+<li><a href="https://registry.hub.docker.com/u/tleyden5iwx/caffe">tleyden5iwx/caffe</a> Caffe Docker image (CPU-only)</li>
 <li><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5</a></li>
 <li><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">CUDA 6.5 on AWS GPU Instance Running Ubuntu 14.04</a></li>
 </ul>
@@ -237,11 +271,17 @@
   </header>
 
 
-  <div class="entry-content"><h2>Setup host instance</h2>
+  <div class="entry-content"><h2>Architecture</h2>
+
+<p>After going through the steps in this blog post, you&rsquo;ll end up with this:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/docker_gpu_aws_onion.png" alt="architecture diagram" /></p>
+
+<h2>Setup host</h2>
 
 <p>Before you can start your docker container, you will need to go <strong>deeper down the rabbit hole</strong>.</p>
 
-<p>You&rsquo;ll need to do the steps outlined in this blog post:</p>
+<p>You&rsquo;ll first need to complete the steps here:</p>
 
 <p><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">Setting up an Ubuntu 14.04 box running on a GPU-enabled AWS instance</a></p>
 
@@ -255,13 +295,9 @@
 </ul>
 
 
-<h2>Architecture</h2>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/docker_gpu_aws_onion.png" alt="architecture diagram" /></p>
-
 <h2>Install Docker</h2>
 
-<p>If you don&rsquo;t already have docker installed on your host, you&rsquo;ll need to install it.  At the time of this writing, this will install docker version 1.3.</p>
+<p>Once your host OS is setup, you&rsquo;re ready to install docker.  (version 1.3 at the time of this writing)</p>
 
 <p>Setup the key for the docker repo:</p>
 
@@ -285,8 +321,6 @@
 
 <h2>Run GPU enabled docker image</h2>
 
-<p>If you search stack overflow about how to enable docker to access the GPU, you&rsquo;ll probably end up on this <a href="http://stackoverflow.com/questions/25185405/using-gpu-from-a-docker-container">stack overflow post</a>.  The current winning answer is actually <em>the wrong way to do it</em> according to the docker folks I talked to on irc.  Here&rsquo;s the right way:</p>
-
 <p><strong>Find all your nvidia devices</strong></p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -305,15 +339,15 @@
 
 <p><strong>Launch docker container</strong></p>
 
-<p>I&rsquo;ve created a <a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/">docker image</a> that has the cuda drivers pre-installed.  The <a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/dockerfile/">dockerfile</a> is available on dockerhub if you want to know how this image was built.</p>
+<p>The easiest way to get going is to use this pre-built <a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/">docker image</a> that has the cuda drivers pre-installed.  Or if you want to build your own, <a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/dockerfile/">the accompanying dockerfile</a> will be a useful starting point.</p>
 
-<p>You may have to adapt the following <code>docker run</code> command to match your particular devices.</p>
+<p>You&rsquo;ll have to adapt the <code>DOCKER_NVIDIA_DEVICES</code> variable below to match your particular devices.</p>
 
 <p>To start the docker container, run:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ export DOCKER_NVIDIA_DEVICES="--device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm"
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ DOCKER_NVIDIA_DEVICES="--device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm"
 </span><span class='line'>$ sudo docker run -ti $DOCKER_NVIDIA_DEVICES tleyden5iwx/ubuntu-cuda /bin/bash</span></code></pre></td></tr></table></div></figure>
 
 
@@ -396,7 +430,7 @@
 
   <div class="entry-content"><h2>Using a pre-built public AMI</h2>
 
-<p>Based on the instructions in this article, I&rsquo;ve created an AMI and shared it publicly.  So the easiest thing to do is just use that pre-built AMI:</p>
+<p>Based on the instructions in this blog post, I&rsquo;ve created an AMI and shared it publicly.  So the easiest thing to do is just use that pre-built AMI:</p>
 
 <ul>
 <li>Image: ami-2cbf3e44 (Ubuntu Server 14.04 LTS (HVM) &ndash; CUDA 6.5)</li>
