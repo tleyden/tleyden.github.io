@@ -22,14 +22,30 @@ You can either use the pre-built AMI, or build it from scratch yourself.
 
 ## Run the docker container
 
-You will need to adapt this command to match your particular nvidia devices.  See  [Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5](http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/) for more details.
+**Find your nvidia devices**
+
+```
+$ ls -la /dev | grep nvidia
+```
+
+You should see:
+
+```
+crw-rw-rw-  1 root root    195,   0 Oct 25 19:37 nvidia0
+crw-rw-rw-  1 root root    195, 255 Oct 25 19:37 nvidiactl
+crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm
+```
+
+You'll need to customize the `docker run` command below to match your particular nvidia devices.
+
+Here's how to start the docker container:
 
 ```
 $ export DOCKER_NVIDIA_DEVICES="--device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm"
 $ sudo docker run -ti $DOCKER_NVIDIA_DEVICES tleyden5iwx/caffe-gpu /bin/bash
 ```
 
-It's a large docker image, so this might be a good time to [watch Portlandia on YouTube](https://www.youtube.com/watch?v=zz-7d3HZE7o) while it downloads.  
+It's a large docker image, so this might take a few minutes, depending on your network connection.
 
 ## Run caffe test suite
 
@@ -57,7 +73,7 @@ $ ./create_mnist.sh
 $ ./train_lenet.sh
 ```
 
-This will take a few minutes -- consider checking out [Asteroids: The Movie](https://www.youtube.com/watch?v=oHgAZRA-el4&list=UUR8lIOsBqrhxRrfwkMgIbWA&index=9) in the meantime.
+This will take a few minutes.
 
 **Expected output:**
 
