@@ -4,7 +4,7 @@
   <title><![CDATA[Category: docker | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/docker/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-10-25T23:04:50-07:00</updated>
+  <updated>2014-10-25T23:06:31-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -57,6 +57,8 @@ $ make test &amp;&amp; make runtest
 <p><strong>Expected Result:</strong> <code>... [  PASSED  ] 838 tests.</code></p>
 
 <h2>Run the MNIST LeNet example</h2>
+
+<p>A more comprehensive way to verify your environment is to train the MNIST LeNet example:</p>
 
 <p><code>
 $ cd /opt/caffe/data/mnist
