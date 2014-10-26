@@ -4,7 +4,7 @@
   <title><![CDATA[Category: docker | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/docker/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-10-25T21:11:44-07:00</updated>
+  <updated>2014-10-25T21:48:07-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -20,9 +20,13 @@
     <id>http://tleyden.github.io/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker</id>
     <content type="html"><![CDATA[<p>This is a tutorial to help you get the <a href="http://caffe.berkeleyvision.org/">Caffe deep learning framework</a> up and running on a GPU-powered AWS instance running inside a Docker container.</p>
 
+<h2>Architecture</h2>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/caffe_docker_aws_onion.png" alt="architecture diagram" /></p>
+
 <h2>Host setup</h2>
 
-<p>Your host OS (eg, the thing that runs the docker container) will need to have the Nvidia kernel module loaded and the CUDA drivers installed.</p>
+<p>Your host OS (eg, the thing that runs the docker container, in this case Ubuntu 14.04 running on an AWS instance) will need to have the Nvidia kernel module loaded and the CUDA drivers installed.</p>
 
 <p>The easiest way to get it working is to follow these instructions on <a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">setting up CUDA 6.5 on AWS GPU Instance Running Ubuntu 14.04</a>.</p>
 
