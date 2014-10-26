@@ -8,9 +8,13 @@ categories: caffe docker aws gpu
 
 This is a tutorial to help you get the [Caffe deep learning framework](http://caffe.berkeleyvision.org/) up and running on a GPU-powered AWS instance running inside a Docker container.
 
+## Architecture
+
+![architecture diagram](http://tleyden-misc.s3.amazonaws.com/blog_images/caffe_docker_aws_onion.png)
+
 ## Host setup
 
-Your host OS (eg, the thing that runs the docker container) will need to have the Nvidia kernel module loaded and the CUDA drivers installed.
+Your host OS (eg, the thing that runs the docker container, in this case Ubuntu 14.04 running on an AWS instance) will need to have the Nvidia kernel module loaded and the CUDA drivers installed.
 
 The easiest way to get it working is to follow these instructions on [setting up CUDA 6.5 on AWS GPU Instance Running Ubuntu 14.04](http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/).  
 
@@ -25,7 +29,7 @@ $ export DOCKER_NVIDIA_DEVICES="--device /dev/nvidia0:/dev/nvidia0 --device /dev
 $ sudo docker run -ti $DOCKER_NVIDIA_DEVICES tleyden5iwx/caffe-gpu /bin/bash
 ```
 
-It's a large docker image, so this might be a good time to [watch Portlandia on YouTube](https://www.youtube.com/watch?v=zz-7d3HZE7o) while it downloads.
+It's a large docker image, so this might be a good time to [watch Portlandia on YouTube](https://www.youtube.com/watch?v=zz-7d3HZE7o) while it downloads.  
 
 ## Run caffe test suite
 
