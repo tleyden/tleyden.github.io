@@ -68,9 +68,9 @@ A more comprehensive way to verify your environment is to train the MNIST LeNet 
 ```
 $ cd /opt/caffe/data/mnist
 $ ./get_mnist.sh
-$ cd ../../examples/mnist
-$ ./create_mnist.sh
-$ ./train_lenet.sh
+$ cd /opt/caffe
+$ ./examples/mnist/create_mnist.sh
+$ ./examples/mnist/train_lenet.sh
 ```
 
 This will take a few minutes.
