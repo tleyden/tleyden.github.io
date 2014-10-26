@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-10-25T23:28:36-07:00</updated>
+  <updated>2014-10-26T00:27:44-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -87,9 +87,9 @@
 <span class='line-number'>5</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /opt/caffe/data/mnist
 </span><span class='line'>$ ./get_mnist.sh
-</span><span class='line'>$ cd ../../examples/mnist
-</span><span class='line'>$ ./create_mnist.sh
-</span><span class='line'>$ ./train_lenet.sh</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>$ cd /opt/caffe
+</span><span class='line'>$ ./examples/mnist/create_mnist.sh
+</span><span class='line'>$ ./examples/mnist/train_lenet.sh</span></code></pre></td></tr></table></div></figure>
 
 
 <p>This will take a few minutes.</p>
