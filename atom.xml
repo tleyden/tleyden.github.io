@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-10-25T20:06:52-07:00</updated>
+  <updated>2014-10-25T21:11:44-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,90 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Running Caffe on AWS GPU instance via Docker]]></title>
+    <link href="http://tleyden.github.io/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker/"/>
+    <updated>2014-10-25T20:42:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker</id>
+    <content type="html"><![CDATA[<p>This is a tutorial to help you get the <a href="http://caffe.berkeleyvision.org/">Caffe deep learning framework</a> up and running on a GPU-powered AWS instance running inside a Docker container.</p>
+
+<h2>Host setup</h2>
+
+<p>Your host OS (eg, the thing that runs the docker container) will need to have the Nvidia kernel module loaded and the CUDA drivers installed.</p>
+
+<p>The easiest way to get it working is to follow these instructions on <a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">setting up CUDA 6.5 on AWS GPU Instance Running Ubuntu 14.04</a>.</p>
+
+<p>You can either use the pre-built AMI, or build it from scratch yourself.</p>
+
+<h2>Run the docker container</h2>
+
+<p>You will need to adapt this command to match your particular nvidia devices.  See  <a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5</a> for more details.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ export DOCKER_NVIDIA_DEVICES="--device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm"
+</span><span class='line'>$ sudo docker run -ti $DOCKER_NVIDIA_DEVICES tleyden5iwx/caffe-gpu /bin/bash</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It&rsquo;s a large docker image, so this might be a good time to <a href="https://www.youtube.com/watch?v=zz-7d3HZE7o">watch Portlandia on YouTube</a> while it downloads.</p>
+
+<h2>Run caffe test suite</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /opt/caffe
+</span><span class='line'>$ make test && make runtest</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Expected Result:</strong> <code>... [  PASSED  ] 838 tests.</code></p>
+
+<h2>Run the MNIST LeNet example</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /opt/caffe/data/mnist
+</span><span class='line'>$ ./get_mnist.sh
+</span><span class='line'>$ cd ../../examples/mnist
+</span><span class='line'>$ ./create_mnist.sh
+</span><span class='line'>$ ./train_lenet.sh</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Expected output:</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>libdc1394 error: Failed to initialize libdc1394 
+</span><span class='line'>I1018 17:02:23.552733    66 caffe.cpp:90] Starting Optimization 
+</span><span class='line'>I1018 17:02:23.553583    66 solver.cpp:32] Initializing solver from parameters:
+</span><span class='line'>... lots of output ...
+</span><span class='line'>I1018 17:17:58.684598    66 caffe.cpp:102] Optimization Done.</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Troubleshooting</h2>
+
+<p>If you get the error &ldquo;error while loading shared libraries: libglog.so.0: cannot open shared object file: No such file or directory&rdquo;, try running:</p>
+
+<pre><code>$ ldconfig
+</code></pre>
+
+<h1>References</h1>
+
+<ul>
+<li><a href="https://registry.hub.docker.com/u/tleyden5iwx/caffe-gpu">tleyden5iwx/caffe-gpu</a> Docker image</li>
+<li><a href="https://registry.hub.docker.com/u/tleyden5iwx/caffe">tleyden5iwx/caffe</a> Docker image (CPU-only)</li>
+<li><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5</a></li>
+<li><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">CUDA 6.5 on AWS GPU Instance Running Ubuntu 14.04</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5]]></title>
@@ -2209,125 +2293,6 @@
 
 
 <p>If you don&rsquo;t have Genymotion running, you should check it out, it runs <em>much</em> faster than the default emulator.  <a href="http://tleyden.github.io/blog/2013/11/22/android-studio-plus-genymotion-emulator/">How to get Android Studio + Genymotion working</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Running couchbase cluster under docker]]></title>
-    <link href="http://tleyden.github.io/blog/2013/11/14/running-couchbase-cluster-under-docker/"/>
-    <updated>2013-11-14T15:45:00-08:00</updated>
-    <id>http://tleyden.github.io/blog/2013/11/14/running-couchbase-cluster-under-docker</id>
-    <content type="html"><![CDATA[<p>This tutorial will show you how to run a cluster of Couchbase Servers, where each node is running inside of a docker image.</p>
-
-<p><img src="http://cl.ly/image/2G0h381N3o42/docker%20couchbase%20cluster.png" alt="Diagram" /></p>
-
-<p>This probably looks like <em>a lot</em> of layers, and you might be wondering if this will make your system crawl &mdash; but bear in mind that the Docker virtualization model is very lightweight, and so basically everything under CoreOS has very little resource overhead.</p>
-
-<h2>Install Docker and dependencies</h2>
-
-<p>If you are on OSX and don&rsquo;t have Docker installed, check out <a href="http://tleyden.github.io/blog/2013/11/12/docker-on-osx/">Install Docker on OSX</a> before proceeding.</p>
-
-<h2>Edit vagrant file to add port mappings</h2>
-
-<p>In order to access all the Couchbase Server nodes from the host, <em>which doesn&rsquo;t currently work</em>, you would need to add the following entries to your Vagrantfile:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>config.vm.network "forwarded_port", guest: 8091, host: 8091
-</span><span class='line'>config.vm.network "forwarded_port", guest: 8092, host: 8092
-</span><span class='line'>config.vm.network "forwarded_port", guest: 11210, host:   11210</span></code></pre></td></tr></table></div></figure>
-
-
-<p>As mentioned, accessing all of the Couchbase Server nodes from the host does not currently work.  However, I think at least some of these entries are needed, so to be on the safe side just add all of them.</p>
-
-<h2>Start CoreOS and ssh in</h2>
-
-<p>Execute the following commands in the directory where you have your CoreOS Vagrantfile.  In my case, I have it under <code>~/Tools/coreos-vagrant</code> and it contains a Vagrantfile, a README.md file, and a few others.</p>
-
-<p>Start CoreOS</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ vagrant up</span></code></pre></td></tr></table></div></figure>
-
-
-<p>SSH into CoreOS</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ vagrant ssh</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Start docker image for a single node</h2>
-
-<p>Here&rsquo;s how to fire up the first docker image</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>docker run -i -t -d -p 11210:11210 -p 8091:7081 -p 8092:8092 dustin/couchbase:latest</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and you should see:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>Unable to find image 'dustin/couchbase:latest' (tag: latest) locally
-</span><span class='line'>Pulling repository dustin/couchbase
-</span><span class='line'>9e0279ab340d: Download complete
-</span><span class='line'>...
-</span><span class='line'>845987ce946b</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Find the name of the docker instance by running <code>$ docker ps</code></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>core@localhost ~ $ docker ps
-</span><span class='line'>CONTAINER ID        IMAGE                     COMMAND                CREATED              STATUS              PORTS                                                                      NAMES
-</span><span class='line'>845987ce946b        dustin/couchbase:latest   /bin/sh -c /usr/loca   About a minute ago   Up About a minute   0.0.0.0:11210-&gt;11210/tcp, 0.0.0.0:8091-&gt;7081/tcp, 0.0.0.0:8092-&gt;8092/tcp   purple_kangaroo</span></code></pre></td></tr></table></div></figure>
-
-
-<p>In this case it&rsquo;s <em>purple_kangaroo</em>.</p>
-
-<p>Now take a look at the logs for that docker instance:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>core@localhost ~ $ docker logs purple_kangaroo
-</span><span class='line'>/opt/couchbase/etc/couchbase_init.d: 45: ulimit: error setting limit (Operation not permitted)
-</span><span class='line'>/opt/couchbase/etc/couchbase_init.d: 47: ulimit: error setting limit (Operation not permitted)
-</span><span class='line'> * Started couchbase-server
-</span><span class='line'>Starting cluster
-</span><span class='line'>SUCCESS: init 127.0.0.1
-</span><span class='line'>SUCCESS: bucket-create</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If you only want to run one Couchbase Server node, you are pretty much done and you can skip to the section below to login to the Couchbase Server admin</p>
-
-<p>If you want to run a cluster of Couchbase Server nodes, read on.</p>
-
-<h2>Start docker images for other nodes</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run -i -t -d -link purple_kangaroo:alpha dustin/couchbase:latest</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This will start another node that is linked to the initial node, and will be in the same cluster.  There is some Weird Magic behind the scenes that makes that all work.</p>
-
-<h1>Go to Couchbase Server admin</h1>
-
-<p>Open <a href="http://localhost:8091/">http://localhost:8091/</a> in your browser, and you should see a login screen, where the default credentials are Administrator/password.</p>
-
-<p>After you login, you should see the Admin UI with three nodes in your cluster:</p>
-
-<p><img src="http://cl.ly/image/2K3i1v2w3H0E/Screen%20Shot%202013-11-14%20at%204.47.18%20PM.png" alt="Screenshot" /></p>
 ]]></content>
   </entry>
   

@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Debugging HTTP traffic in Android apps with a proxy - Seven Story Rabbit Hole</title>
+  <title>Running Caffe on AWS GPU instance via Docker - Seven Story Rabbit Hole</title>
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="If you need to debug the HTTP communication between a server and an Android app running in an emulator or device, here&rsquo;s some instructions on &hellip;">
+  <meta name="description" content="This is a tutorial to help you get the Caffe deep learning framework up and running on a GPU-powered AWS instance running inside a Docker container. &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://tleyden.github.io/blog/2013/11/20/debugging-http-traffic-in-android-apps-with-a-proxy">
+  <link rel="canonical" href="http://tleyden.github.io/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
@@ -75,7 +75,7 @@
   
   <header>
     
-      <h1 class="entry-title">Debugging HTTP Traffic in Android Apps With a Proxy</h1>
+      <h1 class="entry-title">Running Caffe on AWS GPU Instance via Docker</h1>
     
     
       <p class="meta">
@@ -91,74 +91,89 @@
   
 
 
-<time datetime="2013-11-20T14:35:00-08:00" pubdate data-updated="true">Nov 20<span>th</span>, 2013</time>
+<time datetime="2014-10-25T20:42:00-07:00" pubdate data-updated="true">Oct 25<span>th</span>, 2014</time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><p>If you need to debug the HTTP communication between a server and an Android app running in an emulator or device, here&rsquo;s some instructions on how I went about doing it.</p>
+<div class="entry-content"><p>This is a tutorial to help you get the <a href="http://caffe.berkeleyvision.org/">Caffe deep learning framework</a> up and running on a GPU-powered AWS instance running inside a Docker container.</p>
 
-<p>Here&rsquo;s the overall diagram of what&rsquo;s happening:</p>
+<h2>Host setup</h2>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/android_proxy.png" alt="Diagram" /></p>
+<p>Your host OS (eg, the thing that runs the docker container) will need to have the Nvidia kernel module loaded and the CUDA drivers installed.</p>
 
-<h2>Install a Proxy</h2>
+<p>The easiest way to get it working is to follow these instructions on <a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">setting up CUDA 6.5 on AWS GPU Instance Running Ubuntu 14.04</a>.</p>
 
-<p>I&rsquo;m using <a href="http://www.charlesproxy.com/">Charles Proxy</a> and highly recommend it.</p>
+<p>You can either use the pre-built AMI, or build it from scratch yourself.</p>
 
-<p>As far as proxy configuration, the defaults should be fine.  It should be listening on port 8888 and proxying everything.  If you need HTTPS, you might have to configure that, I don&rsquo;t remember if it&rsquo;s enabled by default.</p>
+<h2>Run the docker container</h2>
 
-<h2>Configure the Android Emulator to use that proxy</h2>
+<p>You will need to adapt this command to match your particular nvidia devices.  See  <a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5</a> for more details.</p>
 
-<p>There is a blog that describes how to get to this screen, I don&rsquo;t have the link handy.  Essentially once you get to this screen, just update the ip to have the special 10.0.2.2 ip address which represents your workstation, and the port the proxy is listening on (port 8888).</p>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ export DOCKER_NVIDIA_DEVICES="--device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm"
+</span><span class='line'>$ sudo docker run -ti $DOCKER_NVIDIA_DEVICES tleyden5iwx/caffe-gpu /bin/bash</span></code></pre></td></tr></table></div></figure>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/android_emu_proxy_config.png" alt="Screenshot" /></p>
 
-<h2>Run an HTTP server on your workstation, on port 4984</h2>
+<p>It&rsquo;s a large docker image, so this might be a good time to <a href="https://www.youtube.com/watch?v=zz-7d3HZE7o">watch Portlandia on YouTube</a> while it downloads.</p>
 
-<p>Actually use any port you want, but in my case I&rsquo;m connecting to a server that runs on port 4984.</p>
+<h2>Run caffe test suite</h2>
 
-<h2>Configure your app to connect to 127.0.0.1:4984</h2>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /opt/caffe
+</span><span class='line'>$ make test && make runtest</span></code></pre></td></tr></table></div></figure>
 
-<p>This is actually a bit counterintuitive, but the idea is that the address must be reachable from the workstation&rsquo;s network, not from the emulator&rsquo;s network.</p>
 
-<p>So for that reason, if the server is running on the workstation, you would want to use 127.0.0.1 as the IP.</p>
+<p><strong>Expected Result:</strong> <code>... [  PASSED  ] 838 tests.</code></p>
 
-<p>As long as the server is reachable from your workstation, you can use that IP and it will go through the proxy.</p>
+<h2>Run the MNIST LeNet example</h2>
 
-<h2>View HTTP traffic in proxy</h2>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /opt/caffe/data/mnist
+</span><span class='line'>$ ./get_mnist.sh
+</span><span class='line'>$ cd ../../examples/mnist
+</span><span class='line'>$ ./create_mnist.sh
+</span><span class='line'>$ ./train_lenet.sh</span></code></pre></td></tr></table></div></figure>
 
-<p>Here&rsquo;s what the HTTP JSON response looks like in the proxy:</p>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/charles_proxy_screenshot.png" alt="Screenshot" /></p>
+<p><strong>Expected output:</strong></p>
 
-<h2>If you are using the Genymotion emulator</h2>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>libdc1394 error: Failed to initialize libdc1394 
+</span><span class='line'>I1018 17:02:23.552733    66 caffe.cpp:90] Starting Optimization 
+</span><span class='line'>I1018 17:02:23.553583    66 solver.cpp:32] Initializing solver from parameters:
+</span><span class='line'>... lots of output ...
+</span><span class='line'>I1018 17:17:58.684598    66 caffe.cpp:102] Optimization Done.</span></code></pre></td></tr></table></div></figure>
 
-<p>The Genymotion emulator has a different method of modifying the proxy setting:</p>
 
-<p>In your virtual device:</p>
+<h2>Troubleshooting</h2>
+
+<p>If you get the error &ldquo;error while loading shared libraries: libglog.so.0: cannot open shared object file: No such file or directory&rdquo;, try running:</p>
+
+<pre><code>$ ldconfig
+</code></pre>
+
+<h1>References</h1>
 
 <ul>
-<li>Go to Android settings menu</li>
-<li>In Wireless &amp; Networks section, select Wi-Fi</li>
-<li>Press and hold for 2 seconds WiredSSID network in the list</li>
-<li>Choose Modify Network</li>
-<li>Check Show advanced options</li>
-<li>Select Manual for Proxy settings menu entry</li>
-<li>Now enter the proxy settings provided by your network administrator
-
-<ul>
-<li>Ip: 10.0.3.2 (this is a special ip that Genymotion uses to connect back to the host)</li>
-<li>Port: 8888</li>
-</ul>
-</li>
-<li>Finally press the Save button</li>
+<li><a href="https://registry.hub.docker.com/u/tleyden5iwx/caffe-gpu">tleyden5iwx/caffe-gpu</a> Docker image</li>
+<li><a href="https://registry.hub.docker.com/u/tleyden5iwx/caffe">tleyden5iwx/caffe</a> Docker image (CPU-only)</li>
+<li><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5</a></li>
+<li><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">CUDA 6.5 on AWS GPU Instance Running Ubuntu 14.04</a></li>
 </ul>
 
-
-<p>If you don&rsquo;t have Genymotion running, you should check it out, it runs <em>much</em> faster than the default emulator.  <a href="http://tleyden.github.io/blog/2013/11/22/android-studio-plus-genymotion-emulator/">How to get Android Studio + Genymotion working</a></p>
 </div>
 
 
@@ -181,12 +196,12 @@
   
 
 
-<time datetime="2013-11-20T14:35:00-08:00" pubdate data-updated="true">Nov 20<span>th</span>, 2013</time>
+<time datetime="2014-10-25T20:42:00-07:00" pubdate data-updated="true">Oct 25<span>th</span>, 2014</time>
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/android/'>android</a>
+    <a class='category' href='/blog/categories/aws/'>aws</a>, <a class='category' href='/blog/categories/caffe/'>caffe</a>, <a class='category' href='/blog/categories/docker/'>docker</a>, <a class='category' href='/blog/categories/gpu/'>gpu</a>
   
 </span>
 
@@ -195,7 +210,7 @@
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2013/11/20/debugging-http-traffic-in-android-apps-with-a-proxy/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2013/11/20/debugging-http-traffic-in-android-apps-with-a-proxy/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker/" >Tweet</a>
   
   
   
@@ -204,10 +219,8 @@
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2013/11/14/running-couchbase-cluster-under-docker/" title="Previous Post: Running couchbase cluster under docker">&laquo; Running couchbase cluster under docker</a>
+        <a class="basic-alignment left" href="/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5/" title="Previous Post: Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5">&laquo; Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2013/11/21/a-simple-data-race-in-go-and-how-to-fix-it/" title="Next Post: A simple data race in Go and how to fix it">A simple data race in Go and how to fix it &raquo;</a>
       
     </p>
   </footer>
@@ -316,8 +329,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://tleyden.github.io/blog/2013/11/20/debugging-http-traffic-in-android-apps-with-a-proxy/';
-        var disqus_url = 'http://tleyden.github.io/blog/2013/11/20/debugging-http-traffic-in-android-apps-with-a-proxy/';
+        var disqus_identifier = 'http://tleyden.github.io/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker/';
+        var disqus_url = 'http://tleyden.github.io/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker/';
         var disqus_script = 'embed.js';
       
     (function () {
