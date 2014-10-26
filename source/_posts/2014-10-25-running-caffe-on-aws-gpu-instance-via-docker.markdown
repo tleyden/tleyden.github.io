@@ -33,6 +33,11 @@ It's a large docker image, so this might be a good time to [watch Portlandia on 
 
 ## Run caffe test suite
 
+After the above `docker run` command completes, your shell will now be inside a docker container.  
+
+The first thing you'll want to do is to run the Caffe test suite and make sure it passes.  This will validate your environment, including your GPU drivers.
+
+
 ```
 $ cd /opt/caffe
 $ make test && make runtest
