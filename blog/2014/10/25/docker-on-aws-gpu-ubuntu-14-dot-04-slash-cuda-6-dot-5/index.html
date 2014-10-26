@@ -150,13 +150,13 @@
 </span><span class='line'>crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm</span></code></pre></td></tr></table></div></figure>
 
 
-<p>Run ubuntu and tell lxc to allow access to the nvidia devices:</p>
+<p>I&rsquo;ve created a <a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/">docker image</a> that has the cuda drivers pre-installed.  The <a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/dockerfile/">dockerfile</a> is available on dockerhub if you want to know how this image was built.</p>
+
+<p>To run it:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run -ti -v /home/ubuntu/:/mnt --device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm ubuntu:14.04 /bin/bash</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run -ti --device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm tleyden5iwx/ubuntu-cuda /bin/bash</span></code></pre></td></tr></table></div></figure>
 
-
-<p><em>Note: the above command mounts a volume and makes a lot of assumptions about what is inside /home/ubuntu, based on previous things downloaded in the companion blog article on <a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">setting up an Ubuntu 14.04 box running on a GPU-enabled AWS instance</a>.  Hopefully this will get cleaned up.</em></p>
 
 <p>After running the above command, you should be at a shell inside your docker container:</p>
 
@@ -164,34 +164,17 @@
 </pre></td><td class='code'><pre><code class=''><span class='line'>root@1149788c731c:# </span></code></pre></td></tr></table></div></figure>
 
 
-<h2>Inside the docker image</h2>
-
-<p>Get build tools:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ apt-get update && apt-get install -y build-essential</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Install NVIDIA driver:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /mnt/nvidia_installers
-</span><span class='line'>$ ./NVIDIA-Linux-x86_64-340.29.run -s -N --no-kernel-module</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and don&rsquo;t worry about the warning about <code>--no-kernel-module</code>.</p>
-
-<p>Install CUDA + samples:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./cuda-linux64-rel-6.5.14-18749181.run -noprompt
-</span><span class='line'>$ ./cuda-samples-linux-6.5.14-18745345.run -noprompt -cudaprefix=/usr/local/cuda-6.5/
-</span></code></pre></td></tr></table></div></figure>
-
-
 <h2>Verify CUDA is correctly installed</h2>
+
+<p>Install CUDA samples:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /opt/nvidia_installers
+</span><span class='line'>$ ./cuda-samples-linux-6.5.14-18745345.run -noprompt -cudaprefix=/usr/local/cuda-6.5/</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Build deviceQuery sample:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -212,6 +195,7 @@
 <h2>References</h2>
 
 <ul>
+<li><a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/">https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/</a></li>
 <li><a href="http://stackoverflow.com/questions/25185405/using-gpu-from-a-docker-container">http://stackoverflow.com/questions/25185405/using-gpu-from-a-docker-container</a></li>
 <li><a href="http://docs.docker.com/installation/ubuntulinux/#ubuntu-trusty-1404-lts-64-bit">http://docs.docker.com/installation/ubuntulinux/#ubuntu-trusty-1404-lts-64-bit</a></li>
 </ul>
