@@ -5,11 +5,12 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Category: blog - Seven Story Rabbit Hole</title>
+  <title>Goroutines vs Threads - Seven Story Rabbit Hole</title>
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Category: blog">
+  <meta name="description" content="Here are some of the advantages of Goroutines over threads: You can run more goroutines on a typical system than you can threads.
+Goroutines have &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +19,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://tleyden.github.ioblog/categories/blog">
+  <link rel="canonical" href="http://tleyden.github.io/blog/2014/10/30/goroutines-vs-threads">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
@@ -71,56 +72,139 @@
   <div id="main">
     <div id="content">
       <div>
-<article role="article">
+<article class="hentry" role="article">
   
   <header>
-    <h1 class="entry-title">Category: Blog</h1>
+    
+      <h1 class="entry-title">Goroutines vs Threads</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-30T06:28:00-07:00" pubdate data-updated="true">Oct 30<span>th</span>, 2014</time>
+        
+      </p>
     
   </header>
-  
-  <div id="blog-archives" class="category">
 
 
+<div class="entry-content"><p>Here are some of the advantages of Goroutines over threads:</p>
 
-  
-  <h2>2013</h2>
-
-<article>
-  
-<h1><a href="/blog/2013/09/07/octopress-setup-part-ii/">Octopress Setup Part II</a></h1>
-<time datetime="2013-09-07T11:46:00-07:00" pubdate><span class='month'>Sep</span> <span class='day'>07</span> <span class='year'>2013</span></time>
-
-<footer>
-  <span class="categories">posted in <a class='category' href='/blog/categories/blog/'>blog</a>, <a class='category' href='/blog/categories/octopress/'>octopress</a></span>
-</footer>
-
-
-</article>
+<ul>
+<li>You can run more goroutines on a typical system than you can threads.</li>
+<li>Goroutines have growable segmented stacks.</li>
+<li>Goroutines have a faster startup time than threads.</li>
+<li>Goroutines come with built-in primitives to communicate safely between themselves (channels).</li>
+<li>Goroutines allow you to avoid having to resort to mutex locking when sharing data structures.</li>
+<li>Goroutines are multiplexed onto a small number of OS threads, rather than a 1:1 mapping.</li>
+<li>You can write massively concurrent servers withouth having to resort to evented programming.</li>
+</ul>
 
 
+<h2>You can run more of them</h2>
 
-<article>
-  
-<h1><a href="/blog/2013/09/07/octopress-setup-part-i/">Octopress Setup Part I</a></h1>
-<time datetime="2013-09-07T11:26:00-07:00" pubdate><span class='month'>Sep</span> <span class='day'>07</span> <span class='year'>2013</span></time>
+<p>On Java you can run 1000&rsquo;s or tens of 1000&rsquo;s threads.  On Go you can run hundreds of thousands or millions of goroutines.</p>
 
-<footer>
-  <span class="categories">posted in <a class='category' href='/blog/categories/blog/'>blog</a>, <a class='category' href='/blog/categories/octopress/'>octopress</a></span>
-</footer>
+<p>Java threads map directly to OS threads, and are relatively heavyweight.  Part of the reason they are heavyweight is their rather large fixed stack size.  This caps the number of them you can run in a single VM due to the increasing memory overhead.</p>
 
+<p>Go OTOH has a segmented stack that grows as needed.  They are &ldquo;Green threads&rdquo;, which means the Go runtime does the scheduling, not the OS.  The runtime multiplexes the goroutines onto real OS threads, the number of which is controlled by <code>GOMAXPROCS</code>.  Typically you&rsquo;ll want to set this to the number of cores on your system, to maximize potential parellelism.</p>
 
-</article>
+<h2>They let you avoid locking hell</h2>
 
+<p>One of the biggest drawback of threaded programming is the complexity and brittleness of many codebases that use threads to achieve high concurrency.  There can be latent deadlocks and race conditions, and it can become near impossible to reason about the code.</p>
+
+<p>Go OTOH gives you primitives that allow you to avoid locking completely.  The mantra is <em>don&rsquo;t communicate by sharing memory, share memory by communicating</em>.  In other words, if two goroutines need to share data, they can do so safely over a channel.  Go handles all of the synchronization for you, and it&rsquo;s much harder to run into things like deadlocks.</p>
+
+<h2>No callback spaghetti, either</h2>
+
+<p>There are other approaches to achieving high concurrency with a small number of threads.  Python Twisted was one of the early ones that got a lot of attention.  Node.js is currently the most prominent evented frameworks out there.</p>
+
+<p>The problem with these evented frameworks is that the code complexity is also high, and difficult to reason about.  Rather than &ldquo;straightline&rdquo; coding, the programmer is forced to chain callbacks, which gets interleaved with error handling.  While refactoring can help tame some of the mental load, it&rsquo;s still an issue.</p>
 </div>
 
+
+  <footer>
+    <p class="meta">
+      
   
+
+<span class="byline author vcard">Posted by <span class="fn">Traun Leyden</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-30T06:28:00-07:00" pubdate data-updated="true">Oct 30<span>th</span>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/golang/'>golang</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2014/10/30/goroutines-vs-threads/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2014/10/30/goroutines-vs-threads/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker/" title="Previous Post: Running Caffe on AWS GPU instance via Docker">&laquo; Running Caffe on AWS GPU instance via Docker</a>
+      
+      
+    </p>
+  </footer>
 </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
 
 </div>
 
 <aside class="sidebar">
   
     <section>
+  <h1>About Me</h1>
+  <p>
+  I'm a startup engineer at Couchbase, working on <a href="https://github.com/couchbase/couchbase-lite-android">Couchbase Lite for Android</a> -- a mobile NoSQL database with Sync built-in.
+  </p>
+
+  <p>
+  In my spare time I am working on a <a href="https://github.com/tleyden/neurgo">Neural Network in Go</a>.
+  </p>
+
+</section>
+<section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
     
@@ -201,7 +285,10 @@
       var disqus_shortname = 'sevenstoryrabbithole';
       
         
-        var disqus_script = 'count.js';
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://tleyden.github.io/blog/2014/10/30/goroutines-vs-threads/';
+        var disqus_url = 'http://tleyden.github.io/blog/2014/10/30/goroutines-vs-threads/';
+        var disqus_script = 'embed.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;

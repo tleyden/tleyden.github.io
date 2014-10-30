@@ -4,7 +4,7 @@
   <title><![CDATA[Category: golang | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/golang/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-10-26T06:50:39-07:00</updated>
+  <updated>2014-10-30T07:18:09-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,46 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Goroutines vs Threads]]></title>
+    <link href="http://tleyden.github.io/blog/2014/10/30/goroutines-vs-threads/"/>
+    <updated>2014-10-30T06:28:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2014/10/30/goroutines-vs-threads</id>
+    <content type="html"><![CDATA[<p>Here are some of the advantages of Goroutines over threads:</p>
+
+<ul>
+<li>You can run more goroutines on a typical system than you can threads.</li>
+<li>Goroutines have growable segmented stacks.</li>
+<li>Goroutines have a faster startup time than threads.</li>
+<li>Goroutines come with built-in primitives to communicate safely between themselves (channels).</li>
+<li>Goroutines allow you to avoid having to resort to mutex locking when sharing data structures.</li>
+<li>Goroutines are multiplexed onto a small number of OS threads, rather than a 1:1 mapping.</li>
+<li>You can write massively concurrent servers withouth having to resort to evented programming.</li>
+</ul>
+
+
+<h2>You can run more of them</h2>
+
+<p>On Java you can run 1000&rsquo;s or tens of 1000&rsquo;s threads.  On Go you can run hundreds of thousands or millions of goroutines.</p>
+
+<p>Java threads map directly to OS threads, and are relatively heavyweight.  Part of the reason they are heavyweight is their rather large fixed stack size.  This caps the number of them you can run in a single VM due to the increasing memory overhead.</p>
+
+<p>Go OTOH has a segmented stack that grows as needed.  They are &ldquo;Green threads&rdquo;, which means the Go runtime does the scheduling, not the OS.  The runtime multiplexes the goroutines onto real OS threads, the number of which is controlled by <code>GOMAXPROCS</code>.  Typically you&rsquo;ll want to set this to the number of cores on your system, to maximize potential parellelism.</p>
+
+<h2>They let you avoid locking hell</h2>
+
+<p>One of the biggest drawback of threaded programming is the complexity and brittleness of many codebases that use threads to achieve high concurrency.  There can be latent deadlocks and race conditions, and it can become near impossible to reason about the code.</p>
+
+<p>Go OTOH gives you primitives that allow you to avoid locking completely.  The mantra is <em>don&rsquo;t communicate by sharing memory, share memory by communicating</em>.  In other words, if two goroutines need to share data, they can do so safely over a channel.  Go handles all of the synchronization for you, and it&rsquo;s much harder to run into things like deadlocks.</p>
+
+<h2>No callback spaghetti, either</h2>
+
+<p>There are other approaches to achieving high concurrency with a small number of threads.  Python Twisted was one of the early ones that got a lot of attention.  Node.js is currently the most prominent evented frameworks out there.</p>
+
+<p>The problem with these evented frameworks is that the code complexity is also high, and difficult to reason about.  Rather than &ldquo;straightline&rdquo; coding, the programmer is forced to chain callbacks, which gets interleaved with error handling.  While refactoring can help tame some of the mental load, it&rsquo;s still an issue.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Configure Emacs as a Go Editor From Scratch Part 2]]></title>
@@ -488,231 +528,6 @@ import &ldquo;time&rdquo;</p>
 <h2>For more information</h2>
 
 <p>See <a href="https://www.youtube.com/watch?v=QDDwwePbDtw">Google I/O 2013 &ndash; Advanced Go Concurrency Patterns</a> around 17:00.  This contains another explanation of chan chan&rsquo;s.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[A simple data race in Go and how to fix it]]></title>
-    <link href="http://tleyden.github.io/blog/2013/11/21/a-simple-data-race-in-go-and-how-to-fix-it/"/>
-    <updated>2013-11-21T08:16:00-08:00</updated>
-    <id>http://tleyden.github.io/blog/2013/11/21/a-simple-data-race-in-go-and-how-to-fix-it</id>
-    <content type="html"><![CDATA[<p>Suppose you want to add an http handler which can show some things that in memory.</p>
-
-<p>Simple, right?  Actually, if you aren&rsquo;t careful, doing this can lead to data races, even though only one goroutine is writing the data at any given time.</p>
-
-<p>Here&rsquo;s the golang code (also on <a href="https://github.com/tleyden/go-scratchpad/blob/1521d96e8f093b06ed57cd32e702b8ccb458e270/concurrentaccess/main.go">github</a>) that reproduces the issue:</p>
-
-<p>```
-type Foo struct {</p>
-
-<pre><code>content string
-</code></pre>
-
-<p>}</p>
-
-<p>type FooSlice []*Foo</p>
-
-<p>func updateFooSlice(fooSlice FooSlice) {</p>
-
-<pre><code>for {
-    foo := &amp;Foo{content: "new"}
-    (*fooSlice)[0] = foo
-    time.Sleep(time.Second)
-}
-</code></pre>
-
-<p>}</p>
-
-<p>func installHttpHandler(fooSlice FooSlice) {</p>
-
-<pre><code>handler := func(w http.ResponseWriter, r *http.Request) {
-    for _, foo := range fooSlice {
-        if foo != nil {
-            fmt.Fprintf(w, "foo: %v ", (*foo).content)
-        }
-    }
-
-}
-http.HandleFunc("/", handler)
-</code></pre>
-
-<p>}</p>
-
-<p>func main() {</p>
-
-<pre><code>foo1 := &amp;Foo{content: "hey"}
-foo2 := &amp;Foo{content: "yo"}
-fooSlice := FooSlice{foo1, foo2}
-
-installHttpHandler(fooSlice)
-
-go updateFooSlice(fooSlice)
-
-http.ListenAndServe(":8080", nil)
-</code></pre>
-
-<p>}</p>
-
-<p>```</p>
-
-<p>if you run this code with <code>go run main.go</code> and then open <code>http://localhost:8080</code> in your browser, it will work as expected.</p>
-
-<p>But not so fast!  Lurking in this code are data races, and if you run this with race detection enabled using <code>go run -race main.go</code> and then access it with the browser, it will panic with:</p>
-
-<h1>```</h1>
-
-<p>WARNING: DATA RACE
-Read by goroutine 6:
-  main.func·001()</p>
-
-<pre><code>  /../concurrentaccess/main.go:45 +0x9e
-  ...
-</code></pre>
-
-<p>Previous write by goroutine 4:
-  main.updateFooSlice()</p>
-
-<pre><code>  /../concurrentaccess/main.go:35 +0x98
-  ...
-</code></pre>
-
-<p>```</p>
-
-<p>because there are two goroutines accessing the same slice without any protection &mdash; the main goroutine running the http server, and the goroutine running <code>updateFooSlice</code>.</p>
-
-<h2>Fix #1 &ndash; use sync.mutex to lock the slice</h2>
-
-<p>This isn&rsquo;t necessarily the <em>best</em> way to fix this, but it&rsquo;s the simplest to understand and explain.</p>
-
-<p>Here are the changes to the code (also on <a href="https://github.com/tleyden/go-scratchpad/blob/8f031806d5f0d7becef844f5400f2cc663ff4bf7/concurrentaccess/main.go">github</a>):</p>
-
-<ul>
-<li>Import the <code>sync</code> package</li>
-<li>Create a sync.Mutex object in the package-global namespace</li>
-<li>Before updating the slice, lock the mutex, and after updating it, unlock it.</li>
-<li>Before the http handler access the slice, it locks the mutex, and after it&rsquo;s done, it unlocks it.</li>
-</ul>
-
-
-<p>```
-type Foo struct {</p>
-
-<pre><code>content string
-</code></pre>
-
-<p>}</p>
-
-<p>type FooSlice []*Foo</p>
-
-<p>var mutex sync.Mutex</p>
-
-<p>func updateFooSlice(fooSlice FooSlice) {</p>
-
-<pre><code>for {
-    mutex.Lock()
-    foo := &amp;Foo{content: "new"}
-    fooSlice[0] = foo
-    fooSlice[1] = nil
-    mutex.Unlock()
-    time.Sleep(time.Second)
-}
-</code></pre>
-
-<p>}</p>
-
-<p>func installHttpHandler(fooSlice FooSlice) {</p>
-
-<pre><code>handler := func(w http.ResponseWriter, r *http.Request) {
-    mutex.Lock()
-    defer mutex.Unlock()
-    for _, foo := range fooSlice {
-        if foo != nil {
-            fmt.Fprintf(w, "foo: %v ", (*foo).content)
-        }
-    }
-}
-http.HandleFunc("/", handler)
-</code></pre>
-
-<p>}</p>
-
-<p>func main() {</p>
-
-<pre><code>foo1 := &amp;Foo{content: "hey"}
-foo2 := &amp;Foo{content: "yo"}
-
-fooSlice := FooSlice{foo1, foo2}
-
-installHttpHandler(fooSlice)
-
-go updateFooSlice(fooSlice)
-
-http.ListenAndServe(":8080", nil)
-</code></pre>
-
-<p>}</p>
-
-<p>```</p>
-
-<p>If you now re-run the code with the <code>-race</code> flag and access <code>http://localhost:8080</code>, it won&rsquo;t panic.</p>
-
-<h2>Digression &ndash; chan chan</h2>
-
-<p>Before we can talk about Fix #2, we need to take a digression to talk about chan chan&rsquo;s &mdash; channels which contain other channels as the morsels of data that pass through the channel tubes (metachannels, if you will).</p>
-
-<p><strong>tl;dr</strong> A channel describes a transport of sorts.  You can send a thing down that transport.  When using a chan chan, the thing you want to send down the transport is another transport to send things back.</p>
-
-<p>If it&rsquo;s still a little fuzzy for you, here&rsquo;s the <a href="http://tleyden.github.io/blog/2013/11/23/understanding-chan-chans-in-go/">long description of chan chan&rsquo;s with diagrams</a></p>
-
-<h2>Fix #2 &ndash; Use channels instead of <code>sync.Mutex</code></h2>
-
-<p>In this version of the fix, the goroutine running the http handler (the main goroutine in this case), makes a response chan and passes it into a request chan chan that both goroutines can access.  It then reads the response from the response chan, which will contain a copy of the FooSlice.</p>
-
-<p>```
-func installHttpHandler(fooSlice FooSlice) {</p>
-
-<pre><code>    handler := func(w http.ResponseWriter, r *http.Request) {
-            response := make(chan FooSlice)
-            request &lt;- response
-            fooSliceCopy := &lt;-response
-            for _, foo := range fooSliceCopy {
-                    if foo != nil {
-                            fmt.Fprintf(w, "foo: %v ", (*foo).content)
-                    }
-            }
-    }
-    http.HandleFunc("/", handler)
-</code></pre>
-
-<p>}
-```</p>
-
-<p>The other goroutine updates the FooSlice and is also checking the request chan chan for new messages.  If it gets a new request message, it makes a copy of the FooSlice and sends it to the response chan.</p>
-
-<p>```
-func updateFooSlice(fooSlice FooSlice) {</p>
-
-<pre><code>    t := time.Tick(time.Second)
-    for {
-            select {
-            case &lt;-t:
-                    foo := &amp;Foo{content: "new"}
-                    fooSlice[0] = foo
-                    fooSlice[1] = nil
-            case ch := &lt;-request:
-                    fooSliceCopy := make(FooSlice, len(fooSlice))
-                    copy(fooSliceCopy, fooSlice)
-                    ch &lt;- fooSliceCopy
-            }
-    }
-</code></pre>
-
-<p>}
-```</p>
-
-<p>Again, if you now re-run this code with the <code>-race</code> flag and access <code>http://localhost:8080</code>, it won&rsquo;t panic.</p>
-
-<p>The full code sample is <a href="https://github.com/tleyden/go-scratchpad/blob/e92685b35c2d6f61274c7e72a3cdebf85817878a/concurrentaccess/main.go">available on gihub</a></p>
 ]]></content>
   </entry>
   

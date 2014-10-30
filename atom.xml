@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-10-26T06:50:39-07:00</updated>
+  <updated>2014-10-30T07:18:09-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,46 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Goroutines vs Threads]]></title>
+    <link href="http://tleyden.github.io/blog/2014/10/30/goroutines-vs-threads/"/>
+    <updated>2014-10-30T06:28:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2014/10/30/goroutines-vs-threads</id>
+    <content type="html"><![CDATA[<p>Here are some of the advantages of Goroutines over threads:</p>
+
+<ul>
+<li>You can run more goroutines on a typical system than you can threads.</li>
+<li>Goroutines have growable segmented stacks.</li>
+<li>Goroutines have a faster startup time than threads.</li>
+<li>Goroutines come with built-in primitives to communicate safely between themselves (channels).</li>
+<li>Goroutines allow you to avoid having to resort to mutex locking when sharing data structures.</li>
+<li>Goroutines are multiplexed onto a small number of OS threads, rather than a 1:1 mapping.</li>
+<li>You can write massively concurrent servers withouth having to resort to evented programming.</li>
+</ul>
+
+
+<h2>You can run more of them</h2>
+
+<p>On Java you can run 1000&rsquo;s or tens of 1000&rsquo;s threads.  On Go you can run hundreds of thousands or millions of goroutines.</p>
+
+<p>Java threads map directly to OS threads, and are relatively heavyweight.  Part of the reason they are heavyweight is their rather large fixed stack size.  This caps the number of them you can run in a single VM due to the increasing memory overhead.</p>
+
+<p>Go OTOH has a segmented stack that grows as needed.  They are &ldquo;Green threads&rdquo;, which means the Go runtime does the scheduling, not the OS.  The runtime multiplexes the goroutines onto real OS threads, the number of which is controlled by <code>GOMAXPROCS</code>.  Typically you&rsquo;ll want to set this to the number of cores on your system, to maximize potential parellelism.</p>
+
+<h2>They let you avoid locking hell</h2>
+
+<p>One of the biggest drawback of threaded programming is the complexity and brittleness of many codebases that use threads to achieve high concurrency.  There can be latent deadlocks and race conditions, and it can become near impossible to reason about the code.</p>
+
+<p>Go OTOH gives you primitives that allow you to avoid locking completely.  The mantra is <em>don&rsquo;t communicate by sharing memory, share memory by communicating</em>.  In other words, if two goroutines need to share data, they can do so safely over a channel.  Go handles all of the synchronization for you, and it&rsquo;s much harder to run into things like deadlocks.</p>
+
+<h2>No callback spaghetti, either</h2>
+
+<p>There are other approaches to achieving high concurrency with a small number of threads.  Python Twisted was one of the early ones that got a lot of attention.  Node.js is currently the most prominent evented frameworks out there.</p>
+
+<p>The problem with these evented frameworks is that the code complexity is also high, and difficult to reason about.  Rather than &ldquo;straightline&rdquo; coding, the programmer is forced to chain callbacks, which gets interleaved with error handling.  While refactoring can help tame some of the mental load, it&rsquo;s still an issue.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Running Caffe on AWS GPU instance via Docker]]></title>
@@ -2297,75 +2337,6 @@
 <p>Again, if you now re-run this code with the <code>-race</code> flag and access <code>http://localhost:8080</code>, it won&rsquo;t panic.</p>
 
 <p>The full code sample is <a href="https://github.com/tleyden/go-scratchpad/blob/e92685b35c2d6f61274c7e72a3cdebf85817878a/concurrentaccess/main.go">available on gihub</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Debugging HTTP traffic in Android apps with a proxy]]></title>
-    <link href="http://tleyden.github.io/blog/2013/11/20/debugging-http-traffic-in-android-apps-with-a-proxy/"/>
-    <updated>2013-11-20T14:35:00-08:00</updated>
-    <id>http://tleyden.github.io/blog/2013/11/20/debugging-http-traffic-in-android-apps-with-a-proxy</id>
-    <content type="html"><![CDATA[<p>If you need to debug the HTTP communication between a server and an Android app running in an emulator or device, here&rsquo;s some instructions on how I went about doing it.</p>
-
-<p>Here&rsquo;s the overall diagram of what&rsquo;s happening:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/android_proxy.png" alt="Diagram" /></p>
-
-<h2>Install a Proxy</h2>
-
-<p>I&rsquo;m using <a href="http://www.charlesproxy.com/">Charles Proxy</a> and highly recommend it.</p>
-
-<p>As far as proxy configuration, the defaults should be fine.  It should be listening on port 8888 and proxying everything.  If you need HTTPS, you might have to configure that, I don&rsquo;t remember if it&rsquo;s enabled by default.</p>
-
-<h2>Configure the Android Emulator to use that proxy</h2>
-
-<p>There is a blog that describes how to get to this screen, I don&rsquo;t have the link handy.  Essentially once you get to this screen, just update the ip to have the special 10.0.2.2 ip address which represents your workstation, and the port the proxy is listening on (port 8888).</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/android_emu_proxy_config.png" alt="Screenshot" /></p>
-
-<h2>Run an HTTP server on your workstation, on port 4984</h2>
-
-<p>Actually use any port you want, but in my case I&rsquo;m connecting to a server that runs on port 4984.</p>
-
-<h2>Configure your app to connect to 127.0.0.1:4984</h2>
-
-<p>This is actually a bit counterintuitive, but the idea is that the address must be reachable from the workstation&rsquo;s network, not from the emulator&rsquo;s network.</p>
-
-<p>So for that reason, if the server is running on the workstation, you would want to use 127.0.0.1 as the IP.</p>
-
-<p>As long as the server is reachable from your workstation, you can use that IP and it will go through the proxy.</p>
-
-<h2>View HTTP traffic in proxy</h2>
-
-<p>Here&rsquo;s what the HTTP JSON response looks like in the proxy:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/charles_proxy_screenshot.png" alt="Screenshot" /></p>
-
-<h2>If you are using the Genymotion emulator</h2>
-
-<p>The Genymotion emulator has a different method of modifying the proxy setting:</p>
-
-<p>In your virtual device:</p>
-
-<ul>
-<li>Go to Android settings menu</li>
-<li>In Wireless &amp; Networks section, select Wi-Fi</li>
-<li>Press and hold for 2 seconds WiredSSID network in the list</li>
-<li>Choose Modify Network</li>
-<li>Check Show advanced options</li>
-<li>Select Manual for Proxy settings menu entry</li>
-<li>Now enter the proxy settings provided by your network administrator
-
-<ul>
-<li>Ip: 10.0.3.2 (this is a special ip that Genymotion uses to connect back to the host)</li>
-<li>Port: 8888</li>
-</ul>
-</li>
-<li>Finally press the Save button</li>
-</ul>
-
-
-<p>If you don&rsquo;t have Genymotion running, you should check it out, it runs <em>much</em> faster than the default emulator.  <a href="http://tleyden.github.io/blog/2013/11/22/android-studio-plus-genymotion-emulator/">How to get Android Studio + Genymotion working</a></p>
 ]]></content>
   </entry>
   
