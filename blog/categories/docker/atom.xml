@@ -4,7 +4,7 @@
   <title><![CDATA[Category: docker | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/docker/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-11-01T12:21:25-07:00</updated>
+  <updated>2014-11-01T12:27:40-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -94,10 +94,10 @@ $ fleetctl list-units
 
 <p><code>
 UNIT                        MACHINE             ACTIVE  SUB
-couchbase_bootstrap_node.service        375d98b9.../10.63.168.35    active  running
-couchbase_bootstrap_node_announce.service   375d98b9.../10.63.168.35    active  running
-couchbase_node.1.service            8cf54d4d.../10.187.61.136   active  running
-couchbase_node.2.service            b8cf0ed6.../10.179.161.76   active  running
+couchbase_bootstrap_node.service                375d98b9.../10.63.168.35    active  running
+couchbase_bootstrap_node_announce.service       375d98b9.../10.63.168.35    active  running
+couchbase_node.1.service                        8cf54d4d.../10.187.61.136   active  running
+couchbase_node.2.service                        b8cf0ed6.../10.179.161.76   active  running
 </code></p>
 
 <h2>Rebalance Couchbase Cluster</h2>
