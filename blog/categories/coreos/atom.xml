@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: aws | Seven Story Rabbit Hole]]></title>
-  <link href="http://tleyden.github.io/blog/categories/aws/atom.xml" rel="self"/>
+  <title><![CDATA[Category: coreos | Seven Story Rabbit Hole]]></title>
+  <link href="http://tleyden.github.io/blog/categories/coreos/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
   <updated>2014-11-01T12:21:25-07:00</updated>
   <id>http://tleyden.github.io/</id>
@@ -133,136 +133,6 @@ couchbase_node.2.service            b8cf0ed6.../10.179.161.76   active  running
 <li><a href="https://github.com/tleyden/couchbase-server-coreos">https://github.com/tleyden/couchbase-server-coreos</a></li>
 <li><a href="https://registry.hub.docker.com/u/ncolomer/couchbase/">https://registry.hub.docker.com/u/ncolomer/couchbase/</a></li>
 <li><a href="https://github.com/lifegadget/docker-couchbase">https://github.com/lifegadget/docker-couchbase</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Running Caffe on AWS GPU instance via Docker]]></title>
-    <link href="http://tleyden.github.io/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker/"/>
-    <updated>2014-10-25T20:42:00-07:00</updated>
-    <id>http://tleyden.github.io/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker</id>
-    <content type="html"><![CDATA[<p>This is a tutorial to help you get the <a href="http://caffe.berkeleyvision.org/">Caffe deep learning framework</a> up and running on a GPU-powered AWS instance running inside a Docker container.</p>
-
-<h2>Architecture</h2>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/caffe_docker_aws_onion.png" alt="architecture diagram" /></p>
-
-<h2>Setup host</h2>
-
-<p>Before you can start your docker container, you will need to go <strong>deeper down the rabbit hole</strong>.</p>
-
-<p>You&rsquo;ll first need to complete the steps here:</p>
-
-<p><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">Setting up an Ubuntu 14.04 box running on a GPU-enabled AWS instance</a></p>
-
-<p>After you&rsquo;re done, you&rsquo;ll end up with a host OS with the following properties:</p>
-
-<ul>
-<li>A GPU enabled AWS instance running Ubuntu 14.04</li>
-<li>Nvidia kernel module</li>
-<li>Nvidia device drivers</li>
-<li>CUDA 6.5 installed and verified</li>
-</ul>
-
-
-<h2>Install Docker</h2>
-
-<p>Once your host OS is setup, you&rsquo;re ready to install docker.  (version 1.3 at the time of this writing)</p>
-
-<p>Setup the key for the docker repo:</p>
-
-<p><code>
-$ sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9
-</code></p>
-
-<p>Add the docker repo:</p>
-
-<p><code>
-$ sudo sh -c "echo deb https://get.docker.com/ubuntu docker main &gt; /etc/apt/sources.list.d/docker.list"
-$ sudo apt-get update
-</code></p>
-
-<p>Install docker:</p>
-
-<p><code>
-$ sudo apt-get install lxc-docker
-</code></p>
-
-<h2>Run the docker container</h2>
-
-<p><strong>Find your nvidia devices</strong></p>
-
-<p><code>
-$ ls -la /dev | grep nvidia
-</code></p>
-
-<p>You should see:</p>
-
-<p><code>
-crw-rw-rw-  1 root root    195,   0 Oct 25 19:37 nvidia0
-crw-rw-rw-  1 root root    195, 255 Oct 25 19:37 nvidiactl
-crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm
-</code></p>
-
-<p>You&rsquo;ll have to adapt the <code>DOCKER_NVIDIA_DEVICES</code> variable below to match your particular devices.</p>
-
-<p>Here&rsquo;s how to start the docker container:</p>
-
-<p><code>
-$ DOCKER_NVIDIA_DEVICES="--device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm"
-$ sudo docker run -ti $DOCKER_NVIDIA_DEVICES tleyden5iwx/caffe-gpu /bin/bash
-</code></p>
-
-<p>It&rsquo;s a large docker image, so this might take a few minutes, depending on your network connection.</p>
-
-<h2>Run caffe test suite</h2>
-
-<p>After the above <code>docker run</code> command completes, your shell will now be inside a docker container that has Caffe installed.</p>
-
-<p>You&rsquo;ll want run the Caffe test suite and make sure it passes.  This will validate your environment, including your GPU drivers.</p>
-
-<p><code>
-$ cd /opt/caffe
-$ make test &amp;&amp; make runtest
-</code></p>
-
-<p><strong>Expected Result:</strong> <code>... [  PASSED  ] 838 tests.</code></p>
-
-<h2>Run the MNIST LeNet example</h2>
-
-<p>A more comprehensive way to verify your environment is to train the MNIST LeNet example:</p>
-
-<p><code>
-$ cd /opt/caffe/data/mnist
-$ ./get_mnist.sh
-$ cd /opt/caffe
-$ ./examples/mnist/create_mnist.sh
-$ ./examples/mnist/train_lenet.sh
-</code></p>
-
-<p>This will take a few minutes.</p>
-
-<p><strong>Expected output:</strong></p>
-
-<p><code>
-libdc1394 error: Failed to initialize libdc1394
-I1018 17:02:23.552733    66 caffe.cpp:90] Starting Optimization
-I1018 17:02:23.553583    66 solver.cpp:32] Initializing solver from parameters:
-... lots of output ...
-I1018 17:17:58.684598    66 caffe.cpp:102] Optimization Done.
-</code></p>
-
-<p>Congratulations, you&rsquo;ve got GPU-powered Caffe running in a docker container &mdash; celebrate with a cup of <a href="http://www.yelp.com/biz/philz-coffee-berkeley-2">Philz</a>!</p>
-
-<h1>References</h1>
-
-<ul>
-<li><a href="https://registry.hub.docker.com/u/tleyden5iwx/caffe-gpu">tleyden5iwx/caffe-gpu</a> Caffe Docker image (GPU)</li>
-<li><a href="https://registry.hub.docker.com/u/tleyden5iwx/caffe">tleyden5iwx/caffe</a> Caffe Docker image (CPU-only)</li>
-<li><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5</a></li>
-<li><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">CUDA 6.5 on AWS GPU Instance Running Ubuntu 14.04</a></li>
 </ul>
 
 ]]></content>

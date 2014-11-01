@@ -5,13 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Docker on OSX - Seven Story Rabbit Hole</title>
+  <title>Running Couchbase Cluster Under CoreOS on AWS - Seven Story Rabbit Hole</title>
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Goal Get Docker running under OSX. Environment OSX Mavericks
-Macbook Retina Understanding the tools Vagrant is a tool to provision VMs.
-Virtualbox &hellip;">
+  <meta name="description" content="Here are instructions on how to fire up a Couchbase Server 2.2 cluster running under CoreOS on AWS CloudFormation. You will end up with the following &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -20,7 +18,7 @@ Virtualbox &hellip;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://tleyden.github.io/blog/2013/11/12/docker-on-osx">
+  <link rel="canonical" href="http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
@@ -77,7 +75,7 @@ Virtualbox &hellip;">
   
   <header>
     
-      <h1 class="entry-title">Docker on OSX</h1>
+      <h1 class="entry-title">Running Couchbase Cluster Under CoreOS on AWS</h1>
     
     
       <p class="meta">
@@ -93,81 +91,135 @@ Virtualbox &hellip;">
   
 
 
-<time datetime="2013-11-12T21:01:00-08:00" pubdate data-updated="true">Nov 12<span>th</span>, 2013</time>
+<time datetime="2014-11-01T12:16:00-07:00" pubdate data-updated="true">Nov 1<span>st</span>, 2014</time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><p><img src="http://cl.ly/image/302X103n330L/docker.png" alt="Docker.png" /></p>
+<div class="entry-content"><p>Here are instructions on how to fire up a Couchbase Server 2.2 cluster running under CoreOS on AWS CloudFormation.  You will end up with the following system:</p>
 
-<h1>Goal</h1>
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase-coreos-onion.png" alt="architecture diagram" /></p>
 
-<p>Get Docker running under OSX.</p>
+<h2>Launch CoreOS instances via AWS Cloud Formation</h2>
 
-<h2>Environment</h2>
+<p>Click the &ldquo;Launch Stack&rdquo; button to launch your CoreOS instances via AWS Cloud Formation:</p>
+
+<p><a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#cstack=sn%7ECouchbase-CoreOS%7Cturl%7Ehttp://tleyden-misc.s3.amazonaws.com/couchbase-coreos/coreos-stable-pv.template"><img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"></a></p>
+
+<p><em>NOTE: this is hardcoded to use the us-east-1 region, so if you need a different region, you should edit the URL accordingly</em></p>
+
+<p>Use the following parameters in the form:</p>
 
 <ul>
-<li><p>OSX Mavericks</p></li>
-<li><p>Macbook Retina</p></li>
+<li><strong>ClusterSize</strong>: 3 nodes (default)</li>
+<li><strong>Discovery URL</strong>:  as it says, you need to grab a new token from <a href="https://discovery.etcd.io/new">https://discovery.etcd.io/new</a> and paste it in the box.</li>
+<li><strong>KeyPair</strong>:  use whatever you normally use to start EC2 instances.  For this discussion, let&rsquo;s assumed you used <code>aws</code>, which corresponds to a file you have on your laptop called <code>aws.cer</code></li>
 </ul>
 
 
-<h2>Understanding the tools</h2>
+<h2>ssh into a CoreOS instance</h2>
+
+<p>Go to the AWS console under EC2 instances and find the public ip of one of your newly launched CoreOS instances.</p>
+
+<p>Choose any one of them (it doesn&rsquo;t matter which), and ssh into it as the <strong>core</strong> user with the cert provided in the previous step:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ssh -i aws.cer -A core@ec2-54-83-80-161.compute-1.amazonaws.com</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Sanity check</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ fleetctl list-units</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Should return an empty list, but no errors of any kind.</p>
+
+<h2>Download cluster-init script</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://raw.githubusercontent.com/tleyden/couchbase-server-coreos/master/2.2/scripts/cluster-init.sh
+</span><span class='line'>$ chmod +x cluster-init.sh</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Launch cluster</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./cluster-init.sh -n 3 -u "user:passw0rd"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Where:</p>
 
 <ul>
-<li>Vagrant is a tool to provision VMs.</li>
-<li>Virtualbox is VM software.</li>
-<li>CoreOS is an operating system based on linux that&rsquo;s all about running docker.</li>
+<li><strong>-n</strong> the total number of couchbase nodes to start &mdash; should correspond to number of ec2 instances (eg, 3)</li>
+<li><strong>-u</strong> the username and password as a single string, delimited by a colon (:)</li>
 </ul>
 
 
-<h2>Install VirtualBox + Vagrant</h2>
+<p>Replace <code>user:passw0rd</code> with a sensible username and password.  It <strong>must</strong> be colon separated, with no spaces.  The password itself must be at least 6 characters.</p>
 
-<ul>
-<li><p>Install VirtualBox via <a href="http://download.virtualbox.org/virtualbox/4.3.2/VirtualBox-4.3.2-90405-OSX.dmg">VirtualBox OSX installer</a></p></li>
-<li><p>Install Vagrant via <a href="https://dl.bintray.com/mitchellh/vagrant/vagrant_1.6.2.dmg">Vagrant OSX installer</a></p></li>
-</ul>
+<p>Once this command completes, your cluster will be in the process of launching.</p>
+
+<h2>Verify</h2>
+
+<p>To check the status of your cluster, run:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ fleetctl list-units</span></code></pre></td></tr></table></div></figure>
 
 
-<h2>Vagrant Smoke Test: run Ubuntu Precise</h2>
-
-<p>To make sure Vagrant is installed correctly, run the following commands to see if Ubuntu Precise comes up and you are able to ssh into it.</p>
+<p>You should see four units, all as active.</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>vagrant init precise32 http://files.vagrantup.com/precise32.box
-</span><span class='line'>vagrant up
-</span><span class='line'>vagrant ssh</span></code></pre></td></tr></table></div></figure>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>UNIT                     MACHINE             ACTIVE  SUB
+</span><span class='line'>couchbase_bootstrap_node.service      375d98b9.../10.63.168.35    active  running
+</span><span class='line'>couchbase_bootstrap_node_announce.service 375d98b9.../10.63.168.35    active  running
+</span><span class='line'>couchbase_node.1.service          8cf54d4d.../10.187.61.136   active  running
+</span><span class='line'>couchbase_node.2.service          b8cf0ed6.../10.179.161.76   active  running</span></code></pre></td></tr></table></div></figure>
 
 
-<p>If that doesn&rsquo;t work, you should probably fix it before moving on.  Otherwise, keep reading.</p>
+<h2>Rebalance Couchbase Cluster</h2>
 
-<h2>Install/Run CoreOS</h2>
+<p><strong>Login to Couchbase Server Web Admin</strong></p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git clone https://github.com/coreos/coreos-vagrant/
-</span><span class='line'>cd coreos-vagrant
-</span><span class='line'>vagrant up</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>SSH into CoreOS</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>vagrant ssh</span></code></pre></td></tr></table></div></figure>
+<ul>
+<li>Find the public ip of any of your CoreOS instances via the AWS console</li>
+<li>In a browser, go to <code>http://&lt;instance_public_ip&gt;:8091</code></li>
+<li>Login with the username/password you provided above</li>
+</ul>
 
 
-<h2>Run stock ubuntu docker image</h2>
+<p>After logging in, your Server Nodes tab should look like this:</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>docker run -t -i ubuntu bash</span></code></pre></td></tr></table></div></figure>
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_admin_ui_prerebalance.png" alt="screenshot" /></p>
+
+<p><strong>Kick off initial rebalance</strong></p>
+
+<ul>
+<li>Click server nodes</li>
+<li>Click &ldquo;Rebalance&rdquo;</li>
+</ul>
 
 
-<p>After running this, you should be ssh&rsquo;d inside of an Ubuntu shell, running under docker (running inside of VirtualBox .. etc, all the way up the onion)</p>
+<p>After the rebalance is complete, you should see:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_admin_ui_post_rebalance.png" alt="screenshot" /></p>
+
+<h1>References</h1>
+
+<ul>
+<li><a href="https://github.com/tleyden/couchbase-server-coreos">https://github.com/tleyden/couchbase-server-coreos</a></li>
+<li><a href="https://registry.hub.docker.com/u/ncolomer/couchbase/">https://registry.hub.docker.com/u/ncolomer/couchbase/</a></li>
+<li><a href="https://github.com/lifegadget/docker-couchbase">https://github.com/lifegadget/docker-couchbase</a></li>
+</ul>
+
 </div>
 
 
@@ -190,12 +242,12 @@ Virtualbox &hellip;">
   
 
 
-<time datetime="2013-11-12T21:01:00-08:00" pubdate data-updated="true">Nov 12<span>th</span>, 2013</time>
+<time datetime="2014-11-01T12:16:00-07:00" pubdate data-updated="true">Nov 1<span>st</span>, 2014</time>
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/docker/'>docker</a>
+    <a class='category' href='/blog/categories/aws/'>aws</a>, <a class='category' href='/blog/categories/coreos/'>coreos</a>, <a class='category' href='/blog/categories/couchbase/'>couchbase</a>, <a class='category' href='/blog/categories/docker/'>docker</a>
   
 </span>
 
@@ -204,7 +256,7 @@ Virtualbox &hellip;">
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2013/11/12/docker-on-osx/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2013/11/12/docker-on-osx/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/" >Tweet</a>
   
   
   
@@ -213,10 +265,8 @@ Virtualbox &hellip;">
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2013/09/20/deciphering-some-go-code/" title="Previous Post: Deciphering some Go code">&laquo; Deciphering some Go code</a>
+        <a class="basic-alignment left" href="/blog/2014/10/30/goroutines-vs-threads/" title="Previous Post: Goroutines vs Threads">&laquo; Goroutines vs Threads</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2013/11/14/investigating-an-android-sqlite-threading-deadlock/" title="Next Post: Investigating an Android SQLite threading deadlock">Investigating an Android SQLite threading deadlock &raquo;</a>
       
     </p>
   </footer>
@@ -325,8 +375,8 @@ Virtualbox &hellip;">
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://tleyden.github.io/blog/2013/11/12/docker-on-osx/';
-        var disqus_url = 'http://tleyden.github.io/blog/2013/11/12/docker-on-osx/';
+        var disqus_identifier = 'http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/';
+        var disqus_url = 'http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/';
         var disqus_script = 'embed.js';
       
     (function () {

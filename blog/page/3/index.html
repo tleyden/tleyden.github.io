@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="If you need to debug the HTTP communication between a server and an Android app running in an emulator or device, here&rsquo;s some instructions on &hellip;">
+  <meta name="description" content="Suppose you want to add an http handler which can show some things that in memory. Simple, right? Actually, if you aren&rsquo;t careful, doing this &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +72,340 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/11/21/a-simple-data-race-in-go-and-how-to-fix-it/">A Simple Data Race in Go and How to Fix It</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-21T08:16:00-08:00" pubdate data-updated="true">Nov 21<span>st</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Suppose you want to add an http handler which can show some things that in memory.</p>
+
+<p>Simple, right?  Actually, if you aren&rsquo;t careful, doing this can lead to data races, even though only one goroutine is writing the data at any given time.</p>
+
+<p>Here&rsquo;s the golang code (also on <a href="https://github.com/tleyden/go-scratchpad/blob/1521d96e8f093b06ed57cd32e702b8ccb458e270/concurrentaccess/main.go">github</a>) that reproduces the issue:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>type Foo struct {
+</span><span class='line'>  content string
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>type FooSlice []*Foo
+</span><span class='line'>
+</span><span class='line'>func updateFooSlice(fooSlice FooSlice) {
+</span><span class='line'>  for {
+</span><span class='line'>      foo := &Foo{content: "new"}
+</span><span class='line'>      (*fooSlice)[0] = foo
+</span><span class='line'>      time.Sleep(time.Second)
+</span><span class='line'>  }
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>func installHttpHandler(fooSlice FooSlice) {
+</span><span class='line'>  handler := func(w http.ResponseWriter, r *http.Request) {
+</span><span class='line'>      for _, foo := range fooSlice {
+</span><span class='line'>          if foo != nil {
+</span><span class='line'>              fmt.Fprintf(w, "foo: %v ", (*foo).content)
+</span><span class='line'>          }
+</span><span class='line'>      }
+</span><span class='line'>
+</span><span class='line'>  }
+</span><span class='line'>  http.HandleFunc("/", handler)
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>func main() {
+</span><span class='line'>  foo1 := &Foo{content: "hey"}
+</span><span class='line'>  foo2 := &Foo{content: "yo"}
+</span><span class='line'>  fooSlice := FooSlice{foo1, foo2}
+</span><span class='line'>
+</span><span class='line'>  installHttpHandler(fooSlice)
+</span><span class='line'>
+</span><span class='line'>  go updateFooSlice(fooSlice)
+</span><span class='line'>
+</span><span class='line'>  http.ListenAndServe(":8080", nil)
+</span><span class='line'>}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>if you run this code with <code>go run main.go</code> and then open <code>http://localhost:8080</code> in your browser, it will work as expected.</p>
+
+<p>But not so fast!  Lurking in this code are data races, and if you run this with race detection enabled using <code>go run -race main.go</code> and then access it with the browser, it will panic with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>==================
+</span><span class='line'>WARNING: DATA RACE
+</span><span class='line'>Read by goroutine 6:
+</span><span class='line'>  main.func·001()
+</span><span class='line'>      /../concurrentaccess/main.go:45 +0x9e
+</span><span class='line'>      ...
+</span><span class='line'>Previous write by goroutine 4:
+</span><span class='line'>  main.updateFooSlice()
+</span><span class='line'>      /../concurrentaccess/main.go:35 +0x98
+</span><span class='line'>      ...</span></code></pre></td></tr></table></div></figure>
+
+
+<p>because there are two goroutines accessing the same slice without any protection &mdash; the main goroutine running the http server, and the goroutine running <code>updateFooSlice</code>.</p>
+
+<h2>Fix #1 &ndash; use sync.mutex to lock the slice</h2>
+
+<p>This isn&rsquo;t necessarily the <em>best</em> way to fix this, but it&rsquo;s the simplest to understand and explain.</p>
+
+<p>Here are the changes to the code (also on <a href="https://github.com/tleyden/go-scratchpad/blob/8f031806d5f0d7becef844f5400f2cc663ff4bf7/concurrentaccess/main.go">github</a>):</p>
+
+<ul>
+<li>Import the <code>sync</code> package</li>
+<li>Create a sync.Mutex object in the package-global namespace</li>
+<li>Before updating the slice, lock the mutex, and after updating it, unlock it.</li>
+<li>Before the http handler access the slice, it locks the mutex, and after it&rsquo;s done, it unlocks it.</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>type Foo struct {
+</span><span class='line'>  content string
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>type FooSlice []*Foo
+</span><span class='line'>
+</span><span class='line'>var mutex sync.Mutex
+</span><span class='line'>
+</span><span class='line'>func updateFooSlice(fooSlice FooSlice) {
+</span><span class='line'>  for {
+</span><span class='line'>      mutex.Lock()
+</span><span class='line'>      foo := &Foo{content: "new"}
+</span><span class='line'>      fooSlice[0] = foo
+</span><span class='line'>      fooSlice[1] = nil
+</span><span class='line'>      mutex.Unlock()
+</span><span class='line'>      time.Sleep(time.Second)
+</span><span class='line'>  }
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>func installHttpHandler(fooSlice FooSlice) {
+</span><span class='line'>  handler := func(w http.ResponseWriter, r *http.Request) {
+</span><span class='line'>      mutex.Lock()
+</span><span class='line'>      defer mutex.Unlock()
+</span><span class='line'>      for _, foo := range fooSlice {
+</span><span class='line'>          if foo != nil {
+</span><span class='line'>              fmt.Fprintf(w, "foo: %v ", (*foo).content)
+</span><span class='line'>          }
+</span><span class='line'>      }
+</span><span class='line'>  }
+</span><span class='line'>  http.HandleFunc("/", handler)
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>func main() {
+</span><span class='line'>
+</span><span class='line'>  foo1 := &Foo{content: "hey"}
+</span><span class='line'>  foo2 := &Foo{content: "yo"}
+</span><span class='line'>
+</span><span class='line'>  fooSlice := FooSlice{foo1, foo2}
+</span><span class='line'>
+</span><span class='line'>  installHttpHandler(fooSlice)
+</span><span class='line'>
+</span><span class='line'>  go updateFooSlice(fooSlice)
+</span><span class='line'>
+</span><span class='line'>  http.ListenAndServe(":8080", nil)
+</span><span class='line'>
+</span><span class='line'>}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If you now re-run the code with the <code>-race</code> flag and access <code>http://localhost:8080</code>, it won&rsquo;t panic.</p>
+
+<h2>Digression &ndash; chan chan</h2>
+
+<p>Before we can talk about Fix #2, we need to take a digression to talk about chan chan&rsquo;s &mdash; channels which contain other channels as the morsels of data that pass through the channel tubes (metachannels, if you will).</p>
+
+<p><strong>tl;dr</strong> A channel describes a transport of sorts.  You can send a thing down that transport.  When using a chan chan, the thing you want to send down the transport is another transport to send things back.</p>
+
+<p>If it&rsquo;s still a little fuzzy for you, here&rsquo;s the <a href="http://tleyden.github.io/blog/2013/11/23/understanding-chan-chans-in-go/">long description of chan chan&rsquo;s with diagrams</a></p>
+
+<h2>Fix #2 &ndash; Use channels instead of <code>sync.Mutex</code></h2>
+
+<p>In this version of the fix, the goroutine running the http handler (the main goroutine in this case), makes a response chan and passes it into a request chan chan that both goroutines can access.  It then reads the response from the response chan, which will contain a copy of the FooSlice.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func installHttpHandler(fooSlice FooSlice) {
+</span><span class='line'>        handler := func(w http.ResponseWriter, r *http.Request) {
+</span><span class='line'>                response := make(chan FooSlice)
+</span><span class='line'>                request &lt;- response
+</span><span class='line'>                fooSliceCopy := &lt;-response
+</span><span class='line'>                for _, foo := range fooSliceCopy {
+</span><span class='line'>                        if foo != nil {
+</span><span class='line'>                                fmt.Fprintf(w, "foo: %v ", (*foo).content)
+</span><span class='line'>                        }
+</span><span class='line'>                }
+</span><span class='line'>        }
+</span><span class='line'>        http.HandleFunc("/", handler)
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The other goroutine updates the FooSlice and is also checking the request chan chan for new messages.  If it gets a new request message, it makes a copy of the FooSlice and sends it to the response chan.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func updateFooSlice(fooSlice FooSlice) {
+</span><span class='line'>        t := time.Tick(time.Second)
+</span><span class='line'>        for {
+</span><span class='line'>                select {
+</span><span class='line'>                case &lt;-t:
+</span><span class='line'>                        foo := &Foo{content: "new"}
+</span><span class='line'>                        fooSlice[0] = foo
+</span><span class='line'>                        fooSlice[1] = nil
+</span><span class='line'>                case ch := &lt;-request:
+</span><span class='line'>                        fooSliceCopy := make(FooSlice, len(fooSlice))
+</span><span class='line'>                        copy(fooSliceCopy, fooSlice)
+</span><span class='line'>                        ch &lt;- fooSliceCopy
+</span><span class='line'>                }
+</span><span class='line'>        }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Again, if you now re-run this code with the <code>-race</code> flag and access <code>http://localhost:8080</code>, it won&rsquo;t panic.</p>
+
+<p>The full code sample is <a href="https://github.com/tleyden/go-scratchpad/blob/e92685b35c2d6f61274c7e72a3cdebf85817878a/concurrentaccess/main.go">available on gihub</a></p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1206,6 +1540,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/">Running Couchbase Cluster Under CoreOS on AWS</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/10/30/goroutines-vs-threads/">Goroutines vs Threads</a>
       </li>
     
@@ -1219,10 +1557,6 @@
     
       <li class="post">
         <a href="/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">CUDA 6.5 on AWS GPU Instance Running Ubuntu 14.04</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/09/10/debugging-into-android-source/">Debugging Into Android Source</a>
       </li>
     
   </ul>
