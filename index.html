@@ -109,7 +109,7 @@
 
 <ul>
 <li><p>Launch a new EC2 instance</p></li>
-<li><p>Under &ldquo;Community AMIs&rdquo;, search for <strong>ami-7c8b3f14</strong></p></li>
+<li><p>Under &ldquo;Community AMIs&rdquo;, search for <strong>ami-7c8b3f14</strong> (CoreOS-stable-410.1.0-hvm)</p></li>
 <li><p>Select the GPU instances: <strong>g2.2xlarge</strong></p></li>
 <li><p>Increase root EBS store from 8 GB &ndash;> 20 GB to give yourself some breathing room</p></li>
 </ul>
@@ -123,7 +123,7 @@
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ ssh -A core@ec2-54-80-24-46.compute-1.amazonaws.com</span></code></pre></td></tr></table></div></figure>
 
 
-<h2>Run docker container in privileged mode</h2>
+<h2>Run Ubuntu 12 docker container in privileged mode</h2>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run --privileged=true -i -t ubuntu:12.04 /bin/bash</span></code></pre></td></tr></table></div></figure>
@@ -274,6 +274,77 @@
 
 
 <p>Congratulations!  You now have a docker container running under CoreOS that can access the GPU.</p>
+
+<h1>Appendix A: Using Core OS Alpha</h1>
+
+<p>The instructions above were for an older version of CoreOS.  The following instructions are for Core OS Alpha, and might possibly work on the current version of CoreOS stable (444.5.0).  Only the parts that differ from above steps are listed:</p>
+
+<h2>Launch CoreOS Alpha on an AWS GPU instance</h2>
+
+<ul>
+<li>Under &ldquo;Community AMIs&rdquo;, search for <strong>ami-66e6680e</strong> (CoreOS-alpha-490.0.0-hvm)</li>
+</ul>
+
+
+<h2>Run Ubuntu 14 docker container in privileged mode</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run --privileged=true -i -t ubuntu:14.04 /bin/bash</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After the above command, you should be inside a root shell in your docker container.  The rest of the steps will assume this.</p>
+
+<h2>Install build tools + other required packages</h2>
+
+<p>In order to match the version of gcc that was used to build the CoreOS kernel.  (gcc 4.7)</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ apt-get update
+</span><span class='line'>$ apt-get install gcc-4.7 g++-4.7 wget git make dpkg-dev</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Set gcc 4.7 as default</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ update-alternatives --remove gcc /usr/bin/gcc-4.8
+</span><span class='line'>$ update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.7 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.7
+</span><span class='line'>$ update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 40 --slave /usr/bin/g++ g++ /usr/bin/g++-4.8</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Verify</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ update-alternatives --config gcc</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It should list gcc 4.7 with an asterisk next to it:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>* 0            /usr/bin/gcc-4.7   60        auto mode</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Prepare CoreOS kernel source</h2>
+
+<p><strong>Get CoreOS kernel version</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ uname -a
+</span><span class='line'>Linux ip-10-11-167-200.ec2.internal 3.17.2+ #2 SMP Tue Nov 4 04:15:48 UTC 2014 x86_64 Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz GenuineIntel GNU/Linux</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The CoreOS kernel version is <strong>3.17.2</strong></p>
+
+<p><strong>Switch correct branch for this kernel version </strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd linux
+</span><span class='line'>$ git checkout remotes/origin/coreos/v3.17.2</span></code></pre></td></tr></table></div></figure>
+
 
 <h2>References</h2>
 
