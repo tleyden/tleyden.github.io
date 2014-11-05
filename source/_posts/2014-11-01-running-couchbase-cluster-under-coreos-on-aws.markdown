@@ -36,11 +36,20 @@ $ ssh -i aws.cer -A core@ec2-54-83-80-161.compute-1.amazonaws.com
 
 ## Sanity check
 
+Let's make sure the CoreOS cluster is healthy first:
+
 ```
-$ fleetctl list-units
+$ fleetctl list-machines
 ```
 
-Should return an empty list, but no errors of any kind.
+This should return a list of machines in the cluster, like this:
+
+```
+MACHINE	        IP              METADATA
+03b08680...     10.33.185.16    -
+209a8a2e...     10.164.175.9    -
+25dd84b7...     10.13.180.194   -
+```
 
 ## Download cluster-init script
 
