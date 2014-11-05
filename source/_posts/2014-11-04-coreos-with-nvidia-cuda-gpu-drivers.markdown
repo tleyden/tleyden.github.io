@@ -163,7 +163,7 @@ Result = PASS
 Congratulations!  You now have a docker container running under CoreOS that can access the GPU. 
 
 
-# Appendix A: Using Core OS Alpha
+# Appendix: Using Core OS Alpha
 
 The instructions above were for an older version of CoreOS.  The following instructions are for Core OS Alpha, and might possibly work on the current version of CoreOS stable (444.5.0).  Only the parts that differ from above steps are listed:
 
