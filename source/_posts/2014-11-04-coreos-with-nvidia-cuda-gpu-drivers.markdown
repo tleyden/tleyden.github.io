@@ -20,6 +20,12 @@ This will walk you through installing the Nvidia GPU kernel module and CUDA driv
 
 * Increase root EBS store from 8 GB -> 20 GB to give yourself some breathing room
 
+## ssh into CoreOS instance
+
+```
+$ ssh -A core@ec2-54-80-24-46.compute-1.amazonaws.com
+```
+
 ## Run docker container in privileged mode
 
 ```
@@ -154,6 +160,48 @@ Result = PASS
 
 Congratulations!  You now have a docker container running under CoreOS that can access the GPU. 
 
+## Appendix A: Expose GPU to other docker containers
+
+If you need *other* docker containers on this CoreOS instance to be able to access the GPU, you can do the following steps.
+
+**Exit docker container**
+
+```
+$ exit
+```
+
+You should be back to your CoreOS shell.
+
+**Add nvidia device nodes**
+
+```
+$ wget https://gist.githubusercontent.com/tleyden/74f593a0beea300de08c/raw/95ed93c5751a989e58153db6f88c35515b7af120/nvidia_devices.sh
+$ chmod +x nvida_devices.sh
+$ sudo ./nvida_devices.sh
+```
+
+**Verify device nodes**
+
+```
+$ ls -alh /dev | grep -i nvidia
+crw-rw-rw-  1 root root  251,   0 Nov  5 16:37 nvidia-uvm
+crw-rw-rw-  1 root root  195,   0 Nov  5 16:37 nvidia0
+crw-rw-rw-  1 root root  195, 255 Nov  5 16:37 nvidiactl
+```
+
+**Launch docker containers**
+
+When you launch other docker containers on the same CoreOS instance, to allow them to access the GPU device you will need to add the following arguments:
+
+```
+$ sudo docker run -ti --device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm tleyden5iwx/ubuntu-cuda /bin/bash
+```
+
+A complete example is available in [Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5](http://tleyden.github.io/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5/).  You can pick up at th **Run GPU enabled docker image** step.
+
+
 ## References
 
 * https://groups.google.com/forum/#!topic/coreos-user/CSp_wSywmI4
+* [Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5](http://tleyden.github.io/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5/)
+* http://developer.download.nvidia.com/compute/cuda/6_0/rel/docs/CUDA_Getting_Started_Linux.pdf
