@@ -14,7 +14,7 @@ This will walk you through installing the Nvidia GPU kernel module and CUDA driv
 
 * Launch a new EC2 instance
 
-* Under "Community AMIs", search for **ami-7c8b3f14**
+* Under "Community AMIs", search for **ami-7c8b3f14** (CoreOS-stable-410.1.0-hvm)
 
 * Select the GPU instances: **g2.2xlarge**
 
@@ -28,7 +28,7 @@ Find the public ip of the EC2 instance launched above, and ssh into it:
 $ ssh -A core@ec2-54-80-24-46.compute-1.amazonaws.com
 ```
 
-## Run docker container in privileged mode
+## Run Ubuntu 12 docker container in privileged mode
 
 ```
 $ sudo docker run --privileged=true -i -t ubuntu:12.04 /bin/bash
@@ -161,6 +161,72 @@ Result = PASS
 ```
 
 Congratulations!  You now have a docker container running under CoreOS that can access the GPU. 
+
+
+# Appendix A: Using Core OS Alpha
+
+The instructions above were for an older version of CoreOS.  The following instructions are for Core OS Alpha, and might possibly work on the current version of CoreOS stable (444.5.0).  Only the parts that differ from above steps are listed:
+
+## Launch CoreOS Alpha on an AWS GPU instance
+
+* Under "Community AMIs", search for **ami-66e6680e** (CoreOS-alpha-490.0.0-hvm)
+
+## Run Ubuntu 14 docker container in privileged mode
+
+```
+$ sudo docker run --privileged=true -i -t ubuntu:14.04 /bin/bash
+```
+
+After the above command, you should be inside a root shell in your docker container.  The rest of the steps will assume this.
+
+## Install build tools + other required packages
+
+In order to match the version of gcc that was used to build the CoreOS kernel.  (gcc 4.7)
+
+```
+$ apt-get update
+$ apt-get install gcc-4.7 g++-4.7 wget git make dpkg-dev
+```
+
+**Set gcc 4.7 as default**
+
+```
+$ update-alternatives --remove gcc /usr/bin/gcc-4.8
+$ update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.7 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.7
+$ update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 40 --slave /usr/bin/g++ g++ /usr/bin/g++-4.8
+```
+
+**Verify**
+
+```
+$ update-alternatives --config gcc
+```
+
+It should list gcc 4.7 with an asterisk next to it:
+
+```
+* 0            /usr/bin/gcc-4.7   60        auto mode
+```
+
+## Prepare CoreOS kernel source
+
+
+**Get CoreOS kernel version**
+
+```
+$ uname -a
+Linux ip-10-11-167-200.ec2.internal 3.17.2+ #2 SMP Tue Nov 4 04:15:48 UTC 2014 x86_64 Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz GenuineIntel GNU/Linux
+```
+
+The CoreOS kernel version is **3.17.2**
+
+**Switch correct branch for this kernel version **
+
+```
+$ cd linux
+$ git checkout remotes/origin/coreos/v3.17.2
+```
+
 
 ## References
 
