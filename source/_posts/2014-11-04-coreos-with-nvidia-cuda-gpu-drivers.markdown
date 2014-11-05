@@ -20,6 +20,14 @@ This will walk you through installing the Nvidia GPU kernel module and CUDA driv
 
 * Increase root EBS store from 8 GB -> 20 GB to give yourself some breathing room
 
+## ssh into CoreOS instance
+
+Find the public ip of the EC2 instance launched above, and ssh into it:
+
+```
+$ ssh -A core@ec2-54-80-24-46.compute-1.amazonaws.com
+```
+
 ## Run docker container in privileged mode
 
 ```
