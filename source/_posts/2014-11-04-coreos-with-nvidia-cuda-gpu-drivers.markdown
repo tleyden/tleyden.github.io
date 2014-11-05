@@ -3,7 +3,7 @@ layout: post
 title: "CoreOS with Nvidia CUDA GPU drivers"
 date: 2014-11-04 07:08
 comments: true
-categories: coreos gpu nvidia cuda
+categories: coreos gpu nvidia docker
 ---
 
 This will walk you through installing the Nvidia GPU kernel module and CUDA drivers on a docker container running inside of CoreOS.
