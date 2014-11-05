@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>CUDA 6.5 on AWS GPU instance running Ubuntu 14.04 - Seven Story Rabbit Hole</title>
+  <title>CoreOS with Nvidia CUDA GPU drivers - Seven Story Rabbit Hole</title>
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Using a pre-built public AMI Based on the instructions in this blog post, I&rsquo;ve created an AMI and shared it publicly. So the easiest thing to &hellip;">
+  <meta name="description" content="This will walk you through installing the Nvidia GPU kernel module and CUDA drivers on a docker container running inside of CoreOS. Launch CoreOS on &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04">
+  <link rel="canonical" href="http://tleyden.github.io/blog/2014/11/04/coreos-with-nvidia-cuda-gpu-drivers">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
@@ -75,7 +75,7 @@
   
   <header>
     
-      <h1 class="entry-title">CUDA 6.5 on AWS GPU Instance Running Ubuntu 14.04</h1>
+      <h1 class="entry-title">CoreOS With Nvidia CUDA GPU Drivers</h1>
     
     
       <p class="meta">
@@ -91,52 +91,102 @@
   
 
 
-<time datetime="2014-10-25T11:56:00-07:00" pubdate data-updated="true">Oct 25<span>th</span>, 2014</time>
+<time datetime="2014-11-04T07:08:00-08:00" pubdate data-updated="true">Nov 4<span>th</span>, 2014</time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><h2>Using a pre-built public AMI</h2>
+<div class="entry-content"><p>This will walk you through installing the Nvidia GPU kernel module and CUDA drivers on a docker container running inside of CoreOS.</p>
 
-<p>Based on the instructions in this blog post, I&rsquo;ve created an AMI and shared it publicly.  So the easiest thing to do is just use that pre-built AMI:</p>
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/coreos-nvidia-gpu.png" alt="architecture diagram" /></p>
+
+<h2>Launch CoreOS on an AWS GPU instance</h2>
 
 <ul>
-<li>Image: ami-2cbf3e44 (Ubuntu Server 14.04 LTS (HVM) &ndash; CUDA 6.5)</li>
-<li>Instance type: g2.2xlarge</li>
-<li>Storage: Use at least 8 GB, 20+ GB recommended</li>
+<li><p>Launch a new EC2 instance</p></li>
+<li><p>Under &ldquo;Community AMIs&rdquo;, search for <strong>ami-7c8b3f14</strong></p></li>
+<li><p>Select the GPU instances: <strong>g2.2xlarge</strong></p></li>
+<li><p>Increase root EBS store from 8 GB &ndash;> 20 GB to give yourself some breathing room</p></li>
 </ul>
 
 
-<p>If you use the pre-built AMI, then you can skip the rest of this article, since all of these steps are &ldquo;baked in&rdquo; to the AMI.</p>
-
-<h2>Building from scratch</h2>
-
-<p>Or if you prefer to build your own instance from scratch, keep reading.</p>
-
-<p>Create a new EC2 instance:</p>
-
-<ul>
-<li>Image: ami-9eaa1cf6 (Ubuntu Server 14.04 LTS (HVM), SSD Volume Type)</li>
-<li>Instance type: g2.2xlarge</li>
-<li>Storage: Use at least 8 GB, 20+ GB recommended</li>
-</ul>
-
-
-<p>Install build-essential:</p>
+<h2>Run docker container in privileged mode</h2>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ apt-get update && apt-get install build-essential</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run --privileged=true -i -t ubuntu:12.04 /bin/bash</span></code></pre></td></tr></table></div></figure>
 
 
-<p>Get CUDA installer:</p>
+<p>After the above command, you should be inside a root shell in your docker container.  The rest of the steps will assume this.</p>
+
+<h2>Install build tools + other required packages</h2>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget http://developer.download.nvidia.com/compute/cuda/6_5/rel/installers/cuda_6.5.14_linux_64.run</span></code></pre></td></tr></table></div></figure>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ apt-get update
+</span><span class='line'>$ apt-get install build-essential wget git</span></code></pre></td></tr></table></div></figure>
 
 
-<p>Extract CUDA installer:</p>
+<h2>Prepare CoreOS kernel source</h2>
+
+<p><strong>Clone CoreOS kernel repository</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ mkdir -p /usr/src/kernels
+</span><span class='line'>$ cd /usr/src/kernels
+</span><span class='line'>$ git clone https://github.com/coreos/linux.git</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Get CoreOS kernel version</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ uname -a
+</span><span class='line'>Linux ip-10-183-54-167.ec2.internal 3.15.8+ #2 SMP Fri Sep 26 08:37:17 UTC 2014 x86_64 Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz GenuineIntel GNU/Linux</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The CoreOS kernel version is <strong>3.15.8</strong></p>
+
+<p><strong>Switch correct branch for this kernel version </strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd linux
+</span><span class='line'>$ git checkout remotes/origin/coreos/v3.15.8</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Create kernel configuration file</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ zcat /proc/config.gz &gt; /usr/src/kernels/linux/.config</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Prepare kernel source for building modules</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /usr/src/kernels/linux
+</span><span class='line'>$ make modules_prepare</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now you should be ready to install the nvidia driver.</p>
+
+<h2>Install nvidia driver</h2>
+
+<p><strong>Download</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ mkdir -p /opt/nvidia
+</span><span class='line'>$ cd /opt/nvidia
+</span><span class='line'>$ wget http://developer.download.nvidia.com/compute/cuda/6_5/rel/installers/cuda_6.5.14_linux_64.run</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Unpack</strong></p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -146,116 +196,47 @@
 </span><span class='line'>$ ./cuda_6.5.14_linux_64.run -extract=`pwd`/nvidia_installers</span></code></pre></td></tr></table></div></figure>
 
 
-<p>Run Nvidia driver installer:</p>
+<p><strong>Install</strong></p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ cd nvidia_installers
-</span><span class='line'>$ ./NVIDIA-Linux-x86_64-340.29.run</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>$ ./NVIDIA-Linux-x86_64-340.29.run --kernel-source-path=/usr/src/kernels/linux/</span></code></pre></td></tr></table></div></figure>
 
 
-<p>At this point it will popup an 8-bit UI that will ask you to accept a license agreement, and then start installing.</p>
+<p><strong>Installer Questions</strong></p>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/install_cuda.png" alt="screenshot" /></p>
-
-<p>At this point, I got an error:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>Unable to load the kernel module 'nvidia.ko'.  This happens most frequently when this kernel module was built against the wrong or
-</span><span class='line'>         improperly configured kernel sources, with a version of gcc that differs from the one used to build the target kernel, or if a driver
-</span><span class='line'>         such as rivafb, nvidiafb, or nouveau is present and prevents the NVIDIA kernel module from obtaining ownership of the NVIDIA graphics
-</span><span class='line'>         device(s), or no NVIDIA GPU installed in this system is supported by this NVIDIA Linux graphics driver release.
-</span><span class='line'>
-</span><span class='line'>         Please see the log entries 'Kernel module load error' and 'Kernel messages' at the end of the file '/var/log/nvidia-installer.log'
-</span><span class='line'>         for more information.</span></code></pre></td></tr></table></div></figure>
+<ul>
+<li>Install NVidia&rsquo;s 32-bit compatibility libraries? <strong>YES</strong></li>
+<li>Would you like to run nvidia-xconfig? <strong>NO</strong></li>
+</ul>
 
 
-<p>After <a href="https://devtalk.nvidia.com/default/topic/547588/error-installing-nvidia-drivers-on-x86_64-amazon-ec2-gpu-cluster-t20-gpu-/">reading this forum post</a> I installed:</p>
+<p>If everything worked, you should see:</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get install linux-image-extra-virtual</span></code></pre></td></tr></table></div></figure>
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/nvidia_driver_installed.png" alt="nvidia drivers installed" /></p>
 
-
-<p>When it prompted me what do to about the grub changes, I chose &ldquo;choose package maintainers version&rdquo;.</p>
-
-<p>Reboot:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ reboot</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Disable nouveau</h2>
-
-<p>At this point you need to disable nouveau, since it conflicts with the nvidia kernel module.</p>
-
-<p>Open a new file</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ vi /etc/modprobe.d/blacklist-nouveau.conf</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and add these lines to it</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>blacklist nouveau
-</span><span class='line'>blacklist lbm-nouveau
-</span><span class='line'>options nouveau modeset=0
-</span><span class='line'>alias nouveau off
-</span><span class='line'>alias lbm-nouveau off</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and then save the file.</p>
-
-<p>Disable the Kernel Nouveau:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ echo options nouveau modeset=0 | sudo tee -a /etc/modprobe.d/nouveau-kms.conf</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Reboot:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ update-initramfs -u
-</span><span class='line'>$ reboot</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>One more try &mdash; this time it works</h2>
-
-<p>Get Kernel source:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ apt-get install linux-source
-</span><span class='line'>$ apt-get install linux-headers-3.13.0-37-generic
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Rerun Nvidia driver installer:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd nvidia_installers
-</span><span class='line'>$ ./NVIDIA-Linux-x86_64-340.29.run</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Load nvidia kernel module:</p>
+<h2>Load nvidia kernel module</h2>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ modprobe nvidia</span></code></pre></td></tr></table></div></figure>
 
 
-<p>Run CUDA + samples installer:</p>
+<p>No errors should be returned.  Verify it&rsquo;s loaded by running:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ lsmod | grep -i nvidia</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and you should see:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>nvidia              10533711  0
+</span><span class='line'>i2c_core               41189  2 nvidia,i2c_piix4</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Install CUDA</h2>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -263,7 +244,7 @@
 </span><span class='line'>$ ./cuda-samples-linux-6.5.14-18745345.run</span></code></pre></td></tr></table></div></figure>
 
 
-<h2>Verify CUDA is correctly installed</h2>
+<h2>Verify CUDA</h2>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -281,14 +262,12 @@
 </span><span class='line'>Result = PASS</span></code></pre></td></tr></table></div></figure>
 
 
+<p>Congratulations!  You now have a docker container running under CoreOS that can access the GPU.</p>
+
 <h2>References</h2>
 
 <ul>
-<li><a href="http://www.r-tutor.com/gpu-computing/cuda-installation/cuda6.5-ubuntu">http://www.r-tutor.com/gpu-computing/cuda-installation/cuda6.5-ubuntu</a></li>
-<li><a href="http://askubuntu.com/questions/451672/installing-and-testing-cuda-in-ubuntu-14-04">http://askubuntu.com/questions/451672/installing-and-testing-cuda-in-ubuntu-14-04</a></li>
-<li><a href="https://devtalk.nvidia.com/default/topic/547588/error-installing-nvidia-drivers-on-x86_64-amazon-ec2-gpu-cluster-t20-gpu-/">https://devtalk.nvidia.com/default/topic/547588/error-installing-nvidia-drivers-on-x86_64-amazon-ec2-gpu-cluster-t20-gpu-/</a></li>
-<li><a href="https://devtalk.nvidia.com/default/topic/769719/drm-ko-missing-on-ubuntu-14-04-1-lts-aws-ec2-g2-2xlarge-instance/">https://devtalk.nvidia.com/default/topic/769719/drm-ko-missing-on-ubuntu-14-04-1-lts-aws-ec2-g2-2xlarge-instance/</a></li>
-<li><a href="http://askubuntu.com/questions/451221/ubuntu-14-04-install-nvidia-driver">http://askubuntu.com/questions/451221/ubuntu-14-04-install-nvidia-driver</a></li>
+<li><a href="https://groups.google.com/forum/#!topic/coreos-user/CSp_wSywmI4">https://groups.google.com/forum/#!topic/coreos-user/CSp_wSywmI4</a></li>
 </ul>
 
 </div>
@@ -313,12 +292,12 @@
   
 
 
-<time datetime="2014-10-25T11:56:00-07:00" pubdate data-updated="true">Oct 25<span>th</span>, 2014</time>
+<time datetime="2014-11-04T07:08:00-08:00" pubdate data-updated="true">Nov 4<span>th</span>, 2014</time>
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/aws/'>aws,</a>, <a class='category' href='/blog/categories/gpu/'>gpu</a>
+    <a class='category' href='/blog/categories/coreos/'>coreos</a>, <a class='category' href='/blog/categories/cuda/'>cuda</a>, <a class='category' href='/blog/categories/gpu/'>gpu</a>, <a class='category' href='/blog/categories/nvidia/'>nvidia</a>
   
 </span>
 
@@ -327,7 +306,7 @@
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2014/11/04/coreos-with-nvidia-cuda-gpu-drivers/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2014/11/04/coreos-with-nvidia-cuda-gpu-drivers/" >Tweet</a>
   
   
   
@@ -336,10 +315,8 @@
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2014/09/10/debugging-into-android-source/" title="Previous Post: Debugging into Android source">&laquo; Debugging into Android source</a>
+        <a class="basic-alignment left" href="/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/" title="Previous Post: Running Couchbase Cluster Under CoreOS on AWS">&laquo; Running Couchbase Cluster Under CoreOS on AWS</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5/" title="Next Post: Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5">Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5 &raquo;</a>
       
     </p>
   </footer>
@@ -448,8 +425,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/';
-        var disqus_url = 'http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/';
+        var disqus_identifier = 'http://tleyden.github.io/blog/2014/11/04/coreos-with-nvidia-cuda-gpu-drivers/';
+        var disqus_url = 'http://tleyden.github.io/blog/2014/11/04/coreos-with-nvidia-cuda-gpu-drivers/';
         var disqus_script = 'embed.js';
       
     (function () {

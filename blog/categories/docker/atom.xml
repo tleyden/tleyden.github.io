@@ -4,7 +4,7 @@
   <title><![CDATA[Category: docker | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/docker/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-11-01T12:27:40-07:00</updated>
+  <updated>2014-11-05T08:11:56-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -51,11 +51,20 @@ $ ssh -i aws.cer -A core@ec2-54-83-80-161.compute-1.amazonaws.com
 
 <h2>Sanity check</h2>
 
+<p>Let&rsquo;s make sure the CoreOS cluster is healthy first:</p>
+
 <p><code>
-$ fleetctl list-units
+$ fleetctl list-machines
 </code></p>
 
-<p>Should return an empty list, but no errors of any kind.</p>
+<p>This should return a list of machines in the cluster, like this:</p>
+
+<p><code>
+MACHINE         IP              METADATA
+03b08680...     10.33.185.16    -
+209a8a2e...     10.164.175.9    -
+25dd84b7...     10.13.180.194   -
+</code></p>
 
 <h2>Download cluster-init script</h2>
 
