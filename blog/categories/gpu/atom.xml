@@ -4,7 +4,7 @@
   <title><![CDATA[Category: gpu | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/gpu/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-11-05T10:23:45-08:00</updated>
+  <updated>2014-11-05T10:24:48-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -176,7 +176,7 @@ Result = PASS
 
 <p>Congratulations!  You now have a docker container running under CoreOS that can access the GPU.</p>
 
-<h1>Appendix A: Using Core OS Alpha</h1>
+<h1>Appendix: Using Core OS Alpha</h1>
 
 <p>The instructions above were for an older version of CoreOS.  The following instructions are for Core OS Alpha, and might possibly work on the current version of CoreOS stable (444.5.0).  Only the parts that differ from above steps are listed:</p>
 
