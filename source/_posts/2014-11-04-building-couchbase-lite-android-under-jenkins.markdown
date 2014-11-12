@@ -39,23 +39,27 @@ curl localhost:8080
 
 and you should see some HTML returned.
 
-## Install git plugin
+## Git plugin
 
-* Go to Manage Jenkins / Manage Plugins
-* Click "Available" tab
-* Search for "Git plugin"
-* Install it 
+**Install**
+
+* Go to Manage Jenkins / Manage Plugins and click "Available" tab
+* Search for "Git plugin" + install it 
+
+**Configure**
+
+* Repository URL: https://github.com/couchbase/couchbase-lite-android
+* Add Additional Behavior: Recursively update submodules
 
 ## Install Android SDK
 
-NOTE: this was moved to /var/lib/jenkins/tools/android-sdk, need to update the following steps.
-
-See https://www.digitalocean.com/community/tutorials/how-to-build-android-apps-with-jenkins
+The Android Emulator plugin expects to find the android-sdk in `/var/lib/jenkins/tools`, so install it there.
 
 ```
-cd /opt
+cd /var/lib/jenkins/tools
 wget http://dl.google.com/android/android-sdk_r23.0.2-linux.tgz
 tar xvfz android-sdk_r23.0.2-linux.tgz
+mv android-sdk-linux android-sdk
 ```
 
 **Add environment variables**
@@ -63,12 +67,11 @@ tar xvfz android-sdk_r23.0.2-linux.tgz
 Run `vi /etc/profile.d/android.sh` and add:
 
 ```
-export ANDROID_HOME="/opt/android-sdk-linux"
+export ANDROID_HOME="/var/lib/jenkins/tools/android-sdk"
 export PATH="$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$PATH"
 ```
 
 And then reload the file with: `source /etc/profile`
-
 
 ## Configure Android SDK
 
@@ -92,41 +95,44 @@ Now install by number:
 android update sdk -u --all --filter 8
 ```
 
-**Install CPU System Images**
-
-```
-$ $ android list sdk --all | grep -i "system image" | grep -i 19 | grep -i arm | grep -i eabi
-  62- ARM EABI v7a System Image, Android API 19, revision 2
-```
-Now install by number:
-
-```
-android update sdk -u --all --filter 62
-```
-
 **Make Android SDK accessible by Jenkins**
 
 ```
-sudo chmod -R 755 /opt/android-sdk-linux
+sudo chmod -R 755 /var/lib/jenkins/tools/android-sdk
 ```
 
-## Install Android emulator plugin
+## Add build exec task
 
-**Jenkins install**
+```
+cat local.properties.example | sed 's/\/Applications\/Android Studio.app\/sdk/\/var\/lib\/jenkins\/tools\/android-sdk/g' > local.properties
+cp settings.gradle.example settings.gradle
+./gradlew buildassembleDebugTest
+```
 
-Go to Jenkins plugin manager and install Android Emulator plugin.
+## Install and Configure AppThwack
 
-**Configure**
+**Install Jenkins AppThwack plugin**
 
-* Android OS version: 4.4
-* Screen density: 160
-* Screen resolution: WVGA
-* Target ABI: armeabi-v7a
-* Advanced / Emulator options: `-no-audio -gpu off`
-* Advanced / Emulator executable: `emulator64-arm`
+It is available from the Jenkins plugin manager
+
+**Configure AppThwack**
+
+* In Manage Jenkins / Configure, add your AppThwack Api key
+* In the Jenkins job config, add a new post-build action
+* Choose Run Tests on AppThwack
+* Hit "Refresh" button to pull latest settings from AppThwack
+* Choose Project and Device Pool
+* Under Application, enter `**/build/outputs/apk/couchbase-lite-android-debug-test-unaligned.apk`
+* Under "Choose tests to run", click ( ) JUnit/Robotium/Espresso
+* For **Tests** enter: `**/build/outputs/apk/couchbase-lite-android-debug-test-unaligned.apk`
+
 
 ## References
 
+* http://blog.appthwack.com/continuous-integration-for-mobile-apps/
 * https://www.digitalocean.com/community/tutorials/how-to-build-android-apps-with-jenkins
 * https://wiki.jenkins-ci.org/display/JENKINS/Installing+Jenkins+on+Ubuntu
 * http://stackoverflow.com/questions/22333041/android-emulator-plugin-failed-to-initialize-backend-egl-display
+* http://stackoverflow.com/questions/17020298/android-sdks-build-tools-17-0-0-aapt-error-while-loading-shared-libraries-libz
+* http://askubuntu.com/questions/147400/problems-with-eclipse-and-android-sdk
+* http://stackoverflow.com/questions/15590239/emulator-warning-could-not-initialize-opengles-emulation-using-software-rende
