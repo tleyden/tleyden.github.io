@@ -257,7 +257,21 @@ $ wget https://s3.amazonaws.com/bitly-downloads/ &hellip;">
 </span><span class='line'>2014/11/12 08:37:29 Got a message: &{[48 55 54 52 48 57 51 56 50 100 50 56 101 48 48 55] [116 101 115 116] 1415810020571836511 2 0xc208042118 0 0}</span></code></pre></td></tr></table></div></figure>
 
 
+<p>Congratulations!  You just pushed a message through <strong>NSQ</strong>.</p>
 
+<h2>Enhanced consumer: use NSQLookupd</h2>
+
+<p>The above example hardcoded the ip of <code>nsqd</code> into the consumer code, which is not a best practice.  A better way to go about it is to point the consumer at <code>nsqlookupd</code>, which will transparently connect to the appropriate <code>nsqd</code> that happens to be publishing that topic.</p>
+
+<p>In our example, we only have a single <code>nsqd</code>, so it&rsquo;s an extraneous lookup.  But it&rsquo;s good to get into the right habits early, especially if you are a <em>habitual copy/paster</em>.</p>
+
+<p>The consumer example only needs a one-line change to get this enhancement:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>err := q.ConnectToNSQLookupd("127.0.0.1:4161")</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Which will connect to the HTTP port of <code>nsqlookupd</code>.</p>
 </div>
 
 
