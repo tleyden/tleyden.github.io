@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="This explains the steps to get a productive Emacs environment for Go programming on OSX, starting from scratch. Install Emacs I recommend using the &hellip;">
+  <meta name="description" content="This is a continuation of Part 1, so if you haven&rsquo;t read that already, you should do so now. goimports The idea of goimports is that every time &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +72,218 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2/">Configure Emacs as a Go Editor From Scratch Part 2</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-05-27T12:03:00-07:00" pubdate data-updated="true">May 27<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>This is a continuation of <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">Part 1</a>, so if you haven&rsquo;t read that already, you should do so now.</p>
+
+<h2>goimports</h2>
+
+<p>The idea of goimports is that every time you save a file, it will automatically update all of your imports, so you don&rsquo;t have to.  This can save a lot of time.  Kudos to <a href="https://twitter.com/bradfitz">@bradfitz</a> for taking the time to build this nifty tool.</p>
+
+<p>Since this project is hosted on Google Code&rsquo;s mercurial repository, if you don&rsquo;t have mercurial installed already, you&rsquo;ll first need to install it with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ brew install hg</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Next, go get goimports with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go get code.google.com/p/go.tools/cmd/goimports</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Continuing on previous .emacs in <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">Part 1</a>, update your .emacs to:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>(defun my-go-mode-hook ()
+</span><span class='line'>  ; Use goimports instead of go-fmt
+</span><span class='line'>  (setq gofmt-command "goimports")
+</span><span class='line'>  ; Call Gofmt before saving
+</span><span class='line'>  (add-hook 'before-save-hook 'gofmt-before-save)
+</span><span class='line'>  ; Customize compile command to run go build
+</span><span class='line'>  (if (not (string-match "go" compile-command))
+</span><span class='line'>      (set (make-local-variable 'compile-command)
+</span><span class='line'>           "go build -v && go test -v && go vet"))
+</span><span class='line'>  ; Godef jump key binding
+</span><span class='line'>  (local-set-key (kbd "M-.") 'godef-jump))
+</span><span class='line'>(add-hook 'go-mode-hook 'my-go-mode-hook)</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Restart emacs</strong> to force it to reload the configuration</p>
+
+<h3>Testing out goimports</h3>
+
+<ul>
+<li>Open an existing .go file that contains imports</li>
+<li>Remove one or more of the imports</li>
+<li>Save the file</li>
+</ul>
+
+
+<p>After you save the file, it should re-add the imports.  Yay!</p>
+
+<p>Basically any time you add or remove code that requires a different set of imports, saving the file will cause it to re-write the file with the correct imports.</p>
+
+<h2>The Go Oracle</h2>
+
+<p>The Go Oracle will blow your mind!  It can do things like find all the callers of a given function/method.  It can also show you all the functions that read or write from a given channel.  In short, it rocks.</p>
+
+<p>Here&rsquo;s what you need to do in order to wield this powerful tool from within Emacs.</p>
+
+<h3>Go get oracle</h3>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>go get code.google.com/p/go.tools/cmd/oracle</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Move oracle binary so Emacs can find it</h3>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>sudo mv $GOPATH/bin/oracle $GOROOT/bin/</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Update .emacs</h3>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>; Go Oracle
+</span><span class='line'>(load-file "$GOPATH/src/code.google.com/p/go.tools/cmd/oracle/oracle.el")
+</span><span class='line'>
+</span><span class='line'>(defun my-go-mode-hook ()
+</span><span class='line'>  ; Use goimports instead of go-fmt
+</span><span class='line'>  (setq gofmt-command "goimports")
+</span><span class='line'>  ; Call Gofmt before saving
+</span><span class='line'>  (add-hook 'before-save-hook 'gofmt-before-save)
+</span><span class='line'>  ; Customize compile command to run go build
+</span><span class='line'>  (if (not (string-match "go" compile-command))
+</span><span class='line'>      (set (make-local-variable 'compile-command)
+</span><span class='line'>           "go build -v && go test -v && go vet"))
+</span><span class='line'>  ; Godef jump key binding
+</span><span class='line'>  (local-set-key (kbd "M-.") 'godef-jump))
+</span><span class='line'>  ; Go Oracle
+</span><span class='line'>  (go-oracle-mode)
+</span><span class='line'>(add-hook 'go-mode-hook 'my-go-mode-hook)
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Restart Emacs</strong> to make these changes take effect.</p>
+
+<h3>Get a test package to play with</h3>
+
+<p>This package works with go-oracle (I tested it out while writing this blog post), so you should use it to give Go Oracle a spin:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>go get github.com/tleyden/checkers-bot-minimax</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Set the oracle analysis scope</h3>
+
+<p>From within emacs, open <code>$GOPATH/src/github.com/tleyden/checkers-bot-minimax/thinker.go</code></p>
+
+<p>You need to tell Go Oracle the <strong>main</strong> package scope under which you want it to operate:</p>
+
+<p><code>M-x go-oracle-set-scope</code></p>
+
+<p>it will prompt you with:</p>
+
+<p><code>Go oracle scope:</code></p>
+
+<p>and you should enter:</p>
+
+<p><code>github.com/tleyden/checkers-bot-minimax</code> and hit Enter.</p>
+
+<p>Nothing will appear to happen, but now Go Oracle is now ready to show it&rsquo;s magic.  (<em>note</em> it will <strong>not</strong> autocomplete packages in this dialog, which is mildly annoying.  Make sure to spell them correctly.)</p>
+
+<p><strong>Important:</strong> When you call <code>go-oracle-set-scope</code>, you always need to give it a <strong>main</strong> package.  This is something that will probably frequently trip you up while using Go Oracle.</p>
+
+<h3>Use oracle to find the callers of a method</h3>
+
+<p>You should still have the <code>$GOPATH/src/github.com/tleyden/checkers-bot-minimax/thinker.go</code> file open within emacs.</p>
+
+<p>Position the cursor on the &ldquo;T&rdquo; in the <code>Think</code> method (line 13 of thinker.go):</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/Emacs_go_oracle_0" alt="screenshot" /></p>
+
+<p>And then run</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>M-x go-oracle-callers</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Emacs should open a new buffer on the right hand side with all of the places where the <code>Think</code> method is called.  In this case, there is only one place in the code that calls it:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/Emacs_go_oracle" alt="screenshot" /></p>
+
+<p>To go to the call site, position your cursor on the red underscore to the left of &ldquo;dynamic method call&rdquo; and hit Enter.  It should take you to line 240 in gamecontroller.go:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/Emacs_go_oracle2" alt="screenshot" /></p>
+
+<p>Note that it actually crossed package boundaries, since the called function (<code>Think</code>) was in the <code>main</code> package, while the call site was in the <code>checkersbot</code> package.</p>
+
+<p>If you got this far, you are up and running with The Go Oracle on Emacs!</p>
+
+<p>Now you should try it with one of your own packages.</p>
+
+<p>This is just scratching the surface &mdash; to get more information on how to use Go Oracle, see <a href="https://docs.google.com/document/d/1SLk36YRjjMgKqe490mSRzOPYEDe0Y_WQNRv-EiFYUyw/view">go oracle: user manual</a>.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1025,169 +1237,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/11/23/understanding-chan-chans-in-go/">Understanding Chan Chan&#8217;s in Go</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-11-23T07:58:00-08:00" pubdate data-updated="true">Nov 23<span>rd</span>, 2013</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>A channel describes a transport of sorts.  You can send a thing down that transport.  When using a chan chan, the thing you want to send down the transport is another transport to send things back.</p>
-
-<p>They are useful when you want to get a response to something, and you don&rsquo;t want to setup two channels (it&rsquo;s generally considered bad practice to have data moving bidirectionally on a single channel)</p>
-
-<h2>Visual time lapse walkthrough</h2>
-
-<p>Keep in mind that Goroutine C is the &ldquo;real consumer&rdquo; even though it will be the one which writes to the request channel.</p>
-
-<p>The request channel starts out empty.</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_1.png" alt="Screenshot" /></p>
-
-<p>Goroutine C passes a &ldquo;response channel&rdquo; to go routine D via the request channel</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_2.png" alt="Screenshot" /></p>
-
-<p>Goroutine C starts reading from the (still empty) response channel.</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_3.png" alt="Screenshot" /></p>
-
-<p>Goroutine D writes a string to the response channel</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_4.png" alt="Screenshot" /></p>
-
-<p>Goroutine C now is able to read a value from response channel, and get&rsquo;s the &ldquo;wassup!&rdquo; message</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_5.png" alt="Screenshot" /></p>
-
-<p>And now we are back to where we started</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_1.png" alt="Screenshot" /></p>
-
-<h2>Here is some code that uses chan chan&rsquo;s</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>package main
-</span><span class='line'>
-</span><span class='line'>import "fmt"
-</span><span class='line'>import "time"
-</span><span class='line'>
-</span><span class='line'>func main() {
-</span><span class='line'>
-</span><span class='line'>     // make the request chan chan that both go-routines will be given
-</span><span class='line'>     requestChan := make(chan chan string)
-</span><span class='line'>
-</span><span class='line'>     // start the goroutines
-</span><span class='line'>     go goroutineC(requestChan)
-</span><span class='line'>     go goroutineD(requestChan)
-</span><span class='line'>
-</span><span class='line'>     // sleep for a second to let the goroutines complete
-</span><span class='line'>     time.Sleep(time.Second)
-</span><span class='line'>
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>func goroutineC(requestChan chan chan string) {
-</span><span class='line'>
-</span><span class='line'>     // make a new response chan
-</span><span class='line'>     responseChan := make(chan string)
-</span><span class='line'>
-</span><span class='line'>     // send the responseChan to goRoutineD
-</span><span class='line'>     requestChan &lt;- responseChan
-</span><span class='line'>
-</span><span class='line'>     // read the response
-</span><span class='line'>     response := &lt;-responseChan
-</span><span class='line'>
-</span><span class='line'>     fmt.Printf("Response: %v\n", response)
-</span><span class='line'>
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>func goroutineD(requestChan chan chan string) {
-</span><span class='line'>
-</span><span class='line'>     // read the responseChan from the requestChan
-</span><span class='line'>     responseChan := &lt;-requestChan
-</span><span class='line'>
-</span><span class='line'>     // send a value down the responseChan
-</span><span class='line'>     responseChan &lt;- "wassup!"
-</span><span class='line'>
-</span><span class='line'>}
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This code can be run on <a href="http://play.golang.org/p/chi6P2XGTO">Go playground</a></p>
-
-<h2>For more information</h2>
-
-<p>See <a href="https://www.youtube.com/watch?v=QDDwwePbDtw">Google I/O 2013 &ndash; Advanced Go Concurrency Patterns</a> around 17:00.  This contains another explanation of chan chan&rsquo;s.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/3/">&larr; Older</a>
@@ -1203,17 +1252,21 @@
     <section>
   <h1>About Me</h1>
   <p>
-  I&#8217;m a startup engineer at Couchbase, working on <a href="https://github.com/couchbase/couchbase-lite-android">Couchbase Lite for Android</a> &#8211; a mobile NoSQL database with Sync built-in.
+  I&#8217;m a software engineer at Couchbase, working on <a href="https://github.com/couchbase/couchbase-lite-android">Couchbase Lite for Android</a> &#8211; a mobile NoSQL database with Sync.
   </p>
 
   <p>
-  In my spare time I am working on a <a href="https://github.com/tleyden/neurgo">Neural Network in Go</a>.
+  In my spare time I am working on <a href="http://www.openocr.net">OpenOCR</a> &#8211; a Dockerized REST API wrapper for Tesseract OCR.
   </p>
 
 </section>
 <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/11/12/an-example-of-using-nsq-from-go/">An Example of Using NSQ From Go</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2014/11/04/coreos-with-nvidia-cuda-gpu-drivers/">CoreOS With Nvidia CUDA GPU Drivers</a>
@@ -1229,10 +1282,6 @@
     
       <li class="post">
         <a href="/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker/">Running Caffe on AWS GPU Instance via Docker</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5/">Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5</a>
       </li>
     
   </ul>

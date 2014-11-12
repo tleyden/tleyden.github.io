@@ -5,11 +5,14 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Understanding chan chan's in Go - Seven Story Rabbit Hole</title>
+  <title>An example of using NSQ from Go - Seven Story Rabbit Hole</title>
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="A channel describes a transport of sorts. You can send a thing down that transport. When using a chan chan, the thing you want to send down the &hellip;">
+  <meta name="description" content="NSQ is a message queue, similar to RabbitMQ. I decided I&rsquo;d give it a whirl. Install Nsq 1
+2
+3
+$ wget https://s3.amazonaws.com/bitly-downloads/ &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +21,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://tleyden.github.io/blog/2013/11/23/understanding-chan-chans-in-go">
+  <link rel="canonical" href="http://tleyden.github.io/blog/2014/11/12/an-example-of-using-nsq-from-go">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
@@ -75,7 +78,7 @@
   
   <header>
     
-      <h1 class="entry-title">Understanding Chan Chan's in Go</h1>
+      <h1 class="entry-title">An Example of Using NSQ From Go</h1>
     
     
       <p class="meta">
@@ -91,46 +94,95 @@
   
 
 
-<time datetime="2013-11-23T07:58:00-08:00" pubdate data-updated="true">Nov 23<span>rd</span>, 2013</time>
+<time datetime="2014-11-12T07:26:00-08:00" pubdate data-updated="true">Nov 12<span>th</span>, 2014</time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><p>A channel describes a transport of sorts.  You can send a thing down that transport.  When using a chan chan, the thing you want to send down the transport is another transport to send things back.</p>
+<div class="entry-content"><p><a href="https://github.com/bitly/nsq">NSQ</a> is a message queue, similar to RabbitMQ.  I decided I&rsquo;d give it a whirl.</p>
 
-<p>They are useful when you want to get a response to something, and you don&rsquo;t want to setup two channels (it&rsquo;s generally considered bad practice to have data moving bidirectionally on a single channel)</p>
+<h2>Install Nsq</h2>
 
-<h2>Visual time lapse walkthrough</h2>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://s3.amazonaws.com/bitly-downloads/nsq/nsq-0.2.31.darwin-amd64.go1.3.1.tar.gz
+</span><span class='line'>$ tar xvfz nsq-0.2.31.darwin-amd64.go1.3.1.tar.gz
+</span><span class='line'>$ sudo mv nsq-0.2.31.darwin-amd64.go1.3.1/bin/* /usr/local/bin</span></code></pre></td></tr></table></div></figure>
 
-<p>Keep in mind that Goroutine C is the &ldquo;real consumer&rdquo; even though it will be the one which writes to the request channel.</p>
 
-<p>The request channel starts out empty.</p>
+<h2>Launch Nsq</h2>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_1.png" alt="Screenshot" /></p>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ nsqlookupd & 
+</span><span class='line'>$ nsqd --lookupd-tcp-address=127.0.0.1:4160 &
+</span><span class='line'>$ nsqadmin --lookupd-http-address=127.0.0.1:4161 &</span></code></pre></td></tr></table></div></figure>
 
-<p>Goroutine C passes a &ldquo;response channel&rdquo; to go routine D via the request channel</p>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_2.png" alt="Screenshot" /></p>
+<h2>Get Go client library</h2>
 
-<p>Goroutine C starts reading from the (still empty) response channel.</p>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go get -u -v github.com/bitly/go-nsq</span></code></pre></td></tr></table></div></figure>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_3.png" alt="Screenshot" /></p>
 
-<p>Goroutine D writes a string to the response channel</p>
+<h2>Create a producer</h2>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_4.png" alt="Screenshot" /></p>
+<p>Add the following code to main.go:</p>
 
-<p>Goroutine C now is able to read a value from response channel, and get&rsquo;s the &ldquo;wassup!&rdquo; message</p>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>package main
+</span><span class='line'>
+</span><span class='line'>import (
+</span><span class='line'>  "log"
+</span><span class='line'>  "github.com/bitly/go-nsq"
+</span><span class='line'>)
+</span><span class='line'>
+</span><span class='line'>func main() {
+</span><span class='line'>  config := nsq.NewConfig()
+</span><span class='line'>  w, _ := nsq.NewProducer("127.0.0.1:4150", config)
+</span><span class='line'>
+</span><span class='line'>  err := w.Publish("write_test", []byte("test"))
+</span><span class='line'>  if err != nil {
+</span><span class='line'>      log.Panic("Could not connect")
+</span><span class='line'>  }
+</span><span class='line'>
+</span><span class='line'>  w.Stop()
+</span><span class='line'>}
+</span></code></pre></td></tr></table></div></figure>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_5.png" alt="Screenshot" /></p>
 
-<p>And now we are back to where we started</p>
+<p>and then run it with:</p>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_1.png" alt="Screenshot" /></p>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go run main.go</span></code></pre></td></tr></table></div></figure>
 
-<h2>Here is some code that uses chan chan&rsquo;s</h2>
+
+<p>If you go to your NSQAdmin at <a href="http://localhost:4171/">http://localhost:4171</a>, you should see a single message in the <code>write_test</code> topic.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/nsq_admin.png" alt="NSQAdmin" /></p>
+
+<h2>Create a consumer</h2>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -160,72 +212,52 @@
 <span class='line-number'>26</span>
 <span class='line-number'>27</span>
 <span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>package main
 </span><span class='line'>
-</span><span class='line'>import "fmt"
-</span><span class='line'>import "time"
+</span><span class='line'>import (
+</span><span class='line'>  "log"
+</span><span class='line'>  "sync"
+</span><span class='line'>
+</span><span class='line'>  "github.com/bitly/go-nsq"
+</span><span class='line'>)
 </span><span class='line'>
 </span><span class='line'>func main() {
 </span><span class='line'>
-</span><span class='line'>     // make the request chan chan that both go-routines will be given
-</span><span class='line'>     requestChan := make(chan chan string)
+</span><span class='line'>  wg := &sync.WaitGroup{}
+</span><span class='line'>  wg.Add(1)
 </span><span class='line'>
-</span><span class='line'>     // start the goroutines
-</span><span class='line'>     go goroutineC(requestChan)
-</span><span class='line'>     go goroutineD(requestChan)
-</span><span class='line'>
-</span><span class='line'>     // sleep for a second to let the goroutines complete
-</span><span class='line'>     time.Sleep(time.Second)
-</span><span class='line'>
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>func goroutineC(requestChan chan chan string) {
-</span><span class='line'>
-</span><span class='line'>     // make a new response chan
-</span><span class='line'>     responseChan := make(chan string)
-</span><span class='line'>
-</span><span class='line'>     // send the responseChan to goRoutineD
-</span><span class='line'>     requestChan &lt;- responseChan
-</span><span class='line'>
-</span><span class='line'>     // read the response
-</span><span class='line'>     response := &lt;-responseChan
-</span><span class='line'>
-</span><span class='line'>     fmt.Printf("Response: %v\n", response)
-</span><span class='line'>
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>func goroutineD(requestChan chan chan string) {
-</span><span class='line'>
-</span><span class='line'>     // read the responseChan from the requestChan
-</span><span class='line'>     responseChan := &lt;-requestChan
-</span><span class='line'>
-</span><span class='line'>     // send a value down the responseChan
-</span><span class='line'>     responseChan &lt;- "wassup!"
+</span><span class='line'>  config := nsq.NewConfig()
+</span><span class='line'>  q, _ := nsq.NewConsumer("write_test", "ch", config)
+</span><span class='line'>  q.AddHandler(nsq.HandlerFunc(func(message *nsq.Message) error {
+</span><span class='line'>      log.Printf("Got a message: %v", message)
+</span><span class='line'>      wg.Done()
+</span><span class='line'>      return nil
+</span><span class='line'>  }))
+</span><span class='line'>  err := q.ConnectToNSQD("127.0.0.1:4150")
+</span><span class='line'>  if err != nil {
+</span><span class='line'>      log.Panic("Could not connect")
+</span><span class='line'>  }
+</span><span class='line'>  wg.Wait()
 </span><span class='line'>
 </span><span class='line'>}
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>This code can be run on <a href="http://play.golang.org/p/chi6P2XGTO">Go playground</a></p>
+<p>and then run it with:</p>
 
-<h2>For more information</h2>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go run main.go</span></code></pre></td></tr></table></div></figure>
 
-<p>See <a href="https://www.youtube.com/watch?v=QDDwwePbDtw">Google I/O 2013 &ndash; Advanced Go Concurrency Patterns</a> around 17:00.  This contains another explanation of chan chan&rsquo;s.</p>
+
+<p>You should see output:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>2014/11/12 08:37:29 INF    1 [write_test/ch] (127.0.0.1:4150) connecting to nsqd
+</span><span class='line'>2014/11/12 08:37:29 Got a message: &{[48 55 54 52 48 57 51 56 50 100 50 56 101 48 48 55] [116 101 115 116] 1415810020571836511 2 0xc208042118 0 0}</span></code></pre></td></tr></table></div></figure>
+
+
+
 </div>
 
 
@@ -248,7 +280,7 @@
   
 
 
-<time datetime="2013-11-23T07:58:00-08:00" pubdate data-updated="true">Nov 23<span>rd</span>, 2013</time>
+<time datetime="2014-11-12T07:26:00-08:00" pubdate data-updated="true">Nov 12<span>th</span>, 2014</time>
       
 
 <span class="categories">
@@ -262,7 +294,7 @@
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2013/11/23/understanding-chan-chans-in-go/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2013/11/23/understanding-chan-chans-in-go/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2014/11/12/an-example-of-using-nsq-from-go/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2014/11/12/an-example-of-using-nsq-from-go/" >Tweet</a>
   
   
   
@@ -271,10 +303,8 @@
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2013/11/22/android-studio-plus-genymotion-emulator/" title="Previous Post: Android Studio + Genymotion Emulator">&laquo; Android Studio + Genymotion Emulator</a>
+        <a class="basic-alignment left" href="/blog/2014/11/04/coreos-with-nvidia-cuda-gpu-drivers/" title="Previous Post: CoreOS with Nvidia CUDA GPU drivers">&laquo; CoreOS with Nvidia CUDA GPU drivers</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2013/12/19/how-to-downgrade-android-studio/" title="Next Post: How to downgrade Android Studio">How to downgrade Android Studio &raquo;</a>
       
     </p>
   </footer>
@@ -383,8 +413,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://tleyden.github.io/blog/2013/11/23/understanding-chan-chans-in-go/';
-        var disqus_url = 'http://tleyden.github.io/blog/2013/11/23/understanding-chan-chans-in-go/';
+        var disqus_identifier = 'http://tleyden.github.io/blog/2014/11/12/an-example-of-using-nsq-from-go/';
+        var disqus_url = 'http://tleyden.github.io/blog/2014/11/12/an-example-of-using-nsq-from-go/';
         var disqus_script = 'embed.js';
       
     (function () {

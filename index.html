@@ -9,7 +9,10 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="This will walk you through installing the Nvidia GPU kernel module and CUDA drivers on a docker container running inside of CoreOS. Launch CoreOS on &hellip;">
+  <meta name="description" content="NSQ is a message queue, similar to RabbitMQ. I decided I&rsquo;d give it a whirl. Install Nsq 1
+2
+3
+$ wget https://s3.amazonaws.com/bitly-downloads/ &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +75,198 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/11/12/an-example-of-using-nsq-from-go/">An Example of Using NSQ From Go</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-11-12T07:26:00-08:00" pubdate data-updated="true">Nov 12<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><a href="https://github.com/bitly/nsq">NSQ</a> is a message queue, similar to RabbitMQ.  I decided I&rsquo;d give it a whirl.</p>
+
+<h2>Install Nsq</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://s3.amazonaws.com/bitly-downloads/nsq/nsq-0.2.31.darwin-amd64.go1.3.1.tar.gz
+</span><span class='line'>$ tar xvfz nsq-0.2.31.darwin-amd64.go1.3.1.tar.gz
+</span><span class='line'>$ sudo mv nsq-0.2.31.darwin-amd64.go1.3.1/bin/* /usr/local/bin</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Launch Nsq</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ nsqlookupd & 
+</span><span class='line'>$ nsqd --lookupd-tcp-address=127.0.0.1:4160 &
+</span><span class='line'>$ nsqadmin --lookupd-http-address=127.0.0.1:4161 &</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Get Go client library</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go get -u -v github.com/bitly/go-nsq</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Create a producer</h2>
+
+<p>Add the following code to main.go:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>package main
+</span><span class='line'>
+</span><span class='line'>import (
+</span><span class='line'>  "log"
+</span><span class='line'>  "github.com/bitly/go-nsq"
+</span><span class='line'>)
+</span><span class='line'>
+</span><span class='line'>func main() {
+</span><span class='line'>  config := nsq.NewConfig()
+</span><span class='line'>  w, _ := nsq.NewProducer("127.0.0.1:4150", config)
+</span><span class='line'>
+</span><span class='line'>  err := w.Publish("write_test", []byte("test"))
+</span><span class='line'>  if err != nil {
+</span><span class='line'>      log.Panic("Could not connect")
+</span><span class='line'>  }
+</span><span class='line'>
+</span><span class='line'>  w.Stop()
+</span><span class='line'>}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and then run it with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go run main.go</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If you go to your NSQAdmin at <a href="http://localhost:4171/">http://localhost:4171</a>, you should see a single message in the <code>write_test</code> topic.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/nsq_admin.png" alt="NSQAdmin" /></p>
+
+<h2>Create a consumer</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>package main
+</span><span class='line'>
+</span><span class='line'>import (
+</span><span class='line'>  "log"
+</span><span class='line'>  "sync"
+</span><span class='line'>
+</span><span class='line'>  "github.com/bitly/go-nsq"
+</span><span class='line'>)
+</span><span class='line'>
+</span><span class='line'>func main() {
+</span><span class='line'>
+</span><span class='line'>  wg := &sync.WaitGroup{}
+</span><span class='line'>  wg.Add(1)
+</span><span class='line'>
+</span><span class='line'>  config := nsq.NewConfig()
+</span><span class='line'>  q, _ := nsq.NewConsumer("write_test", "ch", config)
+</span><span class='line'>  q.AddHandler(nsq.HandlerFunc(func(message *nsq.Message) error {
+</span><span class='line'>      log.Printf("Got a message: %v", message)
+</span><span class='line'>      wg.Done()
+</span><span class='line'>      return nil
+</span><span class='line'>  }))
+</span><span class='line'>  err := q.ConnectToNSQD("127.0.0.1:4150")
+</span><span class='line'>  if err != nil {
+</span><span class='line'>      log.Panic("Could not connect")
+</span><span class='line'>  }
+</span><span class='line'>  wg.Wait()
+</span><span class='line'>
+</span><span class='line'>}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and then run it with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go run main.go</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see output:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>2014/11/12 08:37:29 INF    1 [write_test/ch] (127.0.0.1:4150) connecting to nsqd
+</span><span class='line'>2014/11/12 08:37:29 Got a message: &{[48 55 54 52 48 57 51 56 50 100 50 56 101 48 48 55] [116 101 115 116] 1415810020571836511 2 0xc208042118 0 0}</span></code></pre></td></tr></table></div></figure>
+
+
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1657,218 +1852,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2/">Configure Emacs as a Go Editor From Scratch Part 2</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-05-27T12:03:00-07:00" pubdate data-updated="true">May 27<span>th</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>This is a continuation of <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">Part 1</a>, so if you haven&rsquo;t read that already, you should do so now.</p>
-
-<h2>goimports</h2>
-
-<p>The idea of goimports is that every time you save a file, it will automatically update all of your imports, so you don&rsquo;t have to.  This can save a lot of time.  Kudos to <a href="https://twitter.com/bradfitz">@bradfitz</a> for taking the time to build this nifty tool.</p>
-
-<p>Since this project is hosted on Google Code&rsquo;s mercurial repository, if you don&rsquo;t have mercurial installed already, you&rsquo;ll first need to install it with:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ brew install hg</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Next, go get goimports with:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ go get code.google.com/p/go.tools/cmd/goimports</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Continuing on previous .emacs in <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">Part 1</a>, update your .emacs to:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>(defun my-go-mode-hook ()
-</span><span class='line'>  ; Use goimports instead of go-fmt
-</span><span class='line'>  (setq gofmt-command "goimports")
-</span><span class='line'>  ; Call Gofmt before saving
-</span><span class='line'>  (add-hook 'before-save-hook 'gofmt-before-save)
-</span><span class='line'>  ; Customize compile command to run go build
-</span><span class='line'>  (if (not (string-match "go" compile-command))
-</span><span class='line'>      (set (make-local-variable 'compile-command)
-</span><span class='line'>           "go build -v && go test -v && go vet"))
-</span><span class='line'>  ; Godef jump key binding
-</span><span class='line'>  (local-set-key (kbd "M-.") 'godef-jump))
-</span><span class='line'>(add-hook 'go-mode-hook 'my-go-mode-hook)</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Restart emacs</strong> to force it to reload the configuration</p>
-
-<h3>Testing out goimports</h3>
-
-<ul>
-<li>Open an existing .go file that contains imports</li>
-<li>Remove one or more of the imports</li>
-<li>Save the file</li>
-</ul>
-
-
-<p>After you save the file, it should re-add the imports.  Yay!</p>
-
-<p>Basically any time you add or remove code that requires a different set of imports, saving the file will cause it to re-write the file with the correct imports.</p>
-
-<h2>The Go Oracle</h2>
-
-<p>The Go Oracle will blow your mind!  It can do things like find all the callers of a given function/method.  It can also show you all the functions that read or write from a given channel.  In short, it rocks.</p>
-
-<p>Here&rsquo;s what you need to do in order to wield this powerful tool from within Emacs.</p>
-
-<h3>Go get oracle</h3>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>go get code.google.com/p/go.tools/cmd/oracle</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Move oracle binary so Emacs can find it</h3>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>sudo mv $GOPATH/bin/oracle $GOROOT/bin/</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Update .emacs</h3>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>; Go Oracle
-</span><span class='line'>(load-file "$GOPATH/src/code.google.com/p/go.tools/cmd/oracle/oracle.el")
-</span><span class='line'>
-</span><span class='line'>(defun my-go-mode-hook ()
-</span><span class='line'>  ; Use goimports instead of go-fmt
-</span><span class='line'>  (setq gofmt-command "goimports")
-</span><span class='line'>  ; Call Gofmt before saving
-</span><span class='line'>  (add-hook 'before-save-hook 'gofmt-before-save)
-</span><span class='line'>  ; Customize compile command to run go build
-</span><span class='line'>  (if (not (string-match "go" compile-command))
-</span><span class='line'>      (set (make-local-variable 'compile-command)
-</span><span class='line'>           "go build -v && go test -v && go vet"))
-</span><span class='line'>  ; Godef jump key binding
-</span><span class='line'>  (local-set-key (kbd "M-.") 'godef-jump))
-</span><span class='line'>  ; Go Oracle
-</span><span class='line'>  (go-oracle-mode)
-</span><span class='line'>(add-hook 'go-mode-hook 'my-go-mode-hook)
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Restart Emacs</strong> to make these changes take effect.</p>
-
-<h3>Get a test package to play with</h3>
-
-<p>This package works with go-oracle (I tested it out while writing this blog post), so you should use it to give Go Oracle a spin:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>go get github.com/tleyden/checkers-bot-minimax</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Set the oracle analysis scope</h3>
-
-<p>From within emacs, open <code>$GOPATH/src/github.com/tleyden/checkers-bot-minimax/thinker.go</code></p>
-
-<p>You need to tell Go Oracle the <strong>main</strong> package scope under which you want it to operate:</p>
-
-<p><code>M-x go-oracle-set-scope</code></p>
-
-<p>it will prompt you with:</p>
-
-<p><code>Go oracle scope:</code></p>
-
-<p>and you should enter:</p>
-
-<p><code>github.com/tleyden/checkers-bot-minimax</code> and hit Enter.</p>
-
-<p>Nothing will appear to happen, but now Go Oracle is now ready to show it&rsquo;s magic.  (<em>note</em> it will <strong>not</strong> autocomplete packages in this dialog, which is mildly annoying.  Make sure to spell them correctly.)</p>
-
-<p><strong>Important:</strong> When you call <code>go-oracle-set-scope</code>, you always need to give it a <strong>main</strong> package.  This is something that will probably frequently trip you up while using Go Oracle.</p>
-
-<h3>Use oracle to find the callers of a method</h3>
-
-<p>You should still have the <code>$GOPATH/src/github.com/tleyden/checkers-bot-minimax/thinker.go</code> file open within emacs.</p>
-
-<p>Position the cursor on the &ldquo;T&rdquo; in the <code>Think</code> method (line 13 of thinker.go):</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/Emacs_go_oracle_0" alt="screenshot" /></p>
-
-<p>And then run</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>M-x go-oracle-callers</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Emacs should open a new buffer on the right hand side with all of the places where the <code>Think</code> method is called.  In this case, there is only one place in the code that calls it:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/Emacs_go_oracle" alt="screenshot" /></p>
-
-<p>To go to the call site, position your cursor on the red underscore to the left of &ldquo;dynamic method call&rdquo; and hit Enter.  It should take you to line 240 in gamecontroller.go:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/Emacs_go_oracle2" alt="screenshot" /></p>
-
-<p>Note that it actually crossed package boundaries, since the called function (<code>Think</code>) was in the <code>main</code> package, while the call site was in the <code>checkersbot</code> package.</p>
-
-<p>If you got this far, you are up and running with The Go Oracle on Emacs!</p>
-
-<p>Now you should try it with one of your own packages.</p>
-
-<p>This is just scratching the surface &mdash; to get more information on how to use Go Oracle, see <a href="https://docs.google.com/document/d/1SLk36YRjjMgKqe490mSRzOPYEDe0Y_WQNRv-EiFYUyw/view">go oracle: user manual</a>.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -1882,17 +1865,21 @@
     <section>
   <h1>About Me</h1>
   <p>
-  I&#8217;m a startup engineer at Couchbase, working on <a href="https://github.com/couchbase/couchbase-lite-android">Couchbase Lite for Android</a> &#8211; a mobile NoSQL database with Sync built-in.
+  I&#8217;m a software engineer at Couchbase, working on <a href="https://github.com/couchbase/couchbase-lite-android">Couchbase Lite for Android</a> &#8211; a mobile NoSQL database with Sync.
   </p>
 
   <p>
-  In my spare time I am working on a <a href="https://github.com/tleyden/neurgo">Neural Network in Go</a>.
+  In my spare time I am working on <a href="http://www.openocr.net">OpenOCR</a> &#8211; a Dockerized REST API wrapper for Tesseract OCR.
   </p>
 
 </section>
 <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/11/12/an-example-of-using-nsq-from-go/">An Example of Using NSQ From Go</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2014/11/04/coreos-with-nvidia-cuda-gpu-drivers/">CoreOS With Nvidia CUDA GPU Drivers</a>
@@ -1908,10 +1895,6 @@
     
       <li class="post">
         <a href="/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker/">Running Caffe on AWS GPU Instance via Docker</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5/">Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5</a>
       </li>
     
   </ul>
