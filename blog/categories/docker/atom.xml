@@ -4,7 +4,7 @@
   <title><![CDATA[Category: docker | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/docker/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-11-05T10:24:48-08:00</updated>
+  <updated>2014-11-11T20:47:47-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -176,7 +176,7 @@ Result = PASS
 
 <p>Congratulations!  You now have a docker container running under CoreOS that can access the GPU.</p>
 
-<h1>Appendix: Using Core OS Alpha</h1>
+<h1>Appendix A: Using Core OS Alpha</h1>
 
 <p>The instructions above were for an older version of CoreOS.  The following instructions are for Core OS Alpha, and might possibly work on the current version of CoreOS stable (444.5.0).  Only the parts that differ from above steps are listed:</p>
 
@@ -242,10 +242,51 @@ $ cd linux
 $ git checkout remotes/origin/coreos/v3.17.2
 </code></p>
 
+<h1>Appendix B: Expose GPU to other docker containers</h1>
+
+<p>If you need <em>other</em> docker containers on this CoreOS instance to be able to access the GPU, you can do the following steps.</p>
+
+<p><em>Note:</em> you need to be using CoreOS-alpha-490.0.0 or later, since this requires Docker 1.3 to work.</p>
+
+<p><strong>Exit docker container</strong></p>
+
+<p><code>
+$ exit
+</code></p>
+
+<p>You should be back to your CoreOS shell.</p>
+
+<p><strong>Add nvidia device nodes</strong></p>
+
+<p><code>
+$ wget https://gist.githubusercontent.com/tleyden/74f593a0beea300de08c/raw/95ed93c5751a989e58153db6f88c35515b7af120/nvidia_devices.sh
+$ chmod +x nvida_devices.sh
+$ sudo ./nvida_devices.sh
+</code></p>
+
+<p><strong>Verify device nodes</strong></p>
+
+<p><code>
+$ ls -alh /dev | grep -i nvidia
+crw-rw-rw-  1 root root  251,   0 Nov  5 16:37 nvidia-uvm
+crw-rw-rw-  1 root root  195,   0 Nov  5 16:37 nvidia0
+crw-rw-rw-  1 root root  195, 255 Nov  5 16:37 nvidiactl
+</code></p>
+
+<p><strong>Launch docker containers</strong></p>
+
+<p>When you launch other docker containers on the same CoreOS instance, to allow them to access the GPU device you will need to add the following arguments:</p>
+
+<p><code>
+$ sudo docker run -ti --device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm tleyden5iwx/ubuntu-cuda /bin/bash
+</code></p>
+
+<p>A complete example is available in <a href="http://tleyden.github.io/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5/">Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5</a>.  You can pick up at th <strong>Run GPU enabled docker image</strong> step.</p>
+
 <h2>References</h2>
 
 <ul>
-<li><a href="https://groups.google.com/forum/#!topic/coreos-user/CSp_wSywmI4">https://groups.google.com/forum/#!topic/coreos-user/CSp_wSywmI4</a></li>
+<li><a href="https://groups.google.com/forum/#!topic/coreos-user/CSp_wSywmI4">https://groups.google.com/forum/#!topic/coreos-user/CSp_wSywmI4</a> &ndash; Thanks Сергей!</li>
 </ul>
 
 ]]></content>
