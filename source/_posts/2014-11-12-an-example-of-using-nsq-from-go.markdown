@@ -113,5 +113,18 @@ You should see output:
 2014/11/12 08:37:29 Got a message: &{[48 55 54 52 48 57 51 56 50 100 50 56 101 48 48 55] [116 101 115 116] 1415810020571836511 2 0xc208042118 0 0}
 ```
 
+Congratulations!  You just pushed a message through **NSQ**.
 
+## Enhanced consumer: use NSQLookupd
 
+The above example hardcoded the ip of `nsqd` into the consumer code, which is not a best practice.  A better way to go about it is to point the consumer at `nsqlookupd`, which will transparently connect to the appropriate `nsqd` that happens to be publishing that topic.
+
+In our example, we only have a single `nsqd`, so it's an extraneous lookup.  But it's good to get into the right habits early, especially if you are a *habitual copy/paster*.
+
+The consumer example only needs a one-line change to get this enhancement:
+
+```
+err := q.ConnectToNSQLookupd("127.0.0.1:4161")
+```
+
+Which will connect to the HTTP port of `nsqlookupd`.
