@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-11-11T20:47:47-08:00</updated>
+  <updated>2014-11-11T20:51:42-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,167 +12,6 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
-  
-  <entry>
-    <title type="html"><![CDATA[Building Couchbase Lite Android under Jenkins]]></title>
-    <link href="http://tleyden.github.io/blog/2014/11/04/building-couchbase-lite-android-under-jenkins/"/>
-    <updated>2014-11-04T17:07:00-08:00</updated>
-    <id>http://tleyden.github.io/blog/2014/11/04/building-couchbase-lite-android-under-jenkins</id>
-    <content type="html"><![CDATA[<h2>Launch Ubuntu 14.04 in AWS</h2>
-
-<ul>
-<li>AMI: ubuntu-trusty-14.04-amd64-server-20140927 (ami-98aa1cf0)</li>
-<li>Root device type: ebs</li>
-<li>Instance type: m3.medium</li>
-<li>Network: Ec2-classic</li>
-<li>Virtualization type: paravirtual</li>
-</ul>
-
-
-<p><strong>Note</strong>: you will also probably want to open up port 8080 in your security group to all ip addresses, in order to access it from outside AWS.</p>
-
-<h2>Install dependencies</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>sudo apt-get update && sudo apt-get install -y openjdk-7-jre openjdk-7-jdk git gcc-multilib lib32z1 lib32stdc++6</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Install Jenkins</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>wget -q -O - https://jenkins-ci.org/debian/jenkins-ci.org.key | sudo apt-key add -
-</span><span class='line'>sudo sh -c 'echo deb http://pkg.jenkins-ci.org/debian binary/ &gt; /etc/apt/sources.list.d/jenkins.list'
-</span><span class='line'>sudo apt-get update
-</span><span class='line'>sudo apt-get -y install jenkins</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Verify Jenkins is running</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>curl localhost:8080</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and you should see some HTML returned.</p>
-
-<h2>Git plugin</h2>
-
-<p><strong>Install</strong></p>
-
-<ul>
-<li>Go to Manage Jenkins / Manage Plugins and click &ldquo;Available&rdquo; tab</li>
-<li>Search for &ldquo;Git plugin&rdquo; + install it</li>
-</ul>
-
-
-<p><strong>Configure</strong></p>
-
-<ul>
-<li>Repository URL: <a href="https://github.com/couchbase/couchbase-lite-android">https://github.com/couchbase/couchbase-lite-android</a></li>
-<li>Add Additional Behavior: Recursively update submodules</li>
-</ul>
-
-
-<h2>Install Android SDK</h2>
-
-<p>The Android Emulator plugin expects to find the android-sdk in <code>/var/lib/jenkins/tools</code>, so install it there.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>cd /var/lib/jenkins/tools
-</span><span class='line'>wget http://dl.google.com/android/android-sdk_r23.0.2-linux.tgz
-</span><span class='line'>tar xvfz android-sdk_r23.0.2-linux.tgz
-</span><span class='line'>mv android-sdk-linux android-sdk</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Add environment variables</strong></p>
-
-<p>Run <code>vi /etc/profile.d/android.sh</code> and add:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>export ANDROID_HOME="/var/lib/jenkins/tools/android-sdk"
-</span><span class='line'>export PATH="$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$PATH"</span></code></pre></td></tr></table></div></figure>
-
-
-<p>And then reload the file with: <code>source /etc/profile</code></p>
-
-<h2>Configure Android SDK</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>android update sdk -u --filter platform-tools,android-19</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Install build tools</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>android list sdk --all | grep -i build</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and look for:</p>
-
-<p><code>9- Android SDK Build-tools, revision 19.1</code></p>
-
-<p>Now install by number:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>android update sdk -u --all --filter 8</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Make Android SDK accessible by Jenkins</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>sudo chmod -R 755 /var/lib/jenkins/tools/android-sdk</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Add build exec task</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>cat local.properties.example | sed 's/\/Applications\/Android Studio.app\/sdk/\/var\/lib\/jenkins\/tools\/android-sdk/g' &gt; local.properties
-</span><span class='line'>cp settings.gradle.example settings.gradle
-</span><span class='line'>./gradlew buildassembleDebugTest</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Install and Configure AppThwack</h2>
-
-<p><strong>Install Jenkins AppThwack plugin</strong></p>
-
-<p>It is available from the Jenkins plugin manager</p>
-
-<p><strong>Configure AppThwack</strong></p>
-
-<ul>
-<li>In Manage Jenkins / Configure, add your AppThwack Api key</li>
-<li>In the Jenkins job config, add a new post-build action</li>
-<li>Choose Run Tests on AppThwack</li>
-<li>Hit &ldquo;Refresh&rdquo; button to pull latest settings from AppThwack</li>
-<li>Choose Project and Device Pool</li>
-<li>Under Application, enter <code>**/build/outputs/apk/couchbase-lite-android-debug-test-unaligned.apk</code></li>
-<li>Under &ldquo;Choose tests to run&rdquo;, click ( ) JUnit/Robotium/Espresso</li>
-<li>For <strong>Tests</strong> enter: <code>**/build/outputs/apk/couchbase-lite-android-debug-test-unaligned.apk</code></li>
-</ul>
-
-
-<h2>References</h2>
-
-<ul>
-<li><a href="http://blog.appthwack.com/continuous-integration-for-mobile-apps/">http://blog.appthwack.com/continuous-integration-for-mobile-apps/</a></li>
-<li><a href="https://www.digitalocean.com/community/tutorials/how-to-build-android-apps-with-jenkins">https://www.digitalocean.com/community/tutorials/how-to-build-android-apps-with-jenkins</a></li>
-<li><a href="https://wiki.jenkins-ci.org/display/JENKINS/Installing+Jenkins+on+Ubuntu">https://wiki.jenkins-ci.org/display/JENKINS/Installing+Jenkins+on+Ubuntu</a></li>
-<li><a href="http://stackoverflow.com/questions/22333041/android-emulator-plugin-failed-to-initialize-backend-egl-display">http://stackoverflow.com/questions/22333041/android-emulator-plugin-failed-to-initialize-backend-egl-display</a></li>
-<li><a href="http://stackoverflow.com/questions/17020298/android-sdks-build-tools-17-0-0-aapt-error-while-loading-shared-libraries-libz">http://stackoverflow.com/questions/17020298/android-sdks-build-tools-17-0-0-aapt-error-while-loading-shared-libraries-libz</a></li>
-<li><a href="http://askubuntu.com/questions/147400/problems-with-eclipse-and-android-sdk">http://askubuntu.com/questions/147400/problems-with-eclipse-and-android-sdk</a></li>
-<li><a href="http://stackoverflow.com/questions/15590239/emulator-warning-could-not-initialize-opengles-emulation-using-software-rende">http://stackoverflow.com/questions/15590239/emulator-warning-could-not-initialize-opengles-emulation-using-software-rende</a></li>
-</ul>
-
-]]></content>
-  </entry>
   
   <entry>
     <title type="html"><![CDATA[CoreOS with Nvidia CUDA GPU drivers]]></title>
@@ -2406,6 +2245,142 @@
 
 
 <p>The last step is necessary because the dowloaded 0.3.7 Android Studio will not have an SDK directory.  (Note: at this point you can also use <code>mv</code> instead of <code>cp</code> if you don&rsquo;t want to use the extra disk space)</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Understanding chan chan's in Go]]></title>
+    <link href="http://tleyden.github.io/blog/2013/11/23/understanding-chan-chans-in-go/"/>
+    <updated>2013-11-23T07:58:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2013/11/23/understanding-chan-chans-in-go</id>
+    <content type="html"><![CDATA[<p>A channel describes a transport of sorts.  You can send a thing down that transport.  When using a chan chan, the thing you want to send down the transport is another transport to send things back.</p>
+
+<p>They are useful when you want to get a response to something, and you don&rsquo;t want to setup two channels (it&rsquo;s generally considered bad practice to have data moving bidirectionally on a single channel)</p>
+
+<h2>Visual time lapse walkthrough</h2>
+
+<p>Keep in mind that Goroutine C is the &ldquo;real consumer&rdquo; even though it will be the one which writes to the request channel.</p>
+
+<p>The request channel starts out empty.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_1.png" alt="Screenshot" /></p>
+
+<p>Goroutine C passes a &ldquo;response channel&rdquo; to go routine D via the request channel</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_2.png" alt="Screenshot" /></p>
+
+<p>Goroutine C starts reading from the (still empty) response channel.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_3.png" alt="Screenshot" /></p>
+
+<p>Goroutine D writes a string to the response channel</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_4.png" alt="Screenshot" /></p>
+
+<p>Goroutine C now is able to read a value from response channel, and get&rsquo;s the &ldquo;wassup!&rdquo; message</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_5.png" alt="Screenshot" /></p>
+
+<p>And now we are back to where we started</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_1.png" alt="Screenshot" /></p>
+
+<h2>Here is some code that uses chan chan&rsquo;s</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>package main
+</span><span class='line'>
+</span><span class='line'>import "fmt"
+</span><span class='line'>import "time"
+</span><span class='line'>
+</span><span class='line'>func main() {
+</span><span class='line'>
+</span><span class='line'>     // make the request chan chan that both go-routines will be given
+</span><span class='line'>     requestChan := make(chan chan string)
+</span><span class='line'>
+</span><span class='line'>     // start the goroutines
+</span><span class='line'>     go goroutineC(requestChan)
+</span><span class='line'>     go goroutineD(requestChan)
+</span><span class='line'>
+</span><span class='line'>     // sleep for a second to let the goroutines complete
+</span><span class='line'>     time.Sleep(time.Second)
+</span><span class='line'>
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>func goroutineC(requestChan chan chan string) {
+</span><span class='line'>
+</span><span class='line'>     // make a new response chan
+</span><span class='line'>     responseChan := make(chan string)
+</span><span class='line'>
+</span><span class='line'>     // send the responseChan to goRoutineD
+</span><span class='line'>     requestChan &lt;- responseChan
+</span><span class='line'>
+</span><span class='line'>     // read the response
+</span><span class='line'>     response := &lt;-responseChan
+</span><span class='line'>
+</span><span class='line'>     fmt.Printf("Response: %v\n", response)
+</span><span class='line'>
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>func goroutineD(requestChan chan chan string) {
+</span><span class='line'>
+</span><span class='line'>     // read the responseChan from the requestChan
+</span><span class='line'>     responseChan := &lt;-requestChan
+</span><span class='line'>
+</span><span class='line'>     // send a value down the responseChan
+</span><span class='line'>     responseChan &lt;- "wassup!"
+</span><span class='line'>
+</span><span class='line'>}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This code can be run on <a href="http://play.golang.org/p/chi6P2XGTO">Go playground</a></p>
+
+<h2>For more information</h2>
+
+<p>See <a href="https://www.youtube.com/watch?v=QDDwwePbDtw">Google I/O 2013 &ndash; Advanced Go Concurrency Patterns</a> around 17:00.  This contains another explanation of chan chan&rsquo;s.</p>
 ]]></content>
   </entry>
   
