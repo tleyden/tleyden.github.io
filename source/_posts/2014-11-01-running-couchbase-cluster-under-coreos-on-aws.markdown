@@ -114,6 +114,7 @@ After the rebalance is complete, you should see:
 
 # References
 
+* [How I built couchbase 2.2 for docker](https://gist.github.com/dustin/6605182) by [@dlsspy](https://twitter.com/dlsspy)
 * https://github.com/tleyden/couchbase-server-coreos
 * https://registry.hub.docker.com/u/ncolomer/couchbase/
 * https://github.com/lifegadget/docker-couchbase
