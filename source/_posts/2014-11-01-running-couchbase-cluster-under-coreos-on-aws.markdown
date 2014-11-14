@@ -112,7 +112,7 @@ After the rebalance is complete, you should see:
 
 ![screenshot](http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_admin_ui_post_rebalance.png)
 
-Congratulations!  You now have an n-node Couchbase Server cluster running under CoreOS / Docker.  
+Congratulations!  You now have an 3 node Couchbase Server cluster running under CoreOS / Docker.  
 
 If you're feeling bold, go ahead and [pound on it](https://www.youtube.com/watch?v=spxdtmdoUwM).
 
