@@ -4,7 +4,7 @@
   <title><![CDATA[Category: coreos | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/coreos/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-11-12T11:15:52-08:00</updated>
+  <updated>2014-11-13T19:17:39-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -418,6 +418,7 @@ couchbase_node.2.service                        b8cf0ed6.../10.179.161.76   acti
 <h1>References</h1>
 
 <ul>
+<li><a href="https://gist.github.com/dustin/6605182">How I built couchbase 2.2 for docker</a> by <a href="https://twitter.com/dlsspy">@dlsspy</a></li>
 <li><a href="https://github.com/tleyden/couchbase-server-coreos">https://github.com/tleyden/couchbase-server-coreos</a></li>
 <li><a href="https://registry.hub.docker.com/u/ncolomer/couchbase/">https://registry.hub.docker.com/u/ncolomer/couchbase/</a></li>
 <li><a href="https://github.com/lifegadget/docker-couchbase">https://github.com/lifegadget/docker-couchbase</a></li>
