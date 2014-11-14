@@ -114,8 +114,6 @@ After the rebalance is complete, you should see:
 
 Congratulations!  You now have a 3 node Couchbase Server cluster running under CoreOS / Docker.  
 
-If you're feeling bold, go ahead and [pound on it](https://www.youtube.com/watch?v=spxdtmdoUwM).
-
 # References
 
 * [How I built couchbase 2.2 for docker](https://gist.github.com/dustin/6605182) by [@dlsspy](https://twitter.com/dlsspy)
