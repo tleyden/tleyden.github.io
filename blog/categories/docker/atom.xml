@@ -4,7 +4,7 @@
   <title><![CDATA[Category: docker | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/docker/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-11-13T19:35:11-08:00</updated>
+  <updated>2014-11-13T19:37:32-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -355,14 +355,16 @@ $ chmod +x cluster-init.sh
 <p>This script is not much.  I wrapped things up in a script because the instructions were getting long, but all it does is:</p>
 
 <ul>
-<li>Downloads a few fleet init files</li>
+<li>Downloads a few fleet init files from github.</li>
 <li>Generates a few more fleet init files based on a template and the number of nodes you want.</li>
-<li>Stashes the username/password argument you give it into <code>etcd</code></li>
+<li>Stashes the username/password argument you give it into <code>etcd</code>.</li>
 <li>Tells <code>fleetctl</code> to kick everything off.  Whee!</li>
 </ul>
 
 
 <h2>Launch cluster</h2>
+
+<p>Run the script you downloaded in the previous step:</p>
 
 <p><code>
 $ ./cluster-init.sh -n 3 -u "user:passw0rd"

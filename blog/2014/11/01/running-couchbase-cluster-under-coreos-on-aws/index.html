@@ -160,14 +160,16 @@
 <p>This script is not much.  I wrapped things up in a script because the instructions were getting long, but all it does is:</p>
 
 <ul>
-<li>Downloads a few fleet init files</li>
+<li>Downloads a few fleet init files from github.</li>
 <li>Generates a few more fleet init files based on a template and the number of nodes you want.</li>
-<li>Stashes the username/password argument you give it into <code>etcd</code></li>
+<li>Stashes the username/password argument you give it into <code>etcd</code>.</li>
 <li>Tells <code>fleetctl</code> to kick everything off.  Whee!</li>
 </ul>
 
 
 <h2>Launch cluster</h2>
+
+<p>Run the script you downloaded in the previous step:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ ./cluster-init.sh -n 3 -u "user:passw0rd"</span></code></pre></td></tr></table></div></figure>
