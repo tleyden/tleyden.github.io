@@ -6,6 +6,8 @@ comments: true
 categories: [docker, couchbase]
 ---
 
+**This blog post is pretty out of date, you should check out [Running Couchbase Cluster Under CoreOS on AWS](http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/) instead**
+
 This tutorial will show you how to run a cluster of Couchbase Servers, where each node is running inside of a docker image.
 
 ![Diagram](http://cl.ly/image/2G0h381N3o42/docker%20couchbase%20cluster.png)
