@@ -4,7 +4,7 @@
   <title><![CDATA[Category: docker | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/docker/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-11-13T19:17:39-08:00</updated>
+  <updated>2014-11-13T19:27:14-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -414,6 +414,10 @@ couchbase_node.2.service                        b8cf0ed6.../10.179.161.76   acti
 <p>After the rebalance is complete, you should see:</p>
 
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_admin_ui_post_rebalance.png" alt="screenshot" /></p>
+
+<p>Congratulations!  You now have an n-node Couchbase Server cluster running under CoreOS / Docker.</p>
+
+<p>If you&rsquo;re feeling bold, go ahead and <a href="https://www.youtube.com/watch?v=spxdtmdoUwM">pound on it</a>.</p>
 
 <h1>References</h1>
 
