@@ -60,12 +60,14 @@ $ chmod +x cluster-init.sh
 
 This script is not much.  I wrapped things up in a script because the instructions were getting long, but all it does is:
 
-* Downloads a few fleet init files
+* Downloads a few fleet init files from github.
 * Generates a few more fleet init files based on a template and the number of nodes you want.
-* Stashes the username/password argument you give it into `etcd`
+* Stashes the username/password argument you give it into `etcd`.
 * Tells `fleetctl` to kick everything off.  Whee!
 
 ## Launch cluster
+
+Run the script you downloaded in the previous step:
 
 ```
 $ ./cluster-init.sh -n 3 -u "user:passw0rd"
