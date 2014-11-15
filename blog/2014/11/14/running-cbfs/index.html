@@ -1,0 +1,476 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Running CBFS - Seven Story Rabbit Hole</title>
+  <meta name="author" content="Traun Leyden">
+
+  
+  <meta name="description" content="This will walk you through getting a cbfs cluster up and running. What is CBFS? cbfs is a distributed filesystem on top of Couchbase Server, not &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://tleyden.github.io/blog/2014/11/14/running-cbfs">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+
+  <table><tr><td>
+  <h1><a href="/">Seven Story Rabbit Hole</a></h1>
+  
+    <h2>Sometimes awesome things happen in deep rabbit holes.  Or not.</h2>
+  
+  </td><td>&nbsp;&nbsp;
+  <img class="left" src="/images/rabbit_hole_graphic.png" width="132" height="105" title="image" alt="images">
+  </td></tr>
+  </table>
+
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:tleyden.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Running CBFS</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-11-14T06:43:00-08:00" pubdate data-updated="true">Nov 14<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>This will walk you through getting a cbfs cluster up and running.</p>
+
+<h2>What is CBFS?</h2>
+
+<p>cbfs is a distributed filesystem on top of Couchbase Server, not unlike Mongo&rsquo;s GridFS or Riak&rsquo;s CS.  It&rsquo;s currently an experimental &ldquo;skunkworks&rdquo; project and hasn&rsquo;t quite reached official project status.</p>
+
+<p>Here&rsquo;s a typical deployment architecture:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/cbfs-overview.png" alt="cbfs overview" /></p>
+
+<p>Although not shown, all cbfs daemons can communicate with all Couchbase Server instances.</p>
+
+<p>It is not required to run cbfs on the same machine as Couchbase Server, but it <em>is</em> meant to be run in the same data center as Couchbase Server.</p>
+
+<p>If you want a deeper understanding of how cbfs works, check the <a href="http://labs.couchbase.com/cbfs/">cbfs presentation</a> or this <a href="http://dustin.sallings.org/2012/09/27/cbfs.html">blog post</a>.</p>
+
+<h2>Kick off a Couchbase Cluster</h2>
+
+<p>cbfs depends on having a Couchbase cluster running.</p>
+
+<p>Follow all of the steps in <a href="http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/">Running Couchbase Cluster Under CoreOS on AWS</a> to kick off a 3 node Couchbase cluster.</p>
+
+<h2>Add security groups</h2>
+
+<p>A few ports will need to be opened up for cbfs.</p>
+
+<p>Go to the AWS console andeEdit the Couchbase-CoreOS-CoreOSSecurityGroup-xxxx security group and add the following rules:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Type             Protocol  Port Range Source  
+</span><span class='line'>----             --------  ---------- ------
+</span><span class='line'>Custom TCP Rule  TCP       8484       Custom IP: sg-6e5a0d04 (copy and paste from port 4001 rule)
+</span><span class='line'>Custom TCP Rule  TCP       8423       Custom IP: sg-6e5a0d04 </span></code></pre></td></tr></table></div></figure>
+
+
+<p>At this point your security group should look like this:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/security_group_cbfs.png" alt="security group" /></p>
+
+<h1>Create a new bucket for cbfs</h1>
+
+<p><strong>Open Couchbase Server Admin UI</strong></p>
+
+<p>In the AWS EC2 console, find the public IP of one of the instances (it doesn&rsquo;t matter which)</p>
+
+<p>In your browser, go to <code>http://&lt;public_ip&gt;:8091/</code></p>
+
+<p><strong>Create Bucket</strong></p>
+
+<p>Go to Data Buckets / Create New Bucket</p>
+
+<p>Enter <strong>cbfs</strong> for the name of the bucket.</p>
+
+<p>Leave all other settings as default.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/cbfs_create_bucket.png" alt="create bucket" /></p>
+
+<h2>ssh in</h2>
+
+<p>In the AWS EC2 console, find the public IP of one of the instances (it doesn&rsquo;t matter which)</p>
+
+<p>ssh into one of the machines:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ssh -A core@&lt;public_ip&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Run cbfs</h2>
+
+<p><strong>Create a volume dir</strong></p>
+
+<p>Since the fileystem of a docker container is not meant for high throughput io, a volume should be used for cbfs.</p>
+
+<p>Create a directory on the host OS (i.e., on the Core OS instance)</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo mkdir -p /var/lib/cbfs/data
+</span><span class='line'>$ sudo chown -R core:core /var/lib/cbfs</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This will be mounted by the docker container in the next step.</p>
+
+<p><strong>Generate fleet unit files</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://gist.githubusercontent.com/tleyden/d70161c3827cb8b788a8/raw/8f6c81f0095b0007565e9b205e90afb132552060/cbfs_node.service.template
+</span><span class='line'>$ for i in `seq 1 3`; do cp cbfs_node.service.template cbfs_node.$i.service; done</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Start cbfs on all cluster nodes</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ fleetctl start cbfs_node.*.service</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Run <code>fleetctl list-units</code> to list the  units running in your cluster.  You should have the following:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ fleetctl list-units
+</span><span class='line'>UNIT                                            MACHINE                         ACTIVE    SUB
+</span><span class='line'>cbfs_node.1.service                             6ecff20c.../10.51.177.81        active    running
+</span><span class='line'>cbfs_node.2.service                             b8eb6653.../10.79.155.153       active    running
+</span><span class='line'>cbfs_node.3.service                             02d48afd.../10.186.172.24       active    running
+</span><span class='line'>couchbase_bootstrap_node.service                02d48afd.../10.186.172.24       active    running
+</span><span class='line'>couchbase_bootstrap_node_announce.service       02d48afd.../10.186.172.24       active    running
+</span><span class='line'>couchbase_node.1.service                        6ecff20c.../10.51.177.81        active    running
+</span><span class='line'>couchbase_node.2.service                        b8eb6653.../10.79.155.153       active    running</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>View cbfs output</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ fleetctl journal cbfs_node.1.service
+</span><span class='line'>2014/11/14 23:18:58 Connecting to couchbase bucket cbfs at http://10.51.177.81:8091/
+</span><span class='line'>2014/11/14 23:18:58 Error checking view version: MCResponse status=KEY_ENOENT, opcode=GET, opaque=0, msg: Not found
+</span><span class='line'>2014/11/14 23:18:58 Installing new version of views (old version=0)
+</span><span class='line'>2014/11/14 23:18:58 Listening to web requests on :8484 as server 10.51.177.81
+</span><span class='line'>2014/11/14 23:18:58 Error removing 10.51.177.81's task list: MCResponse status=KEY_ENOENT, opcode=DELETE, opaque=0, msg: Not found
+</span><span class='line'>2014/11/14 23:19:05 Error updating space used: Expected 1 result, got []</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Run cbfs client</h2>
+
+<p>Run a bash shell in a docker container that has <code>cbfsclient</code> pre-installed:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run -ti --net=host tleyden5iwx/cbfs /bin/bash</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Upload a file</strong></p>
+
+<p>From within the docker container launched in the previous step:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># echo "foo" &gt; foo
+</span><span class='line'># ip=$(hostname -i | tr -d ' ')
+</span><span class='line'># cbfsclient http://$ip:8484/ upload foo /foo</span></code></pre></td></tr></table></div></figure>
+
+
+<p>There should be no errors.  If you run <code>fleetctl journal cbfs_node.1.service</code> again on the CoreOS instance, you should see log messages like:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>2014/11/14 21:51:43 Recorded myself as an owner of e242ed3bffccdf271b7fbaf34ed72d089537b42f: result=success</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>List directory</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># cbfsclient http://$ip:8484/ ls /
+</span><span class='line'>foo</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It should list the foo file we uploaded earlier.</p>
+
+<p>Congratulations!  You now have cbfs up and running.</p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="http://dustin.sallings.org/2012/09/27/cbfs.html">cbfs &ndash; a couchbase large object store</a></li>
+<li><a href="http://labs.couchbase.com/cbfs/">cbfs presentation</a></li>
+<li><a href="http://cbfs-ext.hq.couchbase.com/dist/">cbfs binary downloads</a></li>
+<li><a href="http://github.com/couchbaselabs/cbfs">cbfs github repo</a></li>
+<li><a href="https://github.com/couchbaselabs/cbfs/issues/132">cbfs question</a></li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Traun Leyden</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-11-14T06:43:00-08:00" pubdate data-updated="true">Nov 14<span>th</span>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/cbfs/'>cbfs</a>, <a class='category' href='/blog/categories/coreos/'>coreos</a>, <a class='category' href='/blog/categories/couchbase/'>couchbase</a>, <a class='category' href='/blog/categories/docker/'>docker</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2014/11/14/running-cbfs/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2014/11/14/running-cbfs/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/11/12/an-example-of-using-nsq-from-go/" title="Previous Post: An example of using NSQ from Go">&laquo; An example of using NSQ from Go</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>About Me</h1>
+  <p>
+  I'm a software engineer at Couchbase, working on <a href="https://github.com/couchbase/couchbase-lite-android">Couchbase Lite for Android</a> -- a mobile NoSQL database with Sync.
+  </p>
+
+  <p>
+  In my spare time I am working on <a href="http://www.openocr.net">OpenOCR</a> -- a Dockerized REST API wrapper for Tesseract OCR.
+  </p>
+
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/11/14/running-cbfs/">Running CBFS</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/11/12/an-example-of-using-nsq-from-go/">An Example of Using NSQ From Go</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/11/04/coreos-with-nvidia-cuda-gpu-drivers/">CoreOS With Nvidia CUDA GPU Drivers</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/">Running Couchbase Cluster Under CoreOS on AWS</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/10/30/goroutines-vs-threads/">Goroutines vs Threads</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/tleyden">@tleyden</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'tleyden',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+<section>
+     <h1>Twitter</h1>
+<a class="twitter-timeline" width="300" height="350" href="https://twitter.com/tleydn" data-widget-id="376419812865368064">Tweets by @tleydn</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+ </section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Traun Leyden -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'sevenstoryrabbithole';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://tleyden.github.io/blog/2014/11/14/running-cbfs/';
+        var disqus_url = 'http://tleyden.github.io/blog/2014/11/14/running-cbfs/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

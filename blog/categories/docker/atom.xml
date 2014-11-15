@@ -4,7 +4,7 @@
   <title><![CDATA[Category: docker | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/docker/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-11-13T19:37:32-08:00</updated>
+  <updated>2014-11-14T16:24:36-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,188 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Running CBFS]]></title>
+    <link href="http://tleyden.github.io/blog/2014/11/14/running-cbfs/"/>
+    <updated>2014-11-14T06:43:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2014/11/14/running-cbfs</id>
+    <content type="html"><![CDATA[<p>This will walk you through getting a cbfs cluster up and running.</p>
+
+<h2>What is CBFS?</h2>
+
+<p>cbfs is a distributed filesystem on top of Couchbase Server, not unlike Mongo&rsquo;s GridFS or Riak&rsquo;s CS.  It&rsquo;s currently an experimental &ldquo;skunkworks&rdquo; project and hasn&rsquo;t quite reached official project status.</p>
+
+<p>Here&rsquo;s a typical deployment architecture:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/cbfs-overview.png" alt="cbfs overview" /></p>
+
+<p>Although not shown, all cbfs daemons can communicate with all Couchbase Server instances.</p>
+
+<p>It is not required to run cbfs on the same machine as Couchbase Server, but it <em>is</em> meant to be run in the same data center as Couchbase Server.</p>
+
+<p>If you want a deeper understanding of how cbfs works, check the <a href="http://labs.couchbase.com/cbfs/">cbfs presentation</a> or this <a href="http://dustin.sallings.org/2012/09/27/cbfs.html">blog post</a>.</p>
+
+<h2>Kick off a Couchbase Cluster</h2>
+
+<p>cbfs depends on having a Couchbase cluster running.</p>
+
+<p>Follow all of the steps in <a href="http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/">Running Couchbase Cluster Under CoreOS on AWS</a> to kick off a 3 node Couchbase cluster.</p>
+
+<h2>Add security groups</h2>
+
+<p>A few ports will need to be opened up for cbfs.</p>
+
+<p>Go to the AWS console andeEdit the Couchbase-CoreOS-CoreOSSecurityGroup-xxxx security group and add the following rules:</p>
+
+<p>```
+Type             Protocol  Port Range Source</p>
+
+<hr />
+
+<p>Custom TCP Rule  TCP       8484       Custom IP: sg-6e5a0d04 (copy and paste from port 4001 rule)
+Custom TCP Rule  TCP       8423       Custom IP: sg-6e5a0d04
+```</p>
+
+<p>At this point your security group should look like this:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/security_group_cbfs.png" alt="security group" /></p>
+
+<h1>Create a new bucket for cbfs</h1>
+
+<p><strong>Open Couchbase Server Admin UI</strong></p>
+
+<p>In the AWS EC2 console, find the public IP of one of the instances (it doesn&rsquo;t matter which)</p>
+
+<p>In your browser, go to <code>http://&lt;public_ip&gt;:8091/</code></p>
+
+<p><strong>Create Bucket</strong></p>
+
+<p>Go to Data Buckets / Create New Bucket</p>
+
+<p>Enter <strong>cbfs</strong> for the name of the bucket.</p>
+
+<p>Leave all other settings as default.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/cbfs_create_bucket.png" alt="create bucket" /></p>
+
+<h2>ssh in</h2>
+
+<p>In the AWS EC2 console, find the public IP of one of the instances (it doesn&rsquo;t matter which)</p>
+
+<p>ssh into one of the machines:</p>
+
+<p><code>
+$ ssh -A core@&lt;public_ip&gt;
+</code></p>
+
+<h2>Run cbfs</h2>
+
+<p><strong>Create a volume dir</strong></p>
+
+<p>Since the fileystem of a docker container is not meant for high throughput io, a volume should be used for cbfs.</p>
+
+<p>Create a directory on the host OS (i.e., on the Core OS instance)</p>
+
+<p><code>
+$ sudo mkdir -p /var/lib/cbfs/data
+$ sudo chown -R core:core /var/lib/cbfs
+</code></p>
+
+<p>This will be mounted by the docker container in the next step.</p>
+
+<p><strong>Generate fleet unit files</strong></p>
+
+<p><code>
+$ wget https://gist.githubusercontent.com/tleyden/d70161c3827cb8b788a8/raw/8f6c81f0095b0007565e9b205e90afb132552060/cbfs_node.service.template
+$ for i in `seq 1 3`; do cp cbfs_node.service.template cbfs_node.$i.service; done
+</code></p>
+
+<p><strong>Start cbfs on all cluster nodes</strong></p>
+
+<p><code>
+$ fleetctl start cbfs_node.*.service
+</code></p>
+
+<p>Run <code>fleetctl list-units</code> to list the  units running in your cluster.  You should have the following:</p>
+
+<p><code>
+$ fleetctl list-units
+UNIT                                            MACHINE                         ACTIVE  SUB
+cbfs_node.1.service                             6ecff20c.../10.51.177.81        active  running
+cbfs_node.2.service                             b8eb6653.../10.79.155.153       active  running
+cbfs_node.3.service                             02d48afd.../10.186.172.24       active  running
+couchbase_bootstrap_node.service                02d48afd.../10.186.172.24       active  running
+couchbase_bootstrap_node_announce.service       02d48afd.../10.186.172.24       active  running
+couchbase_node.1.service                        6ecff20c.../10.51.177.81        active  running
+couchbase_node.2.service                        b8eb6653.../10.79.155.153       active  running
+</code></p>
+
+<p><strong>View cbfs output</strong></p>
+
+<p><code>
+$ fleetctl journal cbfs_node.1.service
+2014/11/14 23:18:58 Connecting to couchbase bucket cbfs at http://10.51.177.81:8091/
+2014/11/14 23:18:58 Error checking view version: MCResponse status=KEY_ENOENT, opcode=GET, opaque=0, msg: Not found
+2014/11/14 23:18:58 Installing new version of views (old version=0)
+2014/11/14 23:18:58 Listening to web requests on :8484 as server 10.51.177.81
+2014/11/14 23:18:58 Error removing 10.51.177.81's task list: MCResponse status=KEY_ENOENT, opcode=DELETE, opaque=0, msg: Not found
+2014/11/14 23:19:05 Error updating space used: Expected 1 result, got []
+</code></p>
+
+<h2>Run cbfs client</h2>
+
+<p>Run a bash shell in a docker container that has <code>cbfsclient</code> pre-installed:</p>
+
+<p><code>
+$ sudo docker run -ti --net=host tleyden5iwx/cbfs /bin/bash
+</code></p>
+
+<p><strong>Upload a file</strong></p>
+
+<p>From within the docker container launched in the previous step:</p>
+
+<p>```</p>
+
+<h1>echo &ldquo;foo&rdquo; > foo</h1>
+
+<h1>ip=$(hostname -i | tr -d &lsquo; &rsquo;)</h1>
+
+<h1>cbfsclient <a href="http://$ip:8484/">http://$ip:8484/</a> upload foo /foo</h1>
+
+<p>```</p>
+
+<p>There should be no errors.  If you run <code>fleetctl journal cbfs_node.1.service</code> again on the CoreOS instance, you should see log messages like:</p>
+
+<p><code>
+2014/11/14 21:51:43 Recorded myself as an owner of e242ed3bffccdf271b7fbaf34ed72d089537b42f: result=success
+</code></p>
+
+<p><strong>List directory</strong></p>
+
+<p>```</p>
+
+<h1>cbfsclient <a href="http://$ip:8484/">http://$ip:8484/</a> ls /</h1>
+
+<p>foo
+```</p>
+
+<p>It should list the foo file we uploaded earlier.</p>
+
+<p>Congratulations!  You now have cbfs up and running.</p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="http://dustin.sallings.org/2012/09/27/cbfs.html">cbfs &ndash; a couchbase large object store</a></li>
+<li><a href="http://labs.couchbase.com/cbfs/">cbfs presentation</a></li>
+<li><a href="http://cbfs-ext.hq.couchbase.com/dist/">cbfs binary downloads</a></li>
+<li><a href="http://github.com/couchbaselabs/cbfs">cbfs github repo</a></li>
+<li><a href="https://github.com/couchbaselabs/cbfs/issues/132">cbfs question</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[CoreOS with Nvidia CUDA GPU drivers]]></title>
@@ -576,7 +758,9 @@ I1018 17:17:58.684598    66 caffe.cpp:102] Optimization Done.
     <link href="http://tleyden.github.io/blog/2013/11/14/running-couchbase-cluster-under-docker/"/>
     <updated>2013-11-14T15:45:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2013/11/14/running-couchbase-cluster-under-docker</id>
-    <content type="html"><![CDATA[<p>This tutorial will show you how to run a cluster of Couchbase Servers, where each node is running inside of a docker image.</p>
+    <content type="html"><![CDATA[<p><strong>This blog post is pretty out of date, you should check out <a href="http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/">Running Couchbase Cluster Under CoreOS on AWS</a> instead</strong></p>
+
+<p>This tutorial will show you how to run a cluster of Couchbase Servers, where each node is running inside of a docker image.</p>
 
 <p><img src="http://cl.ly/image/2G0h381N3o42/docker%20couchbase%20cluster.png" alt="Diagram" /></p>
 
@@ -672,78 +856,6 @@ $ docker run -i -t -d -link purple_kangaroo:alpha dustin/couchbase:latest
 <p>After you login, you should see the Admin UI with three nodes in your cluster:</p>
 
 <p><img src="http://cl.ly/image/2K3i1v2w3H0E/Screen%20Shot%202013-11-14%20at%204.47.18%20PM.png" alt="Screenshot" /></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Docker on OSX]]></title>
-    <link href="http://tleyden.github.io/blog/2013/11/12/docker-on-osx/"/>
-    <updated>2013-11-12T21:01:00-08:00</updated>
-    <id>http://tleyden.github.io/blog/2013/11/12/docker-on-osx</id>
-    <content type="html"><![CDATA[<p><img src="http://cl.ly/image/302X103n330L/docker.png" alt="Docker.png" /></p>
-
-<h1>Goal</h1>
-
-<p>Get Docker running under OSX.</p>
-
-<h2>Environment</h2>
-
-<ul>
-<li><p>OSX Mavericks</p></li>
-<li><p>Macbook Retina</p></li>
-</ul>
-
-
-<h2>Understanding the tools</h2>
-
-<ul>
-<li>Vagrant is a tool to provision VMs.</li>
-<li>Virtualbox is VM software.</li>
-<li>CoreOS is an operating system based on linux that&rsquo;s all about running docker.</li>
-</ul>
-
-
-<h2>Install VirtualBox + Vagrant</h2>
-
-<ul>
-<li><p>Install VirtualBox via <a href="http://download.virtualbox.org/virtualbox/4.3.2/VirtualBox-4.3.2-90405-OSX.dmg">VirtualBox OSX installer</a></p></li>
-<li><p>Install Vagrant via <a href="https://dl.bintray.com/mitchellh/vagrant/vagrant_1.6.2.dmg">Vagrant OSX installer</a></p></li>
-</ul>
-
-
-<h2>Vagrant Smoke Test: run Ubuntu Precise</h2>
-
-<p>To make sure Vagrant is installed correctly, run the following commands to see if Ubuntu Precise comes up and you are able to ssh into it.</p>
-
-<p><code>
-vagrant init precise32 http://files.vagrantup.com/precise32.box
-vagrant up
-vagrant ssh
-</code></p>
-
-<p>If that doesn&rsquo;t work, you should probably fix it before moving on.  Otherwise, keep reading.</p>
-
-<h2>Install/Run CoreOS</h2>
-
-<p><code>
-git clone https://github.com/coreos/coreos-vagrant/
-cd coreos-vagrant
-vagrant up
-</code></p>
-
-<h2>SSH into CoreOS</h2>
-
-<p><code>
-vagrant ssh
-</code></p>
-
-<h2>Run stock ubuntu docker image</h2>
-
-<p><code>
-docker run -t -i ubuntu bash
-</code></p>
-
-<p>After running this, you should be ssh&rsquo;d inside of an Ubuntu shell, running under docker (running inside of VirtualBox .. etc, all the way up the onion)</p>
 ]]></content>
   </entry>
   

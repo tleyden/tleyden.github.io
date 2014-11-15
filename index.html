@@ -9,10 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="NSQ is a message queue, similar to RabbitMQ. I decided I&rsquo;d give it a whirl. Install Nsq 1
-2
-3
-$ wget https://s3.amazonaws.com/bitly-downloads/ &hellip;">
+  <meta name="description" content="This will walk you through getting a cbfs cluster up and running. What is CBFS? cbfs is a distributed filesystem on top of Couchbase Server, not &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -75,6 +72,229 @@ $ wget https://s3.amazonaws.com/bitly-downloads/ &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/11/14/running-cbfs/">Running CBFS</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-11-14T06:43:00-08:00" pubdate data-updated="true">Nov 14<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>This will walk you through getting a cbfs cluster up and running.</p>
+
+<h2>What is CBFS?</h2>
+
+<p>cbfs is a distributed filesystem on top of Couchbase Server, not unlike Mongo&rsquo;s GridFS or Riak&rsquo;s CS.  It&rsquo;s currently an experimental &ldquo;skunkworks&rdquo; project and hasn&rsquo;t quite reached official project status.</p>
+
+<p>Here&rsquo;s a typical deployment architecture:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/cbfs-overview.png" alt="cbfs overview" /></p>
+
+<p>Although not shown, all cbfs daemons can communicate with all Couchbase Server instances.</p>
+
+<p>It is not required to run cbfs on the same machine as Couchbase Server, but it <em>is</em> meant to be run in the same data center as Couchbase Server.</p>
+
+<p>If you want a deeper understanding of how cbfs works, check the <a href="http://labs.couchbase.com/cbfs/">cbfs presentation</a> or this <a href="http://dustin.sallings.org/2012/09/27/cbfs.html">blog post</a>.</p>
+
+<h2>Kick off a Couchbase Cluster</h2>
+
+<p>cbfs depends on having a Couchbase cluster running.</p>
+
+<p>Follow all of the steps in <a href="http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/">Running Couchbase Cluster Under CoreOS on AWS</a> to kick off a 3 node Couchbase cluster.</p>
+
+<h2>Add security groups</h2>
+
+<p>A few ports will need to be opened up for cbfs.</p>
+
+<p>Go to the AWS console andeEdit the Couchbase-CoreOS-CoreOSSecurityGroup-xxxx security group and add the following rules:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Type             Protocol  Port Range Source  
+</span><span class='line'>----             --------  ---------- ------
+</span><span class='line'>Custom TCP Rule  TCP       8484       Custom IP: sg-6e5a0d04 (copy and paste from port 4001 rule)
+</span><span class='line'>Custom TCP Rule  TCP       8423       Custom IP: sg-6e5a0d04 </span></code></pre></td></tr></table></div></figure>
+
+
+<p>At this point your security group should look like this:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/security_group_cbfs.png" alt="security group" /></p>
+
+<h1>Create a new bucket for cbfs</h1>
+
+<p><strong>Open Couchbase Server Admin UI</strong></p>
+
+<p>In the AWS EC2 console, find the public IP of one of the instances (it doesn&rsquo;t matter which)</p>
+
+<p>In your browser, go to <code>http://&lt;public_ip&gt;:8091/</code></p>
+
+<p><strong>Create Bucket</strong></p>
+
+<p>Go to Data Buckets / Create New Bucket</p>
+
+<p>Enter <strong>cbfs</strong> for the name of the bucket.</p>
+
+<p>Leave all other settings as default.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/cbfs_create_bucket.png" alt="create bucket" /></p>
+
+<h2>ssh in</h2>
+
+<p>In the AWS EC2 console, find the public IP of one of the instances (it doesn&rsquo;t matter which)</p>
+
+<p>ssh into one of the machines:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ssh -A core@&lt;public_ip&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Run cbfs</h2>
+
+<p><strong>Create a volume dir</strong></p>
+
+<p>Since the fileystem of a docker container is not meant for high throughput io, a volume should be used for cbfs.</p>
+
+<p>Create a directory on the host OS (i.e., on the Core OS instance)</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo mkdir -p /var/lib/cbfs/data
+</span><span class='line'>$ sudo chown -R core:core /var/lib/cbfs</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This will be mounted by the docker container in the next step.</p>
+
+<p><strong>Generate fleet unit files</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://gist.githubusercontent.com/tleyden/d70161c3827cb8b788a8/raw/8f6c81f0095b0007565e9b205e90afb132552060/cbfs_node.service.template
+</span><span class='line'>$ for i in `seq 1 3`; do cp cbfs_node.service.template cbfs_node.$i.service; done</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Start cbfs on all cluster nodes</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ fleetctl start cbfs_node.*.service</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Run <code>fleetctl list-units</code> to list the  units running in your cluster.  You should have the following:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ fleetctl list-units
+</span><span class='line'>UNIT                                            MACHINE                         ACTIVE    SUB
+</span><span class='line'>cbfs_node.1.service                             6ecff20c.../10.51.177.81        active    running
+</span><span class='line'>cbfs_node.2.service                             b8eb6653.../10.79.155.153       active    running
+</span><span class='line'>cbfs_node.3.service                             02d48afd.../10.186.172.24       active    running
+</span><span class='line'>couchbase_bootstrap_node.service                02d48afd.../10.186.172.24       active    running
+</span><span class='line'>couchbase_bootstrap_node_announce.service       02d48afd.../10.186.172.24       active    running
+</span><span class='line'>couchbase_node.1.service                        6ecff20c.../10.51.177.81        active    running
+</span><span class='line'>couchbase_node.2.service                        b8eb6653.../10.79.155.153       active    running</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>View cbfs output</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ fleetctl journal cbfs_node.1.service
+</span><span class='line'>2014/11/14 23:18:58 Connecting to couchbase bucket cbfs at http://10.51.177.81:8091/
+</span><span class='line'>2014/11/14 23:18:58 Error checking view version: MCResponse status=KEY_ENOENT, opcode=GET, opaque=0, msg: Not found
+</span><span class='line'>2014/11/14 23:18:58 Installing new version of views (old version=0)
+</span><span class='line'>2014/11/14 23:18:58 Listening to web requests on :8484 as server 10.51.177.81
+</span><span class='line'>2014/11/14 23:18:58 Error removing 10.51.177.81's task list: MCResponse status=KEY_ENOENT, opcode=DELETE, opaque=0, msg: Not found
+</span><span class='line'>2014/11/14 23:19:05 Error updating space used: Expected 1 result, got []</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Run cbfs client</h2>
+
+<p>Run a bash shell in a docker container that has <code>cbfsclient</code> pre-installed:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run -ti --net=host tleyden5iwx/cbfs /bin/bash</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Upload a file</strong></p>
+
+<p>From within the docker container launched in the previous step:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># echo "foo" &gt; foo
+</span><span class='line'># ip=$(hostname -i | tr -d ' ')
+</span><span class='line'># cbfsclient http://$ip:8484/ upload foo /foo</span></code></pre></td></tr></table></div></figure>
+
+
+<p>There should be no errors.  If you run <code>fleetctl journal cbfs_node.1.service</code> again on the CoreOS instance, you should see log messages like:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>2014/11/14 21:51:43 Recorded myself as an owner of e242ed3bffccdf271b7fbaf34ed72d089537b42f: result=success</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>List directory</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># cbfsclient http://$ip:8484/ ls /
+</span><span class='line'>foo</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It should list the foo file we uploaded earlier.</p>
+
+<p>Congratulations!  You now have cbfs up and running.</p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="http://dustin.sallings.org/2012/09/27/cbfs.html">cbfs &ndash; a couchbase large object store</a></li>
+<li><a href="http://labs.couchbase.com/cbfs/">cbfs presentation</a></li>
+<li><a href="http://cbfs-ext.hq.couchbase.com/dist/">cbfs binary downloads</a></li>
+<li><a href="http://github.com/couchbaselabs/cbfs">cbfs github repo</a></li>
+<li><a href="https://github.com/couchbaselabs/cbfs/issues/132">cbfs question</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1678,209 +1898,6 @@ $ wget https://s3.amazonaws.com/bitly-downloads/ &hellip;">
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/06/22/running-couchbase-server-on-gce/">Running a Couchbase Cluster on Google Compute Engine</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-06-22T15:52:00-07:00" pubdate data-updated="true">Jun 22<span>nd</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>The easiest way to run Couchbase cluster on Google Compute Engine is to run all of the nodes in Docker containers.</p>
-
-<h2>Create GCE instance and ssh in</h2>
-
-<p>Follow the instructions on <a href="http://docs.docker.com/installation/google/">Running Docker on Google Compute Engine</a>.</p>
-
-<p>At this point you should be ssh&rsquo;d into your GCE instance</p>
-
-<h2>Increase max number of files limit</h2>
-
-<p>If you try to run Couchbase Server at this point, you will get <a href="http://stackoverflow.com/questions/24356815/running-couchbase-under-gce-docker-and-getting-error-about-max-number-of-files">this warning</a> because the file ulimit is too low.</p>
-
-<p>Here&rsquo;s how to fix it:</p>
-
-<ul>
-<li>Edit <code>/etc/default/docker</code></li>
-<li>Add a new line in the file with:</li>
-</ul>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ulimit -n 262144</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>Restart the GCE instance in the GCE web admin by going to Compute Engine / VM Instances / <your instance> and hitting the &ldquo;Reboot&rdquo; button.</li>
-</ul>
-
-
-<p><em>Note: in theory it should be possible to just restart docker via <code>sudo service docker restart</code>, however this didn&rsquo;t work for me when I tried it, so I ended up restarting the whole GCE instance</em></p>
-
-<h2>Start Couchbase Server</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -d -name cb1 -p 8091:8091 -p 8092:8092 -p 11210:11210 -p 11211:11211 ncolomer/couchbase</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Verify it&rsquo;s running</h2>
-
-<h3>Find the Docker instance IP address</h3>
-
-<p>On the GCE instance, run:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker inspect -format '{{ .NetworkSettings.IPAddress }}' cb1</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This should return an ip address, eg <code>172.17.0.2</code></p>
-
-<p>Set it as an environment variable so we can use it in later steps:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ export CB1_IP=172.17.0.2</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Run couchbase-cli</h3>
-
-<p>To verify that couchbase server is running, use the <code>couchbase-cli</code> to ask for server info:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -rm ncolomer/couchbase couchbase-cli server-info -c ${CB1_IP} -u Administrator -p couchbase</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If everything is working correctly, this should return a json response, eg:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>{
-</span><span class='line'>  "availableStorage": {
-</span><span class='line'>    "hdd": [
-</span><span class='line'>      {
-</span><span class='line'>        "path": "/",
-</span><span class='line'>  ...
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Start a 3-node cluster</h2>
-
-<p>On the GCE instance, run the following commands:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -d -name cb2 ncolomer/couchbase couchbase-start ${CB1_IP}
-</span><span class='line'>gce:~$ sudo docker run -d -name cb3 ncolomer/couchbase couchbase-start ${CB1_IP}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The nodes <code>cb2</code> and <code>cb3</code> will automatically join the cluster via <code>cb1</code>. The cluster needs a rebalance to be fully operational. To do so, run the following command:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -rm ncolomer/couchbase couchbase-cli rebalance -c ${CB1_IP} -u Administrator -p couchbase</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Connect to admin web UI</h2>
-
-<p>The easiest way to manage a Couchbase Server cluster is via the built-in Web Admin UI.</p>
-
-<p>In order to access it, we will need to make some network changes.</p>
-
-<h3>Expose port 8091 via firewall rule for your machine</h3>
-
-<p>Go to <a href="http://www.whatismyip.com/">whatismyip.com</a> or equivalent, and find your ip address.  Eg, <code>67.161.66.7</code></p>
-
-<p>On your workstation with the <code>gcloud</code> tool installed, run:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ gcloud compute firewalls create cb-8091 --allow tcp:8091 --source-ranges 67.161.66.7/32</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This will allow your machine, as well any other machine behind your internet router, to connect to the Couchbase Web UI running on GCE.</p>
-
-<p>To increase security, you should use ipv6 and pass your workstation&rsquo;s ipv6 hostname in the <code>--source-ranges</code> parameter.</p>
-
-<h3>Find out external ip address of instance</h3>
-
-<p>On your workstation with the <code>gcloud</code> tool installed, run:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ gcloud compute instances list
-</span><span class='line'>name     status  zone          machineType internalIP   externalIP
-</span><span class='line'>couchbse RUNNING us-central1-a f1-micro    10.240.74.44 142.222.178.49</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Your external ip is listed under the externalIP column, eg <code>142.222.178.49</code> in this example.</p>
-
-<h3>Go to admin in web browser</h3>
-
-<p>Go to <a href="http://142.222.178.49:8091">http://142.222.178.49:8091</a> into your web browser (replacing w/ your external ip)</p>
-
-<p>You should see a screen like this:</p>
-
-<p><img src="http://cl.ly/image/2m1i01192U0G/Screen%20Shot%202014-06-22%20at%207.07.36%20PM.png" alt="screenshot" /></p>
-
-<p>Login with the default credentials:</p>
-
-<ul>
-<li>Username: Administrator</li>
-<li>Password: couchbase</li>
-</ul>
-
-
-<p>And you should see the Web Admin dashboard:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_dashboard.png" alt="screenshot" /></p>
-
-<h2>Increase default bucket size</h2>
-
-<p>The default bucket size is set to a very low number by default (128M in my case).  To increase this:</p>
-
-<ul>
-<li>In Web Admin UI, go to Data Buckets / Default / Edit</li>
-<li>Change Per Node RAM Quota to 1024 MB</li>
-<li>Hit &ldquo;Save&rdquo; button</li>
-</ul>
-
-
-<h2>References</h2>
-
-<ul>
-<li><a href="https://registry.hub.docker.com/u/ncolomer/couchbase/">ncolomer/couchbase Docker instructions</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -1907,6 +1924,10 @@ $ wget https://s3.amazonaws.com/bitly-downloads/ &hellip;">
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/11/14/running-cbfs/">Running CBFS</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/11/12/an-example-of-using-nsq-from-go/">An Example of Using NSQ From Go</a>
       </li>
     
@@ -1920,10 +1941,6 @@ $ wget https://s3.amazonaws.com/bitly-downloads/ &hellip;">
     
       <li class="post">
         <a href="/blog/2014/10/30/goroutines-vs-threads/">Goroutines vs Threads</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker/">Running Caffe on AWS GPU Instance via Docker</a>
       </li>
     
   </ul>

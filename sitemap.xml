@@ -30,7 +30,7 @@
         <loc>
             http://tleyden.github.io/blog/2013/11/14/running-couchbase-cluster-under-docker/
         </loc>
-        <lastmod>2014-05-22T14:02:03-07:00</lastmod>
+        <lastmod>2014-11-14T07:48:25-08:00</lastmod>
     </url>
     <url>
         <loc>
@@ -159,12 +159,16 @@
         <lastmod>2014-11-12T11:10:20-08:00</lastmod>
     </url>
     <url>
+        <loc>http://tleyden.github.io/blog/2014/11/14/running-cbfs/</loc>
+        <lastmod>2014-11-14T16:23:00-08:00</lastmod>
+    </url>
+    <url>
         <loc>http://tleyden.github.io/blog/archives/</loc>
-        <lastmod>2014-11-13T19:37:25-08:00</lastmod>
+        <lastmod>2014-11-14T16:23:00-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/</loc>
-        <lastmod>2014-11-13T19:37:25-08:00</lastmod>
+        <lastmod>2014-11-14T16:23:00-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/robots.txt</loc>
