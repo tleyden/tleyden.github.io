@@ -88,24 +88,37 @@ $ sudo chown -R core:core /var/lib/cbfs
 
 This will be mounted by the docker container in the next step.
 
-**Start cbfs**
+**Generate fleet unit files**
 
 ```
-$ ip=$(hostname -i | tr -d ' ')
-$ sudo docker run --net=host \
-  -v /var/lib/cbfs/data:/var/lib/cbfs/data \
-  tleyden5iwx/cbfs \
-  cbfs \
-  -nodeID=$ip \
-  -bucket=cbfs \
-  -couchbase=http://$ip:8091/ \
-  -root=/var/lib/cbfs/data \
-  -viewProxy
+$ wget https://gist.githubusercontent.com/tleyden/d70161c3827cb8b788a8/raw/8f6c81f0095b0007565e9b205e90afb132552060/cbfs_node.service.template
+$ for i in `seq 1 3`; do cp cbfs_node.service.template cbfs_node.$i.service; done
 ```
 
-You should see output like:
+**Start cbfs on all cluster nodes**
 
 ```
+$ fleetctl start cbfs_node.*.service
+```
+
+Run `fleetctl list-units` to list the  units running in your cluster.  You should have the following:
+
+```
+$ fleetctl list-units
+UNIT						MACHINE				ACTIVE	SUB
+cbfs_node.1.service				6ecff20c.../10.51.177.81	active	running
+cbfs_node.2.service				b8eb6653.../10.79.155.153	active	running
+cbfs_node.3.service				02d48afd.../10.186.172.24	active	running
+couchbase_bootstrap_node.service		02d48afd.../10.186.172.24	active	running
+couchbase_bootstrap_node_announce.service	02d48afd.../10.186.172.24	active	running
+couchbase_node.1.service			6ecff20c.../10.51.177.81	active	running
+couchbase_node.2.service			b8eb6653.../10.79.155.153	active	running
+```
+
+**View cbfs output**
+
+```
+$ fleetctl journal cbfs_node.1.service
 2014/11/14 23:18:58 Connecting to couchbase bucket cbfs at http://10.51.177.81:8091/
 2014/11/14 23:18:58 Error checking view version: MCResponse status=KEY_ENOENT, opcode=GET, opaque=0, msg: Not found
 2014/11/14 23:18:58 Installing new version of views (old version=0)
@@ -116,7 +129,7 @@ You should see output like:
 
 ## Run cbfs client
 
-On a new shell, ssh into the same coreos instance where you just launched cbfs.  The following commands assume you are on CoreOS (not in the docker container)
+Run a bash shell in a docker container that has `cbfsclient` pre-installed:
 
 ```
 $ sudo docker run -ti --net=host tleyden5iwx/cbfs /bin/bash
@@ -132,7 +145,7 @@ From within the docker container launched in the previous step:
 # cbfsclient http://$ip:8484/ upload foo /foo
 ```
 
-There should be no errors.  On the `cbs` daemon console, you should see log messages like:
+There should be no errors.  If you run `fleetctl journal cbfs_node.1.service` again on the CoreOS instance, you should see log messages like:
 
 ```
 2014/11/14 21:51:43 Recorded myself as an owner of e242ed3bffccdf271b7fbaf34ed72d089537b42f: result=success
@@ -147,25 +160,7 @@ foo
 
 It should list the foo file we uploaded earlier.
 
-Congratulations!  You now have cbfs up and running on a single node.
-
-## Run cbfs on other nodes
-
-At this point, the cbfs daemon is only running on a single node.  You might have even noticed errors like this already:
-
-```
-2014/11/14 23:24:11 Error running task ensureMinReplCount: Not enough nodes to increase repl count.
-```
-
-You will want to run cbfs on all of the nodes in your cluster so that it can replicate files and provide robustness against data loss.  (and make those ensureMinReplCount errors go away)
-
-On the other two CoreOS intances:
-
-* **Create a volume dir** as described above
-* **Start cbfs** as described above
-
-You now have cbfs up and running on all nodes!
-
+Congratulations!  You now have cbfs up and running.
 
 ## References
 
