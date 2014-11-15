@@ -3,7 +3,7 @@ layout: post
 title: "Running CBFS"
 date: 2014-11-14 06:43
 comments: true
-categories: couchbase, cbfs, docker, coreos
+categories: couchbase cbfs docker coreos
 ---
 
 This will walk you through getting a cbfs cluster up and running.
@@ -24,7 +24,7 @@ If you want a deeper understanding of how cbfs works, check the [cbfs presentati
 
 ## Kick off a Couchbase Cluster
 
-cbfs depends on having a Couchbase cluster running in the same data center.
+cbfs depends on having a Couchbase cluster running.
 
 Follow all of the steps in [Running Couchbase Cluster Under CoreOS on AWS](http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/) to kick off a 3 node Couchbase cluster.
 
@@ -79,7 +79,7 @@ $ ssh -A core@<public_ip>
 
 Since the fileystem of a docker container is not meant for high throughput io, a volume should be used for cbfs.
 
-Create a directory on the host OS (eg, on the Core OS instance)
+Create a directory on the host OS (i.e., on the Core OS instance)
 
 ```
 $ sudo mkdir -p /var/lib/cbfs/data
@@ -105,14 +105,14 @@ Run `fleetctl list-units` to list the  units running in your cluster.  You shoul
 
 ```
 $ fleetctl list-units
-UNIT						MACHINE				ACTIVE	SUB
-cbfs_node.1.service				6ecff20c.../10.51.177.81	active	running
-cbfs_node.2.service				b8eb6653.../10.79.155.153	active	running
-cbfs_node.3.service				02d48afd.../10.186.172.24	active	running
-couchbase_bootstrap_node.service		02d48afd.../10.186.172.24	active	running
-couchbase_bootstrap_node_announce.service	02d48afd.../10.186.172.24	active	running
-couchbase_node.1.service			6ecff20c.../10.51.177.81	active	running
-couchbase_node.2.service			b8eb6653.../10.79.155.153	active	running
+UNIT                                            MACHINE                         ACTIVE	SUB
+cbfs_node.1.service                             6ecff20c.../10.51.177.81        active	running
+cbfs_node.2.service                             b8eb6653.../10.79.155.153       active	running
+cbfs_node.3.service                             02d48afd.../10.186.172.24       active	running
+couchbase_bootstrap_node.service                02d48afd.../10.186.172.24       active	running
+couchbase_bootstrap_node_announce.service       02d48afd.../10.186.172.24       active	running
+couchbase_node.1.service                        6ecff20c.../10.51.177.81        active	running
+couchbase_node.2.service                        b8eb6653.../10.79.155.153       active	running
 ```
 
 **View cbfs output**
