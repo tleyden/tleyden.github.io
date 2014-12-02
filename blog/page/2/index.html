@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="The easiest way to run Couchbase cluster on Google Compute Engine is to run all of the nodes in Docker containers. Create GCE instance and ssh in &hellip;">
+  <meta name="description" content="First, a quick refresh of what Couchbase Sync Gateway actually is. So here&rsquo;s a birds-eye-view of the Couchbase Mobile architecture: Sync &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +72,208 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/06/22/running-couchbase-sync-gateway-on-gce/">Running Couchbase Sync Gateway on Google Compute Engine</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-06-22T19:10:00-07:00" pubdate data-updated="true">Jun 22<span>nd</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>First, a quick refresh of what Couchbase Sync Gateway actually <em>is</em>.</p>
+
+<p>So here&rsquo;s a birds-eye-view of the <a href="http://developer.couchbase.com/mobile">Couchbase Mobile</a> architecture:</p>
+
+<p><img src="https://camo.githubusercontent.com/c1aa705fde3eb12245c06730d850c23e5a84ad8d/687474703a2f2f746c657964656e2d6d6973632e73332e616d617a6f6e6177732e636f6d2f636f756368626173652d6c6974652f636f756368626173652d6c6974652d6172636869746563747572652e706e67" alt="diagram" /></p>
+
+<p>Sync Gateway allows Couchbase Lite mobile apps to sync data between each other and the Couchbase Server running on the backend.</p>
+
+<p>This blog post will walk you through how to run Sync Gateway in a Docker container on Google Compute Engine.</p>
+
+<h2>Create GCE instance and ssh in</h2>
+
+<p>Follow the instructions on <a href="http://docs.docker.com/installation/google/">Running Docker on Google Compute Engine</a>.</p>
+
+<p>At this point you should be ssh&rsquo;d into your GCE instance</p>
+
+<h2>Create a configuration JSON</h2>
+
+<p>Here&rsquo;s a sample <a href="https://gist.github.com/tleyden/d97d985eb1e0725e858e">example JSON configuration</a> for Sync Gateway which uses <a href="https://github.com/couchbaselabs/walrus">walrus</a> as it&rsquo;s backing store, rather than Couchbase Server.  Later we will swap in Couchbase Server as a backing store.</p>
+
+<h2>Run Sync Gateway docker container</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -d -name sg -p 4984:4984 -p 4985:4985 tleyden5iwx/couchbase-sync-gateway sync_gateway "https://gist.githubusercontent.com/tleyden/d97d985eb1e0725e858e/raw"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This will return a container id, eg <code>8ffb83fd1f</code>.</p>
+
+<p>Check the logs to make sure there are no serious errors in the logs:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker logs 8ffb83fd1f</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see something along the lines of:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>02:23:58.905587 Enabling logging: [REST]
+</span><span class='line'>02:23:58.905818 ==== Couchbase Sync Gateway/1.00 (unofficial) ====
+</span><span class='line'>02:23:58.905863 Opening db /sync_gateway as bucket "sync_gateway", pool "default", server &lt;walrus:/opt/sync_gateway/data&gt;
+</span><span class='line'>02:23:58.905964 Opening Walrus database sync_gateway on &lt;walrus:/opt/sync_gateway/data&gt;
+</span><span class='line'>02:23:58.909659 Starting admin server on :4985
+</span><span class='line'>02:23:58.913260 Starting server on :4984 ...</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Expose API port 4984 via Firewall rule</h2>
+
+<p>On your workstation with the <code>gcloud</code> tool installed, run:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ gcloud compute firewalls create sg-4984 --allow tcp:4984</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Verify that it&rsquo;s running</h2>
+
+<h3>Find out external ip address of instance</h3>
+
+<p>On your workstation with the <code>gcloud</code> tool installed, run:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ gcloud compute instances list
+</span><span class='line'>name     status  zone          machineType internalIP   externalIP
+</span><span class='line'>couchbse RUNNING us-central1-a f1-micro    10.240.74.44 142.222.178.49</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Your external ip is listed under the externalIP column, eg <code>142.222.178.49</code> in this example.</p>
+
+<h3>Run curl request</h3>
+
+<p>On your workstation, replace the ip below with your own ip, and run:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl http://142.222.178.49:4984</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should get a response like:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/1.00 (unofficial)"}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Re-run it with Couchbase Server backing store</h2>
+
+<p><em>OK, so we&rsquo;ve gotten it working with walrus.  But have you looked at the walrus website lately?  One <a href="https://camo.githubusercontent.com/1bd1955b96628260b27320f099aeac0585229c2f/687474703a2f2f7777772e69686173616275636b65742e636f6d2f696d616765732f77616c7275735f6275636b65742e6a7067">click</a> and it&rsquo;s pretty obvious that this thing is not exactly meant to be a scalable production ready backend, nor has it ever claimed to be.</em></p>
+
+<p>Let&rsquo;s dump walrus for now and use Couchbase Server from this point onwards.</p>
+
+<h3>Start Couchbase Server</h3>
+
+<p>Before moving on, you will need to go through the instructions in <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">Running Couchbase Server on GCE</a> in order to get a Couchbase Server instance running.</p>
+
+<h3>Stop Sync Gateway</h3>
+
+<p>Run this command to stop the Sync Gateway container and completely remove it, using the same container id you used earlier:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker stop 8ffb83fd1f && sudo docker rm 8ffb83fd1f</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Update config</h3>
+
+<p>Copy this <a href="https://gist.github.com/tleyden/c9e6396f7183c0f3e28c">example JSON configuration</a>, which expects a Couchbase Server running on <code>http://172.17.0.2:8091</code>, and update it with the ip address of the docker instance where your Couchbase Server is running.  To get this ip address, follow the <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">these instructions</a> in the &ldquo;Find the Docker instance IP address&rdquo; section.</p>
+
+<p>Now upload your modified JSON configuration to a website that is publicly accessible, for example in a <a href="http://gist.github.com">Github Gist</a>.</p>
+
+<h3>Run Sync Gateway</h3>
+
+<p>Run Sync Gateway again, this time using Couchbase Server as a backing store this time.</p>
+
+<p>Replace <code>http://yourserver.co/yourconfig.json</code> with the URL where you&rsquo;ve uploaded your JSON configuration from the previous step.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -d -name sg -p 4984:4984 -p 4985:4985 tleyden5iwx/couchbase-sync-gateway sync_gateway "http://yourserver.co/yourconfig.json"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This will return a container id, eg <code>9ffb83fd1f</code>.  Again, check the logs to make sure there are no serious errors in the logs:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker logs 9ffb83fd1f</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see something along the lines of:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>... 
+</span><span class='line'>02:23:58.913260 Starting server on :4984 ...</span></code></pre></td></tr></table></div></figure>
+
+
+<p>with no errors.</p>
+
+<h2>Verify it&rsquo;s working</h2>
+
+<h3>Save a document via curl</h3>
+
+<p>The easiest way to add a document is via the Admin port, since there is no authentication to worry about.  Since we haven&rsquo;t added a firewall rule to expose the admin port (4985), (and doing so without tight filtering would be a major security hole), the following command to create a new document must be run on the GCE instance.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ curl -H "Content-Type: application/json" -d '{"such":"json"}' http://localhost:4985/sync_gateway/</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If it worked, you should see a response like:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{"id":"3cbfbe43e76b7eb5c4c221a78b2cf0cc","ok":true,"rev":"1-cd809becc169215072fd567eebd8b8de"}</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>View document on Couchbase Server</h3>
+
+<p>To verify the document was successfully stored on Couchbase Server, you&rsquo;ll need to login to the Couchbase Server Web Admin UI.  There are instructions <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">here</a> on how to do that.</p>
+
+<p>From there, navigate to Data Buckets / default / Documents, and you should see:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_server_docs.png" alt="screenshot" /></p>
+
+<p>Click on the document that has a UUID (eg, &ldquo;29f8d7..&rdquo; in the screenshot above), and you should see the document&rsquo;s contents:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_server_doc.png" alt="screenshot" /></p>
+
+<p>The <code>_sync</code> metadata field is used internally by the Sync Gateway and can be ignored.  The actual doc contents are towards the end of the file: <code>.."such":"json"}</code></p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1282,107 +1484,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/01/13/objective-c-coding-interview-challenge-urlpuller/">Objective C Coding Interview Challenge: URLPuller</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-01-13T11:45:00-08:00" pubdate data-updated="true">Jan 13<span>th</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h1>Programming Challenge</h1>
-
-<p>The goal is to create an Objective-C class which takes an array of NSURL&rsquo;s, downloads their contents asynchronously, and writes the contents of each URL to a unique file.</p>
-
-<p>The class should be named URLPuller and should have the following instance methods:</p>
-
-<ul>
-<li><code>- (void) downloadUrlsAsync: (NSArray*)urls</code></li>
-<li><code>- (void) waitUntilAllDownloadsFinish</code></li>
-<li><code>- (NSString*) downloadedPathForURL: (NSURL*)url</code></li>
-</ul>
-
-
-<p>Here are the detailed descriptions of each method:</p>
-
-<h2>downloadUrlsAsync</h2>
-
-<p><code>- (void) downloadUrlsAsync: (NSArray*)urls</code></p>
-
-<p>The urls array will contain an array of NSURL&rsquo;s.  The method should return immediately, eg, it&rsquo;s an asynchronous API call that will run in the background.</p>
-
-<p>The downloaded files can be stored in any directory, where the filename is {sha1 hash of url}.downloaded</p>
-
-<h2>waitUntilAllDownloadsFinish</h2>
-
-<p><code>- (void) waitUntilAllDownloadsFinish</code></p>
-
-<p>Block until all of the URLs have been downloaded.</p>
-
-<p>If this is called while there is no download in progress, it should return immediately.  Otherwise, it should block until all the downloads have finished.</p>
-
-<h2>downloadedPathForURL</h2>
-
-<p><code>- (NSString*) downloadedPathForURL: (NSURL*)url</code></p>
-
-<p>Return the path where the given url was downloaded to.</p>
-
-<p>If the given url has not been downloaded yet, or was never requested to be downloaded, then it should return nil.</p>
-
-<h1>Objectives</h1>
-
-<p>Demonstrate that:</p>
-
-<ul>
-<li>You can write a program that satisfies the API methods and described behavior.</li>
-<li>You can write code that is well factored, and easy to understand.</li>
-<li>You can clearly communicate questions (if any arise) regarding this specification.</li>
-</ul>
-
-
-<h1>Deliverable</h1>
-
-<ul>
-<li>Zipped Xcode project directory or a link to github repo that contains the Xcode project.  It can be either an iOS or MacOS project.</li>
-</ul>
-
-
-<h1>Rules</h1>
-
-<ul>
-<li>You can use any available resource you can find on the Internet &mdash; eg, Stack Overflow, API docs, etc.</li>
-<li>You may not ask questions related to the problem on Stack Overflow, IRC, etc.  (eg, the Internet is &ldquo;read-only&rdquo;)</li>
-<li>You cannot use any 3rd party libraries or products, you can only use classes and API&rsquo;s in the standard iOS/Cocoa Objective-C runtime.  If in doubt, just ask.</li>
-<li>You are welcome to go above and beyond the call of duty in any way that you see fit, however with the constraint that you must provide the above methods with signatures exactly matching with the specification.</li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/3/">&larr; Older</a>
@@ -1411,6 +1512,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/12/02/getting-started-with-go-and-protocol-buffers/">Getting Started With Go and Protocol Buffers</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/11/14/running-cbfs/">Running CBFS</a>
       </li>
     
@@ -1424,10 +1529,6 @@
     
       <li class="post">
         <a href="/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/">Running Couchbase Cluster Under CoreOS on AWS</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/10/30/goroutines-vs-threads/">Goroutines vs Threads</a>
       </li>
     
   </ul>

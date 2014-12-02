@@ -4,7 +4,7 @@
   <title><![CDATA[Category: golang | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/golang/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-11-14T16:24:36-08:00</updated>
+  <updated>2014-12-02T08:06:30-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,149 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Getting started with Go and Protocol Buffers]]></title>
+    <link href="http://tleyden.github.io/blog/2014/12/02/getting-started-with-go-and-protocol-buffers/"/>
+    <updated>2014-12-02T06:32:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2014/12/02/getting-started-with-go-and-protocol-buffers</id>
+    <content type="html"><![CDATA[<p>I found the <a href="https://github.com/golang/protobuf">official docs</a> on using Google Protocol Buffers from Go a bit confusing, and couldn&rsquo;t find any other clearly written blog posts on getting started, so I figured I&rsquo;d write my own.</p>
+
+<p>This will walk you through the following:</p>
+
+<ul>
+<li>Install golang/protobuf and required dependencies</li>
+<li>Generating Go wrappers for a test protocol buffer definition</li>
+<li>Using those Go wrappers to marshal and unmarshal an object</li>
+</ul>
+
+
+<h2>Install protoc binary</h2>
+
+<p>Since the protocol buffer compiler <code>protoc</code> is required later, we must install it.</p>
+
+<p><strong>Ubuntu 14.04</strong></p>
+
+<p>If you want to use an older version (v2.5), simply do:</p>
+
+<p><code>
+$ apt-get install protobuf-compiler
+</code></p>
+
+<p>Otherwise if you want the latest version (v2.6):</p>
+
+<p><code>
+$ apt-get install build-essential
+$ wget https://protobuf.googlecode.com/svn/rc/protobuf-2.6.0.tar.gz
+$ tar xvfz protobuf-2.6.0.tar.gz
+$ cd protobuf-2.6.0
+$ ./configure &amp;&amp; make install
+</code></p>
+
+<p><strong>OSX</strong></p>
+
+<p><code>
+$ brew install protobuf
+</code></p>
+
+<h2>Install Go Protobuf library</h2>
+
+<p>This assumes you have Go 1.2+ or later already installed, and your <code>$GOPATH</code> variable set.</p>
+
+<p>In order to generate Go wrappers, we need to install the following:</p>
+
+<p><code>
+$ go get -u -v github.com/golang/protobuf/proto
+$ go get -u -v github.com/golang/protobuf/protoc-gen-go
+</code></p>
+
+<h2>Download a test .proto file</h2>
+
+<p>In order to generate wrappers, we need a <code>.proto</code> file with object definitions.</p>
+
+<p>This one is a slightly modified version of the one from the <a href="https://github.com/golang/protobuf">official docs</a>.</p>
+
+<p><code>
+$ wget https://gist.githubusercontent.com/tleyden/95de4bfe34321c79e91b/raw/f8696fe0f1462f377d6bd13c5f20cccfa182578a/test.proto
+</code></p>
+
+<h2>Generate Go wrappers</h2>
+
+<p><code>
+$ protoc --go_out=. *.proto
+</code></p>
+
+<p>You should end up with a new file generated: <code>test.pb.go</code></p>
+
+<h2>Marshalling and unmarshalling an object</h2>
+
+<p>Open a new file <code>main.go</code> in <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">emacs</a> or your favorite editor, and paste the following:</p>
+
+<p>```
+package main</p>
+
+<p>import (</p>
+
+<pre><code>"log"
+
+"github.com/golang/protobuf/proto"
+</code></pre>
+
+<p>)</p>
+
+<p>func main() {</p>
+
+<pre><code>test := &amp;Test{
+    Label: proto.String("hello"),
+    Type:  proto.Int32(17),
+    Optionalgroup: &amp;Test_OptionalGroup{
+        RequiredField: proto.String("good bye"),
+    },
+}
+data, err := proto.Marshal(test)
+if err != nil {
+    log.Fatal("marshaling error: ", err)
+}
+newTest := &amp;Test{}
+err = proto.Unmarshal(data, newTest)
+if err != nil {
+    log.Fatal("unmarshaling error: ", err)
+}
+// Now test and newTest contain the same data.
+if test.GetLabel() != newTest.GetLabel() {
+    log.Fatalf("data mismatch %q != %q", test.GetLabel(), newTest.GetLabel())
+}
+
+log.Printf("Unmarshalled to: %+v", newTest)
+</code></pre>
+
+<p>}</p>
+
+<p>```</p>
+
+<p><strong>Run it via:</strong></p>
+
+<p><code>
+$ go run main.go test.pb.go
+</code></p>
+
+<p>and you should see the output:</p>
+
+<p><code>
+Unmarshalled to: label:"hello" type:17 OptionalGroup{RequiredField:"good bye" }
+</code></p>
+
+<p>Congratulations!  You are now using protocol buffers from Go.</p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://github.com/golang/protobuf">Official golang/protobuf repo</a></li>
+<li><a href="https://code.google.com/p/gogoprotobuf/">gogoprotobuf fork</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[An example of using NSQ from Go]]></title>
@@ -544,33 +687,6 @@ export PATH=$PATH:$GOROOT/bin
 <h2>Continue to Part 2</h2>
 
 <p>go-imports and go-oracle are covered in <a href="../../27/configure-emacs-as-a-go-editor-from-scratch-part-2/">Part 2</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Playing with Go and OpenGL]]></title>
-    <link href="http://tleyden.github.io/blog/2014/02/08/playing-with-go-and-opengl/"/>
-    <updated>2014-02-08T16:01:00-08:00</updated>
-    <id>http://tleyden.github.io/blog/2014/02/08/playing-with-go-and-opengl</id>
-    <content type="html"><![CDATA[<p>Get this spinning gopher working with Go and OpenGL on OSX Mavericks via <a href="https://github.com/chsc/gogl/">gogl</a></p>
-
-<iframe width="420" height="315" src="http://tleyden.github.io//www.youtube.com/embed/yae-bRLdfaU" frameborder="0" allowfullscreen></iframe>
-
-
-<h1>Steps</h1>
-
-<p><code>
-$ brew install glfw2
-$ go get -u -v github.com/tleyden/gogl
-$ go get -u -v github.com/go-gl/glfw  
-$ cd $GOPATH/src/github.com/tleyden/gogl
-$ make bindings
-$ go get -u -v github.com/chsc/gogl
-$ cd $GOPATH/src/github.com/tleyden/gogl/examples/gopher
-$ go run gopher.go
-</code></p>
-
-<p>NOTE: if <a href="https://github.com/chsc/gogl/pull/37">pull request #37</a> has already been merged into <a href="https://github.com/chsc/gogl/">gogl</a>, then replace <code>github.com/tleyden/gogl</code> with <code>https://github.com/chsc/gogl</code> in steps above.</p>
 ]]></content>
   </entry>
   

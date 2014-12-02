@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Understanding chan chan's in Go - Seven Story Rabbit Hole</title>
+  <title>Getting started with Go and Protocol Buffers - Seven Story Rabbit Hole</title>
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="A channel describes a transport of sorts. You can send a thing down that transport. When using a chan chan, the thing you want to send down the &hellip;">
+  <meta name="description" content="I found the official docs on using Google Protocol Buffers from Go a bit confusing, and couldn&rsquo;t find any other clearly written blog posts on &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://tleyden.github.io/blog/2013/11/23/understanding-chan-chans-in-go">
+  <link rel="canonical" href="http://tleyden.github.io/blog/2014/12/02/getting-started-with-go-and-protocol-buffers">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
@@ -75,7 +75,7 @@
   
   <header>
     
-      <h1 class="entry-title">Understanding Chan Chan's in Go</h1>
+      <h1 class="entry-title">Getting Started With Go and Protocol Buffers</h1>
     
     
       <p class="meta">
@@ -91,46 +91,89 @@
   
 
 
-<time datetime="2013-11-23T07:58:00-08:00" pubdate data-updated="true">Nov 23<span>rd</span>, 2013</time>
+<time datetime="2014-12-02T06:32:00-08:00" pubdate data-updated="true">Dec 2<span>nd</span>, 2014</time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><p>A channel describes a transport of sorts.  You can send a thing down that transport.  When using a chan chan, the thing you want to send down the transport is another transport to send things back.</p>
+<div class="entry-content"><p>I found the <a href="https://github.com/golang/protobuf">official docs</a> on using Google Protocol Buffers from Go a bit confusing, and couldn&rsquo;t find any other clearly written blog posts on getting started, so I figured I&rsquo;d write my own.</p>
 
-<p>They are useful when you want to get a response to something, and you don&rsquo;t want to setup two channels (it&rsquo;s generally considered bad practice to have data moving bidirectionally on a single channel)</p>
+<p>This will walk you through the following:</p>
 
-<h2>Visual time lapse walkthrough</h2>
+<ul>
+<li>Install golang/protobuf and required dependencies</li>
+<li>Generating Go wrappers for a test protocol buffer definition</li>
+<li>Using those Go wrappers to marshal and unmarshal an object</li>
+</ul>
 
-<p>Keep in mind that Goroutine C is the &ldquo;real consumer&rdquo; even though it will be the one which writes to the request channel.</p>
 
-<p>The request channel starts out empty.</p>
+<h2>Install protoc binary</h2>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_1.png" alt="Screenshot" /></p>
+<p>Since the protocol buffer compiler <code>protoc</code> is required later, we must install it.</p>
 
-<p>Goroutine C passes a &ldquo;response channel&rdquo; to go routine D via the request channel</p>
+<p><strong>Ubuntu 14.04</strong></p>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_2.png" alt="Screenshot" /></p>
+<p>If you want to use an older version (v2.5), simply do:</p>
 
-<p>Goroutine C starts reading from the (still empty) response channel.</p>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ apt-get install protobuf-compiler</span></code></pre></td></tr></table></div></figure>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_3.png" alt="Screenshot" /></p>
 
-<p>Goroutine D writes a string to the response channel</p>
+<p>Otherwise if you want the latest version (v2.6):</p>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_4.png" alt="Screenshot" /></p>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ apt-get install build-essential
+</span><span class='line'>$ wget https://protobuf.googlecode.com/svn/rc/protobuf-2.6.0.tar.gz
+</span><span class='line'>$ tar xvfz protobuf-2.6.0.tar.gz
+</span><span class='line'>$ cd protobuf-2.6.0
+</span><span class='line'>$ ./configure && make install</span></code></pre></td></tr></table></div></figure>
 
-<p>Goroutine C now is able to read a value from response channel, and get&rsquo;s the &ldquo;wassup!&rdquo; message</p>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_5.png" alt="Screenshot" /></p>
+<p><strong>OSX</strong></p>
 
-<p>And now we are back to where we started</p>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ brew install protobuf</span></code></pre></td></tr></table></div></figure>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_chan_chan_1.png" alt="Screenshot" /></p>
 
-<h2>Here is some code that uses chan chan&rsquo;s</h2>
+<h2>Install Go Protobuf library</h2>
+
+<p>This assumes you have Go 1.2+ or later already installed, and your <code>$GOPATH</code> variable set.</p>
+
+<p>In order to generate Go wrappers, we need to install the following:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go get -u -v github.com/golang/protobuf/proto
+</span><span class='line'>$ go get -u -v github.com/golang/protobuf/protoc-gen-go</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Download a test .proto file</h2>
+
+<p>In order to generate wrappers, we need a <code>.proto</code> file with object definitions.</p>
+
+<p>This one is a slightly modified version of the one from the <a href="https://github.com/golang/protobuf">official docs</a>.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://gist.githubusercontent.com/tleyden/95de4bfe34321c79e91b/raw/f8696fe0f1462f377d6bd13c5f20cccfa182578a/test.proto</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Generate Go wrappers</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ protoc --go_out=. *.proto</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should end up with a new file generated: <code>test.pb.go</code></p>
+
+<h2>Marshalling and unmarshalling an object</h2>
+
+<p>Open a new file <code>main.go</code> in <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">emacs</a> or your favorite editor, and paste the following:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -166,66 +209,64 @@
 <span class='line-number'>32</span>
 <span class='line-number'>33</span>
 <span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>package main
 </span><span class='line'>
-</span><span class='line'>import "fmt"
-</span><span class='line'>import "time"
+</span><span class='line'>import (
+</span><span class='line'>  "log"
+</span><span class='line'>
+</span><span class='line'>  "github.com/golang/protobuf/proto"
+</span><span class='line'>)
 </span><span class='line'>
 </span><span class='line'>func main() {
 </span><span class='line'>
-</span><span class='line'>     // make the request chan chan that both go-routines will be given
-</span><span class='line'>     requestChan := make(chan chan string)
+</span><span class='line'>  test := &Test{
+</span><span class='line'>      Label: proto.String("hello"),
+</span><span class='line'>      Type:  proto.Int32(17),
+</span><span class='line'>      Optionalgroup: &Test_OptionalGroup{
+</span><span class='line'>          RequiredField: proto.String("good bye"),
+</span><span class='line'>      },
+</span><span class='line'>  }
+</span><span class='line'>  data, err := proto.Marshal(test)
+</span><span class='line'>  if err != nil {
+</span><span class='line'>      log.Fatal("marshaling error: ", err)
+</span><span class='line'>  }
+</span><span class='line'>  newTest := &Test{}
+</span><span class='line'>  err = proto.Unmarshal(data, newTest)
+</span><span class='line'>  if err != nil {
+</span><span class='line'>      log.Fatal("unmarshaling error: ", err)
+</span><span class='line'>  }
+</span><span class='line'>  // Now test and newTest contain the same data.
+</span><span class='line'>  if test.GetLabel() != newTest.GetLabel() {
+</span><span class='line'>      log.Fatalf("data mismatch %q != %q", test.GetLabel(), newTest.GetLabel())
+</span><span class='line'>  }
 </span><span class='line'>
-</span><span class='line'>     // start the goroutines
-</span><span class='line'>     go goroutineC(requestChan)
-</span><span class='line'>     go goroutineD(requestChan)
-</span><span class='line'>
-</span><span class='line'>     // sleep for a second to let the goroutines complete
-</span><span class='line'>     time.Sleep(time.Second)
-</span><span class='line'>
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>func goroutineC(requestChan chan chan string) {
-</span><span class='line'>
-</span><span class='line'>     // make a new response chan
-</span><span class='line'>     responseChan := make(chan string)
-</span><span class='line'>
-</span><span class='line'>     // send the responseChan to goRoutineD
-</span><span class='line'>     requestChan &lt;- responseChan
-</span><span class='line'>
-</span><span class='line'>     // read the response
-</span><span class='line'>     response := &lt;-responseChan
-</span><span class='line'>
-</span><span class='line'>     fmt.Printf("Response: %v\n", response)
-</span><span class='line'>
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>func goroutineD(requestChan chan chan string) {
-</span><span class='line'>
-</span><span class='line'>     // read the responseChan from the requestChan
-</span><span class='line'>     responseChan := &lt;-requestChan
-</span><span class='line'>
-</span><span class='line'>     // send a value down the responseChan
-</span><span class='line'>     responseChan &lt;- "wassup!"
+</span><span class='line'>  log.Printf("Unmarshalled to: %+v", newTest)
 </span><span class='line'>
 </span><span class='line'>}
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>This code can be run on <a href="http://play.golang.org/p/chi6P2XGTO">Go playground</a></p>
+<p><strong>Run it via:</strong></p>
 
-<h2>For more information</h2>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go run main.go test.pb.go</span></code></pre></td></tr></table></div></figure>
 
-<p>See <a href="https://www.youtube.com/watch?v=QDDwwePbDtw">Google I/O 2013 &ndash; Advanced Go Concurrency Patterns</a> around 17:00.  This contains another explanation of chan chan&rsquo;s.</p>
+
+<p>and you should see the output:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Unmarshalled to: label:"hello" type:17 OptionalGroup{RequiredField:"good bye" }  </span></code></pre></td></tr></table></div></figure>
+
+
+<p>Congratulations!  You are now using protocol buffers from Go.</p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://github.com/golang/protobuf">Official golang/protobuf repo</a></li>
+<li><a href="https://code.google.com/p/gogoprotobuf/">gogoprotobuf fork</a></li>
+</ul>
+
 </div>
 
 
@@ -248,7 +289,7 @@
   
 
 
-<time datetime="2013-11-23T07:58:00-08:00" pubdate data-updated="true">Nov 23<span>rd</span>, 2013</time>
+<time datetime="2014-12-02T06:32:00-08:00" pubdate data-updated="true">Dec 2<span>nd</span>, 2014</time>
       
 
 <span class="categories">
@@ -262,7 +303,7 @@
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2013/11/23/understanding-chan-chans-in-go/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2013/11/23/understanding-chan-chans-in-go/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2014/12/02/getting-started-with-go-and-protocol-buffers/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2014/12/02/getting-started-with-go-and-protocol-buffers/" >Tweet</a>
   
   
   
@@ -271,10 +312,8 @@
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2013/11/22/android-studio-plus-genymotion-emulator/" title="Previous Post: Android Studio + Genymotion Emulator">&laquo; Android Studio + Genymotion Emulator</a>
+        <a class="basic-alignment left" href="/blog/2014/11/14/running-cbfs/" title="Previous Post: Running CBFS">&laquo; Running CBFS</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2013/12/19/how-to-downgrade-android-studio/" title="Next Post: How to downgrade Android Studio">How to downgrade Android Studio &raquo;</a>
       
     </p>
   </footer>
@@ -383,8 +422,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://tleyden.github.io/blog/2013/11/23/understanding-chan-chans-in-go/';
-        var disqus_url = 'http://tleyden.github.io/blog/2013/11/23/understanding-chan-chans-in-go/';
+        var disqus_identifier = 'http://tleyden.github.io/blog/2014/12/02/getting-started-with-go-and-protocol-buffers/';
+        var disqus_url = 'http://tleyden.github.io/blog/2014/12/02/getting-started-with-go-and-protocol-buffers/';
         var disqus_script = 'embed.js';
       
     (function () {

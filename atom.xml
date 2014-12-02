@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-11-14T16:24:36-08:00</updated>
+  <updated>2014-12-02T08:06:30-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,183 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Getting started with Go and Protocol Buffers]]></title>
+    <link href="http://tleyden.github.io/blog/2014/12/02/getting-started-with-go-and-protocol-buffers/"/>
+    <updated>2014-12-02T06:32:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2014/12/02/getting-started-with-go-and-protocol-buffers</id>
+    <content type="html"><![CDATA[<p>I found the <a href="https://github.com/golang/protobuf">official docs</a> on using Google Protocol Buffers from Go a bit confusing, and couldn&rsquo;t find any other clearly written blog posts on getting started, so I figured I&rsquo;d write my own.</p>
+
+<p>This will walk you through the following:</p>
+
+<ul>
+<li>Install golang/protobuf and required dependencies</li>
+<li>Generating Go wrappers for a test protocol buffer definition</li>
+<li>Using those Go wrappers to marshal and unmarshal an object</li>
+</ul>
+
+
+<h2>Install protoc binary</h2>
+
+<p>Since the protocol buffer compiler <code>protoc</code> is required later, we must install it.</p>
+
+<p><strong>Ubuntu 14.04</strong></p>
+
+<p>If you want to use an older version (v2.5), simply do:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ apt-get install protobuf-compiler</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Otherwise if you want the latest version (v2.6):</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ apt-get install build-essential
+</span><span class='line'>$ wget https://protobuf.googlecode.com/svn/rc/protobuf-2.6.0.tar.gz
+</span><span class='line'>$ tar xvfz protobuf-2.6.0.tar.gz
+</span><span class='line'>$ cd protobuf-2.6.0
+</span><span class='line'>$ ./configure && make install</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>OSX</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ brew install protobuf</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Install Go Protobuf library</h2>
+
+<p>This assumes you have Go 1.2+ or later already installed, and your <code>$GOPATH</code> variable set.</p>
+
+<p>In order to generate Go wrappers, we need to install the following:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go get -u -v github.com/golang/protobuf/proto
+</span><span class='line'>$ go get -u -v github.com/golang/protobuf/protoc-gen-go</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Download a test .proto file</h2>
+
+<p>In order to generate wrappers, we need a <code>.proto</code> file with object definitions.</p>
+
+<p>This one is a slightly modified version of the one from the <a href="https://github.com/golang/protobuf">official docs</a>.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://gist.githubusercontent.com/tleyden/95de4bfe34321c79e91b/raw/f8696fe0f1462f377d6bd13c5f20cccfa182578a/test.proto</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Generate Go wrappers</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ protoc --go_out=. *.proto</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should end up with a new file generated: <code>test.pb.go</code></p>
+
+<h2>Marshalling and unmarshalling an object</h2>
+
+<p>Open a new file <code>main.go</code> in <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">emacs</a> or your favorite editor, and paste the following:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>package main
+</span><span class='line'>
+</span><span class='line'>import (
+</span><span class='line'>  "log"
+</span><span class='line'>
+</span><span class='line'>  "github.com/golang/protobuf/proto"
+</span><span class='line'>)
+</span><span class='line'>
+</span><span class='line'>func main() {
+</span><span class='line'>
+</span><span class='line'>  test := &Test{
+</span><span class='line'>      Label: proto.String("hello"),
+</span><span class='line'>      Type:  proto.Int32(17),
+</span><span class='line'>      Optionalgroup: &Test_OptionalGroup{
+</span><span class='line'>          RequiredField: proto.String("good bye"),
+</span><span class='line'>      },
+</span><span class='line'>  }
+</span><span class='line'>  data, err := proto.Marshal(test)
+</span><span class='line'>  if err != nil {
+</span><span class='line'>      log.Fatal("marshaling error: ", err)
+</span><span class='line'>  }
+</span><span class='line'>  newTest := &Test{}
+</span><span class='line'>  err = proto.Unmarshal(data, newTest)
+</span><span class='line'>  if err != nil {
+</span><span class='line'>      log.Fatal("unmarshaling error: ", err)
+</span><span class='line'>  }
+</span><span class='line'>  // Now test and newTest contain the same data.
+</span><span class='line'>  if test.GetLabel() != newTest.GetLabel() {
+</span><span class='line'>      log.Fatalf("data mismatch %q != %q", test.GetLabel(), newTest.GetLabel())
+</span><span class='line'>  }
+</span><span class='line'>
+</span><span class='line'>  log.Printf("Unmarshalled to: %+v", newTest)
+</span><span class='line'>
+</span><span class='line'>}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Run it via:</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go run main.go test.pb.go</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and you should see the output:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Unmarshalled to: label:"hello" type:17 OptionalGroup{RequiredField:"good bye" }  </span></code></pre></td></tr></table></div></figure>
+
+
+<p>Congratulations!  You are now using protocol buffers from Go.</p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://github.com/golang/protobuf">Official golang/protobuf repo</a></li>
+<li><a href="https://code.google.com/p/gogoprotobuf/">gogoprotobuf fork</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Running CBFS]]></title>
@@ -2531,80 +2708,6 @@
 
 
 <p>I&rsquo;m posting this in case it&rsquo;s useful to anyone who needs to do something similar, or if any Gradle / Android Studio Jedi masters have any feedback like &ldquo;why did you do X, when you just could have done Y?&rdquo;</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Objective C coding interview challenge: URLPuller]]></title>
-    <link href="http://tleyden.github.io/blog/2014/01/13/objective-c-coding-interview-challenge-urlpuller/"/>
-    <updated>2014-01-13T11:45:00-08:00</updated>
-    <id>http://tleyden.github.io/blog/2014/01/13/objective-c-coding-interview-challenge-urlpuller</id>
-    <content type="html"><![CDATA[<h1>Programming Challenge</h1>
-
-<p>The goal is to create an Objective-C class which takes an array of NSURL&rsquo;s, downloads their contents asynchronously, and writes the contents of each URL to a unique file.</p>
-
-<p>The class should be named URLPuller and should have the following instance methods:</p>
-
-<ul>
-<li><code>- (void) downloadUrlsAsync: (NSArray*)urls</code></li>
-<li><code>- (void) waitUntilAllDownloadsFinish</code></li>
-<li><code>- (NSString*) downloadedPathForURL: (NSURL*)url</code></li>
-</ul>
-
-
-<p>Here are the detailed descriptions of each method:</p>
-
-<h2>downloadUrlsAsync</h2>
-
-<p><code>- (void) downloadUrlsAsync: (NSArray*)urls</code></p>
-
-<p>The urls array will contain an array of NSURL&rsquo;s.  The method should return immediately, eg, it&rsquo;s an asynchronous API call that will run in the background.</p>
-
-<p>The downloaded files can be stored in any directory, where the filename is {sha1 hash of url}.downloaded</p>
-
-<h2>waitUntilAllDownloadsFinish</h2>
-
-<p><code>- (void) waitUntilAllDownloadsFinish</code></p>
-
-<p>Block until all of the URLs have been downloaded.</p>
-
-<p>If this is called while there is no download in progress, it should return immediately.  Otherwise, it should block until all the downloads have finished.</p>
-
-<h2>downloadedPathForURL</h2>
-
-<p><code>- (NSString*) downloadedPathForURL: (NSURL*)url</code></p>
-
-<p>Return the path where the given url was downloaded to.</p>
-
-<p>If the given url has not been downloaded yet, or was never requested to be downloaded, then it should return nil.</p>
-
-<h1>Objectives</h1>
-
-<p>Demonstrate that:</p>
-
-<ul>
-<li>You can write a program that satisfies the API methods and described behavior.</li>
-<li>You can write code that is well factored, and easy to understand.</li>
-<li>You can clearly communicate questions (if any arise) regarding this specification.</li>
-</ul>
-
-
-<h1>Deliverable</h1>
-
-<ul>
-<li>Zipped Xcode project directory or a link to github repo that contains the Xcode project.  It can be either an iOS or MacOS project.</li>
-</ul>
-
-
-<h1>Rules</h1>
-
-<ul>
-<li>You can use any available resource you can find on the Internet &mdash; eg, Stack Overflow, API docs, etc.</li>
-<li>You may not ask questions related to the problem on Stack Overflow, IRC, etc.  (eg, the Internet is &ldquo;read-only&rdquo;)</li>
-<li>You cannot use any 3rd party libraries or products, you can only use classes and API&rsquo;s in the standard iOS/Cocoa Objective-C runtime.  If in doubt, just ask.</li>
-<li>You are welcome to go above and beyond the call of duty in any way that you see fit, however with the constraint that you must provide the above methods with signatures exactly matching with the specification.</li>
-</ul>
-
 ]]></content>
   </entry>
   

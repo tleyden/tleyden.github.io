@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="This will walk you through getting a cbfs cluster up and running. What is CBFS? cbfs is a distributed filesystem on top of Couchbase Server, not &hellip;">
+  <meta name="description" content="I found the official docs on using Google Protocol Buffers from Go a bit confusing, and couldn&rsquo;t find any other clearly written blog posts on &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +72,210 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/12/02/getting-started-with-go-and-protocol-buffers/">Getting Started With Go and Protocol Buffers</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-12-02T06:32:00-08:00" pubdate data-updated="true">Dec 2<span>nd</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I found the <a href="https://github.com/golang/protobuf">official docs</a> on using Google Protocol Buffers from Go a bit confusing, and couldn&rsquo;t find any other clearly written blog posts on getting started, so I figured I&rsquo;d write my own.</p>
+
+<p>This will walk you through the following:</p>
+
+<ul>
+<li>Install golang/protobuf and required dependencies</li>
+<li>Generating Go wrappers for a test protocol buffer definition</li>
+<li>Using those Go wrappers to marshal and unmarshal an object</li>
+</ul>
+
+
+<h2>Install protoc binary</h2>
+
+<p>Since the protocol buffer compiler <code>protoc</code> is required later, we must install it.</p>
+
+<p><strong>Ubuntu 14.04</strong></p>
+
+<p>If you want to use an older version (v2.5), simply do:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ apt-get install protobuf-compiler</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Otherwise if you want the latest version (v2.6):</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ apt-get install build-essential
+</span><span class='line'>$ wget https://protobuf.googlecode.com/svn/rc/protobuf-2.6.0.tar.gz
+</span><span class='line'>$ tar xvfz protobuf-2.6.0.tar.gz
+</span><span class='line'>$ cd protobuf-2.6.0
+</span><span class='line'>$ ./configure && make install</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>OSX</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ brew install protobuf</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Install Go Protobuf library</h2>
+
+<p>This assumes you have Go 1.2+ or later already installed, and your <code>$GOPATH</code> variable set.</p>
+
+<p>In order to generate Go wrappers, we need to install the following:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go get -u -v github.com/golang/protobuf/proto
+</span><span class='line'>$ go get -u -v github.com/golang/protobuf/protoc-gen-go</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Download a test .proto file</h2>
+
+<p>In order to generate wrappers, we need a <code>.proto</code> file with object definitions.</p>
+
+<p>This one is a slightly modified version of the one from the <a href="https://github.com/golang/protobuf">official docs</a>.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://gist.githubusercontent.com/tleyden/95de4bfe34321c79e91b/raw/f8696fe0f1462f377d6bd13c5f20cccfa182578a/test.proto</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Generate Go wrappers</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ protoc --go_out=. *.proto</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should end up with a new file generated: <code>test.pb.go</code></p>
+
+<h2>Marshalling and unmarshalling an object</h2>
+
+<p>Open a new file <code>main.go</code> in <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">emacs</a> or your favorite editor, and paste the following:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>package main
+</span><span class='line'>
+</span><span class='line'>import (
+</span><span class='line'>  "log"
+</span><span class='line'>
+</span><span class='line'>  "github.com/golang/protobuf/proto"
+</span><span class='line'>)
+</span><span class='line'>
+</span><span class='line'>func main() {
+</span><span class='line'>
+</span><span class='line'>  test := &Test{
+</span><span class='line'>      Label: proto.String("hello"),
+</span><span class='line'>      Type:  proto.Int32(17),
+</span><span class='line'>      Optionalgroup: &Test_OptionalGroup{
+</span><span class='line'>          RequiredField: proto.String("good bye"),
+</span><span class='line'>      },
+</span><span class='line'>  }
+</span><span class='line'>  data, err := proto.Marshal(test)
+</span><span class='line'>  if err != nil {
+</span><span class='line'>      log.Fatal("marshaling error: ", err)
+</span><span class='line'>  }
+</span><span class='line'>  newTest := &Test{}
+</span><span class='line'>  err = proto.Unmarshal(data, newTest)
+</span><span class='line'>  if err != nil {
+</span><span class='line'>      log.Fatal("unmarshaling error: ", err)
+</span><span class='line'>  }
+</span><span class='line'>  // Now test and newTest contain the same data.
+</span><span class='line'>  if test.GetLabel() != newTest.GetLabel() {
+</span><span class='line'>      log.Fatalf("data mismatch %q != %q", test.GetLabel(), newTest.GetLabel())
+</span><span class='line'>  }
+</span><span class='line'>
+</span><span class='line'>  log.Printf("Unmarshalled to: %+v", newTest)
+</span><span class='line'>
+</span><span class='line'>}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Run it via:</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go run main.go test.pb.go</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and you should see the output:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Unmarshalled to: label:"hello" type:17 OptionalGroup{RequiredField:"good bye" }  </span></code></pre></td></tr></table></div></figure>
+
+
+<p>Congratulations!  You are now using protocol buffers from Go.</p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://github.com/golang/protobuf">Official golang/protobuf repo</a></li>
+<li><a href="https://code.google.com/p/gogoprotobuf/">gogoprotobuf fork</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1696,208 +1900,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/06/22/running-couchbase-sync-gateway-on-gce/">Running Couchbase Sync Gateway on Google Compute Engine</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-06-22T19:10:00-07:00" pubdate data-updated="true">Jun 22<span>nd</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>First, a quick refresh of what Couchbase Sync Gateway actually <em>is</em>.</p>
-
-<p>So here&rsquo;s a birds-eye-view of the <a href="http://developer.couchbase.com/mobile">Couchbase Mobile</a> architecture:</p>
-
-<p><img src="https://camo.githubusercontent.com/c1aa705fde3eb12245c06730d850c23e5a84ad8d/687474703a2f2f746c657964656e2d6d6973632e73332e616d617a6f6e6177732e636f6d2f636f756368626173652d6c6974652f636f756368626173652d6c6974652d6172636869746563747572652e706e67" alt="diagram" /></p>
-
-<p>Sync Gateway allows Couchbase Lite mobile apps to sync data between each other and the Couchbase Server running on the backend.</p>
-
-<p>This blog post will walk you through how to run Sync Gateway in a Docker container on Google Compute Engine.</p>
-
-<h2>Create GCE instance and ssh in</h2>
-
-<p>Follow the instructions on <a href="http://docs.docker.com/installation/google/">Running Docker on Google Compute Engine</a>.</p>
-
-<p>At this point you should be ssh&rsquo;d into your GCE instance</p>
-
-<h2>Create a configuration JSON</h2>
-
-<p>Here&rsquo;s a sample <a href="https://gist.github.com/tleyden/d97d985eb1e0725e858e">example JSON configuration</a> for Sync Gateway which uses <a href="https://github.com/couchbaselabs/walrus">walrus</a> as it&rsquo;s backing store, rather than Couchbase Server.  Later we will swap in Couchbase Server as a backing store.</p>
-
-<h2>Run Sync Gateway docker container</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -d -name sg -p 4984:4984 -p 4985:4985 tleyden5iwx/couchbase-sync-gateway sync_gateway "https://gist.githubusercontent.com/tleyden/d97d985eb1e0725e858e/raw"</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This will return a container id, eg <code>8ffb83fd1f</code>.</p>
-
-<p>Check the logs to make sure there are no serious errors in the logs:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker logs 8ffb83fd1f</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should see something along the lines of:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>02:23:58.905587 Enabling logging: [REST]
-</span><span class='line'>02:23:58.905818 ==== Couchbase Sync Gateway/1.00 (unofficial) ====
-</span><span class='line'>02:23:58.905863 Opening db /sync_gateway as bucket "sync_gateway", pool "default", server &lt;walrus:/opt/sync_gateway/data&gt;
-</span><span class='line'>02:23:58.905964 Opening Walrus database sync_gateway on &lt;walrus:/opt/sync_gateway/data&gt;
-</span><span class='line'>02:23:58.909659 Starting admin server on :4985
-</span><span class='line'>02:23:58.913260 Starting server on :4984 ...</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Expose API port 4984 via Firewall rule</h2>
-
-<p>On your workstation with the <code>gcloud</code> tool installed, run:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ gcloud compute firewalls create sg-4984 --allow tcp:4984</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Verify that it&rsquo;s running</h2>
-
-<h3>Find out external ip address of instance</h3>
-
-<p>On your workstation with the <code>gcloud</code> tool installed, run:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ gcloud compute instances list
-</span><span class='line'>name     status  zone          machineType internalIP   externalIP
-</span><span class='line'>couchbse RUNNING us-central1-a f1-micro    10.240.74.44 142.222.178.49</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Your external ip is listed under the externalIP column, eg <code>142.222.178.49</code> in this example.</p>
-
-<h3>Run curl request</h3>
-
-<p>On your workstation, replace the ip below with your own ip, and run:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl http://142.222.178.49:4984</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should get a response like:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/1.00 (unofficial)"}</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Re-run it with Couchbase Server backing store</h2>
-
-<p><em>OK, so we&rsquo;ve gotten it working with walrus.  But have you looked at the walrus website lately?  One <a href="https://camo.githubusercontent.com/1bd1955b96628260b27320f099aeac0585229c2f/687474703a2f2f7777772e69686173616275636b65742e636f6d2f696d616765732f77616c7275735f6275636b65742e6a7067">click</a> and it&rsquo;s pretty obvious that this thing is not exactly meant to be a scalable production ready backend, nor has it ever claimed to be.</em></p>
-
-<p>Let&rsquo;s dump walrus for now and use Couchbase Server from this point onwards.</p>
-
-<h3>Start Couchbase Server</h3>
-
-<p>Before moving on, you will need to go through the instructions in <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">Running Couchbase Server on GCE</a> in order to get a Couchbase Server instance running.</p>
-
-<h3>Stop Sync Gateway</h3>
-
-<p>Run this command to stop the Sync Gateway container and completely remove it, using the same container id you used earlier:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker stop 8ffb83fd1f && sudo docker rm 8ffb83fd1f</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Update config</h3>
-
-<p>Copy this <a href="https://gist.github.com/tleyden/c9e6396f7183c0f3e28c">example JSON configuration</a>, which expects a Couchbase Server running on <code>http://172.17.0.2:8091</code>, and update it with the ip address of the docker instance where your Couchbase Server is running.  To get this ip address, follow the <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">these instructions</a> in the &ldquo;Find the Docker instance IP address&rdquo; section.</p>
-
-<p>Now upload your modified JSON configuration to a website that is publicly accessible, for example in a <a href="http://gist.github.com">Github Gist</a>.</p>
-
-<h3>Run Sync Gateway</h3>
-
-<p>Run Sync Gateway again, this time using Couchbase Server as a backing store this time.</p>
-
-<p>Replace <code>http://yourserver.co/yourconfig.json</code> with the URL where you&rsquo;ve uploaded your JSON configuration from the previous step.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -d -name sg -p 4984:4984 -p 4985:4985 tleyden5iwx/couchbase-sync-gateway sync_gateway "http://yourserver.co/yourconfig.json"</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This will return a container id, eg <code>9ffb83fd1f</code>.  Again, check the logs to make sure there are no serious errors in the logs:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker logs 9ffb83fd1f</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should see something along the lines of:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>... 
-</span><span class='line'>02:23:58.913260 Starting server on :4984 ...</span></code></pre></td></tr></table></div></figure>
-
-
-<p>with no errors.</p>
-
-<h2>Verify it&rsquo;s working</h2>
-
-<h3>Save a document via curl</h3>
-
-<p>The easiest way to add a document is via the Admin port, since there is no authentication to worry about.  Since we haven&rsquo;t added a firewall rule to expose the admin port (4985), (and doing so without tight filtering would be a major security hole), the following command to create a new document must be run on the GCE instance.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ curl -H "Content-Type: application/json" -d '{"such":"json"}' http://localhost:4985/sync_gateway/</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If it worked, you should see a response like:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>{"id":"3cbfbe43e76b7eb5c4c221a78b2cf0cc","ok":true,"rev":"1-cd809becc169215072fd567eebd8b8de"}</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>View document on Couchbase Server</h3>
-
-<p>To verify the document was successfully stored on Couchbase Server, you&rsquo;ll need to login to the Couchbase Server Web Admin UI.  There are instructions <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">here</a> on how to do that.</p>
-
-<p>From there, navigate to Data Buckets / default / Documents, and you should see:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_server_docs.png" alt="screenshot" /></p>
-
-<p>Click on the document that has a UUID (eg, &ldquo;29f8d7..&rdquo; in the screenshot above), and you should see the document&rsquo;s contents:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_server_doc.png" alt="screenshot" /></p>
-
-<p>The <code>_sync</code> metadata field is used internally by the Sync Gateway and can be ignored.  The actual doc contents are towards the end of the file: <code>.."such":"json"}</code></p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -1924,6 +1926,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/12/02/getting-started-with-go-and-protocol-buffers/">Getting Started With Go and Protocol Buffers</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/11/14/running-cbfs/">Running CBFS</a>
       </li>
     
@@ -1937,10 +1943,6 @@
     
       <li class="post">
         <a href="/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/">Running Couchbase Cluster Under CoreOS on AWS</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/10/30/goroutines-vs-threads/">Goroutines vs Threads</a>
       </li>
     
   </ul>

@@ -163,12 +163,18 @@
         <lastmod>2014-11-14T16:23:00-08:00</lastmod>
     </url>
     <url>
+        <loc>
+            http://tleyden.github.io/blog/2014/12/02/getting-started-with-go-and-protocol-buffers/
+        </loc>
+        <lastmod>2014-12-02T08:05:23-08:00</lastmod>
+    </url>
+    <url>
         <loc>http://tleyden.github.io/blog/archives/</loc>
-        <lastmod>2014-11-14T16:23:00-08:00</lastmod>
+        <lastmod>2014-12-02T08:05:23-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/</loc>
-        <lastmod>2014-11-14T16:23:00-08:00</lastmod>
+        <lastmod>2014-12-02T08:05:23-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/robots.txt</loc>
