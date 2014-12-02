@@ -6,7 +6,7 @@ comments: true
 categories: golang
 ---
 
-I found the [official docs](https://github.com/golang/protobuf) on using Google Protocol Buffers from Go a bit confusing, and couldn't find any other clearly written blog posts on getting started, so I figured I'd write my own.
+I found the [official docs](https://github.com/golang/protobuf) on using Google Protocol Buffers from Go a bit confusing, and couldn't find any other clearly written blog posts on the subject, so I figured I'd write my own.
 
 This will walk you through the following:
 
@@ -111,8 +111,15 @@ func main() {
 	log.Printf("Unmarshalled to: %+v", newTest)
 
 }
-
 ```
+
+Explanation:
+
+* Lines 11-14: Create a new object suitable for protobuf marshalling and populate it's fields.  *Note that using `proto.String(..)` / `proto.Int32(..)` isn't strictly required, they are just convencience wrappers to get string / int pointers*.
+* Line 18: Marshal to a byte array.
+* Line 22: Create a new empty object.
+* Line 23: Unmarshal previously marshalled byte array into new object
+* Line 28: Verify that the "label" field made the marshal/unmarshall round trip safely
 
 **Run it via:**
 
