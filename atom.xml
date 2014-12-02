@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-12-02T08:10:24-08:00</updated>
+  <updated>2014-12-02T08:29:38-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -18,7 +18,7 @@
     <link href="http://tleyden.github.io/blog/2014/12/02/getting-started-with-go-and-protocol-buffers/"/>
     <updated>2014-12-02T06:32:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2014/12/02/getting-started-with-go-and-protocol-buffers</id>
-    <content type="html"><![CDATA[<p>I found the <a href="https://github.com/golang/protobuf">official docs</a> on using Google Protocol Buffers from Go a bit confusing, and couldn&rsquo;t find any other clearly written blog posts on getting started, so I figured I&rsquo;d write my own.</p>
+    <content type="html"><![CDATA[<p>I found the <a href="https://github.com/golang/protobuf">official docs</a> on using Google Protocol Buffers from Go a bit confusing, and couldn&rsquo;t find any other clearly written blog posts on the subject, so I figured I&rsquo;d write my own.</p>
 
 <p>This will walk you through the following:</p>
 
@@ -162,8 +162,18 @@
 </span><span class='line'>
 </span><span class='line'>  log.Printf("Unmarshalled to: %+v", newTest)
 </span><span class='line'>
-</span><span class='line'>}
-</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Explanation:</p>
+
+<ul>
+<li>Lines 11-14: Create a new object suitable for protobuf marshalling and populate it&rsquo;s fields.  <em>Note that using <code>proto.String(..)</code> / <code>proto.Int32(..)</code> isn&rsquo;t strictly required, they are just convencience wrappers to get string / int pointers</em>.</li>
+<li>Line 18: Marshal to a byte array.</li>
+<li>Line 22: Create a new empty object.</li>
+<li>Line 23: Unmarshal previously marshalled byte array into new object</li>
+<li>Line 28: Verify that the &ldquo;label&rdquo; field made the marshal/unmarshall round trip safely</li>
+</ul>
 
 
 <p><strong>Run it via:</strong></p>
