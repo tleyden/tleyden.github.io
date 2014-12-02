@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Running CBFS"
+title: "Running a CBFS cluster on CoreOS"
 date: 2014-11-14 06:43
 comments: true
 categories: couchbase cbfs docker coreos
@@ -10,7 +10,7 @@ This will walk you through getting a cbfs cluster up and running.
 
 ## What is CBFS?
 
-cbfs is a distributed filesystem on top of Couchbase Server, not unlike Mongo's GridFS or Riak's CS.  It's currently an experimental "skunkworks" project and hasn't quite reached official project status. 
+cbfs is a distributed filesystem on top of Couchbase Server, not unlike Mongo's GridFS or Riak's CS.  
 
 Here's a typical deployment architecture:
 
