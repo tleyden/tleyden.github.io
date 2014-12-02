@@ -4,7 +4,7 @@
   <title><![CDATA[Category: cbfs | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/cbfs/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-12-02T08:06:30-08:00</updated>
+  <updated>2014-12-02T08:10:24-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -14,7 +14,7 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Running CBFS]]></title>
+    <title type="html"><![CDATA[Running a CBFS cluster on CoreOS]]></title>
     <link href="http://tleyden.github.io/blog/2014/11/14/running-cbfs/"/>
     <updated>2014-11-14T06:43:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2014/11/14/running-cbfs</id>
@@ -22,7 +22,7 @@
 
 <h2>What is CBFS?</h2>
 
-<p>cbfs is a distributed filesystem on top of Couchbase Server, not unlike Mongo&rsquo;s GridFS or Riak&rsquo;s CS.  It&rsquo;s currently an experimental &ldquo;skunkworks&rdquo; project and hasn&rsquo;t quite reached official project status.</p>
+<p>cbfs is a distributed filesystem on top of Couchbase Server, not unlike Mongo&rsquo;s GridFS or Riak&rsquo;s CS.</p>
 
 <p>Here&rsquo;s a typical deployment architecture:</p>
 
