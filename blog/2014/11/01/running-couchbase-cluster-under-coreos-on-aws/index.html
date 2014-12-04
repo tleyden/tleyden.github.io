@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Here are instructions on how to fire up a Couchbase Server 2.2 cluster running under CoreOS on AWS CloudFormation. You will end up with the following &hellip;">
+  <meta name="description" content="Here are instructions on how to fire up a Couchbase Server cluster running under CoreOS on AWS CloudFormation. You will end up with the following &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -98,7 +98,7 @@
   </header>
 
 
-<div class="entry-content"><p>Here are instructions on how to fire up a Couchbase Server 2.2 cluster running under CoreOS on AWS CloudFormation.  You will end up with the following system:</p>
+<div class="entry-content"><p>Here are instructions on how to fire up a Couchbase Server cluster running under CoreOS on AWS CloudFormation.  You will end up with the following system:</p>
 
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase-coreos-onion.png" alt="architecture diagram" /></p>
 
@@ -153,7 +153,7 @@
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://raw.githubusercontent.com/tleyden/couchbase-server-coreos/master/2.2/scripts/cluster-init.sh
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://raw.githubusercontent.com/couchbaselabs/couchbase-server-docker/master/scripts/cluster-init.sh
 </span><span class='line'>$ chmod +x cluster-init.sh</span></code></pre></td></tr></table></div></figure>
 
 
@@ -172,12 +172,13 @@
 <p>Run the script you downloaded in the previous step:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./cluster-init.sh -n 3 -u "user:passw0rd"</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./cluster-init.sh -v 3.0.1 -n 3 -u "user:passw0rd"</span></code></pre></td></tr></table></div></figure>
 
 
 <p>Where:</p>
 
 <ul>
+<li><strong>-v</strong> the version of Couchbase Server to use.  Valid values are 3.0.1 or 2.2.0.</li>
 <li><strong>-n</strong> the total number of couchbase nodes to start &mdash; should correspond to number of ec2 instances (eg, 3)</li>
 <li><strong>-u</strong> the username and password as a single string, delimited by a colon (:)</li>
 </ul>
