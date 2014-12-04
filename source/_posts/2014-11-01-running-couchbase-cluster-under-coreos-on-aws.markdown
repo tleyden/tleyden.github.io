@@ -6,7 +6,7 @@ comments: true
 categories: docker coreos aws couchbase
 ---
 
-Here are instructions on how to fire up a Couchbase Server 2.2 cluster running under CoreOS on AWS CloudFormation.  You will end up with the following system:
+Here are instructions on how to fire up a Couchbase Server cluster running under CoreOS on AWS CloudFormation.  You will end up with the following system:
 
 ![architecture diagram](http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase-coreos-onion.png)
 
@@ -54,7 +54,7 @@ MACHINE	        IP              METADATA
 ## Download cluster-init script
 
 ```
-$ wget https://raw.githubusercontent.com/tleyden/couchbase-server-coreos/master/2.2/scripts/cluster-init.sh
+$ wget https://raw.githubusercontent.com/couchbaselabs/couchbase-server-docker/master/scripts/cluster-init.sh
 $ chmod +x cluster-init.sh
 ```
 
@@ -70,11 +70,12 @@ This script is not much.  I wrapped things up in a script because the instructio
 Run the script you downloaded in the previous step:
 
 ```
-$ ./cluster-init.sh -n 3 -u "user:passw0rd"
+$ ./cluster-init.sh -v 3.0.1 -n 3 -u "user:passw0rd"
 ```
 
 Where:
 
+* **-v** the version of Couchbase Server to use.  Valid values are 3.0.1 or 2.2.0.
 * **-n** the total number of couchbase nodes to start -- should correspond to number of ec2 instances (eg, 3)
 * **-u** the username and password as a single string, delimited by a colon (:) 
 
