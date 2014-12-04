@@ -32,7 +32,7 @@ Follow all of the steps in [Running Couchbase Cluster Under CoreOS on AWS](http:
 
 A few ports will need to be opened up for cbfs.  
 
-Go to the AWS console andeEdit the Couchbase-CoreOS-CoreOSSecurityGroup-xxxx security group and add the following rules: 
+Go to the AWS console and edit the Couchbase-CoreOS-CoreOSSecurityGroup-xxxx security group and add the following rules: 
 
 ```
 Type             Protocol  Port Range Source  
