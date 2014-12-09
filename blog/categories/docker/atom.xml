@@ -4,7 +4,7 @@
   <title><![CDATA[Category: docker | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/docker/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-12-04T06:39:29-08:00</updated>
+  <updated>2014-12-09T09:41:29-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -208,7 +208,7 @@ $ sudo docker run -ti --net=host tleyden5iwx/cbfs /bin/bash
 
 <ul>
 <li><p>Launch a new EC2 instance</p></li>
-<li><p>Under &ldquo;Community AMIs&rdquo;, search for <strong>ami-7c8b3f14</strong> (CoreOS-stable-410.1.0-hvm)</p></li>
+<li><p>Under &ldquo;Community AMIs&rdquo;, search for <strong>ami-f669f29e</strong> (CoreOS stable 494.4.0 (HVM))</p></li>
 <li><p>Select the GPU instances: <strong>g2.2xlarge</strong></p></li>
 <li><p>Increase root EBS store from 8 GB &ndash;> 20 GB to give yourself some breathing room</p></li>
 </ul>
@@ -222,19 +222,50 @@ $ sudo docker run -ti --net=host tleyden5iwx/cbfs /bin/bash
 $ ssh -A core@ec2-54-80-24-46.compute-1.amazonaws.com
 </code></p>
 
-<h2>Run Ubuntu 12 docker container in privileged mode</h2>
+<h2>Run Ubuntu 14 docker container in privileged mode</h2>
 
 <p><code>
-$ sudo docker run --privileged=true -i -t ubuntu:12.04 /bin/bash
+$ sudo docker run --privileged=true -i -t ubuntu:14.04 /bin/bash
 </code></p>
 
 <p>After the above command, you should be inside a root shell in your docker container.  The rest of the steps will assume this.</p>
 
 <h2>Install build tools + other required packages</h2>
 
+<p>In order to match the version of gcc that was used to build the CoreOS kernel.  (gcc 4.7)</p>
+
+<p>```</p>
+
+<h1>apt-get update</h1>
+
+<h1>apt-get install gcc-4.7 g++-4.7 wget git make dpkg-dev</h1>
+
+<p>```</p>
+
+<p><strong>Set gcc 4.7 as default</strong></p>
+
+<p>```</p>
+
+<h1>update-alternatives &mdash;remove gcc /usr/bin/gcc-4.8</h1>
+
+<h1>update-alternatives &mdash;install /usr/bin/gcc gcc /usr/bin/gcc-4.7 60 &mdash;slave /usr/bin/g++ g++ /usr/bin/g++-4.7</h1>
+
+<h1>update-alternatives &mdash;install /usr/bin/gcc gcc /usr/bin/gcc-4.8 40 &mdash;slave /usr/bin/g++ g++ /usr/bin/g++-4.8</h1>
+
+<p>```</p>
+
+<p><strong>Verify</strong></p>
+
+<p>```</p>
+
+<h1>update-alternatives &mdash;config gcc</h1>
+
+<p>```</p>
+
+<p>It should list gcc 4.7 with an asterisk next to it:</p>
+
 <p><code>
-$ apt-get update
-$ apt-get install build-essential wget git
+* 0            /usr/bin/gcc-4.7   60        auto mode
 </code></p>
 
 <h2>Prepare CoreOS kernel source</h2>
@@ -247,61 +278,90 @@ $ cd /usr/src/kernels
 $ git clone https://github.com/coreos/linux.git
 </code></p>
 
-<p><strong>Get CoreOS kernel version</strong></p>
+<p><strong>Find CoreOS kernel version</strong></p>
 
-<p><code>
-$ uname -a
-Linux ip-10-183-54-167.ec2.internal 3.15.8+ #2 SMP Fri Sep 26 08:37:17 UTC 2014 x86_64 Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz GenuineIntel GNU/Linux
-</code></p>
+<p>```</p>
 
-<p>The CoreOS kernel version is <strong>3.15.8</strong></p>
+<h1>uname -a</h1>
+
+<p>Linux ip-10-11-167-200.ec2.internal 3.17.2+ #2 SMP Tue Nov 4 04:15:48 UTC 2014 x86_64 Intel&reg; Xeon&reg; CPU E5-2670 0 @ 2.60GHz GenuineIntel GNU/Linux
+```</p>
+
+<p>The CoreOS kernel version is <strong>3.17.2</strong></p>
 
 <p><strong>Switch correct branch for this kernel version </strong></p>
 
-<p><code>
-$ cd linux
-$ git checkout remotes/origin/coreos/v3.15.8
-</code></p>
+<p>```</p>
+
+<h1>cd linux</h1>
+
+<h1>git checkout remotes/origin/coreos/v3.17.2</h1>
+
+<p>```</p>
 
 <p><strong>Create kernel configuration file</strong></p>
 
-<p><code>
-$ zcat /proc/config.gz &gt; /usr/src/kernels/linux/.config
-</code></p>
+<p>```</p>
+
+<h1>zcat /proc/config.gz > /usr/src/kernels/linux/.config</h1>
+
+<p>```</p>
 
 <p><strong>Prepare kernel source for building modules</strong></p>
 
-<p><code>
-$ cd /usr/src/kernels/linux
-$ make modules_prepare
-</code></p>
+<p>```</p>
+
+<h1>make modules_prepare</h1>
+
+<p>```</p>
 
 <p>Now you should be ready to install the nvidia driver.</p>
+
+<p><strong>Hack the kernel version</strong></p>
+
+<p>In order to avoid <a href="https://gist.github.com/tleyden/2a46a86056e476976a8e#file-gistfile1-txt-L956">nvidia: version magic errors</a>, the following hack is required:</p>
+
+<p>```</p>
+
+<h1>sed -i -e &rsquo;s/3.17.2/3.17.2+/&lsquo; include/generated/utsrelease.h</h1>
+
+<p>```</p>
 
 <h2>Install nvidia driver</h2>
 
 <p><strong>Download</strong></p>
 
-<p><code>
-$ mkdir -p /opt/nvidia
-$ cd /opt/nvidia
-$ wget http://developer.download.nvidia.com/compute/cuda/6_5/rel/installers/cuda_6.5.14_linux_64.run
-</code></p>
+<p>```</p>
+
+<h1>mkdir -p /opt/nvidia</h1>
+
+<h1>cd /opt/nvidia</h1>
+
+<h1>wget <a href="http://developer.download.nvidia.com/compute/cuda/6_5/rel/installers/cuda_6.5.14_linux_64.run">http://developer.download.nvidia.com/compute/cuda/6_5/rel/installers/cuda_6.5.14_linux_64.run</a></h1>
+
+<p>```</p>
 
 <p><strong>Unpack</strong></p>
 
-<p><code>
-$ chmod +x cuda_6.5.14_linux_64.run
-$ mkdir nvidia_installers
-$ ./cuda_6.5.14_linux_64.run -extract=`pwd`/nvidia_installers
-</code></p>
+<p>```</p>
+
+<h1>chmod +x cuda_6.5.14_linux_64.run</h1>
+
+<h1>mkdir nvidia_installers</h1>
+
+<h1>./cuda_6.5.14_linux_64.run -extract=<code>pwd</code>/nvidia_installers</h1>
+
+<p>```</p>
 
 <p><strong>Install</strong></p>
 
-<p><code>
-$ cd nvidia_installers
-$ ./NVIDIA-Linux-x86_64-340.29.run --kernel-source-path=/usr/src/kernels/linux/
-</code></p>
+<p>```</p>
+
+<h1>cd nvidia_installers</h1>
+
+<h1>./NVIDIA-Linux-x86_64-340.29.run &mdash;kernel-source-path=/usr/src/kernels/linux/</h1>
+
+<p>```</p>
 
 <p><strong>Installer Questions</strong></p>
 
@@ -315,17 +375,23 @@ $ ./NVIDIA-Linux-x86_64-340.29.run --kernel-source-path=/usr/src/kernels/linux/
 
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/nvidia_driver_installed.png" alt="nvidia drivers installed" /></p>
 
+<p>your <code>/var/log/nvidia-installer.log</code> should look something like <a href="https://gist.github.com/tleyden/6d585fb8ab08154949c8">this</a></p>
+
 <h2>Load nvidia kernel module</h2>
 
-<p><code>
-$ modprobe nvidia
-</code></p>
+<p>```</p>
+
+<h1>modprobe nvidia</h1>
+
+<p>```</p>
 
 <p>No errors should be returned.  Verify it&rsquo;s loaded by running:</p>
 
-<p><code>
-$ lsmod | grep -i nvidia
-</code></p>
+<p>```</p>
+
+<h1>lsmod | grep -i nvidia</h1>
+
+<p>```</p>
 
 <p>and you should see:</p>
 
@@ -336,18 +402,29 @@ i2c_core               41189  2 nvidia,i2c_piix4
 
 <h2>Install CUDA</h2>
 
-<p><code>
-$ ./cuda-linux64-rel-6.5.14-18749181.run
-$ ./cuda-samples-linux-6.5.14-18745345.run
-</code></p>
+<p>In order to fully verify that the kernel module is working correctly, install the CUDA drivers + library and run a device query.</p>
+
+<p>To install CUDA:</p>
+
+<p>```</p>
+
+<h1>./cuda-linux64-rel-6.5.14-18749181.run</h1>
+
+<h1>./cuda-samples-linux-6.5.14-18745345.run</h1>
+
+<p>```</p>
 
 <h2>Verify CUDA</h2>
 
-<p><code>
-$ cd /usr/local/cuda/samples/1_Utilities/deviceQuery
-$ make
-$ ./deviceQuery   
-</code></p>
+<p>```</p>
+
+<h1>cd /usr/local/cuda/samples/1_Utilities/deviceQuery</h1>
+
+<h1>make</h1>
+
+<h1>./deviceQuery</h1>
+
+<p>```</p>
 
 <p>You should see the following output:</p>
 
@@ -358,83 +435,17 @@ Result = PASS
 
 <p>Congratulations!  You now have a docker container running under CoreOS that can access the GPU.</p>
 
-<h1>Appendix A: Using Core OS Alpha</h1>
-
-<p>The instructions above were for an older version of CoreOS.  The following instructions are for Core OS Alpha, and might possibly work on the current version of CoreOS stable (444.5.0).  Only the parts that differ from above steps are listed:</p>
-
-<h2>Launch CoreOS Alpha on an AWS GPU instance</h2>
-
-<ul>
-<li>Under &ldquo;Community AMIs&rdquo;, search for <strong>ami-66e6680e</strong> (CoreOS-alpha-490.0.0-hvm)</li>
-</ul>
-
-
-<h2>Run Ubuntu 14 docker container in privileged mode</h2>
-
-<p><code>
-$ sudo docker run --privileged=true -i -t ubuntu:14.04 /bin/bash
-</code></p>
-
-<p>After the above command, you should be inside a root shell in your docker container.  The rest of the steps will assume this.</p>
-
-<h2>Install build tools + other required packages</h2>
-
-<p>In order to match the version of gcc that was used to build the CoreOS kernel.  (gcc 4.7)</p>
-
-<p><code>
-$ apt-get update
-$ apt-get install gcc-4.7 g++-4.7 wget git make dpkg-dev
-</code></p>
-
-<p><strong>Set gcc 4.7 as default</strong></p>
-
-<p><code>
-$ update-alternatives --remove gcc /usr/bin/gcc-4.8
-$ update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.7 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.7
-$ update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 40 --slave /usr/bin/g++ g++ /usr/bin/g++-4.8
-</code></p>
-
-<p><strong>Verify</strong></p>
-
-<p><code>
-$ update-alternatives --config gcc
-</code></p>
-
-<p>It should list gcc 4.7 with an asterisk next to it:</p>
-
-<p><code>
-* 0            /usr/bin/gcc-4.7   60        auto mode
-</code></p>
-
-<h2>Prepare CoreOS kernel source</h2>
-
-<p><strong>Get CoreOS kernel version</strong></p>
-
-<p><code>
-$ uname -a
-Linux ip-10-11-167-200.ec2.internal 3.17.2+ #2 SMP Tue Nov 4 04:15:48 UTC 2014 x86_64 Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz GenuineIntel GNU/Linux
-</code></p>
-
-<p>The CoreOS kernel version is <strong>3.17.2</strong></p>
-
-<p><strong>Switch correct branch for this kernel version </strong></p>
-
-<p><code>
-$ cd linux
-$ git checkout remotes/origin/coreos/v3.17.2
-</code></p>
-
-<h1>Appendix B: Expose GPU to other docker containers</h1>
+<h1>Appendix: Expose GPU to other docker containers</h1>
 
 <p>If you need <em>other</em> docker containers on this CoreOS instance to be able to access the GPU, you can do the following steps.</p>
 
-<p><em>Note:</em> you need to be using CoreOS-alpha-490.0.0 or later, since this requires Docker 1.3 to work.</p>
-
 <p><strong>Exit docker container</strong></p>
 
-<p><code>
-$ exit
-</code></p>
+<p>```</p>
+
+<h1>exit</h1>
+
+<p>```</p>
 
 <p>You should be back to your CoreOS shell.</p>
 
@@ -463,12 +474,12 @@ crw-rw-rw-  1 root root  195, 255 Nov  5 16:37 nvidiactl
 $ sudo docker run -ti --device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm tleyden5iwx/ubuntu-cuda /bin/bash
 </code></p>
 
-<p>A complete example is available in <a href="http://tleyden.github.io/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5/">Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5</a>.  You can pick up at th <strong>Run GPU enabled docker image</strong> step.</p>
-
 <h2>References</h2>
 
 <ul>
-<li><a href="https://groups.google.com/forum/#!topic/coreos-user/CSp_wSywmI4">https://groups.google.com/forum/#!topic/coreos-user/CSp_wSywmI4</a> &ndash; Thanks Сергей!</li>
+<li><a href="https://github.com/tleyden/tleyden.github.io/blob/6d71759cc5e530efcae10d9c6012dd217f76795c/source/_posts/2014-11-04-coreos-with-nvidia-cuda-gpu-drivers.markdown">Previous version of this blog post</a></li>
+<li><a href="https://groups.google.com/forum/#!topic/coreos-user/CSp_wSywmI4">CoreOS Google Group thread</a> &ndash; Thanks Сергей!</li>
+<li><a href="http://tleyden.github.io/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5/">Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5</a></li>
 </ul>
 
 ]]></content>
