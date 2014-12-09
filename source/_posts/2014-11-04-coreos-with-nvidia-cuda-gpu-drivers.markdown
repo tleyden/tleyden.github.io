@@ -115,6 +115,8 @@ In order to avoid [nvidia: version magic errors](https://gist.github.com/tleyden
 # sed -i -e 's/3.17.2/3.17.2+/' include/generated/utsrelease.h
 ```
 
+I've [posted to the CoreOS Group](https://groups.google.com/d/msg/coreos-user/CSp_wSywmI4/CBHwocj8v9oJ) to ask why this hack is needed.
+
 ## Install nvidia driver
 
 **Download**
