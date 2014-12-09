@@ -4,7 +4,7 @@
   <title><![CDATA[Category: gpu | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/gpu/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-12-09T09:41:29-08:00</updated>
+  <updated>2014-12-09T09:55:26-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -144,6 +144,8 @@ $ git clone https://github.com/coreos/linux.git
 <h1>sed -i -e &rsquo;s/3.17.2/3.17.2+/&lsquo; include/generated/utsrelease.h</h1>
 
 <p>```</p>
+
+<p>I&rsquo;ve <a href="https://groups.google.com/d/msg/coreos-user/CSp_wSywmI4/CBHwocj8v9oJ">posted to the CoreOS Group</a> to ask why this hack is needed.</p>
 
 <h2>Install nvidia driver</h2>
 
