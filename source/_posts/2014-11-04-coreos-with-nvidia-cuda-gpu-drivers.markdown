@@ -216,8 +216,8 @@ You should be back to your CoreOS shell.
 
 ```
 $ wget https://gist.githubusercontent.com/tleyden/74f593a0beea300de08c/raw/95ed93c5751a989e58153db6f88c35515b7af120/nvidia_devices.sh
-$ chmod +x nvida_devices.sh
-$ sudo ./nvida_devices.sh
+$ chmod +x nvidia_devices.sh
+$ sudo ./nvidia_devices.sh
 ```
 
 **Verify device nodes**
