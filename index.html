@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="I found the official docs on using Google Protocol Buffers from Go a bit confusing, and couldn&rsquo;t find any other clearly written blog posts on &hellip;">
+  <meta name="description" content="This will walk you through the steps to install the TodoLite-Phonegap sample app that uses Couchbase Lite Android. After you&rsquo;re finished, you& &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +72,229 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/12/11/up-and-running-with-couchbase-lite-phonegap/">Up and Running With Couchbase Lite Phonegap Android on OSX</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-12-11T12:48:00-08:00" pubdate data-updated="true">Dec 11<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>This will walk you through the steps to install the TodoLite-Phonegap sample app that uses Couchbase Lite Android.  After you&rsquo;re finished, you&rsquo;ll end up with <a href="http://tleyden-misc.s3.amazonaws.com/blog_images/TodoLitePhonegap.png">this app</a>.</p>
+
+<h1>Install Homebrew</h1>
+
+<ul>
+<li>Install <a href="http://brew.sh/">homebrew</a></li>
+</ul>
+
+
+<h2>Install Android Studio</h2>
+
+<ul>
+<li><p>Install <a href="https://developer.android.com/sdk/index.html">Android Studio 1.0</a></p></li>
+<li><p>Setup an AVD + emulator &mdash; in my case I&rsquo;m using the <a href="https://www.genymotion.com/">Genymotion emulator</a>, with a Google Nexus 4 &ndash; 4.4.4 API 19</p></li>
+<li><p>At this point you should verify your setup by deploying <a href="https://github.com/couchbaselabs/ToDoLite-Android">TodoLite-Android</a> to your emulator</p></li>
+</ul>
+
+
+<h1>Install Phonegap</h1>
+
+<h2>Install Node.js</h2>
+
+<p>Phonegap is installed with the Node Package Manager (npm), so we need to get Node.js first.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>brew install node</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Install Phonegap</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo npm install -g phonegap</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see <a href="https://gist.github.com/tleyden/94bf77d084fa9a6cca0c">this output</a></p>
+
+<p>Check your version with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ phonegap -v
+</span><span class='line'>4.1.2-0.22.9</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Install Ant</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ brew install ant</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Check your Ant version with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ant -version
+</span><span class='line'>Apache Ant(TM) version 1.9.4 compiled on April 29 2014</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>Note: according to <a href="http://superuser.com/questions/610157/how-do-i-install-ant-on-os-x-mavericks">Stack Overflow</a> you may have to install XCode and the Command Line Tools for this to work</em></p>
+
+<h2>Create new Phonegap App</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ phonegap create todo-lite com.couchbase.TodoLite TodoLite
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see the following output:</p>
+
+<pre><code>Creating a new cordova project with name "TodoLite" and id "com.couchbase.TodoLite" at location "/Users/tleyden/Development/todo-lite"
+Using custom www assets from https://github.com/phonegap/phonegap-app-hello-world/archive/master.tar.gz
+Downloading com.phonegap.hello-world library for www...
+Download complete
+</code></pre>
+
+<p>cd into the newly created directory:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd todo-lite</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Add the Couchbase Lite plugin</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ phonegap local plugin add https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin.git</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see the following output:</p>
+
+<pre><code>[warning] The command `phonegap local &lt;command&gt;` has been DEPRECATED.
+[warning] The command has been delegated to `phonegap &lt;command&gt;`.
+[warning] The command `phonegap local &lt;command&gt;` will soon be removed.
+Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin.git" via git clone
+</code></pre>
+
+<h2>Add additional plugins required by TodoLite-Phonegap</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ phonegap local plugin add https://git-wip-us.apache.org/repos/asf/cordova-plugin-camera.git
+</span><span class='line'>$ phonegap local plugin add https://github.com/apache/cordova-plugin-inappbrowser.git 
+</span><span class='line'>$ phonegap local plugin add https://git-wip-us.apache.org/repos/asf/cordova-plugin-network-information.git</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Clone the example app source code</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ rm -rf www
+</span><span class='line'>$ git clone https://github.com/couchbaselabs/TodoLite-PhoneGap.git www</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>Verify ANDROID_HOME environment variable</h1>
+
+<p>If you don&rsquo;t already have it set, you will need to set your ANDROID_HOME environment variable:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ export ANDROID_HOME="/Applications/Android Studio.app/sdk"
+</span><span class='line'>$ export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Run app</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ phonegap run android</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see the following output:</p>
+
+<pre><code>[phonegap] executing 'cordova platform add android'...
+[phonegap] completed 'cordova platform add android'
+[phonegap] executing 'cordova run android'...
+[phonegap] completed 'cordova run android'
+</code></pre>
+
+<h2>Verify app</h2>
+
+<p>TodoLite-Phonegap should launch on the emulator and look like this:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/TodoLitePhonegap.png" alt="screenshot" /></p>
+
+<h2>Facebook login</h2>
+
+<p>Hit the happy face in the top right, and it will prompt you to login via Facebook.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/TodoLitePhoneGapFacebook.png" alt="Screenshot" /></p>
+
+<h2>View data</h2>
+
+<p>After logging in, it will sync any data for your user stored on the Couchbase Mobile <a href="https://github.com/couchbaselabs/TodoLite-PhoneGap/blob/aa8bc5a6b35ce8d49ec089ec79952f1a50e207a2/js/index.js#L30">demo cluster</a>.</p>
+
+<p>For example, if you&rsquo;ve previously used <a href="https://github.com/couchbaselabs/ToDoLite-iOS">TodoLite-iOS</a> or <a href="https://github.com/couchbaselabs/ToDoLite-Android">TodoLite-Android</a>, your data should appear here.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/TodoLitePhoneGapData.png" alt="screenshot" /></p>
+
+<h2>Test Sync via single device</h2>
+
+<ul>
+<li>Login with Facebook as described above</li>
+<li>Add a new Todo List</li>
+<li>Add an item to your Todo List</li>
+<li>Uninstall the app</li>
+<li>Re-install the app by running <code>phonegap run android</code> again</li>
+<li>Login with Facebook</li>
+<li>Your Todo List and item added above should now appear</li>
+</ul>
+
+
+<h2>Test Sync via 2 apps</h2>
+
+<ul>
+<li>Install <a href="https://github.com/couchbaselabs/ToDoLite-Android">TodoLite-Android</a></li>
+<li>Login with Facebook</li>
+<li>Add / edit / delete items on <a href="https://github.com/couchbaselabs/ToDoLite-Android">TodoLite-Android</a></li>
+<li>Verify the changes appear in TodoLite-Phonegap</li>
+</ul>
+
+
+<p><em>Note: you could also setup two emulators and run the apps separately</em></p>
+
+<h1>References</h1>
+
+<ul>
+<li><a href="http://developer.couchbase.com/mobile/get-started/get-started-mobile/phonegap/prepare/index.html">http://developer.couchbase.com/mobile/get-started/get-started-mobile/phonegap/prepare/index.html</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -974,8 +1197,8 @@
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://gist.githubusercontent.com/tleyden/74f593a0beea300de08c/raw/95ed93c5751a989e58153db6f88c35515b7af120/nvidia_devices.sh
-</span><span class='line'>$ chmod +x nvida_devices.sh
-</span><span class='line'>$ sudo ./nvida_devices.sh</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>$ chmod +x nvidia_devices.sh
+</span><span class='line'>$ sudo ./nvidia_devices.sh</span></code></pre></td></tr></table></div></figure>
 
 
 <p><strong>Verify device nodes</strong></p>
@@ -1820,62 +2043,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/09/10/debugging-into-android-source/">Debugging Into Android Source</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-09-10T15:57:00-07:00" pubdate data-updated="true">Sep 10<span>th</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Debugging into the core Android source code can be useful.  Here&rsquo;s how to do it in Android Studio 0.8.2.</p>
-
-<p>Starting out, if we hit a breakpoint where we have a sqlite database object:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/outside_db_breakpoint.png" alt="screenshot" /></p>
-
-<p>And if you step in, you get this, which isn&rsquo;t very useful:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/inside_db_breakpoint.png" alt="screenshot" /></p>
-
-<p>To fix that, go to Android SDK, find the API level you are using, and check the Sources for Android SDK box.</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/android_sdk.png" alt="screenshot" /></p>
-
-<p><strong>You must restart Android Studio at this point</strong></p>
-
-<p>Did you restart Android Studio?  Now re-run your app in the debugger, and when you try to step into the <code>database.execSQL()</code> method, you should see this:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/db_source_breakpoint.png" alt="screenshot" /></p>
-
-<p>It worked!  Now you can debug into any Android code.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -1902,6 +2069,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/12/11/up-and-running-with-couchbase-lite-phonegap/">Up and Running With Couchbase Lite Phonegap Android on OSX</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/12/02/getting-started-with-go-and-protocol-buffers/">Getting Started With Go and Protocol Buffers</a>
       </li>
     
@@ -1915,10 +2086,6 @@
     
       <li class="post">
         <a href="/blog/2014/11/04/coreos-with-nvidia-cuda-gpu-drivers/">CoreOS With Nvidia CUDA GPU Drivers</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/">Running Couchbase Cluster Under CoreOS on AWS</a>
       </li>
     
   </ul>

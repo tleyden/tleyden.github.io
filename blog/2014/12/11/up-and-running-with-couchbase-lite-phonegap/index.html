@@ -1,0 +1,476 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Up and Running with Couchbase Lite Phonegap Android on OSX - Seven Story Rabbit Hole</title>
+  <meta name="author" content="Traun Leyden">
+
+  
+  <meta name="description" content="This will walk you through the steps to install the TodoLite-Phonegap sample app that uses Couchbase Lite Android. After you&rsquo;re finished, you& &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://tleyden.github.io/blog/2014/12/11/up-and-running-with-couchbase-lite-phonegap">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+
+  <table><tr><td>
+  <h1><a href="/">Seven Story Rabbit Hole</a></h1>
+  
+    <h2>Sometimes awesome things happen in deep rabbit holes.  Or not.</h2>
+  
+  </td><td>&nbsp;&nbsp;
+  <img class="left" src="/images/rabbit_hole_graphic.png" width="132" height="105" title="image" alt="images">
+  </td></tr>
+  </table>
+
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:tleyden.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Up and Running With Couchbase Lite Phonegap Android on OSX</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-12-11T12:48:00-08:00" pubdate data-updated="true">Dec 11<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>This will walk you through the steps to install the TodoLite-Phonegap sample app that uses Couchbase Lite Android.  After you&rsquo;re finished, you&rsquo;ll end up with <a href="http://tleyden-misc.s3.amazonaws.com/blog_images/TodoLitePhonegap.png">this app</a>.</p>
+
+<h1>Install Homebrew</h1>
+
+<ul>
+<li>Install <a href="http://brew.sh/">homebrew</a></li>
+</ul>
+
+
+<h2>Install Android Studio</h2>
+
+<ul>
+<li><p>Install <a href="https://developer.android.com/sdk/index.html">Android Studio 1.0</a></p></li>
+<li><p>Setup an AVD + emulator &mdash; in my case I&rsquo;m using the <a href="https://www.genymotion.com/">Genymotion emulator</a>, with a Google Nexus 4 &ndash; 4.4.4 API 19</p></li>
+<li><p>At this point you should verify your setup by deploying <a href="https://github.com/couchbaselabs/ToDoLite-Android">TodoLite-Android</a> to your emulator</p></li>
+</ul>
+
+
+<h1>Install Phonegap</h1>
+
+<h2>Install Node.js</h2>
+
+<p>Phonegap is installed with the Node Package Manager (npm), so we need to get Node.js first.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>brew install node</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Install Phonegap</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo npm install -g phonegap</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see <a href="https://gist.github.com/tleyden/94bf77d084fa9a6cca0c">this output</a></p>
+
+<p>Check your version with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ phonegap -v
+</span><span class='line'>4.1.2-0.22.9</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Install Ant</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ brew install ant</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Check your Ant version with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ant -version
+</span><span class='line'>Apache Ant(TM) version 1.9.4 compiled on April 29 2014</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>Note: according to <a href="http://superuser.com/questions/610157/how-do-i-install-ant-on-os-x-mavericks">Stack Overflow</a> you may have to install XCode and the Command Line Tools for this to work</em></p>
+
+<h2>Create new Phonegap App</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ phonegap create todo-lite com.couchbase.TodoLite TodoLite
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see the following output:</p>
+
+<pre><code>Creating a new cordova project with name "TodoLite" and id "com.couchbase.TodoLite" at location "/Users/tleyden/Development/todo-lite"
+Using custom www assets from https://github.com/phonegap/phonegap-app-hello-world/archive/master.tar.gz
+Downloading com.phonegap.hello-world library for www...
+Download complete
+</code></pre>
+
+<p>cd into the newly created directory:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd todo-lite</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Add the Couchbase Lite plugin</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ phonegap local plugin add https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin.git</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see the following output:</p>
+
+<pre><code>[warning] The command `phonegap local &lt;command&gt;` has been DEPRECATED.
+[warning] The command has been delegated to `phonegap &lt;command&gt;`.
+[warning] The command `phonegap local &lt;command&gt;` will soon be removed.
+Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin.git" via git clone
+</code></pre>
+
+<h2>Add additional plugins required by TodoLite-Phonegap</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ phonegap local plugin add https://git-wip-us.apache.org/repos/asf/cordova-plugin-camera.git
+</span><span class='line'>$ phonegap local plugin add https://github.com/apache/cordova-plugin-inappbrowser.git 
+</span><span class='line'>$ phonegap local plugin add https://git-wip-us.apache.org/repos/asf/cordova-plugin-network-information.git</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Clone the example app source code</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ rm -rf www
+</span><span class='line'>$ git clone https://github.com/couchbaselabs/TodoLite-PhoneGap.git www</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>Verify ANDROID_HOME environment variable</h1>
+
+<p>If you don&rsquo;t already have it set, you will need to set your ANDROID_HOME environment variable:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ export ANDROID_HOME="/Applications/Android Studio.app/sdk"
+</span><span class='line'>$ export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Run app</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ phonegap run android</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see the following output:</p>
+
+<pre><code>[phonegap] executing 'cordova platform add android'...
+[phonegap] completed 'cordova platform add android'
+[phonegap] executing 'cordova run android'...
+[phonegap] completed 'cordova run android'
+</code></pre>
+
+<h2>Verify app</h2>
+
+<p>TodoLite-Phonegap should launch on the emulator and look like this:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/TodoLitePhonegap.png" alt="screenshot" /></p>
+
+<h2>Facebook login</h2>
+
+<p>Hit the happy face in the top right, and it will prompt you to login via Facebook.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/TodoLitePhoneGapFacebook.png" alt="Screenshot" /></p>
+
+<h2>View data</h2>
+
+<p>After logging in, it will sync any data for your user stored on the Couchbase Mobile <a href="https://github.com/couchbaselabs/TodoLite-PhoneGap/blob/aa8bc5a6b35ce8d49ec089ec79952f1a50e207a2/js/index.js#L30">demo cluster</a>.</p>
+
+<p>For example, if you&rsquo;ve previously used <a href="https://github.com/couchbaselabs/ToDoLite-iOS">TodoLite-iOS</a> or <a href="https://github.com/couchbaselabs/ToDoLite-Android">TodoLite-Android</a>, your data should appear here.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/TodoLitePhoneGapData.png" alt="screenshot" /></p>
+
+<h2>Test Sync via single device</h2>
+
+<ul>
+<li>Login with Facebook as described above</li>
+<li>Add a new Todo List</li>
+<li>Add an item to your Todo List</li>
+<li>Uninstall the app</li>
+<li>Re-install the app by running <code>phonegap run android</code> again</li>
+<li>Login with Facebook</li>
+<li>Your Todo List and item added above should now appear</li>
+</ul>
+
+
+<h2>Test Sync via 2 apps</h2>
+
+<ul>
+<li>Install <a href="https://github.com/couchbaselabs/ToDoLite-Android">TodoLite-Android</a></li>
+<li>Login with Facebook</li>
+<li>Add / edit / delete items on <a href="https://github.com/couchbaselabs/ToDoLite-Android">TodoLite-Android</a></li>
+<li>Verify the changes appear in TodoLite-Phonegap</li>
+</ul>
+
+
+<p><em>Note: you could also setup two emulators and run the apps separately</em></p>
+
+<h1>References</h1>
+
+<ul>
+<li><a href="http://developer.couchbase.com/mobile/get-started/get-started-mobile/phonegap/prepare/index.html">http://developer.couchbase.com/mobile/get-started/get-started-mobile/phonegap/prepare/index.html</a></li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Traun Leyden</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-12-11T12:48:00-08:00" pubdate data-updated="true">Dec 11<span>th</span>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/couchbase-lite/'>couchbase-lite,</a>, <a class='category' href='/blog/categories/mobile/'>mobile</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2014/12/11/up-and-running-with-couchbase-lite-phonegap/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2014/12/11/up-and-running-with-couchbase-lite-phonegap/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/12/02/getting-started-with-go-and-protocol-buffers/" title="Previous Post: Getting started with Go and Protocol Buffers">&laquo; Getting started with Go and Protocol Buffers</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>About Me</h1>
+  <p>
+  I'm a software engineer at Couchbase, working on <a href="https://github.com/couchbase/couchbase-lite-android">Couchbase Lite for Android</a> -- a mobile NoSQL database with Sync.
+  </p>
+
+  <p>
+  In my spare time I am working on <a href="http://www.openocr.net">OpenOCR</a> -- a Dockerized REST API wrapper for Tesseract OCR.
+  </p>
+
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/12/11/up-and-running-with-couchbase-lite-phonegap/">Up and Running With Couchbase Lite Phonegap Android on OSX</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/12/02/getting-started-with-go-and-protocol-buffers/">Getting Started With Go and Protocol Buffers</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/11/14/running-cbfs/">Running a CBFS Cluster on CoreOS</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/11/12/an-example-of-using-nsq-from-go/">An Example of Using NSQ From Go</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/11/04/coreos-with-nvidia-cuda-gpu-drivers/">CoreOS With Nvidia CUDA GPU Drivers</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/tleyden">@tleyden</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'tleyden',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+<section>
+     <h1>Twitter</h1>
+<a class="twitter-timeline" width="300" height="350" href="https://twitter.com/tleydn" data-widget-id="376419812865368064">Tweets by @tleydn</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+ </section>
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Traun Leyden -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'sevenstoryrabbithole';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://tleyden.github.io/blog/2014/12/11/up-and-running-with-couchbase-lite-phonegap/';
+        var disqus_url = 'http://tleyden.github.io/blog/2014/12/11/up-and-running-with-couchbase-lite-phonegap/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

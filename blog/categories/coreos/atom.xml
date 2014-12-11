@@ -4,7 +4,7 @@
   <title><![CDATA[Category: coreos | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/coreos/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-12-09T09:55:26-08:00</updated>
+  <updated>2014-12-11T14:03:53-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -455,8 +455,8 @@ Result = PASS
 
 <p><code>
 $ wget https://gist.githubusercontent.com/tleyden/74f593a0beea300de08c/raw/95ed93c5751a989e58153db6f88c35515b7af120/nvidia_devices.sh
-$ chmod +x nvida_devices.sh
-$ sudo ./nvida_devices.sh
+$ chmod +x nvidia_devices.sh
+$ sudo ./nvidia_devices.sh
 </code></p>
 
 <p><strong>Verify device nodes</strong></p>
