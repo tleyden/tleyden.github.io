@@ -18,7 +18,7 @@ This will walk you through the steps to install the TodoLite-Phonegap sample app
 
 * Setup an AVD + emulator -- in my case I'm using the [Genymotion emulator](https://www.genymotion.com/), with a Google Nexus 4 - 4.4.4 API 19
 
-* It's recommended to verify your setup by creating a new empty app and running it on the emulator
+* At this point you should verify your setup by deploying [TodoLite-Android](https://github.com/couchbaselabs/ToDoLite-Android) to your emulator
 
 # Install Phonegap
 
@@ -58,16 +58,21 @@ $ ant -version
 Apache Ant(TM) version 1.9.4 compiled on April 29 2014
 ```
 
+*Note: according to [Stack Overflow](http://superuser.com/questions/610157/how-do-i-install-ant-on-os-x-mavericks) you may have to install XCode and the Command Line Tools for this to work*
+
 ## Create new Phonegap App
 
 ```
 $ phonegap create todo-lite com.couchbase.TodoLite TodoLite
 
-Creating a new cordova project with name "TodoLite" and id "com.couchbase.TodoLite" at location "/Users/tleyden/Development/todo-lite"
-Using custom www assets from https://github.com/phonegap/phonegap-app-hello-world/archive/master.tar.gz
-Downloading com.phonegap.hello-world library for www...
-Download complete
 ```
+
+You should see the following output:
+
+    Creating a new cordova project with name "TodoLite" and id "com.couchbase.TodoLite" at location "/Users/tleyden/Development/todo-lite"
+    Using custom www assets from https://github.com/phonegap/phonegap-app-hello-world/archive/master.tar.gz
+    Downloading com.phonegap.hello-world library for www...
+    Download complete
 
 cd into the newly created directory:
 
@@ -79,12 +84,14 @@ $ cd todo-lite
 
 ```
 $ phonegap local plugin add https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin.git
-
-[warning] The command `phonegap local <command>` has been DEPRECATED.
-[warning] The command has been delegated to `phonegap <command>`.
-[warning] The command `phonegap local <command>` will soon be removed.
-Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin.git" via git clone
 ```
+
+You should see the following output:
+
+    [warning] The command `phonegap local <command>` has been DEPRECATED.
+    [warning] The command has been delegated to `phonegap <command>`.
+    [warning] The command `phonegap local <command>` will soon be removed.
+    Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin.git" via git clone
 
 ## Add additional plugins required by TodoLite-Phonegap
 
@@ -114,12 +121,15 @@ $ export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools
 
 ```
 $ phonegap run android
-
-[phonegap] executing 'cordova platform add android'...
-[phonegap] completed 'cordova platform add android'
-[phonegap] executing 'cordova run android'...
-[phonegap] completed 'cordova run android'
 ```
+
+You should see the following output:
+
+    [phonegap] executing 'cordova platform add android'...
+    [phonegap] completed 'cordova platform add android'
+    [phonegap] executing 'cordova run android'...
+    [phonegap] completed 'cordova run android'
+
 
 ## Verify app 
 
@@ -135,7 +145,7 @@ Hit the happy face in the top right, and it will prompt you to login via Faceboo
 
 ## View data
 
-After logging in, it will sync any data for your user stored on our Demo Cluster.  
+After logging in, it will sync any data for your user stored on the Couchbase Mobile [demo cluster](https://github.com/couchbaselabs/TodoLite-PhoneGap/blob/aa8bc5a6b35ce8d49ec089ec79952f1a50e207a2/js/index.js#L30).  
 
 For example, if you've previously used [TodoLite-iOS](https://github.com/couchbaselabs/ToDoLite-iOS) or [TodoLite-Android](https://github.com/couchbaselabs/ToDoLite-Android), your data should appear here.
 
