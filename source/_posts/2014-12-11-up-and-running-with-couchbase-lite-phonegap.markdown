@@ -170,6 +170,44 @@ For example, if you've previously used [TodoLite-iOS](https://github.com/couchba
 
 *Note: you could also setup two emulators and run the apps separately*
 
+## Appendix A: using a more recent build of the Phonegap Plugin
+
+## Reset state
+
+```
+$ cd .. 
+$ rm -rf todo-lite
+```
+
+## Create another phonegap app
+
+```
+$ phonegap create todo-lite com.couchbase.TodoLite TodoLite
+$ cd todo-lite
+```
+
+## Download zip file
+
+```
+$ mkdir Couchbase-Lite-PhoneGap-Plugin && cd Couchbase-Lite-PhoneGap-Plugin
+$ wget http://cbfs-ext.hq.couchbase.com/builds/Couchbase-Lite-PhoneGap-Plugin_1.0.4-41.zip
+$ unzip Couchbase-Lite-PhoneGap-Plugin_1.0.4-41.zip
+```
+
+## Add local plugin
+
+```
+$ phonegap local plugin add Couchbase-Lite-PhoneGap-Plugin
+```
+
+You should see output:
+
+ [warning] The command `phonegap local <command>` has been DEPRECATED.
+ [warning] The command has been delegated to `phonegap <command>`.
+ [warning] The command `phonegap local <command>` will soon be removed.
+
+Now just follow the rest of the steps above ..
+
 # References
 
 * http://developer.couchbase.com/mobile/get-started/get-started-mobile/phonegap/prepare/index.html
