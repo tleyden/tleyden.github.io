@@ -4,7 +4,7 @@
   <title><![CDATA[Category: couchbase-lite, | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/couchbase-lite/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-12-11T14:03:53-08:00</updated>
+  <updated>2014-12-12T11:34:01-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -193,6 +193,44 @@ $ phonegap run android
 
 
 <p><em>Note: you could also setup two emulators and run the apps separately</em></p>
+
+<h2>Appendix A: using a more recent build of the Phonegap Plugin</h2>
+
+<h2>Reset state</h2>
+
+<p><code>
+$ cd ..
+$ rm -rf todo-lite
+</code></p>
+
+<h2>Create another phonegap app</h2>
+
+<p><code>
+$ phonegap create todo-lite com.couchbase.TodoLite TodoLite
+$ cd todo-lite
+</code></p>
+
+<h2>Download zip file</h2>
+
+<p><code>
+$ mkdir Couchbase-Lite-PhoneGap-Plugin &amp;&amp; cd Couchbase-Lite-PhoneGap-Plugin
+$ wget http://cbfs-ext.hq.couchbase.com/builds/Couchbase-Lite-PhoneGap-Plugin_1.0.4-41.zip
+$ unzip Couchbase-Lite-PhoneGap-Plugin_1.0.4-41.zip
+</code></p>
+
+<h2>Add local plugin</h2>
+
+<p><code>
+$ phonegap local plugin add Couchbase-Lite-PhoneGap-Plugin
+</code></p>
+
+<p>You should see output:</p>
+
+<p> [warning] The command <code>phonegap local &lt;command&gt;</code> has been DEPRECATED.
+ [warning] The command has been delegated to <code>phonegap &lt;command&gt;</code>.
+ [warning] The command <code>phonegap local &lt;command&gt;</code> will soon be removed.</p>
+
+<p>Now just follow the rest of the steps above ..</p>
 
 <h1>References</h1>
 
