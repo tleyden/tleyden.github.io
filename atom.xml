@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-12-12T11:34:01-08:00</updated>
+  <updated>2014-12-15T19:25:48-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,175 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Running a Sync Gateway Cluster Under CoreOS on AWS]]></title>
+    <link href="http://tleyden.github.io/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws/"/>
+    <updated>2014-12-15T19:22:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws</id>
+    <content type="html"><![CDATA[<p>Follow the steps below to create a Sync Gateway + Couchbase Server cluster running under AWS with the following architecture:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/sync-gw-coreos-onion.png" alt="architecture diagram" /></p>
+
+<h2>Kick off Couchbase Server + Sync Gateway cluster</h2>
+
+<h3>Launch EC2 instances</h3>
+
+<p>Go to the <a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#cstack=sn%7ECouchbase-CoreOS%7Cturl%7Ehttp://tleyden-misc.s3.amazonaws.com/couchbase-coreos/sync_gateway.template">Cloudformation Wizard</a></p>
+
+<p>Recommended values:</p>
+
+<ul>
+<li><strong>ClusterSize</strong>: 3 nodes (default)</li>
+<li><strong>Discovery URL</strong>:  as it says, you need to grab a new token from <a href="https://discovery.etcd.io/new">https://discovery.etcd.io/new</a> and paste it in the box.</li>
+<li><strong>KeyPair</strong>: the name of the AWS keypair you want to use.  If you haven&rsquo;t already, you&rsquo;ll want to upload your local ssh key into AWS and create a named keypair.</li>
+</ul>
+
+
+<h3>ssh into a CoreOS instance</h3>
+
+<p>Go to the AWS console under EC2 instances and find the public ip of one of your newly launched CoreOS instances.</p>
+
+<p>Choose any one of them (it doesn&rsquo;t matter which), and ssh into it as the <strong>core</strong> user with the cert provided in the previous step:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ssh -i aws.cer -A core@ec2-54-83-80-161.compute-1.amazonaws.com</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Sanity check</h2>
+
+<p>Let&rsquo;s make sure the CoreOS cluster is healthy first:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ fleetctl list-machines</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This should return a list of machines in the cluster, like this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>MACHINE          IP              METADATA
+</span><span class='line'>03b08680...     10.33.185.16    -
+</span><span class='line'>209a8a2e...     10.164.175.9    -
+</span><span class='line'>25dd84b7...     10.13.180.194   -</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Kick off cluster</h3>
+
+<p>From the CoreOS machine you ssh&rsquo;d into in the previous step:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://raw.githubusercontent.com/tleyden/sync-gateway-coreos/master/scripts/sync-gw-cluster-init.sh
+</span><span class='line'>$ chmod +x sync-gw-cluster-init.sh
+</span><span class='line'>$ SG_CONFIG_URL=https://raw.githubusercontent.com/couchbaselabs/ToDoLite-iOS/master/sync-gateway-config.json
+</span><span class='line'>$ ./sync-gw-cluster-init.sh -n 1 -c master -b "todos" -z 512 -g $SG_CONFIG_URL -v 3.0.1 -m 3 -u user:passw0rd</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You&rsquo;ll want to use your own config URL for the SG_CONFIG_URL value.  For example, a file hosted in github or on your own webserver.</p>
+
+<h3>View cluster</h3>
+
+<p>After the above script finishes, run <code>fleetctl list-units</code> to list the services in your cluster, and you should see:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>UNIT                     MACHINE             ACTIVE  SUB
+</span><span class='line'>couchbase_bootstrap_node.service                281cd575.../10.150.73.56        active    running
+</span><span class='line'>couchbase_bootstrap_node_announce.service       281cd575.../10.150.73.56        active    running
+</span><span class='line'>couchbase_node.1.service                        36ab135c.../10.79.132.157       active    running
+</span><span class='line'>couchbase_node.2.service                        f815a846.../10.51.179.214       active    running
+</span><span class='line'>sync_gw_announce@1.service                      36ab135c.../10.79.132.157       active    running
+</span><span class='line'>sync_gw_node@1.service                          36ab135c.../10.79.132.157       active    running</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Verify internal</h2>
+
+<p><strong>Find internal ip</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ fleetctl list-units
+</span><span class='line'>sync_gw_node.1.service                209a8a2e.../10.164.175.9    active  running</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Curl</strong></p>
+
+<p>On the CoreOS instance you are already ssh&rsquo;d into, Use the ip found above and run a curl request against the server root:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl 10.164.175.9:4985
+</span><span class='line'>{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/master(6356065)"}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Verify external</h2>
+
+<p><strong>Find external ip</strong></p>
+
+<p>Using the internal ip found above, go to the EC2 Instances section of the AWS console, and hunt around until you find the instance with that internal ip, and then get the public ip for that instance, eg: <code>ec2-54-211-206-18.compute-1.amazonaws.com</code></p>
+
+<p><strong>Curl</strong></p>
+
+<p>From your laptop, use the ip found above and run a curl request against the server root:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl ec2-54-211-206-18.compute-1.amazonaws.com:4984
+</span><span class='line'>{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/master(6356065)"}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Congratulations!  You now have a Couchbase Server + Sync Gateway cluster running.</p>
+
+<h2>Appendix A: Kicking off more Sync Gateway nodes.</h2>
+
+<p>To launch two more Sync Gateway nodes, run the following command:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ fleetctl start sync_gw_node@{2..3}.service && fleetctl start sync_gw_announce@{2..3}.service</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Appendix B: Setting up Elastic Load Balancer.</h2>
+
+<p>Setup an Elastic Load Balancer with the following settings:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/sync_gateway_coreos_elb.png" alt="elb screenshot" /></p>
+
+<p>Note that it forwards to <strong>port 4984</strong>.</p>
+
+<p>Once the Load Balancer has been created, go to its configuration to get its DNS name:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/sync_gateway_coreos_elb2.png" alt="elb screenshot" /></p>
+
+<p>Now you should be able to run curl against that:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl http://coreos-322270867.us-east-1.elb.amazonaws.com/
+</span><span class='line'>{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/master(b47aee8)"}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://github.com/tleyden/sync-gateway-coreos">sync gateway Docker + CoreOS fleet files</a></li>
+<li><a href="https://github.com/tleyden/couchbase-server-coreos">couchbase-server-coreos</a></li>
+<li><a href="http://developer.couchbase.com/mobile/develop/guides/sync-gateway/nginx/index.html">Sync Gateway docs regarding reverse proxies</a></li>
+<li><a href="https://groups.google.com/forum/?utm_medium=email&amp;utm_source=footer#!msg/mobile-couchbase/pXKQIAiCaW8/s9W_gSfRL50J">Couchbase Mobile Google Group discussion on ELB</a></li>
+<li><a href="https://github.com/couchbase/sync_gateway">sync gateway</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Up and Running with Couchbase Lite Phonegap Android on OSX]]></title>
@@ -2839,52 +3008,6 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
 
 
 <p>NOTE: if <a href="https://github.com/chsc/gogl/pull/37">pull request #37</a> has already been merged into <a href="https://github.com/chsc/gogl/">gogl</a>, then replace <code>github.com/tleyden/gogl</code> with <code>https://github.com/chsc/gogl</code> in steps above.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Why use Go when you can just use C++?]]></title>
-    <link href="http://tleyden.github.io/blog/2014/02/06/why-use-go-when-you-can-just-use-c-plus-plus/"/>
-    <updated>2014-02-06T08:25:00-08:00</updated>
-    <id>http://tleyden.github.io/blog/2014/02/06/why-use-go-when-you-can-just-use-c-plus-plus</id>
-    <content type="html"><![CDATA[<p>I recently saw this on a mailing list:</p>
-
-<blockquote><p>What are the advantages of Go against C++ or other languages?</p></blockquote>
-
-<h1>Go has sane concurrency.</h1>
-
-<p>In C++ the main tool to deal with concurrency is pthreads, but making threaded programming correct is extremely difficult and error prone.  Trying to make it performant by minimizing locking makes it even more challenging.</p>
-
-<p>Go, OTOH, has a concept of goroutines and channels for concurrency.  The idea has its roots in CSP (communicating sequential processing), and is not unlike Erlang&rsquo;s style of having processes that communicating by message passing.</p>
-
-<p>In Go, instead of having threads communicating by sharing memory (and locking), goroutines share memory by communicating over channels.  Eg, concurrent goroutines communicate over channels, and each goroutine&rsquo;s internal state is private to that goroutine.  Also, concurrency and their constructs like channels are built right into the Go language, which affords many advantages over languages that have had concurrency slapped on as an afterthought.</p>
-
-<h1>Other Strengths</h1>
-
-<ul>
-<li>No unsafe pointer arithmetic.</li>
-<li>Array bound checking</li>
-<li>Write once run anywhere</li>
-<li>Closures (eg, lambdas)</li>
-<li>Functions are first class objects</li>
-<li>Multiple return values</li>
-<li>Does not have IFDEF&rsquo;s, so no IFDEF hell and unmaintainable code.</li>
-<li>Compiles blazingly fast</li>
-<li>Gofmt &ndash; All code is uniformly formatted, making codebases much easier to read.  (a la Python)</li>
-<li>Garbage collection</li>
-</ul>
-
-
-<h1>Weaknesses</h1>
-
-<ul>
-<li>Lack of generics</li>
-<li>Not quite as fast as C/C++ (partly due to GC overhead)</li>
-<li>Integration with existing native code is a bit limited (you can&rsquo;t build libraries in Go or link Go code into a C/C++ executable)</li>
-<li>IDE support is limited compared to C/C++/Obj-C/Java</li>
-<li>Doesn&rsquo;t work with regular debugging tools because it doesn&rsquo;t use normal calling conventions.</li>
-</ul>
-
 ]]></content>
   </entry>
   

@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: couchbase-mobile | Seven Story Rabbit Hole]]></title>
+  <link href="http://tleyden.github.io/blog/categories/couchbase-mobile/atom.xml" rel="self"/>
+  <link href="http://tleyden.github.io/"/>
+  <updated>2014-12-15T19:25:48-08:00</updated>
+  <id>http://tleyden.github.io/</id>
+  <author>
+    <name><![CDATA[Traun Leyden]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Running a Sync Gateway Cluster Under CoreOS on AWS]]></title>
+    <link href="http://tleyden.github.io/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws/"/>
+    <updated>2014-12-15T19:22:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws</id>
+    <content type="html"><![CDATA[<p>Follow the steps below to create a Sync Gateway + Couchbase Server cluster running under AWS with the following architecture:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/sync-gw-coreos-onion.png" alt="architecture diagram" /></p>
+
+<h2>Kick off Couchbase Server + Sync Gateway cluster</h2>
+
+<h3>Launch EC2 instances</h3>
+
+<p>Go to the <a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#cstack=sn%7ECouchbase-CoreOS%7Cturl%7Ehttp://tleyden-misc.s3.amazonaws.com/couchbase-coreos/sync_gateway.template">Cloudformation Wizard</a></p>
+
+<p>Recommended values:</p>
+
+<ul>
+<li><strong>ClusterSize</strong>: 3 nodes (default)</li>
+<li><strong>Discovery URL</strong>:  as it says, you need to grab a new token from <a href="https://discovery.etcd.io/new">https://discovery.etcd.io/new</a> and paste it in the box.</li>
+<li><strong>KeyPair</strong>: the name of the AWS keypair you want to use.  If you haven&rsquo;t already, you&rsquo;ll want to upload your local ssh key into AWS and create a named keypair.</li>
+</ul>
+
+
+<h3>ssh into a CoreOS instance</h3>
+
+<p>Go to the AWS console under EC2 instances and find the public ip of one of your newly launched CoreOS instances.</p>
+
+<p>Choose any one of them (it doesn&rsquo;t matter which), and ssh into it as the <strong>core</strong> user with the cert provided in the previous step:</p>
+
+<p><code>
+$ ssh -i aws.cer -A core@ec2-54-83-80-161.compute-1.amazonaws.com
+</code></p>
+
+<h2>Sanity check</h2>
+
+<p>Let&rsquo;s make sure the CoreOS cluster is healthy first:</p>
+
+<p><code>
+$ fleetctl list-machines
+</code></p>
+
+<p>This should return a list of machines in the cluster, like this:</p>
+
+<p><code>
+MACHINE         IP              METADATA
+03b08680...     10.33.185.16    -
+209a8a2e...     10.164.175.9    -
+25dd84b7...     10.13.180.194   -
+</code></p>
+
+<h3>Kick off cluster</h3>
+
+<p>From the CoreOS machine you ssh&rsquo;d into in the previous step:</p>
+
+<p><code>
+$ wget https://raw.githubusercontent.com/tleyden/sync-gateway-coreos/master/scripts/sync-gw-cluster-init.sh
+$ chmod +x sync-gw-cluster-init.sh
+$ SG_CONFIG_URL=https://raw.githubusercontent.com/couchbaselabs/ToDoLite-iOS/master/sync-gateway-config.json
+$ ./sync-gw-cluster-init.sh -n 1 -c master -b "todos" -z 512 -g $SG_CONFIG_URL -v 3.0.1 -m 3 -u user:passw0rd
+</code></p>
+
+<p>You&rsquo;ll want to use your own config URL for the SG_CONFIG_URL value.  For example, a file hosted in github or on your own webserver.</p>
+
+<h3>View cluster</h3>
+
+<p>After the above script finishes, run <code>fleetctl list-units</code> to list the services in your cluster, and you should see:</p>
+
+<p><code>
+UNIT                        MACHINE             ACTIVE  SUB
+couchbase_bootstrap_node.service                281cd575.../10.150.73.56        active  running
+couchbase_bootstrap_node_announce.service       281cd575.../10.150.73.56        active  running
+couchbase_node.1.service                        36ab135c.../10.79.132.157       active  running
+couchbase_node.2.service                        f815a846.../10.51.179.214       active  running
+sync_gw_announce@1.service                      36ab135c.../10.79.132.157       active  running
+sync_gw_node@1.service                          36ab135c.../10.79.132.157       active  running
+</code></p>
+
+<h2>Verify internal</h2>
+
+<p><strong>Find internal ip</strong></p>
+
+<p><code>
+$ fleetctl list-units
+sync_gw_node.1.service              209a8a2e.../10.164.175.9    active  running
+</code></p>
+
+<p><strong>Curl</strong></p>
+
+<p>On the CoreOS instance you are already ssh&rsquo;d into, Use the ip found above and run a curl request against the server root:</p>
+
+<p><code>
+$ curl 10.164.175.9:4985
+{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/master(6356065)"}
+</code></p>
+
+<h2>Verify external</h2>
+
+<p><strong>Find external ip</strong></p>
+
+<p>Using the internal ip found above, go to the EC2 Instances section of the AWS console, and hunt around until you find the instance with that internal ip, and then get the public ip for that instance, eg: <code>ec2-54-211-206-18.compute-1.amazonaws.com</code></p>
+
+<p><strong>Curl</strong></p>
+
+<p>From your laptop, use the ip found above and run a curl request against the server root:</p>
+
+<p><code>
+$ curl ec2-54-211-206-18.compute-1.amazonaws.com:4984
+{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/master(6356065)"}
+</code></p>
+
+<p>Congratulations!  You now have a Couchbase Server + Sync Gateway cluster running.</p>
+
+<h2>Appendix A: Kicking off more Sync Gateway nodes.</h2>
+
+<p>To launch two more Sync Gateway nodes, run the following command:</p>
+
+<p><code>
+$ fleetctl start sync_gw_node@{2..3}.service &amp;&amp; fleetctl start sync_gw_announce@{2..3}.service
+</code></p>
+
+<h2>Appendix B: Setting up Elastic Load Balancer.</h2>
+
+<p>Setup an Elastic Load Balancer with the following settings:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/sync_gateway_coreos_elb.png" alt="elb screenshot" /></p>
+
+<p>Note that it forwards to <strong>port 4984</strong>.</p>
+
+<p>Once the Load Balancer has been created, go to its configuration to get its DNS name:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/sync_gateway_coreos_elb2.png" alt="elb screenshot" /></p>
+
+<p>Now you should be able to run curl against that:</p>
+
+<p><code>
+$ curl http://coreos-322270867.us-east-1.elb.amazonaws.com/
+{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/master(b47aee8)"}
+</code></p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://github.com/tleyden/sync-gateway-coreos">sync gateway Docker + CoreOS fleet files</a></li>
+<li><a href="https://github.com/tleyden/couchbase-server-coreos">couchbase-server-coreos</a></li>
+<li><a href="http://developer.couchbase.com/mobile/develop/guides/sync-gateway/nginx/index.html">Sync Gateway docs regarding reverse proxies</a></li>
+<li><a href="https://groups.google.com/forum/?utm_medium=email&amp;utm_source=footer#!msg/mobile-couchbase/pXKQIAiCaW8/s9W_gSfRL50J">Couchbase Mobile Google Group discussion on ELB</a></li>
+<li><a href="https://github.com/couchbase/sync_gateway">sync gateway</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>
