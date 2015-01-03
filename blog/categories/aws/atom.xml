@@ -4,7 +4,7 @@
   <title><![CDATA[Category: aws | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/aws/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2014-12-16T11:24:44-08:00</updated>
+  <updated>2015-01-02T22:24:18-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -73,11 +73,25 @@ MACHINE         IP              METADATA
 <p><code>
 $ wget https://raw.githubusercontent.com/tleyden/sync-gateway-coreos/master/scripts/sync-gw-cluster-init.sh
 $ chmod +x sync-gw-cluster-init.sh
-$ SG_CONFIG_URL=https://raw.githubusercontent.com/couchbaselabs/ToDoLite-iOS/master/sync-gateway-config.json
+$ SG_CONFIG_URL=https://gist.githubusercontent.com/tleyden/4ae1fe9b2b18783708cd/raw/fe4fb7f8637c1bf813c70e957bac35fa5ad28d01/sync_gw_config.json
 $ ./sync-gw-cluster-init.sh -n 1 -c master -b "todos" -z 512 -g $SG_CONFIG_URL -v 3.0.1 -m 3 -u user:passw0rd
 </code></p>
 
 <p>You&rsquo;ll want to use your own config URL for the SG_CONFIG_URL value.  For example, a file hosted in github or on your own webserver.</p>
+
+<p>Parameters to sync-gw-cluster-init.sh:</p>
+
+<ul>
+<li><strong>-n</strong> &mdash; the number of sync gateway nodes to start.</li>
+<li><strong>-c</strong> &mdash; the commit or branch name of sync gateway to use.</li>
+<li><strong>-b</strong> &mdash; the couchbase bucket that should be created before starting sync gateway</li>
+<li><strong>-z</strong> &mdash; the size of the bucket in MB to use for the bucket created via the <strong>-b</strong> param.</li>
+<li><strong>-g</strong> &mdash; the url of the sync gateway config.</li>
+<li><strong>-v</strong> &mdash; the version of couchbase server to launch (3.0.1 | 2.2.0)</li>
+<li><strong>-m</strong> &mdash; the number of couchbase server nodes to launch.</li>
+<li><strong>-u</strong> &mdash; the username and password in a single string separated by a colon.  You will want to customize this to use something sensical.</li>
+</ul>
+
 
 <h3>View cluster</h3>
 
@@ -93,6 +107,8 @@ sync_gw_announce@1.service                      36ab135c.../10.79.132.157       
 sync_gw_node@1.service                          36ab135c.../10.79.132.157       active  running
 </code></p>
 
+<p>They should all be in the <code>active</code> state.  If any are in the <code>activating</code> state &mdash; which is normal because it might take some time to download the docker image &mdash; then you should wait until they are all active before continuing.</p>
+
 <h2>Verify internal</h2>
 
 <p><strong>Find internal ip</strong></p>
@@ -107,7 +123,7 @@ sync_gw_node.1.service              209a8a2e.../10.164.175.9    active  running
 <p>On the CoreOS instance you are already ssh&rsquo;d into, Use the ip found above and run a curl request against the server root:</p>
 
 <p><code>
-$ curl 10.164.175.9:4985
+$ curl 10.164.175.9:4984
 {"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/master(6356065)"}
 </code></p>
 
@@ -154,6 +170,8 @@ $ fleetctl start sync_gw_node@{2..3}.service &amp;&amp; fleetctl start sync_gw_a
 $ curl http://coreos-322270867.us-east-1.elb.amazonaws.com/
 {"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/master(b47aee8)"}
 </code></p>
+
+<p>What next?  You could try running <a href="https://github.com/couchbaselabs/GrocerySync-Android">GrocerySync-Android</a> or <a href="https://github.com/couchbaselabs/Grocery-Sync-iOS">GrocerySync-iOS</a> and pointing the Sync Gateway URL to your own Sync Gateway instance.</p>
 
 <h2>References</h2>
 
