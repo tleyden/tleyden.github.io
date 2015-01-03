@@ -11,6 +11,7 @@ Follow the steps below to create a Sync Gateway + Couchbase Server cluster runni
 
 ![architecture diagram](http://tleyden-misc.s3.amazonaws.com/blog_images/sync-gw-coreos-onion.png)
 
+There is a [youtube video](https://www.youtube.com/watch?v=7-7jsLzHsWU) (12 mins) which walks through this entire setup process, or you can follow the instructions below.
 
 ## Kick off Couchbase Server + Sync Gateway cluster
 
@@ -58,11 +59,22 @@ From the CoreOS machine you ssh'd into in the previous step:
 ```
 $ wget https://raw.githubusercontent.com/tleyden/sync-gateway-coreos/master/scripts/sync-gw-cluster-init.sh
 $ chmod +x sync-gw-cluster-init.sh
-$ SG_CONFIG_URL=https://raw.githubusercontent.com/couchbaselabs/ToDoLite-iOS/master/sync-gateway-config.json
+$ SG_CONFIG_URL=https://gist.githubusercontent.com/tleyden/4ae1fe9b2b18783708cd/raw/fe4fb7f8637c1bf813c70e957bac35fa5ad28d01/sync_gw_config.json
 $ ./sync-gw-cluster-init.sh -n 1 -c master -b "todos" -z 512 -g $SG_CONFIG_URL -v 3.0.1 -m 3 -u user:passw0rd
 ```
 
 You'll want to use your own config URL for the SG_CONFIG_URL value.  For example, a file hosted in github or on your own webserver.  
+
+Parameters to sync-gw-cluster-init.sh:
+
+* **-n** -- the number of sync gateway nodes to start.
+* **-c** -- the commit or branch name of sync gateway to use.
+* **-b** -- the couchbase bucket that should be created before starting sync gateway
+* **-z** -- the size of the bucket in MB to use for the bucket created via the **-b** param.
+* **-g** -- the url of the sync gateway config.
+* **-v** -- the version of couchbase server to launch (3.0.1 | 2.2.0)
+* **-m** -- the number of couchbase server nodes to launch.
+* **-u** -- the username and password in a single string separated by a colon.  You will want to customize this to use something sensical.
 
 ### View cluster
 
@@ -78,6 +90,8 @@ sync_gw_announce@1.service                      36ab135c.../10.79.132.157       
 sync_gw_node@1.service                          36ab135c.../10.79.132.157       active	running
 ```
 
+They should all be in the `active` state.  If any are in the `activating` state -- which is normal because it might take some time to download the docker image -- then you should wait until they are all active before continuing.
+
 ## Verify internal
 
 **Find internal ip**
@@ -92,7 +106,7 @@ sync_gw_node.1.service				209a8a2e.../10.164.175.9	active	running
 On the CoreOS instance you are already ssh'd into, Use the ip found above and run a curl request against the server root:
 
 ```
-$ curl 10.164.175.9:4985
+$ curl 10.164.175.9:4984
 {"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/master(6356065)"}
 ```
 
@@ -140,8 +154,11 @@ $ curl http://coreos-322270867.us-east-1.elb.amazonaws.com/
 {"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/master(b47aee8)"}
 ```
 
+What next?  You could try running [GrocerySync-Android](https://github.com/couchbaselabs/GrocerySync-Android) or [GrocerySync-iOS](https://github.com/couchbaselabs/Grocery-Sync-iOS) and pointing the Sync Gateway URL to your own Sync Gateway instance.
+
 ## References
 
+* [youtube screencast](https://www.youtube.com/watch?v=7-7jsLzHsWU) (12 mins) 
 * [sync gateway Docker + CoreOS fleet files](https://github.com/tleyden/sync-gateway-coreos)
 * [couchbase-server-coreos](https://github.com/tleyden/couchbase-server-coreos)
 * [Sync Gateway docs regarding reverse proxies](http://developer.couchbase.com/mobile/develop/guides/sync-gateway/nginx/index.html)
