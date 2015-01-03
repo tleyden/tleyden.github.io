@@ -68,10 +68,10 @@ You'll want to use your own config URL for the SG_CONFIG_URL value.  For example
 Parameters to sync-gw-cluster-init.sh:
 
 * **-n** -- the number of sync gateway nodes to start.
-* **-c** -- the commit or branch name of sync gateway to use.
-* **-b** -- the couchbase bucket that should be created before starting sync gateway
+* **-c** -- the commit or branch name of sync gateway to use.  (if master has issues, the latest tested commit is currently: 422ba63a1afedd459bffec3031a8680f2daffd5e)
+* **-b** -- the couchbase bucket to be created before starting sync gateway
 * **-z** -- the size of the bucket in MB to use for the bucket created via the **-b** param.
-* **-g** -- the url of the sync gateway config.
+* **-g** -- the url of the sync gateway config.  You will want to customize this.
 * **-v** -- the version of couchbase server to launch (3.0.1 | 2.2.0)
 * **-m** -- the number of couchbase server nodes to launch.
 * **-u** -- the username and password in a single string separated by a colon.  You will want to customize this to use something sensical.
