@@ -28,7 +28,7 @@ Get Docker running under OSX.
 
 * Install VirtualBox via [VirtualBox OSX installer](http://download.virtualbox.org/virtualbox/4.3.2/VirtualBox-4.3.2-90405-OSX.dmg)
 
-* Install Vagrant via [Vagrant OSX installer](https://dl.bintray.com/mitchellh/vagrant/vagrant_1.6.2.dmg)
+* Install Vagrant via [Vagrant OSX installer](https://www.vagrantup.com/downloads.html)  (I used version 1.6.2)
 
 ## Vagrant Smoke Test: run Ubuntu Precise
 
