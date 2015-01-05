@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-01-02T22:46:11-08:00</updated>
+  <updated>2015-01-05T08:05:58-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -158,6 +158,13 @@
 
 
 <p>Congratulations!  You now have a Couchbase Server + Sync Gateway cluster running.</p>
+
+<h2>Known issues</h2>
+
+<ul>
+<li><a href="https://github.com/couchbaselabs/couchbase-server-docker/issues/2">Does not handle node restarts (in particular bootstrap node)</a></li>
+</ul>
+
 
 <h2>Appendix A: Kicking off more Sync Gateway nodes.</h2>
 
