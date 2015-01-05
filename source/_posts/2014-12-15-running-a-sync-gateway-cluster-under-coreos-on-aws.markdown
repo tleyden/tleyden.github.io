@@ -6,7 +6,6 @@ comments: true
 categories: couchbase-mobile sync-gateway coreos aws
 ---
 
-
 Follow the steps below to create a Sync Gateway + Couchbase Server cluster running under AWS with the following architecture:
 
 ![architecture diagram](http://tleyden-misc.s3.amazonaws.com/blog_images/sync-gw-coreos-onion.png)
@@ -126,6 +125,10 @@ $ curl ec2-54-211-206-18.compute-1.amazonaws.com:4984
 ```
 
 Congratulations!  You now have a Couchbase Server + Sync Gateway cluster running.
+
+## Known issues
+
+* [Does not handle node restarts (in particular bootstrap node)](https://github.com/couchbaselabs/couchbase-server-docker/issues/2)
 
 ## Appendix A: Kicking off more Sync Gateway nodes.
 
