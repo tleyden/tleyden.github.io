@@ -163,6 +163,14 @@ $ curl http://coreos-322270867.us-east-1.elb.amazonaws.com/
 
 What next?  You could try running [GrocerySync-Android](https://github.com/couchbaselabs/GrocerySync-Android) or [GrocerySync-iOS](https://github.com/couchbaselabs/Grocery-Sync-iOS) and pointing the Sync Gateway URL to your own Sync Gateway instance.
 
+## Appendix C: Shutting down the cluster.
+
+Warning: if you try to shutdown the individual ec2 instances, the **CloudFormation template will cause AWS to restart the instances**!
+
+To shutdown the cluster, you must use the CloudFormation console.  
+
+![screenshot](http://tleyden-misc.s3.amazonaws.com/blog_images/shutdown_cluster.png)
+
 ## References
 
 * [youtube screencast](https://www.youtube.com/watch?v=7-7jsLzHsWU) (12 mins) 
