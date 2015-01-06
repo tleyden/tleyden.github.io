@@ -280,6 +280,14 @@
 
 <p>What next?  You could try running <a href="https://github.com/couchbaselabs/GrocerySync-Android">GrocerySync-Android</a> or <a href="https://github.com/couchbaselabs/Grocery-Sync-iOS">GrocerySync-iOS</a> and pointing the Sync Gateway URL to your own Sync Gateway instance.</p>
 
+<h2>Appendix C: Shutting down the cluster.</h2>
+
+<p>Warning: if you try to shutdown the individual ec2 instances, the <strong>CloudFormation template will cause AWS to restart the instances</strong>!</p>
+
+<p>To shutdown the cluster, you must use the CloudFormation console.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/shutdown_cluster.png" alt="screenshot" /></p>
+
 <h2>References</h2>
 
 <ul>
