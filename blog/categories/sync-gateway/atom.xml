@@ -4,7 +4,7 @@
   <title><![CDATA[Category: sync-gateway | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/sync-gateway/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-01-05T08:05:58-08:00</updated>
+  <updated>2015-01-06T10:30:12-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -22,7 +22,11 @@
 
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/sync-gw-coreos-onion.png" alt="architecture diagram" /></p>
 
-<p>There is a <a href="https://www.youtube.com/watch?v=7-7jsLzHsWU">youtube video</a> (12 mins) which walks through this entire setup process, or you can follow the instructions below.</p>
+<p>Disclaimer: this approach to running Couchbase Server and Sync Gateway is entirely <strong>experimental</strong> and is not recommended for running a production system yet.  There are <a href="https://github.com/couchbaselabs/couchbase-server-docker/issues/2">known issues</a>, and I&rsquo;m working with the Couchbase support team to get these resolved.</p>
+
+<h3>Screencast available</h3>
+
+<p>There is a <a href="https://www.youtube.com/watch?v=7-7jsLzHsWU">screencast video</a> (12 mins) which walks through this entire setup process, or you can follow the instructions below.</p>
 
 <h2>Kick off Couchbase Server + Sync Gateway cluster</h2>
 
