@@ -144,6 +144,8 @@ $ fleetctl start sync_gw_node@{2..3}.service && fleetctl start sync_gw_announce@
 
 ## Appendix B: Setting up Elastic Load Balancer.
 
+Warning: Users have been having [problems](https://groups.google.com/d/msg/mobile-couchbase/jJMqnoauMWQ/FHND_WqtYaMJ) getting WebSockets to work behind ELB.  Unless you are planning to disable websocket support for iOS clients, you should use [nginx as described here](http://developer.couchbase.com/mobile/develop/guides/sync-gateway/nginx/index.html) rather than ELB.
+
 Setup an Elastic Load Balancer with the following settings:
 
 ![elb screenshot](http://tleyden-misc.s3.amazonaws.com/blog_images/sync_gateway_coreos_elb.png)
