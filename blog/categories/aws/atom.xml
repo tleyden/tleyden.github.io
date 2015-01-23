@@ -4,7 +4,7 @@
   <title><![CDATA[Category: aws | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/aws/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-01-22T20:42:22-08:00</updated>
+  <updated>2015-01-23T09:10:18-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -181,6 +181,20 @@ $ curl http://coreos-322270867.us-east-1.elb.amazonaws.com/
 
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/shutdown_cluster.png" alt="screenshot" /></p>
 
+<h2>Appendix E: Disabling CoreOS auto-restarts</h2>
+
+<p>CoreOS comes with a built-in &ldquo;Chaos Monkey&rdquo; &mdash; it will automatically restart nodes when security updates are available.  Initially, this caused <a href="https://github.com/couchbaselabs/couchbase-server-docker/issues/2">major problems</a> with the way Couchbase Server was being spawned by the scripts used in this blog post.  Those issues are now fixed, but it&rsquo;s always possible new issues might arise.</p>
+
+<p>To play it safe, if you want to prevent CoreOS from restarting itself:</p>
+
+<ul>
+<li>Shut down your existing cluster via CloudFormation (if you have data already, then please post a comment to this blog post asking for help)</li>
+<li>Make a copy of the <a href="http://tleyden-misc.s3.amazonaws.com/couchbase-coreos/sync_gateway.template">default CloudFormation template</a> and save it on an S3 bucket.</li>
+<li>Change the <code>reboot-strategy</code> to <code>off</code> as described in this <a href="https://coreos.com/docs/cluster-management/setup/update-strategies/">CoreOS update strategies document</a> and upload the edited version to S3.</li>
+<li>Kick off a new cluster from the Go to the <a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#cstack=sn%7ECouchbase-CoreOS%7Cturl%7Ehttp://tleyden-misc.s3.amazonaws.com/couchbase-coreos/sync_gateway.template">Cloudformation Wizard</a>, but change the value under <code>Specify an Amazon S3 template URL</code> to use your own template stored on S3 rather than the default.</li>
+</ul>
+
+
 <h2>References</h2>
 
 <ul>
@@ -189,7 +203,7 @@ $ curl http://coreos-322270867.us-east-1.elb.amazonaws.com/
 <li><a href="http://developer.couchbase.com/mobile/develop/guides/sync-gateway/nginx/index.html">Sync Gateway docs regarding reverse proxies</a></li>
 <li><a href="https://groups.google.com/forum/?utm_medium=email&amp;utm_source=footer#!msg/mobile-couchbase/pXKQIAiCaW8/s9W_gSfRL50J">Couchbase Mobile Google Group discussion on ELB</a></li>
 <li><a href="https://github.com/couchbase/sync_gateway">sync gateway</a></li>
-<li><a href="https://www.youtube.com/watch?v=7-7jsLzHsWU">youtube screencast</a> (12 mins + slightly outdated)</li>
+<li><a href="https://www.youtube.com/watch?v=7-7jsLzHsWU">youtube screencast</a> (12 mins)</li>
 </ul>
 
 ]]></content>
