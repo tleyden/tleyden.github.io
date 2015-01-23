@@ -138,26 +138,6 @@
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ ssh -i aws.cer -A core@ec2-54-83-80-161.compute-1.amazonaws.com</span></code></pre></td></tr></table></div></figure>
 
 
-<h2>Sanity check</h2>
-
-<p>Let&rsquo;s make sure the CoreOS cluster is healthy first:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ fleetctl list-machines</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This should return a list of machines in the cluster, like this:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>MACHINE          IP              METADATA
-</span><span class='line'>03b08680...     10.33.185.16    -
-</span><span class='line'>209a8a2e...     10.164.175.9    -
-</span><span class='line'>25dd84b7...     10.13.180.194   -</span></code></pre></td></tr></table></div></figure>
-
-
 <h3>Kick off cluster</h3>
 
 <p>From the CoreOS machine you ssh&rsquo;d into in the previous step:</p>
