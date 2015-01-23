@@ -14,7 +14,7 @@ Here are instructions on how to fire up a Couchbase Server cluster running under
 
 Click the "Launch Stack" button to launch your CoreOS instances via AWS Cloud Formation:
 
-[<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#cstack=sn%7ECouchbase-CoreOS%7Cturl%7Ehttp://tleyden-misc.s3.amazonaws.com/couchbase-coreos/coreos-stable-pv.template)
+[<img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png">](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#cstack=sn%7ECouchbase-CoreOS%7Cturl%7Ehttp://tleyden-misc.s3.amazonaws.com/couchbase-coreos/couchbase_server.template)
 
 *NOTE: this is hardcoded to use the us-east-1 region, so if you need a different region, you should edit the URL accordingly*
 
@@ -58,13 +58,6 @@ $ wget https://raw.githubusercontent.com/couchbaselabs/couchbase-server-docker/m
 $ chmod +x cluster-init.sh
 ```
 
-This script is not much.  I wrapped things up in a script because the instructions were getting long, but all it does is:
-
-* Downloads a few fleet init files from github.
-* Generates a few more fleet init files based on a template and the number of nodes you want.
-* Stashes the username/password argument you give it into `etcd`.
-* Tells `fleetctl` to kick everything off.  Whee!
-
 ## Launch cluster
 
 Run the script you downloaded in the previous step:
@@ -80,6 +73,12 @@ Where:
 * **-u** the username and password as a single string, delimited by a colon (:) 
 
 Replace `user:passw0rd` with a sensible username and password.  It **must** be colon separated, with no spaces.  The password itself must be at least 6 characters.
+
+What this script is doing:
+
+* Downloads fleet init files from github.
+* Stashes the username/password argument you give it into `etcd`.
+* Tells `fleetctl` to kick everything off.  
 
 Once this command completes, your cluster will be in the process of launching.
 
@@ -101,26 +100,17 @@ couchbase_node.1.service                        8cf54d4d.../10.187.61.136	active
 couchbase_node.2.service                        b8cf0ed6.../10.179.161.76	active	running
 ```
 
-## Rebalance Couchbase Cluster
-
-**Login to Couchbase Server Web Admin**
+# Veryify
 
 * Find the public ip of any of your CoreOS instances via the AWS console
 * In a browser, go to `http://<instance_public_ip>:8091`
 * Login with the username/password you provided above
 
-After logging in, your Server Nodes tab should look like this:
-
-![screenshot](http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_admin_ui_prerebalance.png)
-
-**Kick off initial rebalance**
-
-* Click server nodes
-* Click "Rebalance"
-
-After the rebalance is complete, you should see:
+You should see:
 
 ![screenshot](http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_admin_ui_post_rebalance.png)
+
+(Note: it may still be in the process of rebalancing, which is normal.  Go have a coffee and check back later)
 
 Congratulations!  You now have a 3 node Couchbase Server cluster running under CoreOS / Docker.  
 

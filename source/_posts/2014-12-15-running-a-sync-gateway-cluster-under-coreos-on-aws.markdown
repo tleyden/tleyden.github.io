@@ -10,11 +10,7 @@ Follow the steps below to create a Sync Gateway + Couchbase Server cluster runni
 
 ![architecture diagram](http://tleyden-misc.s3.amazonaws.com/blog_images/sync-gw-coreos-onion.png)
 
-Disclaimer: this approach to running Couchbase Server and Sync Gateway is entirely **experimental** and is not recommended for running a production system yet.  There are [known issues](https://github.com/couchbaselabs/couchbase-server-docker/issues/2), and I'm working with the Couchbase support team to get these resolved.
-
-### Screencast available
-
-There is a [screencast video](https://www.youtube.com/watch?v=7-7jsLzHsWU) (12 mins) which walks through this entire setup process, or you can follow the instructions below.  
+*Disclaimer: this approach to running Couchbase Server and Sync Gateway is entirely **experimental** and you should do your own testing before running a production system.  Having said that, this approach has undergone a [major feedback loop](https://github.com/couchbaselabs/couchbase-server-docker/issues/2) from real users, and this version is a lot more stable than the initial version.*
 
 ## Kick off Couchbase Server + Sync Gateway cluster
 
@@ -28,31 +24,20 @@ Recommended values:
 * **Discovery URL**:  as it says, you need to grab a new token from https://discovery.etcd.io/new and paste it in the box.
 * **KeyPair**: the name of the AWS keypair you want to use.  If you haven't already, you'll want to upload your local ssh key into AWS and create a named keypair.
 
+### Wait until instances are up
+
+![screenshot](http://tleyden-misc.s3.amazonaws.com/blog_images/cloud-formation-create-complete.png)
+
 ### ssh into a CoreOS instance
 
-Go to the AWS console under EC2 instances and find the public ip of one of your newly launched CoreOS instances.  
+Go to the AWS console under EC2 instances and find the public ip of one of your newly launched CoreOS instances.
+
+![screenshot](http://tleyden-misc.s3.amazonaws.com/blog_images/ec2-instances-coreos.png)  
 
 Choose any one of them (it doesn't matter which), and ssh into it as the **core** user with the cert provided in the previous step:
 
 ```
 $ ssh -i aws.cer -A core@ec2-54-83-80-161.compute-1.amazonaws.com
-```
-
-## Sanity check
-
-Let's make sure the CoreOS cluster is healthy first:
-
-```
-$ fleetctl list-machines
-```
-
-This should return a list of machines in the cluster, like this:
-
-```
-MACHINE	        IP              METADATA
-03b08680...     10.33.185.16    -
-209a8a2e...     10.164.175.9    -
-25dd84b7...     10.13.180.194   -
 ```
 
 ### Kick off cluster
@@ -84,13 +69,12 @@ Parameters to sync-gw-cluster-init.sh:
 After the above script finishes, run `fleetctl list-units` to list the services in your cluster, and you should see:
 
 ```
-UNIT						MACHINE				ACTIVE	SUB
-couchbase_bootstrap_node.service                281cd575.../10.150.73.56        active	running
-couchbase_bootstrap_node_announce.service       281cd575.../10.150.73.56        active	running
-couchbase_node.1.service                        36ab135c.../10.79.132.157       active	running
-couchbase_node.2.service                        f815a846.../10.51.179.214       active	running
-sync_gw_announce@1.service                      36ab135c.../10.79.132.157       active	running
-sync_gw_node@1.service                          36ab135c.../10.79.132.157       active	running
+UNIT                            MACHINE                         ACTIVE  SUB
+couchbase_node@1.service        2ad1cfaf.../10.95.196.213       active  running
+couchbase_node@2.service        a688ca8e.../10.216.199.207      active  running
+couchbase_node@3.service        fb241f71.../10.153.232.237      active  running
+sync_gw_announce@1.service      2ad1cfaf.../10.95.196.213       active  running
+sync_gw_node@1.service          2ad1cfaf.../10.95.196.213       active  running
 ```
 
 They should all be in the `active` state.  If any are in the `activating` state -- which is normal because it might take some time to download the docker image -- then you should wait until they are all active before continuing.
@@ -130,10 +114,6 @@ $ curl ec2-54-211-206-18.compute-1.amazonaws.com:4984
 
 Congratulations!  You now have a Couchbase Server + Sync Gateway cluster running.
 
-## Known issues
-
-* [Does not handle node restarts (in particular bootstrap node)](https://github.com/couchbaselabs/couchbase-server-docker/issues/2)
-
 ## Appendix A: Kicking off more Sync Gateway nodes.
 
 To launch two more Sync Gateway nodes, run the following command:
@@ -144,7 +124,7 @@ $ fleetctl start sync_gw_node@{2..3}.service && fleetctl start sync_gw_announce@
 
 ## Appendix B: Setting up Elastic Load Balancer.
 
-Warning: Users have been having [problems](https://groups.google.com/d/msg/mobile-couchbase/jJMqnoauMWQ/FHND_WqtYaMJ) getting WebSockets to work behind ELB.  Unless you are planning to disable websocket support for iOS clients, you should use [nginx as described here](http://developer.couchbase.com/mobile/develop/guides/sync-gateway/nginx/index.html) rather than ELB.
+*Warning: Users have been having [problems](https://groups.google.com/d/msg/mobile-couchbase/jJMqnoauMWQ/FHND_WqtYaMJ) getting WebSockets to work behind ELB.  Unless you are planning to disable websocket support for iOS clients, you should use [nginx as described here](http://developer.couchbase.com/mobile/develop/guides/sync-gateway/nginx/index.html) rather than ELB.*
 
 Setup an Elastic Load Balancer with the following settings:
 
@@ -163,21 +143,29 @@ $ curl http://coreos-322270867.us-east-1.elb.amazonaws.com/
 {"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/master(b47aee8)"}
 ```
 
-What next?  You could try running [GrocerySync-Android](https://github.com/couchbaselabs/GrocerySync-Android) or [GrocerySync-iOS](https://github.com/couchbaselabs/Grocery-Sync-iOS) and pointing the Sync Gateway URL to your own Sync Gateway instance.
+## Appendix C: Verify with a sample app
 
-## Appendix C: Shutting down the cluster.
+Try running either of the following sample apps:
 
-Warning: if you try to shutdown the individual ec2 instances, the **CloudFormation template will cause AWS to restart the instances**!
+* [GrocerySync-Android](https://github.com/couchbaselabs/GrocerySync-Android) 
+* [GrocerySync-iOS](https://github.com/couchbaselabs/Grocery-Sync-iOS) 
 
-To shutdown the cluster, you must use the CloudFormation console.  
+and pointing the Sync Gateway URL to your own Sync Gateway instance.  
+
+## Appendix D: Shutting down the cluster.
+
+Warning: if you try to shutdown the individual ec2 instances, **you must use the CloudFormation console**.  If you try to shutdown the instances via the EC2 control panel, AWS will restart them, because that is what the CloudFormation is telling it to do.
+
+Here is the web UI where you need to shutdown the cluster:
 
 ![screenshot](http://tleyden-misc.s3.amazonaws.com/blog_images/shutdown_cluster.png)
 
 ## References
 
-* [youtube screencast](https://www.youtube.com/watch?v=7-7jsLzHsWU) (12 mins) 
+
 * [sync gateway Docker + CoreOS fleet files](https://github.com/tleyden/sync-gateway-coreos)
 * [couchbase-server-coreos](https://github.com/tleyden/couchbase-server-coreos)
 * [Sync Gateway docs regarding reverse proxies](http://developer.couchbase.com/mobile/develop/guides/sync-gateway/nginx/index.html)
 * [Couchbase Mobile Google Group discussion on ELB](https://groups.google.com/forum/?utm_medium=email&utm_source=footer#!msg/mobile-couchbase/pXKQIAiCaW8/s9W_gSfRL50J)
 * [sync gateway](https://github.com/couchbase/sync_gateway)
+* [youtube screencast](https://www.youtube.com/watch?v=7-7jsLzHsWU) (12 mins + slightly outdated)
