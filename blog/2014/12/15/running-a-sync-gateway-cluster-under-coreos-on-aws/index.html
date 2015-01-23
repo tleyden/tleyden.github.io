@@ -102,11 +102,7 @@
 
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/sync-gw-coreos-onion.png" alt="architecture diagram" /></p>
 
-<p>Disclaimer: this approach to running Couchbase Server and Sync Gateway is entirely <strong>experimental</strong> and is not recommended for running a production system yet.  There are <a href="https://github.com/couchbaselabs/couchbase-server-docker/issues/2">known issues</a>, and I&rsquo;m working with the Couchbase support team to get these resolved.</p>
-
-<h3>Screencast available</h3>
-
-<p>There is a <a href="https://www.youtube.com/watch?v=7-7jsLzHsWU">screencast video</a> (12 mins) which walks through this entire setup process, or you can follow the instructions below.</p>
+<p><em>Disclaimer: this approach to running Couchbase Server and Sync Gateway is entirely <strong>experimental</strong> and you should do your own testing before running a production system.  Having said that, it has recently had a <a href="https://github.com/couchbaselabs/couchbase-server-docker/issues/2">major bug fix</a>, and this version is a lot more stable than the initial version.</em></p>
 
 <h2>Kick off Couchbase Server + Sync Gateway cluster</h2>
 
@@ -193,14 +189,12 @@
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>UNIT                     MACHINE             ACTIVE  SUB
-</span><span class='line'>couchbase_bootstrap_node.service                281cd575.../10.150.73.56        active    running
-</span><span class='line'>couchbase_bootstrap_node_announce.service       281cd575.../10.150.73.56        active    running
-</span><span class='line'>couchbase_node.1.service                        36ab135c.../10.79.132.157       active    running
-</span><span class='line'>couchbase_node.2.service                        f815a846.../10.51.179.214       active    running
-</span><span class='line'>sync_gw_announce@1.service                      36ab135c.../10.79.132.157       active    running
-</span><span class='line'>sync_gw_node@1.service                          36ab135c.../10.79.132.157       active    running</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>UNIT                            MACHINE                         ACTIVE  SUB
+</span><span class='line'>couchbase_node@1.service        2ad1cfaf.../10.95.196.213       active  running
+</span><span class='line'>couchbase_node@2.service        a688ca8e.../10.216.199.207      active  running
+</span><span class='line'>couchbase_node@3.service        fb241f71.../10.153.232.237      active  running
+</span><span class='line'>sync_gw_announce@1.service      2ad1cfaf.../10.95.196.213       active  running
+</span><span class='line'>sync_gw_node@1.service          2ad1cfaf.../10.95.196.213       active  running</span></code></pre></td></tr></table></div></figure>
 
 
 <p>They should all be in the <code>active</code> state.  If any are in the <code>activating</code> state &mdash; which is normal because it might take some time to download the docker image &mdash; then you should wait until they are all active before continuing.</p>
@@ -243,13 +237,6 @@
 
 <p>Congratulations!  You now have a Couchbase Server + Sync Gateway cluster running.</p>
 
-<h2>Known issues</h2>
-
-<ul>
-<li><a href="https://github.com/couchbaselabs/couchbase-server-docker/issues/2">Does not handle node restarts (in particular bootstrap node)</a></li>
-</ul>
-
-
 <h2>Appendix A: Kicking off more Sync Gateway nodes.</h2>
 
 <p>To launch two more Sync Gateway nodes, run the following command:</p>
@@ -260,7 +247,7 @@
 
 <h2>Appendix B: Setting up Elastic Load Balancer.</h2>
 
-<p>Warning: Users have been having <a href="https://groups.google.com/d/msg/mobile-couchbase/jJMqnoauMWQ/FHND_WqtYaMJ">problems</a> getting WebSockets to work behind ELB.  Unless you are planning to disable websocket support for iOS clients, you should use <a href="http://developer.couchbase.com/mobile/develop/guides/sync-gateway/nginx/index.html">nginx as described here</a> rather than ELB.</p>
+<p><em>Warning: Users have been having <a href="https://groups.google.com/d/msg/mobile-couchbase/jJMqnoauMWQ/FHND_WqtYaMJ">problems</a> getting WebSockets to work behind ELB.  Unless you are planning to disable websocket support for iOS clients, you should use <a href="http://developer.couchbase.com/mobile/develop/guides/sync-gateway/nginx/index.html">nginx as described here</a> rather than ELB.</em></p>
 
 <p>Setup an Elastic Load Balancer with the following settings:</p>
 
@@ -280,25 +267,35 @@
 </span><span class='line'>{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/master(b47aee8)"}</span></code></pre></td></tr></table></div></figure>
 
 
-<p>What next?  You could try running <a href="https://github.com/couchbaselabs/GrocerySync-Android">GrocerySync-Android</a> or <a href="https://github.com/couchbaselabs/Grocery-Sync-iOS">GrocerySync-iOS</a> and pointing the Sync Gateway URL to your own Sync Gateway instance.</p>
+<h2>Appendix C: Verify with a sample app</h2>
 
-<h2>Appendix C: Shutting down the cluster.</h2>
+<p>You could try running either of the following sample apps:</p>
 
-<p>Warning: if you try to shutdown the individual ec2 instances, the <strong>CloudFormation template will cause AWS to restart the instances</strong>!</p>
+<ul>
+<li><a href="https://github.com/couchbaselabs/GrocerySync-Android">GrocerySync-Android</a></li>
+<li><a href="https://github.com/couchbaselabs/Grocery-Sync-iOS">GrocerySync-iOS</a></li>
+</ul>
 
-<p>To shutdown the cluster, you must use the CloudFormation console.</p>
+
+<p>and pointing the Sync Gateway URL to your own Sync Gateway instance.</p>
+
+<h2>Appendix D: Shutting down the cluster.</h2>
+
+<p>Warning: if you try to shutdown the individual ec2 instances, <strong>you must use the CloudFormation console</strong>.  If you try to shutdown the instances via the EC2 control panel, AWS will restart them, because that is what the CloudFormation is telling it to do.</p>
+
+<p>Here is the web UI where you need to shutdown the cluster:</p>
 
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/shutdown_cluster.png" alt="screenshot" /></p>
 
 <h2>References</h2>
 
 <ul>
-<li><a href="https://www.youtube.com/watch?v=7-7jsLzHsWU">youtube screencast</a> (12 mins)</li>
 <li><a href="https://github.com/tleyden/sync-gateway-coreos">sync gateway Docker + CoreOS fleet files</a></li>
 <li><a href="https://github.com/tleyden/couchbase-server-coreos">couchbase-server-coreos</a></li>
 <li><a href="http://developer.couchbase.com/mobile/develop/guides/sync-gateway/nginx/index.html">Sync Gateway docs regarding reverse proxies</a></li>
 <li><a href="https://groups.google.com/forum/?utm_medium=email&amp;utm_source=footer#!msg/mobile-couchbase/pXKQIAiCaW8/s9W_gSfRL50J">Couchbase Mobile Google Group discussion on ELB</a></li>
 <li><a href="https://github.com/couchbase/sync_gateway">sync gateway</a></li>
+<li><a href="https://www.youtube.com/watch?v=7-7jsLzHsWU">youtube screencast</a> (12 mins + slightly outdated)</li>
 </ul>
 
 </div>

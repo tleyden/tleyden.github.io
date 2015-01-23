@@ -4,7 +4,7 @@
   <title><![CDATA[Category: aws | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/aws/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-01-12T10:22:32-08:00</updated>
+  <updated>2015-01-22T20:11:58-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -22,11 +22,7 @@
 
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/sync-gw-coreos-onion.png" alt="architecture diagram" /></p>
 
-<p>Disclaimer: this approach to running Couchbase Server and Sync Gateway is entirely <strong>experimental</strong> and is not recommended for running a production system yet.  There are <a href="https://github.com/couchbaselabs/couchbase-server-docker/issues/2">known issues</a>, and I&rsquo;m working with the Couchbase support team to get these resolved.</p>
-
-<h3>Screencast available</h3>
-
-<p>There is a <a href="https://www.youtube.com/watch?v=7-7jsLzHsWU">screencast video</a> (12 mins) which walks through this entire setup process, or you can follow the instructions below.</p>
+<p><em>Disclaimer: this approach to running Couchbase Server and Sync Gateway is entirely <strong>experimental</strong> and you should do your own testing before running a production system.  Having said that, it has recently had a <a href="https://github.com/couchbaselabs/couchbase-server-docker/issues/2">major bug fix</a>, and this version is a lot more stable than the initial version.</em></p>
 
 <h2>Kick off Couchbase Server + Sync Gateway cluster</h2>
 
@@ -102,13 +98,12 @@ $ ./sync-gw-cluster-init.sh -n 1 -c master -b "todos" -z 512 -g $SG_CONFIG_URL -
 <p>After the above script finishes, run <code>fleetctl list-units</code> to list the services in your cluster, and you should see:</p>
 
 <p><code>
-UNIT                        MACHINE             ACTIVE  SUB
-couchbase_bootstrap_node.service                281cd575.../10.150.73.56        active  running
-couchbase_bootstrap_node_announce.service       281cd575.../10.150.73.56        active  running
-couchbase_node.1.service                        36ab135c.../10.79.132.157       active  running
-couchbase_node.2.service                        f815a846.../10.51.179.214       active  running
-sync_gw_announce@1.service                      36ab135c.../10.79.132.157       active  running
-sync_gw_node@1.service                          36ab135c.../10.79.132.157       active  running
+UNIT                            MACHINE                         ACTIVE  SUB
+couchbase_node@1.service        2ad1cfaf.../10.95.196.213       active  running
+couchbase_node@2.service        a688ca8e.../10.216.199.207      active  running
+couchbase_node@3.service        fb241f71.../10.153.232.237      active  running
+sync_gw_announce@1.service      2ad1cfaf.../10.95.196.213       active  running
+sync_gw_node@1.service          2ad1cfaf.../10.95.196.213       active  running
 </code></p>
 
 <p>They should all be in the <code>active</code> state.  If any are in the <code>activating</code> state &mdash; which is normal because it might take some time to download the docker image &mdash; then you should wait until they are all active before continuing.</p>
@@ -148,13 +143,6 @@ $ curl ec2-54-211-206-18.compute-1.amazonaws.com:4984
 
 <p>Congratulations!  You now have a Couchbase Server + Sync Gateway cluster running.</p>
 
-<h2>Known issues</h2>
-
-<ul>
-<li><a href="https://github.com/couchbaselabs/couchbase-server-docker/issues/2">Does not handle node restarts (in particular bootstrap node)</a></li>
-</ul>
-
-
 <h2>Appendix A: Kicking off more Sync Gateway nodes.</h2>
 
 <p>To launch two more Sync Gateway nodes, run the following command:</p>
@@ -165,7 +153,7 @@ $ fleetctl start sync_gw_node@{2..3}.service &amp;&amp; fleetctl start sync_gw_a
 
 <h2>Appendix B: Setting up Elastic Load Balancer.</h2>
 
-<p>Warning: Users have been having <a href="https://groups.google.com/d/msg/mobile-couchbase/jJMqnoauMWQ/FHND_WqtYaMJ">problems</a> getting WebSockets to work behind ELB.  Unless you are planning to disable websocket support for iOS clients, you should use <a href="http://developer.couchbase.com/mobile/develop/guides/sync-gateway/nginx/index.html">nginx as described here</a> rather than ELB.</p>
+<p><em>Warning: Users have been having <a href="https://groups.google.com/d/msg/mobile-couchbase/jJMqnoauMWQ/FHND_WqtYaMJ">problems</a> getting WebSockets to work behind ELB.  Unless you are planning to disable websocket support for iOS clients, you should use <a href="http://developer.couchbase.com/mobile/develop/guides/sync-gateway/nginx/index.html">nginx as described here</a> rather than ELB.</em></p>
 
 <p>Setup an Elastic Load Balancer with the following settings:</p>
 
@@ -184,25 +172,35 @@ $ curl http://coreos-322270867.us-east-1.elb.amazonaws.com/
 {"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/master(b47aee8)"}
 </code></p>
 
-<p>What next?  You could try running <a href="https://github.com/couchbaselabs/GrocerySync-Android">GrocerySync-Android</a> or <a href="https://github.com/couchbaselabs/Grocery-Sync-iOS">GrocerySync-iOS</a> and pointing the Sync Gateway URL to your own Sync Gateway instance.</p>
+<h2>Appendix C: Verify with a sample app</h2>
 
-<h2>Appendix C: Shutting down the cluster.</h2>
+<p>You could try running either of the following sample apps:</p>
 
-<p>Warning: if you try to shutdown the individual ec2 instances, the <strong>CloudFormation template will cause AWS to restart the instances</strong>!</p>
+<ul>
+<li><a href="https://github.com/couchbaselabs/GrocerySync-Android">GrocerySync-Android</a></li>
+<li><a href="https://github.com/couchbaselabs/Grocery-Sync-iOS">GrocerySync-iOS</a></li>
+</ul>
 
-<p>To shutdown the cluster, you must use the CloudFormation console.</p>
+
+<p>and pointing the Sync Gateway URL to your own Sync Gateway instance.</p>
+
+<h2>Appendix D: Shutting down the cluster.</h2>
+
+<p>Warning: if you try to shutdown the individual ec2 instances, <strong>you must use the CloudFormation console</strong>.  If you try to shutdown the instances via the EC2 control panel, AWS will restart them, because that is what the CloudFormation is telling it to do.</p>
+
+<p>Here is the web UI where you need to shutdown the cluster:</p>
 
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/shutdown_cluster.png" alt="screenshot" /></p>
 
 <h2>References</h2>
 
 <ul>
-<li><a href="https://www.youtube.com/watch?v=7-7jsLzHsWU">youtube screencast</a> (12 mins)</li>
 <li><a href="https://github.com/tleyden/sync-gateway-coreos">sync gateway Docker + CoreOS fleet files</a></li>
 <li><a href="https://github.com/tleyden/couchbase-server-coreos">couchbase-server-coreos</a></li>
 <li><a href="http://developer.couchbase.com/mobile/develop/guides/sync-gateway/nginx/index.html">Sync Gateway docs regarding reverse proxies</a></li>
 <li><a href="https://groups.google.com/forum/?utm_medium=email&amp;utm_source=footer#!msg/mobile-couchbase/pXKQIAiCaW8/s9W_gSfRL50J">Couchbase Mobile Google Group discussion on ELB</a></li>
 <li><a href="https://github.com/couchbase/sync_gateway">sync gateway</a></li>
+<li><a href="https://www.youtube.com/watch?v=7-7jsLzHsWU">youtube screencast</a> (12 mins + slightly outdated)</li>
 </ul>
 
 ]]></content>
@@ -221,7 +219,7 @@ $ curl http://coreos-322270867.us-east-1.elb.amazonaws.com/
 
 <p>Click the &ldquo;Launch Stack&rdquo; button to launch your CoreOS instances via AWS Cloud Formation:</p>
 
-<p><a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#cstack=sn%7ECouchbase-CoreOS%7Cturl%7Ehttp://tleyden-misc.s3.amazonaws.com/couchbase-coreos/coreos-stable-pv.template"><img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"></a></p>
+<p><a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#cstack=sn%7ECouchbase-CoreOS%7Cturl%7Ehttp://tleyden-misc.s3.amazonaws.com/couchbase-coreos/couchbase_server.template"><img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"></a></p>
 
 <p><em>NOTE: this is hardcoded to use the us-east-1 region, so if you need a different region, you should edit the URL accordingly</em></p>
 
@@ -268,16 +266,6 @@ $ wget https://raw.githubusercontent.com/couchbaselabs/couchbase-server-docker/m
 $ chmod +x cluster-init.sh
 </code></p>
 
-<p>This script is not much.  I wrapped things up in a script because the instructions were getting long, but all it does is:</p>
-
-<ul>
-<li>Downloads a few fleet init files from github.</li>
-<li>Generates a few more fleet init files based on a template and the number of nodes you want.</li>
-<li>Stashes the username/password argument you give it into <code>etcd</code>.</li>
-<li>Tells <code>fleetctl</code> to kick everything off.  Whee!</li>
-</ul>
-
-
 <h2>Launch cluster</h2>
 
 <p>Run the script you downloaded in the previous step:</p>
@@ -296,6 +284,15 @@ $ ./cluster-init.sh -v 3.0.1 -n 3 -u "user:passw0rd"
 
 
 <p>Replace <code>user:passw0rd</code> with a sensible username and password.  It <strong>must</strong> be colon separated, with no spaces.  The password itself must be at least 6 characters.</p>
+
+<p>What this script is doing:</p>
+
+<ul>
+<li>Downloads fleet init files from github.</li>
+<li>Stashes the username/password argument you give it into <code>etcd</code>.</li>
+<li>Tells <code>fleetctl</code> to kick everything off.</li>
+</ul>
+
 
 <p>Once this command completes, your cluster will be in the process of launching.</p>
 
@@ -317,9 +314,7 @@ couchbase_node.1.service                        8cf54d4d.../10.187.61.136   acti
 couchbase_node.2.service                        b8cf0ed6.../10.179.161.76   active  running
 </code></p>
 
-<h2>Rebalance Couchbase Cluster</h2>
-
-<p><strong>Login to Couchbase Server Web Admin</strong></p>
+<h1>Veryify</h1>
 
 <ul>
 <li>Find the public ip of any of your CoreOS instances via the AWS console</li>
@@ -328,21 +323,11 @@ couchbase_node.2.service                        b8cf0ed6.../10.179.161.76   acti
 </ul>
 
 
-<p>After logging in, your Server Nodes tab should look like this:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_admin_ui_prerebalance.png" alt="screenshot" /></p>
-
-<p><strong>Kick off initial rebalance</strong></p>
-
-<ul>
-<li>Click server nodes</li>
-<li>Click &ldquo;Rebalance&rdquo;</li>
-</ul>
-
-
-<p>After the rebalance is complete, you should see:</p>
+<p>You should see:</p>
 
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_admin_ui_post_rebalance.png" alt="screenshot" /></p>
+
+<p>(Note: it may still be in the process of rebalancing, which is normal.  Go have a coffee and check back later)</p>
 
 <p>Congratulations!  You now have a 3 node Couchbase Server cluster running under CoreOS / Docker.</p>
 
