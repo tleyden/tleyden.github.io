@@ -86,24 +86,14 @@ d22035060882        tleyden5iwx/sync-gateway-coreos:latest   "sync-gw-start -c m
 
 ## View logs
 
-**Find container id**
-
 ```
-$ sudo docker ps
-
-CONTAINER ID        IMAGE                                           COMMAND                CREATED             STATUS              PORTS               NAMES
-2a55905c6f32        tleyden5iwx/sync-gateway-coreos:latest          "sync-gw-start -c ma   6 hours ago         Up 6 hours                              sync_gw
-```
-
-**Tail logs**
-
-```
-$ sudo docker logs --follow 2a55905c6f32
+$ CONTAINER_ID=$(sudo docker ps | grep -iv container | awk '{ print $1 }')
+$ sudo docker logs --follow ${CONTAINER_ID}
 ```
 
 ## Verify Sync Gateway
 
-Assuming your public ip is `54.81.228.221`, paste `54.81.228.221:4984` into your web browser and you should see:
+Assuming your public ip is `54.81.228.221`, paste `http://54.81.228.221:4984` into your web browser and you should see:
 
 ```
 {
@@ -116,7 +106,7 @@ Assuming your public ip is `54.81.228.221`, paste `54.81.228.221:4984` into your
 }
 ```
 
-To make sure the database was configured correctly, change the url to `54.81.228.221:4984/db`, and you should see:
+To make sure the database was configured correctly, change the url to `http://54.81.228.221:4984/db`, and you should see:
 
 ```
 {
@@ -130,7 +120,7 @@ To make sure the database was configured correctly, change the url to `54.81.228
 **Create a new document**
 
 ```
-$ curl -H 'Content-Type: application/json' -X POST -d '{"hello":"sync gateway"}' localhost:4984/db/
+$ curl -H 'Content-Type: application/json' -X POST -d '{"hello":"sync gateway"}' http://54.81.228.221:4984/db/
 ```
 
 This will return the following JSON:
@@ -148,7 +138,7 @@ This will return the following JSON:
 Using the doc id returned above:
 
 ```
-$ curl localhost:4984/db/f1c8c5f8de22a09544b97fcc20fce316
+$ curl http://54.81.228.221:4984/db/f1c8c5f8de22a09544b97fcc20fce316
 ```
 
 You should see:
@@ -169,8 +159,11 @@ If you need to change your sync gateway config, follow the instructions below.
 
 **Stop and remove existing container**
 
+Find the container id via `sudo docker ps` as shown above, and run this command with your own container id:
+
 ```
-$ sudo docker stop 2a55905c6f32 && sudo docker rm 2a55905c6f32
+$ CONTAINER_ID=$(sudo docker ps | grep -iv container | awk '{ print $1 }')
+$ sudo docker stop ${CONTAINER_ID} && sudo docker rm ${CONTAINER_ID}
 ```
 
 **Update sync gateway config**
