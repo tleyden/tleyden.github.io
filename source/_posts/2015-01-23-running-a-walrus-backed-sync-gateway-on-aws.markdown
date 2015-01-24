@@ -62,6 +62,28 @@ $ SYNC_GW_CONFIG=https://gist.githubusercontent.com/tleyden/368f01218baf4e760267
 $ sudo docker run -d --name sync_gw --net=host -v /opt/sync_gateway/data:/opt/sync_gateway/data tleyden5iwx/sync-gateway-coreos sync-gw-start -c master -g $SYNC_GW_CONFIG
 ```
 
+You should see the following output:
+
+```
+Unable to find image 'tleyden5iwx/sync-gateway-coreos' locally
+Pulling repository tleyden5iwx/sync-gateway-coreos
+daa0c81d9745: Download complete
+......
+Status: Downloaded newer image for tleyden5iwx/sync-gateway-coreos:latest
+d22035060882a2071c3e0a556ae5db5041f84e3004d67fb11355b6d8a7bf40b8
+$ 
+```
+
+Congratulations!  You now have a Sync Gateway running.  
+
+It might feel underwhelming, because nothing appears to be happening, but sync gateway is actually running in the background.  To verify that, run:
+
+```
+$ sudo docker ps
+CONTAINER ID        IMAGE                                    COMMAND                CREATED              STATUS              PORTS               NAMES
+d22035060882        tleyden5iwx/sync-gateway-coreos:latest   "sync-gw-start -c ma   About a minute ago   Up About a minute                       sync_gw
+```
+
 ## View logs
 
 **Find container id**
@@ -103,7 +125,47 @@ To make sure the database was configured correctly, change the url to `54.81.228
 }
 ```
 
+## Try out document API via curl
+
+**Create a new document**
+
+```
+$ curl -H 'Content-Type: application/json' -X POST -d '{"hello":"sync gateway"}' localhost:4984/db/
+```
+
+This will return the following JSON:
+
+```
+{
+    "id":"f1c8c5f8de22a09544b97fcc20fce316",
+    "ok":true,
+    "rev":"1-016b8855d6faf2d703a8b35a44cd4a40"
+}
+```
+
+**View the document**
+
+Using the doc id returned above:
+
+```
+$ curl localhost:4984/db/f1c8c5f8de22a09544b97fcc20fce316
+```
+
+You should see:
+
+```
+{
+    "_id":"f1c8c5f8de22a09544b97fcc20fce316",
+    "_rev":"1-016b8855d6faf2d703a8b35a44cd4a40",
+    "hello":"sync gateway"
+}
+```
+
+Check out the [Sync Gateway REST API docs](http://developer.couchbase.com/mobile/develop/references/sync-gateway/rest-api/index.html) for full documentation on the available REST calls you can make.
+
 ## Restart Sync Gateway with new config
+
+If you need to change your sync gateway config, follow the instructions below.
 
 **Stop and remove existing container**
 
@@ -111,7 +173,7 @@ To make sure the database was configured correctly, change the url to `54.81.228
 $ sudo docker stop 2a55905c6f32 && sudo docker rm 2a55905c6f32
 ```
 
-**Start with new config**
+**Update sync gateway config**
 
 You can take this [sample config](https://gist.githubusercontent.com/tleyden/368f01218baf4e760267/raw/a65be036bc3855d5ab4e73b849f4caa1dc7d390f/config.json) and customize it to your needs, and then upload it somewhere on the web.  
 
@@ -124,5 +186,16 @@ $ SYNC_GW_CONFIG=https://yourserver.com/yourconfig.json
 $ sudo docker run --name sync_gw --net=host -v /opt/sync_gateway/data:/opt/sync_gateway/data tleyden5iwx/sync-gateway-coreos sync-gw-start -c master -g $SYNC_GW_CONFIG
 ```
 
-Congratulations!  You now have a Sync Gateway running.  
+After it starts up, your sync gateway will be running with the new config.
 
+## Next step: try out the GrocerySync app
+
+Choose the GrocerySync app for your platform:
+
+* [GrocerySync-Android](https://github.com/couchbaselabs/GrocerySync-Android)
+* [GrocerySync-iOS](https://github.com/couchbaselabs/Grocery-Sync-iOS)
+* [GrocerySync-DotNet](https://github.com/couchbase/couchbase-lite-net/tree/master/samples)
+
+and point the sync url at your server instead of the default.  Now should be able to sync data through your own Sync Gateway.
+
+If you are on Phonegap, check our [sample apps](http://developer.couchbase.com/mobile/develop/samples/samples/index.html) listing which has a link to the TodoLite-Phonegap app.
