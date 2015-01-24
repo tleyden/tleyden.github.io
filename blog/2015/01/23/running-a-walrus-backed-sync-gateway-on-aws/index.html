@@ -5,14 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>An example of using NSQ from Go - Seven Story Rabbit Hole</title>
+  <title>Running a Walrus-backed Sync Gateway on AWS - Seven Story Rabbit Hole</title>
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="NSQ is a message queue, similar to RabbitMQ. I decided I&rsquo;d give it a whirl. Install Nsq 1
-2
-3
-$ wget https://s3.amazonaws.com/bitly-downloads/ &hellip;">
+  <meta name="description" content="Follow the steps below to create a Sync Gateway instance running under AWS with the following architecture: It will be using the Walrus in-memory &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -21,7 +18,7 @@ $ wget https://s3.amazonaws.com/bitly-downloads/ &hellip;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://tleyden.github.io/blog/2014/11/12/an-example-of-using-nsq-from-go">
+  <link rel="canonical" href="http://tleyden.github.io/blog/2015/01/23/running-a-walrus-backed-sync-gateway-on-aws">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
@@ -78,7 +75,7 @@ $ wget https://s3.amazonaws.com/bitly-downloads/ &hellip;">
   
   <header>
     
-      <h1 class="entry-title">An Example of Using NSQ From Go</h1>
+      <h1 class="entry-title">Running a Walrus-backed Sync Gateway on AWS</h1>
     
     
       <p class="meta">
@@ -94,44 +91,97 @@ $ wget https://s3.amazonaws.com/bitly-downloads/ &hellip;">
   
 
 
-<time datetime="2014-11-12T07:26:00-08:00" pubdate data-updated="true">Nov 12<span>th</span>, 2014</time>
+<time datetime="2015-01-23T09:30:00-08:00" pubdate data-updated="true">Jan 23<span>rd</span>, 2015</time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><p><a href="https://github.com/bitly/nsq">NSQ</a> is a message queue, similar to RabbitMQ.  I decided I&rsquo;d give it a whirl.</p>
+<div class="entry-content"><p>Follow the steps below to create a Sync Gateway instance running under AWS with the following architecture:</p>
 
-<h2>Install Nsq</h2>
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/sync_gw_walrus_aws.png" alt="architecture diagram" /></p>
+
+<p>It will be using the <a href="https://github.com/couchbaselabs/walrus">Walrus</a> in-memory database, and so it is only useful for light testing.  Walrus does have the abiity to snapshot its memory contents to a file, so your data can persist across restarts.</p>
+
+<p><strong>Warning: don&rsquo;t run this in production!</strong>  If you want something that is closer to production ready, check out <a href="http://tleyden.github.io/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws/">Running a Sync Gateway Cluster Under CoreOS on AWS</a> instead.</p>
+
+<h2>Launch EC2 instance</h2>
+
+<p>Go to the <a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#cstack=sn%7ECouchbase-CoreOS%7Cturl%7Ehttp://tleyden-misc.s3.amazonaws.com/couchbase-coreos/sync_gateway.template">Cloudformation Wizard</a></p>
+
+<p>Recommended values:</p>
+
+<ul>
+<li><strong>ClusterSize</strong>: 1 node</li>
+<li><strong>Discovery URL</strong>:  as it says, you need to grab a new token from <a href="https://discovery.etcd.io/new">https://discovery.etcd.io/new</a> and paste it in the box.</li>
+<li><strong>KeyPair</strong>: the name of the AWS keypair you want to use.</li>
+</ul>
+
+
+<p>For the keypair that you use, your local ssh client will need to have the private key side of that keypair.</p>
+
+<h3>Wait until instances are up</h3>
+
+<p>Hit the &ldquo;reload&rdquo; button until it goes to the CREATE_COMPLETE state.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/cloud-formation-create-complete.png" alt="screenshot" /></p>
+
+<h2>Find ip of instance</h2>
+
+<p>Go to the AWS console under the &ldquo;EC2 instances&rdquo; section and find the public ip of one of your newly launched CoreOS instances.</p>
+
+<p>Choose any one of them (it doesn&rsquo;t matter which), and look for the <strong>Public IP</strong>.  Copy that value onto your clipboard.</p>
+
+<h3>SSH into instance</h3>
+
+<p>ssh into it as the <strong>core</strong> user with the cert provided in the previous step:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ssh -A core@ec2-54-83-80-161.compute-1.amazonaws.com</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Create a volume directory</h2>
+
+<p>After you ssh into your instance, create a volume directory so that the data persists across different container instances.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo mkdir -p /opt/sync_gateway/data
+</span><span class='line'>$ sudo chown -R core:core /opt/sync_gateway/data</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Launch Sync Gateway</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ SYNC_GW_CONFIG=https://gist.githubusercontent.com/tleyden/368f01218baf4e760267/raw/a65be036bc3855d5ab4e73b849f4caa1dc7d390f/config.json
+</span><span class='line'>$ sudo docker run --name sync_gw --net=host -v /opt/sync_gateway/data:/opt/sync_gateway/data tleyden5iwx/sync-gateway-coreos sync-gw-start -c master -g $SYNC_GW_CONFIG</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>View logs</h2>
+
+<p><strong>Find container id</strong></p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://s3.amazonaws.com/bitly-downloads/nsq/nsq-0.2.31.darwin-amd64.go1.3.1.tar.gz
-</span><span class='line'>$ tar xvfz nsq-0.2.31.darwin-amd64.go1.3.1.tar.gz
-</span><span class='line'>$ sudo mv nsq-0.2.31.darwin-amd64.go1.3.1/bin/* /usr/local/bin</span></code></pre></td></tr></table></div></figure>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker ps
+</span><span class='line'>
+</span><span class='line'>CONTAINER ID        IMAGE                                           COMMAND                CREATED             STATUS              PORTS               NAMES
+</span><span class='line'>2a55905c6f32        tleyden5iwx/sync-gateway-coreos:latest          "sync-gw-start -c ma   6 hours ago         Up 6 hours                              sync_gw</span></code></pre></td></tr></table></div></figure>
 
 
-<h2>Launch Nsq</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ nsqlookupd & 
-</span><span class='line'>$ nsqd --lookupd-tcp-address=127.0.0.1:4160 &
-</span><span class='line'>$ nsqadmin --lookupd-http-address=127.0.0.1:4161 &</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Get Go client library</h2>
+<p><strong>Tail logs</strong></p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ go get -u -v github.com/bitly/go-nsq</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker logs --follow 2a55905c6f32</span></code></pre></td></tr></table></div></figure>
 
 
-<h2>Create a producer</h2>
+<h2>Verify Sync Gateway</h2>
 
-<p>Add the following code to main.go:</p>
+<p>Assuming your public ip is <code>54.81.228.221</code>, paste <code>54.81.228.221:4984</code> into your web browser and you should see:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -141,137 +191,51 @@ $ wget https://s3.amazonaws.com/bitly-downloads/ &hellip;">
 <span class='line-number'>6</span>
 <span class='line-number'>7</span>
 <span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>package main
-</span><span class='line'>
-</span><span class='line'>import (
-</span><span class='line'>  "log"
-</span><span class='line'>  "github.com/bitly/go-nsq"
-</span><span class='line'>)
-</span><span class='line'>
-</span><span class='line'>func main() {
-</span><span class='line'>  config := nsq.NewConfig()
-</span><span class='line'>  w, _ := nsq.NewProducer("127.0.0.1:4150", config)
-</span><span class='line'>
-</span><span class='line'>  err := w.Publish("write_test", []byte("test"))
-</span><span class='line'>  if err != nil {
-</span><span class='line'>      log.Panic("Could not connect")
-</span><span class='line'>  }
-</span><span class='line'>
-</span><span class='line'>  w.Stop()
-</span><span class='line'>}
-</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>    "couchdb":"Welcome",
+</span><span class='line'>    "vendor":{
+</span><span class='line'>        "name":"Couchbase Sync Gateway",
+</span><span class='line'>        "version":1
+</span><span class='line'>    },
+</span><span class='line'>    "version":"Couchbase Sync Gateway/master(6356065)"
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
 
 
-<p>and then run it with:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ go run main.go</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If you go to your NSQAdmin at <a href="http://localhost:4171/">http://localhost:4171</a>, you should see a single message in the <code>write_test</code> topic.</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/nsq_admin.png" alt="NSQAdmin" /></p>
-
-<h2>Create a consumer</h2>
+<p>To make sure the database was configured correctly, change the url to <code>54.81.228.221:4984/db</code>, and you should see:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>package main
-</span><span class='line'>
-</span><span class='line'>import (
-</span><span class='line'>  "log"
-</span><span class='line'>  "sync"
-</span><span class='line'>
-</span><span class='line'>  "github.com/bitly/go-nsq"
-</span><span class='line'>)
-</span><span class='line'>
-</span><span class='line'>func main() {
-</span><span class='line'>
-</span><span class='line'>  wg := &sync.WaitGroup{}
-</span><span class='line'>  wg.Add(1)
-</span><span class='line'>
-</span><span class='line'>  config := nsq.NewConfig()
-</span><span class='line'>  q, _ := nsq.NewConsumer("write_test", "ch", config)
-</span><span class='line'>  q.AddHandler(nsq.HandlerFunc(func(message *nsq.Message) error {
-</span><span class='line'>      log.Printf("Got a message: %v", message)
-</span><span class='line'>      wg.Done()
-</span><span class='line'>      return nil
-</span><span class='line'>  }))
-</span><span class='line'>  err := q.ConnectToNSQD("127.0.0.1:4150")
-</span><span class='line'>  if err != nil {
-</span><span class='line'>      log.Panic("Could not connect")
-</span><span class='line'>  }
-</span><span class='line'>  wg.Wait()
-</span><span class='line'>
-</span><span class='line'>}
-</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>    "db_name":"db",
+</span><span class='line'>    .. etc ..
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
 
 
-<p>and then run it with:</p>
+<h2>Restart Sync Gateway with new config</h2>
+
+<p><strong>Stop and remove existing container</strong></p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ go run main.go</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker stop 2a55905c6f32 && sudo docker rm 2a55905c6f32</span></code></pre></td></tr></table></div></figure>
 
 
-<p>You should see output:</p>
+<p><strong>Start with new config</strong></p>
+
+<p>You can take this <a href="https://gist.githubusercontent.com/tleyden/368f01218baf4e760267/raw/a65be036bc3855d5ab4e73b849f4caa1dc7d390f/config.json">sample config</a> and customize it to your needs, and then upload it somewhere on the web.</p>
+
+<p>Make sure you keep the <code>server</code> field as <code>"walrus:data"</code>, since that tells Sync Gateway to use walrus and to store the data in the <code>/opt/sync_gateway/data</code> directory.</p>
+
+<p><strong>Start container with new config</strong></p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>2014/11/12 08:37:29 INF    1 [write_test/ch] (127.0.0.1:4150) connecting to nsqd
-</span><span class='line'>2014/11/12 08:37:29 Got a message: &{[48 55 54 52 48 57 51 56 50 100 50 56 101 48 48 55] [116 101 115 116] 1415810020571836511 2 0xc208042118 0 0}</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ SYNC_GW_CONFIG=https://yourserver.com/yourconfig.json
+</span><span class='line'>$ sudo docker run --name sync_gw --net=host -v /opt/sync_gateway/data:/opt/sync_gateway/data tleyden5iwx/sync-gateway-coreos sync-gw-start -c master -g $SYNC_GW_CONFIG</span></code></pre></td></tr></table></div></figure>
 
 
-<p>Congratulations!  You just pushed a message through <strong>NSQ</strong>.</p>
-
-<h2>Enhanced consumer: use NSQLookupd</h2>
-
-<p>The above example hardcoded the ip of <code>nsqd</code> into the consumer code, which is not a best practice.  A better way to go about it is to point the consumer at <code>nsqlookupd</code>, which will transparently connect to the appropriate <code>nsqd</code> that happens to be publishing that topic.</p>
-
-<p>In our example, we only have a single <code>nsqd</code>, so it&rsquo;s an extraneous lookup.  But it&rsquo;s good to get into the right habits early, especially if you are a <em>habitual copy/paster</em>.</p>
-
-<p>The consumer example only needs a one-line change to get this enhancement:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>err := q.ConnectToNSQLookupd("127.0.0.1:4161")</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Which will connect to the HTTP port of <code>nsqlookupd</code>.</p>
+<p>Congratulations!  You now have a Sync Gateway running.</p>
 </div>
 
 
@@ -294,12 +258,12 @@ $ wget https://s3.amazonaws.com/bitly-downloads/ &hellip;">
   
 
 
-<time datetime="2014-11-12T07:26:00-08:00" pubdate data-updated="true">Nov 12<span>th</span>, 2014</time>
+<time datetime="2015-01-23T09:30:00-08:00" pubdate data-updated="true">Jan 23<span>rd</span>, 2015</time>
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/golang/'>golang</a>
+    <a class='category' href='/blog/categories/couchbase/'>couchbase</a>, <a class='category' href='/blog/categories/sync-gateway/'>sync-gateway,</a>
   
 </span>
 
@@ -308,7 +272,7 @@ $ wget https://s3.amazonaws.com/bitly-downloads/ &hellip;">
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2014/11/12/an-example-of-using-nsq-from-go/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2014/11/12/an-example-of-using-nsq-from-go/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2015/01/23/running-a-walrus-backed-sync-gateway-on-aws/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2015/01/23/running-a-walrus-backed-sync-gateway-on-aws/" >Tweet</a>
   
   
   
@@ -317,10 +281,8 @@ $ wget https://s3.amazonaws.com/bitly-downloads/ &hellip;">
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2014/11/04/coreos-with-nvidia-cuda-gpu-drivers/" title="Previous Post: CoreOS with Nvidia CUDA GPU drivers">&laquo; CoreOS with Nvidia CUDA GPU drivers</a>
+        <a class="basic-alignment left" href="/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws/" title="Previous Post: Running a Sync Gateway Cluster Under CoreOS on AWS">&laquo; Running a Sync Gateway Cluster Under CoreOS on AWS</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2014/11/14/running-cbfs/" title="Next Post: Running a CBFS cluster on CoreOS">Running a CBFS cluster on CoreOS &raquo;</a>
       
     </p>
   </footer>
@@ -429,8 +391,8 @@ $ wget https://s3.amazonaws.com/bitly-downloads/ &hellip;">
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://tleyden.github.io/blog/2014/11/12/an-example-of-using-nsq-from-go/';
-        var disqus_url = 'http://tleyden.github.io/blog/2014/11/12/an-example-of-using-nsq-from-go/';
+        var disqus_identifier = 'http://tleyden.github.io/blog/2015/01/23/running-a-walrus-backed-sync-gateway-on-aws/';
+        var disqus_url = 'http://tleyden.github.io/blog/2015/01/23/running-a-walrus-backed-sync-gateway-on-aws/';
         var disqus_script = 'embed.js';
       
     (function () {

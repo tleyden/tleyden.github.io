@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Using a pre-built public AMI Based on the instructions in this blog post, I&rsquo;ve created an AMI and shared it publicly. So the easiest thing to &hellip;">
+  <meta name="description" content="Architecture After going through the steps in this blog post, you&rsquo;ll end up with this: Setup host Before you can start your docker container, &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +72,163 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5/">Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-25T13:25:00-07:00" pubdate data-updated="true">Oct 25<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>Architecture</h2>
+
+<p>After going through the steps in this blog post, you&rsquo;ll end up with this:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/docker_gpu_aws_onion.png" alt="architecture diagram" /></p>
+
+<h2>Setup host</h2>
+
+<p>Before you can start your docker container, you will need to go <strong>deeper down the rabbit hole</strong>.</p>
+
+<p>You&rsquo;ll first need to complete the steps here:</p>
+
+<p><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">Setting up an Ubuntu 14.04 box running on a GPU-enabled AWS instance</a></p>
+
+<p>After you&rsquo;re done, you&rsquo;ll end up with a host OS with the following properties:</p>
+
+<ul>
+<li>A GPU enabled AWS instance running Ubuntu 14.04</li>
+<li>Nvidia kernel module</li>
+<li>Nvidia device drivers</li>
+<li>CUDA 6.5 installed and verified</li>
+</ul>
+
+
+<h2>Install Docker</h2>
+
+<p>Once your host OS is setup, you&rsquo;re ready to install docker.  (version 1.3 at the time of this writing)</p>
+
+<p>Setup the key for the docker repo:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Add the docker repo:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo sh -c "echo deb https://get.docker.com/ubuntu docker main &gt; /etc/apt/sources.list.d/docker.list"
+</span><span class='line'>$ sudo apt-get update</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Install docker:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get install lxc-docker</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Run GPU enabled docker image</h2>
+
+<p><strong>Find all your nvidia devices</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ls -la /dev | grep nvidia</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>crw-rw-rw-  1 root root    195,   0 Oct 25 19:37 nvidia0
+</span><span class='line'>crw-rw-rw-  1 root root    195, 255 Oct 25 19:37 nvidiactl
+</span><span class='line'>crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Launch docker container</strong></p>
+
+<p>The easiest way to get going is to use this pre-built <a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/">docker image</a> that has the cuda drivers pre-installed.  Or if you want to build your own, <a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/dockerfile/">the accompanying dockerfile</a> will be a useful starting point.</p>
+
+<p>You&rsquo;ll have to adapt the <code>DOCKER_NVIDIA_DEVICES</code> variable below to match your particular devices.</p>
+
+<p>To start the docker container, run:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ DOCKER_NVIDIA_DEVICES="--device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm"
+</span><span class='line'>$ sudo docker run -ti $DOCKER_NVIDIA_DEVICES tleyden5iwx/ubuntu-cuda /bin/bash</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After running the above command, you should be at a shell inside your docker container:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>root@1149788c731c:# </span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Verify CUDA access from inside the docker container</h2>
+
+<p><strong>Install CUDA samples</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /opt/nvidia_installers
+</span><span class='line'>$ ./cuda-samples-linux-6.5.14-18745345.run -noprompt -cudaprefix=/usr/local/cuda-6.5/</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Build deviceQuery sample</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /usr/local/cuda/samples/1_Utilities/deviceQuery
+</span><span class='line'>$ make
+</span><span class='line'>$ ./deviceQuery   </span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>You should see the following output</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 6.5, CUDA Runtime Version = 6.5, NumDevs = 1, Device0 = GRID K520
+</span><span class='line'>Result = PASS</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/">https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/</a></li>
+<li><a href="http://stackoverflow.com/questions/25185405/using-gpu-from-a-docker-container">http://stackoverflow.com/questions/25185405/using-gpu-from-a-docker-container</a></li>
+<li><a href="http://docs.docker.com/installation/ubuntulinux/#ubuntu-trusty-1404-lts-64-bit">http://docs.docker.com/installation/ubuntulinux/#ubuntu-trusty-1404-lts-64-bit</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1570,67 +1727,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/02/08/playing-with-go-and-opengl/">Playing With Go and OpenGL</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-02-08T16:01:00-08:00" pubdate data-updated="true">Feb 8<span>th</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Get this spinning gopher working with Go and OpenGL on OSX Mavericks via <a href="https://github.com/chsc/gogl/">gogl</a></p>
-
-<iframe width="420" height="315" src="//www.youtube.com/embed/yae-bRLdfaU" frameborder="0" allowfullscreen></iframe>
-
-
-<h1>Steps</h1>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ brew install glfw2
-</span><span class='line'>$ go get -u -v github.com/tleyden/gogl
-</span><span class='line'>$ go get -u -v github.com/go-gl/glfw  
-</span><span class='line'>$ cd $GOPATH/src/github.com/tleyden/gogl
-</span><span class='line'>$ make bindings
-</span><span class='line'>$ go get -u -v github.com/chsc/gogl
-</span><span class='line'>$ cd $GOPATH/src/github.com/tleyden/gogl/examples/gopher
-</span><span class='line'>$ go run gopher.go</span></code></pre></td></tr></table></div></figure>
-
-
-<p>NOTE: if <a href="https://github.com/chsc/gogl/pull/37">pull request #37</a> has already been merged into <a href="https://github.com/chsc/gogl/">gogl</a>, then replace <code>github.com/tleyden/gogl</code> with <code>https://github.com/chsc/gogl</code> in steps above.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/3/">&larr; Older</a>
@@ -1659,6 +1755,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2015/01/23/running-a-walrus-backed-sync-gateway-on-aws/">Running a Walrus-backed Sync Gateway on AWS</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws/">Running a Sync Gateway Cluster Under CoreOS on AWS</a>
       </li>
     
@@ -1672,10 +1772,6 @@
     
       <li class="post">
         <a href="/blog/2014/11/14/running-cbfs/">Running a CBFS Cluster on CoreOS</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/11/12/an-example-of-using-nsq-from-go/">An Example of Using NSQ From Go</a>
       </li>
     
   </ul>
