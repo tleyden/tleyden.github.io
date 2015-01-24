@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-01-23T16:40:43-08:00</updated>
+  <updated>2015-01-24T08:38:43-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -76,7 +76,7 @@
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ SYNC_GW_CONFIG=https://gist.githubusercontent.com/tleyden/368f01218baf4e760267/raw/a65be036bc3855d5ab4e73b849f4caa1dc7d390f/config.json
-</span><span class='line'>$ sudo docker run --name sync_gw --net=host -v /opt/sync_gateway/data:/opt/sync_gateway/data tleyden5iwx/sync-gateway-coreos sync-gw-start -c master -g $SYNC_GW_CONFIG</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>$ sudo docker run -d --name sync_gw --net=host -v /opt/sync_gateway/data:/opt/sync_gateway/data tleyden5iwx/sync-gateway-coreos sync-gw-start -c master -g $SYNC_GW_CONFIG</span></code></pre></td></tr></table></div></figure>
 
 
 <h2>View logs</h2>
