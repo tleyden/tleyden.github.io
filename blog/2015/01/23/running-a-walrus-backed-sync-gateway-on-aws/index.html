@@ -191,27 +191,15 @@
 
 <h2>View logs</h2>
 
-<p><strong>Find container id</strong></p>
-
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker ps
-</span><span class='line'>
-</span><span class='line'>CONTAINER ID        IMAGE                                           COMMAND                CREATED             STATUS              PORTS               NAMES
-</span><span class='line'>2a55905c6f32        tleyden5iwx/sync-gateway-coreos:latest          "sync-gw-start -c ma   6 hours ago         Up 6 hours                              sync_gw</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Tail logs</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker logs --follow 2a55905c6f32</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ CONTAINER_ID=$(sudo docker ps | grep -iv container | awk '{ print $1 }')
+</span><span class='line'>$ sudo docker logs --follow ${CONTAINER_ID}</span></code></pre></td></tr></table></div></figure>
 
 
 <h2>Verify Sync Gateway</h2>
 
-<p>Assuming your public ip is <code>54.81.228.221</code>, paste <code>54.81.228.221:4984</code> into your web browser and you should see:</p>
+<p>Assuming your public ip is <code>54.81.228.221</code>, paste <code>http://54.81.228.221:4984</code> into your web browser and you should see:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -231,7 +219,7 @@
 </span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
 
 
-<p>To make sure the database was configured correctly, change the url to <code>54.81.228.221:4984/db</code>, and you should see:</p>
+<p>To make sure the database was configured correctly, change the url to <code>http://54.81.228.221:4984/db</code>, and you should see:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -248,7 +236,7 @@
 <p><strong>Create a new document</strong></p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -H 'Content-Type: application/json' -X POST -d '{"hello":"sync gateway"}' localhost:4984/db/</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -H 'Content-Type: application/json' -X POST -d '{"hello":"sync gateway"}' http://54.81.228.221:4984/db/</span></code></pre></td></tr></table></div></figure>
 
 
 <p>This will return the following JSON:</p>
@@ -270,7 +258,7 @@
 <p>Using the doc id returned above:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl localhost:4984/db/f1c8c5f8de22a09544b97fcc20fce316</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl http://54.81.228.221:4984/db/f1c8c5f8de22a09544b97fcc20fce316</span></code></pre></td></tr></table></div></figure>
 
 
 <p>You should see:</p>
@@ -295,8 +283,12 @@
 
 <p><strong>Stop and remove existing container</strong></p>
 
+<p>Find the container id via <code>sudo docker ps</code> as shown above, and run this command with your own container id:</p>
+
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker stop 2a55905c6f32 && sudo docker rm 2a55905c6f32</span></code></pre></td></tr></table></div></figure>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ CONTAINER_ID=$(sudo docker ps | grep -iv container | awk '{ print $1 }')
+</span><span class='line'>$ sudo docker stop ${CONTAINER_ID} && sudo docker rm ${CONTAINER_ID}</span></code></pre></td></tr></table></div></figure>
 
 
 <p><strong>Update sync gateway config</strong></p>

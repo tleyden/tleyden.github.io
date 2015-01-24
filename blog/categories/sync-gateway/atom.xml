@@ -4,7 +4,7 @@
   <title><![CDATA[Category: sync-gateway, | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/sync-gateway/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-01-24T08:55:49-08:00</updated>
+  <updated>2015-01-24T09:05:22-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -101,24 +101,14 @@ d22035060882        tleyden5iwx/sync-gateway-coreos:latest   "sync-gw-start -c m
 
 <h2>View logs</h2>
 
-<p><strong>Find container id</strong></p>
-
-<p>```
-$ sudo docker ps</p>
-
-<p>CONTAINER ID        IMAGE                                           COMMAND                CREATED             STATUS              PORTS               NAMES
-2a55905c6f32        tleyden5iwx/sync-gateway-coreos:latest          &ldquo;sync-gw-start -c ma   6 hours ago         Up 6 hours                              sync_gw
-```</p>
-
-<p><strong>Tail logs</strong></p>
-
 <p><code>
-$ sudo docker logs --follow 2a55905c6f32
+$ CONTAINER_ID=$(sudo docker ps | grep -iv container | awk '{ print $1 }')
+$ sudo docker logs --follow ${CONTAINER_ID}
 </code></p>
 
 <h2>Verify Sync Gateway</h2>
 
-<p>Assuming your public ip is <code>54.81.228.221</code>, paste <code>54.81.228.221:4984</code> into your web browser and you should see:</p>
+<p>Assuming your public ip is <code>54.81.228.221</code>, paste <code>http://54.81.228.221:4984</code> into your web browser and you should see:</p>
 
 <p>```
 {</p>
@@ -134,7 +124,7 @@ $ sudo docker logs --follow 2a55905c6f32
 <p>}
 ```</p>
 
-<p>To make sure the database was configured correctly, change the url to <code>54.81.228.221:4984/db</code>, and you should see:</p>
+<p>To make sure the database was configured correctly, change the url to <code>http://54.81.228.221:4984/db</code>, and you should see:</p>
 
 <p>```
 {</p>
@@ -151,7 +141,7 @@ $ sudo docker logs --follow 2a55905c6f32
 <p><strong>Create a new document</strong></p>
 
 <p><code>
-$ curl -H 'Content-Type: application/json' -X POST -d '{"hello":"sync gateway"}' localhost:4984/db/
+$ curl -H 'Content-Type: application/json' -X POST -d '{"hello":"sync gateway"}' http://54.81.228.221:4984/db/
 </code></p>
 
 <p>This will return the following JSON:</p>
@@ -172,7 +162,7 @@ $ curl -H 'Content-Type: application/json' -X POST -d '{"hello":"sync gateway"}'
 <p>Using the doc id returned above:</p>
 
 <p><code>
-$ curl localhost:4984/db/f1c8c5f8de22a09544b97fcc20fce316
+$ curl http://54.81.228.221:4984/db/f1c8c5f8de22a09544b97fcc20fce316
 </code></p>
 
 <p>You should see:</p>
@@ -196,8 +186,11 @@ $ curl localhost:4984/db/f1c8c5f8de22a09544b97fcc20fce316
 
 <p><strong>Stop and remove existing container</strong></p>
 
+<p>Find the container id via <code>sudo docker ps</code> as shown above, and run this command with your own container id:</p>
+
 <p><code>
-$ sudo docker stop 2a55905c6f32 &amp;&amp; sudo docker rm 2a55905c6f32
+$ CONTAINER_ID=$(sudo docker ps | grep -iv container | awk '{ print $1 }')
+$ sudo docker stop ${CONTAINER_ID} &amp;&amp; sudo docker rm ${CONTAINER_ID}
 </code></p>
 
 <p><strong>Update sync gateway config</strong></p>
