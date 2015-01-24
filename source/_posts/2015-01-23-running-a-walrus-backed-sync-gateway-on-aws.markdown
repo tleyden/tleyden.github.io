@@ -59,7 +59,7 @@ $ sudo chown -R core:core /opt/sync_gateway/data
 
 ```
 $ SYNC_GW_CONFIG=https://gist.githubusercontent.com/tleyden/368f01218baf4e760267/raw/a65be036bc3855d5ab4e73b849f4caa1dc7d390f/config.json
-$ sudo docker run --name sync_gw --net=host -v /opt/sync_gateway/data:/opt/sync_gateway/data tleyden5iwx/sync-gateway-coreos sync-gw-start -c master -g $SYNC_GW_CONFIG
+$ sudo docker run -d --name sync_gw --net=host -v /opt/sync_gateway/data:/opt/sync_gateway/data tleyden5iwx/sync-gateway-coreos sync-gw-start -c master -g $SYNC_GW_CONFIG
 ```
 
 ## View logs
