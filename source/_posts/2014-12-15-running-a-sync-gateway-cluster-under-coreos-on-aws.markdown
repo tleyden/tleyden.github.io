@@ -160,12 +160,22 @@ Here is the web UI where you need to shutdown the cluster:
 
 ![screenshot](http://tleyden-misc.s3.amazonaws.com/blog_images/shutdown_cluster.png)
 
-## References
+## Appendix E: Disabling CoreOS auto-restarts
 
+CoreOS comes with a built-in "Chaos Monkey" -- it will automatically restart nodes when security updates are available.  Initially, this caused [major problems](https://github.com/couchbaselabs/couchbase-server-docker/issues/2) with the way Couchbase Server was being spawned by the scripts used in this blog post.  Those issues are now fixed, but it's always possible new issues might arise.
+
+To play it safe, if you want to prevent CoreOS from restarting itself:
+
+* Shut down your existing cluster via CloudFormation (if you have data already, then please post a comment to this blog post asking for help)
+* Make a copy of the [default CloudFormation template](http://tleyden-misc.s3.amazonaws.com/couchbase-coreos/sync_gateway.template) and save it on an S3 bucket.
+* Change the `reboot-strategy` to `off` as described in this [CoreOS update strategies document](https://coreos.com/docs/cluster-management/setup/update-strategies/) and upload the edited version to S3.
+* Kick off a new cluster from the Go to the [Cloudformation Wizard](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#cstack=sn%7ECouchbase-CoreOS%7Cturl%7Ehttp://tleyden-misc.s3.amazonaws.com/couchbase-coreos/sync_gateway.template), but change the value under `Specify an Amazon S3 template URL` to use your own template stored on S3 rather than the default.
+
+## References
 
 * [sync gateway Docker + CoreOS fleet files](https://github.com/tleyden/sync-gateway-coreos)
 * [couchbase-server-coreos](https://github.com/tleyden/couchbase-server-coreos)
 * [Sync Gateway docs regarding reverse proxies](http://developer.couchbase.com/mobile/develop/guides/sync-gateway/nginx/index.html)
 * [Couchbase Mobile Google Group discussion on ELB](https://groups.google.com/forum/?utm_medium=email&utm_source=footer#!msg/mobile-couchbase/pXKQIAiCaW8/s9W_gSfRL50J)
 * [sync gateway](https://github.com/couchbase/sync_gateway)
-* [youtube screencast](https://www.youtube.com/watch?v=7-7jsLzHsWU) (12 mins + slightly outdated)
+* [youtube screencast](https://www.youtube.com/watch?v=7-7jsLzHsWU) (12 mins)
