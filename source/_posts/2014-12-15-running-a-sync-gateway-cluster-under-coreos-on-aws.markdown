@@ -45,7 +45,7 @@ $ ssh -i aws.cer -A core@ec2-54-83-80-161.compute-1.amazonaws.com
 From the CoreOS machine you ssh'd into in the previous step:
 
 ```
-$ wget https://raw.githubusercontent.com/tleyden/sync-gateway-coreos/master/scripts/sync-gw-cluster-init.sh
+$ wget https://raw.githubusercontent.com/tleyden/sync-gateway-coreos/support/0.2/scripts/sync-gw-cluster-init.sh
 $ chmod +x sync-gw-cluster-init.sh
 $ SG_CONFIG_URL=https://gist.githubusercontent.com/tleyden/4ae1fe9b2b18783708cd/raw/fe4fb7f8637c1bf813c70e957bac35fa5ad28d01/sync_gw_config.json
 $ ./sync-gw-cluster-init.sh -n 1 -c master -b "todos" -z 512 -g $SG_CONFIG_URL -v 3.0.1 -m 3 -u user:passw0rd

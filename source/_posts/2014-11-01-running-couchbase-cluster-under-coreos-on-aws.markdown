@@ -35,7 +35,7 @@ $ ssh -i aws.cer -A core@ec2-54-83-80-161.compute-1.amazonaws.com
 ```
 
 ## Sanity check
-
+   
 Let's make sure the CoreOS cluster is healthy first:
 
 ```
@@ -54,7 +54,7 @@ MACHINE	        IP              METADATA
 ## Download cluster-init script
 
 ```
-$ wget https://raw.githubusercontent.com/couchbaselabs/couchbase-server-docker/master/scripts/cluster-init.sh
+$ wget https://raw.githubusercontent.com/couchbaselabs/couchbase-server-docker/support/0.2/scripts/cluster-init.sh
 $ chmod +x cluster-init.sh
 ```
 
