@@ -4,7 +4,7 @@
   <title><![CDATA[Category: docker | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/docker/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-01-24T09:05:22-08:00</updated>
+  <updated>2015-01-26T09:24:48-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -543,7 +543,7 @@ MACHINE         IP              METADATA
 <h2>Download cluster-init script</h2>
 
 <p><code>
-$ wget https://raw.githubusercontent.com/couchbaselabs/couchbase-server-docker/master/scripts/cluster-init.sh
+$ wget https://raw.githubusercontent.com/couchbaselabs/couchbase-server-docker/support/0.2/scripts/cluster-init.sh
 $ chmod +x cluster-init.sh
 </code></p>
 
