@@ -54,7 +54,7 @@ MACHINE	        IP              METADATA
 ## Download cluster-init script
 
 ```
-$ wget https://raw.githubusercontent.com/couchbaselabs/couchbase-server-docker/support/0.2/scripts/cluster-init.sh
+$ wget https://raw.githubusercontent.com/couchbaselabs/couchbase-server-docker/support/0.3/scripts/cluster-init.sh
 $ chmod +x cluster-init.sh
 ```
 
