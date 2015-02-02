@@ -404,7 +404,7 @@
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://raw.githubusercontent.com/tleyden/sync-gateway-coreos/support/0.2/scripts/sync-gw-cluster-init.sh
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://raw.githubusercontent.com/tleyden/sync-gateway-coreos/support/0.3/scripts/sync-gw-cluster-init.sh
 </span><span class='line'>$ chmod +x sync-gw-cluster-init.sh
 </span><span class='line'>$ SG_CONFIG_URL=https://gist.githubusercontent.com/tleyden/4ae1fe9b2b18783708cd/raw/fe4fb7f8637c1bf813c70e957bac35fa5ad28d01/sync_gw_config.json
 </span><span class='line'>$ ./sync-gw-cluster-init.sh -n 1 -c master -b "todos" -z 512 -g $SG_CONFIG_URL -v 3.0.1 -m 3 -u user:passw0rd</span></code></pre></td></tr></table></div></figure>
@@ -494,7 +494,7 @@
 
 <h2>Appendix B: Setting up Elastic Load Balancer.</h2>
 
-<p><em>Warning: Users have been having <a href="https://groups.google.com/d/msg/mobile-couchbase/jJMqnoauMWQ/FHND_WqtYaMJ">problems</a> getting WebSockets to work behind ELB.  Unless you are planning to disable websocket support for iOS clients, you should use <a href="http://developer.couchbase.com/mobile/develop/guides/sync-gateway/nginx/index.html">nginx as described here</a> rather than ELB.</em></p>
+<p><em>Warning: Users have been having <a href="https://groups.google.com/d/msg/mobile-couchbase/jJMqnoauMWQ/FHND_WqtYaMJ">problems</a> getting WebSockets to work behind ELB, as well as <a href="https://groups.google.com/d/msg/mobile-couchbase/oxeSlYS2-Aw/gw4UcA89KlsJ">connection timeouts</a>.  Unless you are planning to disable websocket support for iOS clients, you should use <a href="http://developer.couchbase.com/mobile/develop/guides/sync-gateway/nginx/index.html">nginx as described here</a> rather than ELB.</em></p>
 
 <p>Setup an Elastic Load Balancer with the following settings:</p>
 
@@ -1854,7 +1854,7 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://raw.githubusercontent.com/couchbaselabs/couchbase-server-docker/support/0.2/scripts/cluster-init.sh
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://raw.githubusercontent.com/couchbaselabs/couchbase-server-docker/support/0.3/scripts/cluster-init.sh
 </span><span class='line'>$ chmod +x cluster-init.sh</span></code></pre></td></tr></table></div></figure>
 
 
