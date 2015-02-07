@@ -1850,43 +1850,25 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
 </span><span class='line'>25dd84b7...     10.13.180.194   -</span></code></pre></td></tr></table></div></figure>
 
 
-<h2>Download cluster-init script</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://raw.githubusercontent.com/couchbaselabs/couchbase-server-docker/support/0.3/scripts/cluster-init.sh
-</span><span class='line'>$ chmod +x cluster-init.sh</span></code></pre></td></tr></table></div></figure>
-
-
 <h2>Launch cluster</h2>
 
-<p>Run the script you downloaded in the previous step:</p>
-
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./cluster-init.sh -v 3.0.1 -n 3 -u "user:passw0rd"</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.4 couchbase-fleet launch-cbs --version 3.0.1 --num-nodes 3 --userpass "user:passw0rd" --docker-tag 0.4</span></code></pre></td></tr></table></div></figure>
 
 
 <p>Where:</p>
 
 <ul>
-<li><strong>-v</strong> the version of Couchbase Server to use.  Valid values are 3.0.1 or 2.2.0.</li>
-<li><strong>-n</strong> the total number of couchbase nodes to start &mdash; should correspond to number of ec2 instances (eg, 3)</li>
-<li><strong>-u</strong> the username and password as a single string, delimited by a colon (:)</li>
+<li><strong>&mdash;version</strong> the version of Couchbase Server to use.  Valid values are 3.0.1 or 2.2.0.  (community edition in both cases)</li>
+<li><strong>&mdash;num-nodes</strong> the total number of couchbase nodes to start &mdash; should correspond to number of ec2 instances (eg, 3)</li>
+<li><strong>&mdash;userpass</strong> the username and password as a single string, delimited by a colon (:)</li>
+<li><strong>&mdash;docker-tag</strong> the docker tag to use to launch containers</li>
 </ul>
 
 
 <p>Replace <code>user:passw0rd</code> with a sensible username and password.  It <strong>must</strong> be colon separated, with no spaces.  The password itself must be at least 6 characters.</p>
 
-<p>What this script is doing:</p>
-
-<ul>
-<li>Downloads fleet init files from github.</li>
-<li>Stashes the username/password argument you give it into <code>etcd</code>.</li>
-<li>Tells <code>fleetctl</code> to kick everything off.</li>
-</ul>
-
-
-<p>Once this command completes, your cluster will be in the process of launching.</p>
+<p>Once this command completes, your cluster will be up and running.</p>
 
 <h2>Verify</h2>
 
@@ -1896,21 +1878,19 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ fleetctl list-units</span></code></pre></td></tr></table></div></figure>
 
 
-<p>You should see four units, all as active.</p>
+<p>You should see three units, all as active.</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>UNIT                     MACHINE             ACTIVE  SUB
-</span><span class='line'>couchbase_bootstrap_node.service                375d98b9.../10.63.168.35  active  running
-</span><span class='line'>couchbase_bootstrap_node_announce.service       375d98b9.../10.63.168.35  active  running
-</span><span class='line'>couchbase_node.1.service                        8cf54d4d.../10.187.61.136 active  running
-</span><span class='line'>couchbase_node.2.service                        b8cf0ed6.../10.179.161.76 active  running</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>UNIT                            MACHINE                         ACTIVE   SUB
+</span><span class='line'>couchbase_node@1.service        3c819355.../10.239.170.243      active    running
+</span><span class='line'>couchbase_node@2.service        782b35d4.../10.168.87.23        active    running
+</span><span class='line'>couchbase_node@3.service        7cd5f94c.../10.234.188.145      active    running</span></code></pre></td></tr></table></div></figure>
 
 
-<h1>Veryify</h1>
+<h1>Login to Admin Web UI</h1>
 
 <ul>
 <li>Find the public ip of any of your CoreOS instances via the AWS console</li>
