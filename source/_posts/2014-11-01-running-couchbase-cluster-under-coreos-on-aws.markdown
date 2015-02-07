@@ -51,36 +51,23 @@ MACHINE	        IP              METADATA
 25dd84b7...     10.13.180.194   -
 ```
 
-## Download cluster-init script
-
-```
-$ wget https://raw.githubusercontent.com/couchbaselabs/couchbase-server-docker/support/0.3/scripts/cluster-init.sh
-$ chmod +x cluster-init.sh
-```
 
 ## Launch cluster
 
-Run the script you downloaded in the previous step:
-
 ```
-$ ./cluster-init.sh -v 3.0.1 -n 3 -u "user:passw0rd"
+$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.4 couchbase-fleet launch-cbs --version 3.0.1 --num-nodes 3 --userpass "user:passw0rd" --docker-tag 0.4
 ```
 
 Where:
 
-* **-v** the version of Couchbase Server to use.  Valid values are 3.0.1 or 2.2.0.
-* **-n** the total number of couchbase nodes to start -- should correspond to number of ec2 instances (eg, 3)
-* **-u** the username and password as a single string, delimited by a colon (:) 
+* **--version** the version of Couchbase Server to use.  Valid values are 3.0.1 or 2.2.0.  (community edition in both cases)
+* **--num-nodes** the total number of couchbase nodes to start -- should correspond to number of ec2 instances (eg, 3)
+* **--userpass** the username and password as a single string, delimited by a colon (:) 
+* **--docker-tag** the docker tag to use to launch containers
 
 Replace `user:passw0rd` with a sensible username and password.  It **must** be colon separated, with no spaces.  The password itself must be at least 6 characters.
 
-What this script is doing:
-
-* Downloads fleet init files from github.
-* Stashes the username/password argument you give it into `etcd`.
-* Tells `fleetctl` to kick everything off.  
-
-Once this command completes, your cluster will be in the process of launching.
+Once this command completes, your cluster will be up and running.
 
 ## Verify 
 
@@ -90,17 +77,16 @@ To check the status of your cluster, run:
 $ fleetctl list-units
 ```
 
-You should see four units, all as active.
+You should see three units, all as active.
 
 ```
-UNIT						MACHINE				ACTIVE	SUB
-couchbase_bootstrap_node.service                375d98b9.../10.63.168.35	active	running
-couchbase_bootstrap_node_announce.service       375d98b9.../10.63.168.35	active	running
-couchbase_node.1.service                        8cf54d4d.../10.187.61.136	active	running
-couchbase_node.2.service                        b8cf0ed6.../10.179.161.76	active	running
+UNIT                            MACHINE                         ACTIVE	SUB
+couchbase_node@1.service        3c819355.../10.239.170.243      active	running
+couchbase_node@2.service        782b35d4.../10.168.87.23        active	running
+couchbase_node@3.service        7cd5f94c.../10.234.188.145      active	running
 ```
 
-# Veryify
+# Login to Admin Web UI
 
 * Find the public ip of any of your CoreOS instances via the AWS console
 * In a browser, go to `http://<instance_public_ip>:8091`
