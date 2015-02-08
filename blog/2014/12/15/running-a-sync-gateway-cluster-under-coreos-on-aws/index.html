@@ -135,33 +135,42 @@
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ ssh -i aws.cer -A core@ec2-54-83-80-161.compute-1.amazonaws.com</span></code></pre></td></tr></table></div></figure>
 
 
-<h3>Kick off cluster</h3>
-
-<p>From the CoreOS machine you ssh&rsquo;d into in the previous step:</p>
+<h3>Kick off Couchbase Server cluster</h3>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://raw.githubusercontent.com/tleyden/sync-gateway-coreos/support/0.3/scripts/sync-gw-cluster-init.sh
-</span><span class='line'>$ chmod +x sync-gw-cluster-init.sh
-</span><span class='line'>$ SG_CONFIG_URL=https://gist.githubusercontent.com/tleyden/4ae1fe9b2b18783708cd/raw/fe4fb7f8637c1bf813c70e957bac35fa5ad28d01/sync_gw_config.json
-</span><span class='line'>$ ./sync-gw-cluster-init.sh -n 1 -c master -b "todos" -z 512 -g $SG_CONFIG_URL -v 3.0.1 -m 3 -u user:passw0rd</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.5 couchbase-fleet launch-cbs --version 3.0.1 --num-nodes 3 --userpass "user:passw0rd" --docker-tag 0.5</span></code></pre></td></tr></table></div></figure>
 
 
-<p>You&rsquo;ll want to use your own config URL for the SG_CONFIG_URL value.  For example, a file hosted in github or on your own webserver.</p>
-
-<p>Parameters to sync-gw-cluster-init.sh:</p>
+<p>Where:</p>
 
 <ul>
-<li><strong>-n</strong> &mdash; the number of sync gateway nodes to start.</li>
-<li><strong>-c</strong> &mdash; the commit or branch name of sync gateway to use.  (if master has issues, the latest tested commit is currently: 422ba63a1afedd459bffec3031a8680f2daffd5e)</li>
-<li><strong>-b</strong> &mdash; the couchbase bucket to be created before starting sync gateway</li>
-<li><strong>-z</strong> &mdash; the size of the bucket in MB to use for the bucket created via the <strong>-b</strong> param.</li>
-<li><strong>-g</strong> &mdash; the url of the sync gateway config.  You will want to customize this.</li>
-<li><strong>-v</strong> &mdash; the version of couchbase server to launch (3.0.1 | 2.2.0)</li>
-<li><strong>-m</strong> &mdash; the number of couchbase server nodes to launch.</li>
-<li><strong>-u</strong> &mdash; the username and password in a single string separated by a colon.  You will want to customize this to use something sensical.</li>
+<li>&mdash;version=&lt;cb-version> Couchbase Server version (3.0.1 or 2.2)</li>
+<li>&mdash;num-nodes=&lt;num_nodes> number of couchbase nodes to start</li>
+<li>&mdash;userpass &lt;user:pass> the username and password as a single string, delimited by a colon (:)</li>
+<li>&mdash;etcd-servers=&lt;server-list>  Comma separated list of etcd servers, or omit to connect to etcd running on localhost</li>
+<li>&mdash;docker-tag=&lt;docker-tag>  if present, use this docker tag for spawned containers, otherwise, default to &ldquo;latest&rdquo;</li>
+</ul>
+
+
+<p>Replace <code>user:passw0rd</code> with a sensible username and password.  It <strong>must</strong> be colon separated, with no spaces.  The password itself must be at least 6 characters.</p>
+
+<h3>Kick off Sync Gateway cluster</h3>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.5 sync-gw-cluster launch-sgw --num-nodes=1 --config-url=http://git.io/b9PK --create-bucket todos --create-bucket-size 512 --create-bucket-replicas 1 --docker-tag 0.5</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Where:</p>
+
+<ul>
+<li>&mdash;num-nodes=&lt;num_nodes> number of sync gw nodes to start</li>
+<li>&mdash;config-url=&lt;config_url> the url where the sync gw config json is stored</li>
+<li>&mdash;sync-gw-commit=&lt;branch-or-commit> the branch or commit of sync gw to use, defaults to &ldquo;image&rdquo;, which is the master branch at the time the docker image was built.</li>
+<li>&mdash;create-bucket=&lt;bucket-name> create a bucket on couchbase server with the given name</li>
+<li>&mdash;create-bucket-size=&lt;bucket-size-mb> if creating a bucket, use this size in MB</li>
+<li>&mdash;create-bucket-replicas=&lt;replica-count> if creating a bucket, use this replica count (defaults to 1)</li>
+<li>&mdash;etcd-servers=&lt;server-list>  Comma separated list of etcd servers, or omit to connect to etcd running on localhost</li>
+<li>&mdash;docker-tag=&lt;docker-tag>  if present, use this docker tag for spawned containers, otherwise, default to &ldquo;latest&rdquo;</li>
 </ul>
 
 
@@ -174,12 +183,10 @@
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
-<span class='line-number'>6</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>UNIT                            MACHINE                         ACTIVE  SUB
 </span><span class='line'>couchbase_node@1.service        2ad1cfaf.../10.95.196.213       active  running
 </span><span class='line'>couchbase_node@2.service        a688ca8e.../10.216.199.207      active  running
 </span><span class='line'>couchbase_node@3.service        fb241f71.../10.153.232.237      active  running
-</span><span class='line'>sync_gw_announce@1.service      2ad1cfaf.../10.95.196.213       active  running
 </span><span class='line'>sync_gw_node@1.service          2ad1cfaf.../10.95.196.213       active  running</span></code></pre></td></tr></table></div></figure>
 
 
@@ -228,7 +235,7 @@
 <p>To launch two more Sync Gateway nodes, run the following command:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ fleetctl start sync_gw_node@{2..3}.service && fleetctl start sync_gw_announce@{2..3}.service</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ fleetctl start sync_gw_node@{2..3}.service</span></code></pre></td></tr></table></div></figure>
 
 
 <h2>Appendix B: Setting up Elastic Load Balancer.</h2>
@@ -275,17 +282,19 @@
 
 <h2>Appendix E: Disabling CoreOS auto-restarts</h2>
 
-<p>CoreOS comes with a built-in &ldquo;Chaos Monkey&rdquo; &mdash; it will automatically restart nodes when security updates are available.  Initially, this caused <a href="https://github.com/couchbaselabs/couchbase-server-docker/issues/2">major problems</a> with the way Couchbase Server was being spawned by the scripts used in this blog post.  Those issues are now fixed, but it&rsquo;s always possible new issues might arise.</p>
+<p>CoreOS automatically restart nodes when security updates are available.  Initially, this caused <a href="https://github.com/couchbaselabs/couchbase-server-docker/issues/2">major problems</a> with the way Couchbase Server was being spawned by the scripts used in this blog post.  Those issues are now fixed, but it&rsquo;s always possible new issues might arise.</p>
 
 <p>To play it safe, if you want to prevent CoreOS from restarting itself:</p>
 
 <ul>
 <li>Shut down your existing cluster via CloudFormation (if you have data already, then please post a comment to this blog post asking for help)</li>
 <li>Make a copy of the <a href="http://tleyden-misc.s3.amazonaws.com/couchbase-coreos/sync_gateway.template">default CloudFormation template</a> and save it on an S3 bucket.</li>
-<li>Change the <code>reboot-strategy</code> to <code>off</code> as described in this <a href="https://coreos.com/docs/cluster-management/setup/update-strategies/">CoreOS update strategies document</a> and upload the edited version to S3.</li>
+<li>Change the <code>reboot-strategy</code> to <code>off</code>.  Here is an <a href="http://tleyden-misc.s3.amazonaws.com/couchbase-coreos/sync_gateway_noreboot.template">example cloudformation template</a> with rebooting disabled.  See also: <a href="https://coreos.com/docs/cluster-management/setup/update-strategies/">CoreOS update strategies document</a>.  After you&rsquo;ve made your changes, upload the edited version to S3.</li>
 <li>Kick off a new cluster from the Go to the <a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#cstack=sn%7ECouchbase-CoreOS%7Cturl%7Ehttp://tleyden-misc.s3.amazonaws.com/couchbase-coreos/sync_gateway.template">Cloudformation Wizard</a>, but change the value under <code>Specify an Amazon S3 template URL</code> to use your own template stored on S3 rather than the default.</li>
 </ul>
 
+
+<p>But be warned, this is a less secure approach to running CoreOS.</p>
 
 <h2>References</h2>
 
