@@ -56,7 +56,7 @@ MACHINE	        IP              METADATA
 
 
 ```
-$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.5 couchbase-fleet launch-cbs --version 3.0.1 --num-nodes 3 --userpass "user:passw0rd" --docker-tag 0.5
+$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.6 couchbase-fleet launch-cbs --version 3.0.1 --num-nodes 3 --userpass "user:passw0rd" --docker-tag 0.6
 ```
 
 Where:
@@ -69,7 +69,7 @@ Where:
 
 Replace `user:passw0rd` with a sensible username and password.  It **must** be colon separated, with no spaces.  The password itself must be at least 6 characters.
 
-Once this command completes, your cluster will be up and running.
+Once this command completes, your cluster will be up and running.  The output should look something like [this gist](https://gist.github.com/tleyden/bc0975778216281b80e7).
 
 ## Verify 
 
