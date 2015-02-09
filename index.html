@@ -399,7 +399,7 @@
 <h3>Kick off Couchbase Server cluster</h3>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.5 couchbase-fleet launch-cbs --version 3.0.1 --num-nodes 3 --userpass "user:passw0rd" --docker-tag 0.5</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.6 couchbase-fleet launch-cbs --version 3.0.1 --num-nodes 3 --userpass "user:passw0rd" --docker-tag 0.6</span></code></pre></td></tr></table></div></figure>
 
 
 <p>Where:</p>
@@ -415,10 +415,12 @@
 
 <p>Replace <code>user:passw0rd</code> with a sensible username and password.  It <strong>must</strong> be colon separated, with no spaces.  The password itself must be at least 6 characters.</p>
 
+<p>The output should look something like <a href="https://gist.github.com/tleyden/bc0975778216281b80e7">this gist</a>.</p>
+
 <h3>Kick off Sync Gateway cluster</h3>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.5 sync-gw-cluster launch-sgw --num-nodes=1 --config-url=http://git.io/b9PK --create-bucket todos --create-bucket-size 512 --create-bucket-replicas 1 --docker-tag 0.5</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.6 sync-gw-cluster launch-sgw --num-nodes=1 --config-url=http://git.io/b9PK --create-bucket todos --create-bucket-size 512 --create-bucket-replicas 1 --docker-tag 0.6</span></code></pre></td></tr></table></div></figure>
 
 
 <p>Where:</p>
@@ -1862,7 +1864,7 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
 <h2>Launch cluster</h2>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.5 couchbase-fleet launch-cbs --version 3.0.1 --num-nodes 3 --userpass "user:passw0rd" --docker-tag 0.5</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.6 couchbase-fleet launch-cbs --version 3.0.1 --num-nodes 3 --userpass "user:passw0rd" --docker-tag 0.6</span></code></pre></td></tr></table></div></figure>
 
 
 <p>Where:</p>
@@ -1878,7 +1880,7 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
 
 <p>Replace <code>user:passw0rd</code> with a sensible username and password.  It <strong>must</strong> be colon separated, with no spaces.  The password itself must be at least 6 characters.</p>
 
-<p>Once this command completes, your cluster will be up and running.</p>
+<p>Once this command completes, your cluster will be up and running.  The output should look something like <a href="https://gist.github.com/tleyden/bc0975778216281b80e7">this gist</a>.</p>
 
 <h2>Verify</h2>
 
@@ -2183,11 +2185,11 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
     <section>
   <h1>About Me</h1>
   <p>
-  I&#8217;m a software engineer at Couchbase, working on <a href="https://github.com/couchbase/couchbase-lite-android">Couchbase Lite for Android</a> &#8211; a mobile NoSQL database with Sync.
+  I&#8217;m a software engineer at Couchbase, working on <a href="http://developer.couchbase.com/mobile/">Couchbase Mobile</a> &#8211; a mobile NoSQL database with Sync that runs on iOS, Android, and .NET platforms.
   </p>
 
   <p>
-  In my spare time I am working on <a href="http://www.openocr.net">OpenOCR</a> &#8211; a Dockerized REST API wrapper for Tesseract OCR.
+  In my spare time I am working on <a href="https://github.com/tleyden/elastic-thought">ElasticThought</a> &#8211; a scalable containerized REST API wrapper for the Caffe Deep Learning toolkit.
   </p>
 
 </section>

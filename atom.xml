@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-02-08T10:29:21-08:00</updated>
+  <updated>2015-02-09T11:27:54-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -289,7 +289,7 @@
 <h3>Kick off Couchbase Server cluster</h3>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.5 couchbase-fleet launch-cbs --version 3.0.1 --num-nodes 3 --userpass "user:passw0rd" --docker-tag 0.5</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.6 couchbase-fleet launch-cbs --version 3.0.1 --num-nodes 3 --userpass "user:passw0rd" --docker-tag 0.6</span></code></pre></td></tr></table></div></figure>
 
 
 <p>Where:</p>
@@ -305,10 +305,12 @@
 
 <p>Replace <code>user:passw0rd</code> with a sensible username and password.  It <strong>must</strong> be colon separated, with no spaces.  The password itself must be at least 6 characters.</p>
 
+<p>The output should look something like <a href="https://gist.github.com/tleyden/bc0975778216281b80e7">this gist</a>.</p>
+
 <h3>Kick off Sync Gateway cluster</h3>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.5 sync-gw-cluster launch-sgw --num-nodes=1 --config-url=http://git.io/b9PK --create-bucket todos --create-bucket-size 512 --create-bucket-replicas 1 --docker-tag 0.5</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.6 sync-gw-cluster launch-sgw --num-nodes=1 --config-url=http://git.io/b9PK --create-bucket todos --create-bucket-size 512 --create-bucket-replicas 1 --docker-tag 0.6</span></code></pre></td></tr></table></div></figure>
 
 
 <p>Where:</p>
@@ -1590,7 +1592,7 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
 <h2>Launch cluster</h2>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.5 couchbase-fleet launch-cbs --version 3.0.1 --num-nodes 3 --userpass "user:passw0rd" --docker-tag 0.5</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.6 couchbase-fleet launch-cbs --version 3.0.1 --num-nodes 3 --userpass "user:passw0rd" --docker-tag 0.6</span></code></pre></td></tr></table></div></figure>
 
 
 <p>Where:</p>
@@ -1606,7 +1608,7 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
 
 <p>Replace <code>user:passw0rd</code> with a sensible username and password.  It <strong>must</strong> be colon separated, with no spaces.  The password itself must be at least 6 characters.</p>
 
-<p>Once this command completes, your cluster will be up and running.</p>
+<p>Once this command completes, your cluster will be up and running.  The output should look something like <a href="https://gist.github.com/tleyden/bc0975778216281b80e7">this gist</a>.</p>
 
 <h2>Verify</h2>
 

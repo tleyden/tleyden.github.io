@@ -4,7 +4,7 @@
   <title><![CDATA[Category: docker | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/docker/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-02-08T10:29:21-08:00</updated>
+  <updated>2015-02-09T11:27:54-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -543,7 +543,7 @@ MACHINE         IP              METADATA
 <h2>Launch cluster</h2>
 
 <p><code>
-$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.5 couchbase-fleet launch-cbs --version 3.0.1 --num-nodes 3 --userpass "user:passw0rd" --docker-tag 0.5
+$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.6 couchbase-fleet launch-cbs --version 3.0.1 --num-nodes 3 --userpass "user:passw0rd" --docker-tag 0.6
 </code></p>
 
 <p>Where:</p>
@@ -559,7 +559,7 @@ $ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.5 couchbase-flee
 
 <p>Replace <code>user:passw0rd</code> with a sensible username and password.  It <strong>must</strong> be colon separated, with no spaces.  The password itself must be at least 6 characters.</p>
 
-<p>Once this command completes, your cluster will be up and running.</p>
+<p>Once this command completes, your cluster will be up and running.  The output should look something like <a href="https://gist.github.com/tleyden/bc0975778216281b80e7">this gist</a>.</p>
 
 <h2>Verify</h2>
 
