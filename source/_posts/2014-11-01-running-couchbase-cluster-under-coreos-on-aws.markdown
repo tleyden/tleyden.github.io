@@ -56,7 +56,7 @@ MACHINE	        IP              METADATA
 
 
 ```
-$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.6 couchbase-fleet launch-cbs --version 3.0.1 --num-nodes 3 --userpass "user:passw0rd" --docker-tag 0.6
+$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.7 couchbase-fleet launch-cbs --version 3.0.1 --num-nodes 3 --userpass "user:passw0rd" --docker-tag 0.7
 ```
 
 Where:
