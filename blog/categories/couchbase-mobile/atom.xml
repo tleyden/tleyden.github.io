@@ -4,7 +4,7 @@
   <title><![CDATA[Category: couchbase-mobile | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/couchbase-mobile/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-02-09T11:27:54-08:00</updated>
+  <updated>2015-02-13T13:23:14-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -58,7 +58,7 @@ $ ssh -i aws.cer -A core@ec2-54-83-80-161.compute-1.amazonaws.com
 <h3>Kick off Couchbase Server cluster</h3>
 
 <p><code>
-$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.6 couchbase-fleet launch-cbs --version 3.0.1 --num-nodes 3 --userpass "user:passw0rd" --docker-tag 0.6
+$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.7 couchbase-fleet launch-cbs --version 3.0.1 --num-nodes 3 --userpass "user:passw0rd" --docker-tag 0.7
 </code></p>
 
 <p>Where:</p>
@@ -79,7 +79,7 @@ $ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.6 couchbase-flee
 <h3>Kick off Sync Gateway cluster</h3>
 
 <p><code>
-$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.6 sync-gw-cluster launch-sgw --num-nodes=1 --config-url=http://git.io/b9PK --create-bucket todos --create-bucket-size 512 --create-bucket-replicas 1 --docker-tag 0.6
+$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.7 sync-gw-cluster launch-sgw --num-nodes=1 --config-url=http://git.io/b9PK --create-bucket todos --create-bucket-size 512 --create-bucket-replicas 1 --docker-tag 0.7
 </code></p>
 
 <p>Where:</p>
@@ -218,7 +218,7 @@ $ curl http://coreos-322270867.us-east-1.elb.amazonaws.com/
 <li><a href="http://developer.couchbase.com/mobile/develop/guides/sync-gateway/nginx/index.html">Sync Gateway docs regarding reverse proxies</a></li>
 <li><a href="https://groups.google.com/forum/?utm_medium=email&amp;utm_source=footer#!msg/mobile-couchbase/pXKQIAiCaW8/s9W_gSfRL50J">Couchbase Mobile Google Group discussion on ELB</a></li>
 <li><a href="https://github.com/couchbase/sync_gateway">sync gateway</a></li>
-<li><a href="https://www.youtube.com/watch?v=7-7jsLzHsWU">youtube screencast</a> (12 mins)</li>
+<li><a href="https://github.com/andrewwebber/couchbase-array">andrewwebber/couchbase-array</a></li>
 </ul>
 
 ]]></content>
