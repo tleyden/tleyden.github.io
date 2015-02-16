@@ -237,7 +237,7 @@
 <p>To launch two more Sync Gateway nodes, run the following command:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ fleetctl start sync_gw_node@{2..3}.service</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.7 sync-gw-cluster launch-sgw --num-nodes=2 --config-url=http://git.io/b9PK --docker-tag 0.7</span></code></pre></td></tr></table></div></figure>
 
 
 <h2>Appendix B: Setting up Elastic Load Balancer.</h2>

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: couchbase-mobile | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/couchbase-mobile/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-02-13T13:23:14-08:00</updated>
+  <updated>2015-02-16T12:04:24-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -150,7 +150,7 @@ $ curl ec2-54-211-206-18.compute-1.amazonaws.com:4984
 <p>To launch two more Sync Gateway nodes, run the following command:</p>
 
 <p><code>
-$ fleetctl start sync_gw_node@{2..3}.service
+$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.7 sync-gw-cluster launch-sgw --num-nodes=2 --config-url=http://git.io/b9PK --docker-tag 0.7
 </code></p>
 
 <h2>Appendix B: Setting up Elastic Load Balancer.</h2>
