@@ -4,7 +4,7 @@
   <title><![CDATA[Category: coreos | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/coreos/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-02-25T07:31:47-08:00</updated>
+  <updated>2015-02-27T16:59:38-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -802,7 +802,7 @@ couchbase_node@3.service        7cd5f94c.../10.234.188.145      active  running
 
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_admin_ui_post_rebalance.png" alt="screenshot" /></p>
 
-<p>(Note: it may still be in the process of rebalancing, which is normal.  Go have a coffee and check back later)</p>
+<p>When CoreOS reboots a machine automatically for a security upgrade, the data will be automatically rebalanced before and after the reboot.  <a href="https://github.com/couchbaselabs/couchbase-server-docker/issues/3#issuecomment-75984021">Details + screenshots here</a>.</p>
 
 <p>Congratulations!  You now have a 3 node Couchbase Server cluster running under CoreOS / Docker.</p>
 
