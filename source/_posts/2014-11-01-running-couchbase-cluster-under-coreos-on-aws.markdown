@@ -98,7 +98,7 @@ You should see:
 
 ![screenshot](http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_admin_ui_post_rebalance.png)
 
-(Note: it may still be in the process of rebalancing, which is normal.  Go have a coffee and check back later)
+When CoreOS reboots a machine automatically for a security upgrade, the data will be automatically rebalanced before and after the reboot.  [Details + screenshots here](https://github.com/couchbaselabs/couchbase-server-docker/issues/3#issuecomment-75984021).
 
 Congratulations!  You now have a 3 node Couchbase Server cluster running under CoreOS / Docker.  
 
