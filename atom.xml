@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-03-02T16:58:42-08:00</updated>
+  <updated>2015-03-02T20:44:00-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -1982,8 +1982,8 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
 <p>Based on the instructions in this blog post, I&rsquo;ve created an AMI and shared it publicly.  So the easiest thing to do is just use that pre-built AMI:</p>
 
 <ul>
-<li>Image: <strong>ami-2cbf3e44</strong> (Ubuntu Server 14.04 LTS (HVM) &ndash; CUDA 6.5)</li>
-<li>Instance type: g2.2xlarge</li>
+<li>Image: <strong>ami-2cbf3e44</strong> for US-East or <strong>ami-c38babf3</strong> for US-West (Ubuntu Server 14.04 LTS (HVM) &ndash; CUDA 6.5)</li>
+<li>Instance type: <strong>g2.2xlarge</strong> (if you skip this step, you won&rsquo;t have an nvidia device)</li>
 <li>Storage: Use at least 8 GB, 20+ GB recommended</li>
 </ul>
 
