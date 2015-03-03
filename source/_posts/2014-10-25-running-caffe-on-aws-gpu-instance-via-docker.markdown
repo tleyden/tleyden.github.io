@@ -118,8 +118,8 @@ Congratulations, you've got GPU-powered Caffe running in a docker container -- c
 
 # References
 
- - [tleyden5iwx/caffe-gpu](https://registry.hub.docker.com/u/tleyden5iwx/caffe-gpu) Caffe Docker image (GPU)
- - [tleyden5iwx/caffe](https://registry.hub.docker.com/u/tleyden5iwx/caffe) Caffe Docker image (CPU-only)
+ - [tleyden5iwx/caffe-gpu-master](https://registry.hub.docker.com/u/tleyden5iwx/caffe-gpu-master) Caffe Docker image (GPU)
+ - [tleyden5iwx/caffe-cpu-master](https://registry.hub.docker.com/u/tleyden5iwx/caffe-cpu-master) Caffe Docker image (CPU-only)
  - [Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5](http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/)
  - [CUDA 6.5 on AWS GPU Instance Running Ubuntu 14.04](http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/)
  
