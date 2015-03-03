@@ -126,7 +126,7 @@
         <loc>
             http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/
         </loc>
-        <lastmod>2014-10-26T06:47:06-07:00</lastmod>
+        <lastmod>2015-03-02T16:53:28-08:00</lastmod>
     </url>
     <url>
         <loc>
@@ -138,7 +138,7 @@
         <loc>
             http://tleyden.github.io/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker/
         </loc>
-        <lastmod>2014-10-26T06:42:33-07:00</lastmod>
+        <lastmod>2015-03-02T16:57:00-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/2014/10/30/goroutines-vs-threads/</loc>
@@ -188,11 +188,11 @@
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/archives/</loc>
-        <lastmod>2015-02-27T16:58:44-08:00</lastmod>
+        <lastmod>2015-03-02T16:57:00-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/</loc>
-        <lastmod>2015-02-27T16:58:44-08:00</lastmod>
+        <lastmod>2015-03-02T16:57:00-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/robots.txt</loc>

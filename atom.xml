@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-02-27T16:59:38-08:00</updated>
+  <updated>2015-03-02T16:58:42-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -1777,7 +1777,7 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ DOCKER_NVIDIA_DEVICES="--device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm"
-</span><span class='line'>$ sudo docker run -ti $DOCKER_NVIDIA_DEVICES tleyden5iwx/caffe-gpu /bin/bash</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>$ sudo docker run -ti $DOCKER_NVIDIA_DEVICES tleyden5iwx/caffe-gpu-master /bin/bash</span></code></pre></td></tr></table></div></figure>
 
 
 <p>It&rsquo;s a large docker image, so this might take a few minutes, depending on your network connection.</p>
@@ -1833,8 +1833,8 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
 <h1>References</h1>
 
 <ul>
-<li><a href="https://registry.hub.docker.com/u/tleyden5iwx/caffe-gpu">tleyden5iwx/caffe-gpu</a> Caffe Docker image (GPU)</li>
-<li><a href="https://registry.hub.docker.com/u/tleyden5iwx/caffe">tleyden5iwx/caffe</a> Caffe Docker image (CPU-only)</li>
+<li><a href="https://registry.hub.docker.com/u/tleyden5iwx/caffe-gpu-master">tleyden5iwx/caffe-gpu-master</a> Caffe Docker image (GPU)</li>
+<li><a href="https://registry.hub.docker.com/u/tleyden5iwx/caffe-cpu-master">tleyden5iwx/caffe-cpu-master</a> Caffe Docker image (CPU-only)</li>
 <li><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5</a></li>
 <li><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">CUDA 6.5 on AWS GPU Instance Running Ubuntu 14.04</a></li>
 </ul>
@@ -1982,13 +1982,15 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
 <p>Based on the instructions in this blog post, I&rsquo;ve created an AMI and shared it publicly.  So the easiest thing to do is just use that pre-built AMI:</p>
 
 <ul>
-<li>Image: ami-2cbf3e44 (Ubuntu Server 14.04 LTS (HVM) &ndash; CUDA 6.5)</li>
+<li>Image: <strong>ami-2cbf3e44</strong> (Ubuntu Server 14.04 LTS (HVM) &ndash; CUDA 6.5)</li>
 <li>Instance type: g2.2xlarge</li>
 <li>Storage: Use at least 8 GB, 20+ GB recommended</li>
 </ul>
 
 
-<p>If you use the pre-built AMI, then you can skip the rest of this article, since all of these steps are &ldquo;baked in&rdquo; to the AMI.</p>
+<p>If you use the pre-built AMI, then you can skip down to the <strong>Verify CUDA is correctly installed</strong> section, since all of the rest of the steps are &ldquo;baked in&rdquo; to the AMI.</p>
+
+<p><em>Note regarding AMI regions: the AMI only currently works in the US-East and US-West regions.  If you need it added to another region, please post a comment below</em></p>
 
 <h2>Building from scratch</h2>
 
