@@ -10,8 +10,8 @@ categories: aws, gpu
 
 Based on the instructions in this blog post, I've created an AMI and shared it publicly.  So the easiest thing to do is just use that pre-built AMI:
 
-* Image: **ami-2cbf3e44** (Ubuntu Server 14.04 LTS (HVM) - CUDA 6.5) 
-* Instance type: g2.2xlarge
+* Image: **ami-2cbf3e44** for US-East or **ami-c38babf3** for US-West (Ubuntu Server 14.04 LTS (HVM) - CUDA 6.5) 
+* Instance type: **g2.2xlarge** (if you skip this step, you won't have an nvidia device)
 * Storage: Use at least 8 GB, 20+ GB recommended
 
 If you use the pre-built AMI, then you can skip down to the **Verify CUDA is correctly installed** section, since all of the rest of the steps are "baked in" to the AMI.
