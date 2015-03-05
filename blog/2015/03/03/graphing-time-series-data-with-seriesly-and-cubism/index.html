@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>A stubbed out gradle multi-project hierarchy using git submodules - Seven Story Rabbit Hole</title>
+  <title>Graphing time series data with Seriesly and Cubism - Seven Story Rabbit Hole</title>
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="I&rsquo;m about to split up the couchbase-lite android library into two parts: a pure-java and an android specific library. The android library will &hellip;">
+  <meta name="description" content="This will walk you through the basics of putting data into seriesly and visualizing it with cubism. You will end up with this in your browser: &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://tleyden.github.io/blog/2014/01/31/a-stubbed-out-gradle-multi-project-hierarchy-using-git-submodules">
+  <link rel="canonical" href="http://tleyden.github.io/blog/2015/03/03/graphing-time-series-data-with-seriesly-and-cubism">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
@@ -75,7 +75,7 @@
   
   <header>
     
-      <h1 class="entry-title">A Stubbed Out Gradle Multi-project Hierarchy Using Git Submodules</h1>
+      <h1 class="entry-title">Graphing Time Series Data With Seriesly and Cubism</h1>
     
     
       <p class="meta">
@@ -91,42 +91,131 @@
   
 
 
-<time datetime="2014-01-31T10:50:00-08:00" pubdate data-updated="true">Jan 31<span>st</span>, 2014</time>
+<time datetime="2015-03-03T16:53:00-08:00" pubdate data-updated="true">Mar 3<span>rd</span>, 2015</time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><p>I&rsquo;m about to split up the <a href="https://github.com/couchbase/couchbase-lite-android">couchbase-lite</a> android library into two parts: a pure-java and an android specific library.  The android library will depend on the pure-java library.</p>
+<div class="entry-content"><p>This will walk you through the basics of putting data into <a href="https://github.com/dustin/seriesly">seriesly</a> and visualizing it with <a href="https://square.github.io/cubism/">cubism</a>.</p>
 
-<p>Before going down this project refactoring rabbit hole for the real project, I decided to stub out a complete project hierarchy to validate that it was going to actually work.  (I&rsquo;m calling this project hierarchy &ldquo;stubworld&rdquo; for lack of a sillier name)</p>
+<p>You will end up with this in your browser:</p>
 
-<p>There are five projects in total, here are the two top-level projects</p>
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/seriesly-cubism.png" alt="screenshot" /></p>
 
-<p><a href="https://github.com/tleyden/stubworld-app-android">https://github.com/tleyden/stubworld-app-android</a>  (an Android app)</p>
-
-<p><img src="http://cl.ly/image/3O31321l0b0n/stubworld_architecture_android.png" alt="" /></p>
-
-<p><a href="https://github.com/tleyden/stubworld-app-cmdline">https://github.com/tleyden/stubworld-app-cmdline</a>  (a pure java Command Line application)</p>
-
-<p><img src="http://cl.ly/image/1M2C333S2s0u/stubworld_architecture_desktop.png" alt="" /></p>
-
-<p>The projects are all self contained gradle projects and can be imported in either Android Studio or IntelliJ CE 13, and the dependencies on lower level projects are done via git submodules (and even git sub-submodules, <em>gulp</em>).   In either top level project you can easily debug and edit the code in the lower level projects, since they use source level dependencies.</p>
-
-<p>The biggest sticking point I ran into was that initially I tried to include a dependency via:</p>
+<h2>Install seriesly</h2>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>compile project(':libraries:stubworld-corelib-java')</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>go get -u -v -t github.com/dustin/seriesly</span></code></pre></td></tr></table></div></figure>
 
 
-<p>which totally broke when trying to embed this project into another parent project. The fix was to change it to use a relative path by removing the leading colon:</p>
+<h2>Run seriesly</h2>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>compile project('libraries:stubworld-corelib-java')</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>seriesly -flushDelay=1s -root=/tmp/seriesly-data</span></code></pre></td></tr></table></div></figure>
 
 
-<p>I&rsquo;m posting this in case it&rsquo;s useful to anyone who needs to do something similar, or if any Gradle / Android Studio Jedi masters have any feedback like &ldquo;why did you do X, when you just could have done Y?&rdquo;</p>
+<p>and leave it running in the background.</p>
+
+<h2>Create a db</h2>
+
+<p>In another shell:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>curl -X PUT http://localhost:3133/testdb</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Write docs to db</h2>
+
+<p>This script will write json docs with random values for the purpose of visualization.</p>
+
+<p>Copy the following to <code>add_seriesly_docs.rb</code></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>#!/usr/bin/env ruby
+</span><span class='line'>
+</span><span class='line'>6000.times do |count|
+</span><span class='line'>  randomNumber = rand() # random number between 0 and 1
+</span><span class='line'>  cmd = "curl -X POST -d '{\"index\":#{randomNumber}}' http://localhost:3133/testdb"
+</span><span class='line'>  puts cmd
+</span><span class='line'>  system(cmd)
+</span><span class='line'>  system("sleep 1")
+</span><span class='line'>end</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and then run it</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>chmod +x add_seriesly_docs.rb && ./add_seriesly_docs.rb</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and let it continue running in the background.</p>
+
+<h2>Create a webserver</h2>
+
+<p>Create a directory:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>mkdir /tmp/seriesly-http/
+</span><span class='line'>cd /tmp/seriesly-http/</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Create <code>fileserver.go</code>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>package main
+</span><span class='line'>import "net/http"
+</span><span class='line'>func main() {
+</span><span class='line'>        panic(http.ListenAndServe(":8080", http.FileServer(http.Dir("/tmp/seriesly-http/"))))
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Run webserver:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>go run fileserver.go</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Download seriesly.html file</h2>
+
+<p>This is a file I wrote which uses seriesly as a metric data source for cubism.</p>
+
+<p>It&rsquo;s a quick hack, since I couldn&rsquo;t manage to get <a href="https://github.com/dustin/seriesly/blob/master/cubism/seriesism.js">seriesism.js</a> working.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>cd /tmp/seriesly-http/
+</span><span class='line'>wget https://gist.githubusercontent.com/tleyden/ec0c9be5786e0c0bd9ba/raw/1c08ea13b8ce46e08a49df19ad44c8e6a0ade896/seriesly.html</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Open seriesly.html</h2>
+
+<p>In your browser, point to <a href="http://localhost:8080/seriesly.html">http://localhost:8080/seriesly.html</a></p>
+
+<p>At this point, you should see the screenshot at the beginning of the blog post.</p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://github.com/dustin/seriesly">seriesly</a></li>
+<li><a href="http://dustin.sallings.org/2012/09/09/seriesly.html">seriesly blog post</a></li>
+<li><a href="https://sakamotomsh.wordpress.com/2014/05/12/the-simplest-example-of-cubism-js/">The simplest example of cubism</a></li>
+</ul>
+
 </div>
 
 
@@ -149,15 +238,21 @@
   
 
 
-<time datetime="2014-01-31T10:50:00-08:00" pubdate data-updated="true">Jan 31<span>st</span>, 2014</time>
+<time datetime="2015-03-03T16:53:00-08:00" pubdate data-updated="true">Mar 3<span>rd</span>, 2015</time>
       
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/cubism/'>cubism</a>, <a class='category' href='/blog/categories/seriesly/'>seriesly,</a>
+  
+</span>
 
 
     </p>
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2014/01/31/a-stubbed-out-gradle-multi-project-hierarchy-using-git-submodules/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2014/01/31/a-stubbed-out-gradle-multi-project-hierarchy-using-git-submodules/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2015/03/03/graphing-time-series-data-with-seriesly-and-cubism/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2015/03/03/graphing-time-series-data-with-seriesly-and-cubism/" >Tweet</a>
   
   
   
@@ -166,10 +261,8 @@
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2014/01/13/objective-c-coding-interview-challenge-urlpuller/" title="Previous Post: Objective C coding interview challenge: URLPuller">&laquo; Objective C coding interview challenge: URLPuller</a>
+        <a class="basic-alignment left" href="/blog/2015/01/23/running-a-walrus-backed-sync-gateway-on-aws/" title="Previous Post: Running a Walrus-backed Sync Gateway on AWS">&laquo; Running a Walrus-backed Sync Gateway on AWS</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2014/02/06/why-use-go-when-you-can-just-use-c-plus-plus/" title="Next Post: Why use Go when you can just use C++?">Why use Go when you can just use C++? &raquo;</a>
       
     </p>
   </footer>
@@ -278,8 +371,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://tleyden.github.io/blog/2014/01/31/a-stubbed-out-gradle-multi-project-hierarchy-using-git-submodules/';
-        var disqus_url = 'http://tleyden.github.io/blog/2014/01/31/a-stubbed-out-gradle-multi-project-hierarchy-using-git-submodules/';
+        var disqus_identifier = 'http://tleyden.github.io/blog/2015/03/03/graphing-time-series-data-with-seriesly-and-cubism/';
+        var disqus_url = 'http://tleyden.github.io/blog/2015/03/03/graphing-time-series-data-with-seriesly-and-cubism/';
         var disqus_script = 'embed.js';
       
     (function () {

@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-03-02T20:44:00-08:00</updated>
+  <updated>2015-03-04T16:48:57-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,132 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Graphing time series data with Seriesly and Cubism]]></title>
+    <link href="http://tleyden.github.io/blog/2015/03/03/graphing-time-series-data-with-seriesly-and-cubism/"/>
+    <updated>2015-03-03T16:53:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2015/03/03/graphing-time-series-data-with-seriesly-and-cubism</id>
+    <content type="html"><![CDATA[<p>This will walk you through the basics of putting data into <a href="https://github.com/dustin/seriesly">seriesly</a> and visualizing it with <a href="https://square.github.io/cubism/">cubism</a>.</p>
+
+<p>You will end up with this in your browser:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/seriesly-cubism.png" alt="screenshot" /></p>
+
+<h2>Install seriesly</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>go get -u -v -t github.com/dustin/seriesly</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Run seriesly</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>seriesly -flushDelay=1s -root=/tmp/seriesly-data</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and leave it running in the background.</p>
+
+<h2>Create a db</h2>
+
+<p>In another shell:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>curl -X PUT http://localhost:3133/testdb</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Write docs to db</h2>
+
+<p>This script will write json docs with random values for the purpose of visualization.</p>
+
+<p>Copy the following to <code>add_seriesly_docs.rb</code></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>#!/usr/bin/env ruby
+</span><span class='line'>
+</span><span class='line'>6000.times do |count|
+</span><span class='line'>  randomNumber = rand() # random number between 0 and 1
+</span><span class='line'>  cmd = "curl -X POST -d '{\"index\":#{randomNumber}}' http://localhost:3133/testdb"
+</span><span class='line'>  puts cmd
+</span><span class='line'>  system(cmd)
+</span><span class='line'>  system("sleep 1")
+</span><span class='line'>end</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and then run it</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>chmod +x add_seriesly_docs.rb && ./add_seriesly_docs.rb</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and let it continue running in the background.</p>
+
+<h2>Create a webserver</h2>
+
+<p>Create a directory:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>mkdir /tmp/seriesly-http/
+</span><span class='line'>cd /tmp/seriesly-http/</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Create <code>fileserver.go</code>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>package main
+</span><span class='line'>import "net/http"
+</span><span class='line'>func main() {
+</span><span class='line'>        panic(http.ListenAndServe(":8080", http.FileServer(http.Dir("/tmp/seriesly-http/"))))
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Run webserver:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>go run fileserver.go</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Download seriesly.html file</h2>
+
+<p>This is a file I wrote which uses seriesly as a metric data source for cubism.</p>
+
+<p>It&rsquo;s a quick hack, since I couldn&rsquo;t manage to get <a href="https://github.com/dustin/seriesly/blob/master/cubism/seriesism.js">seriesism.js</a> working.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>cd /tmp/seriesly-http/
+</span><span class='line'>wget https://gist.githubusercontent.com/tleyden/ec0c9be5786e0c0bd9ba/raw/1c08ea13b8ce46e08a49df19ad44c8e6a0ade896/seriesly.html</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Open seriesly.html</h2>
+
+<p>In your browser, point to <a href="http://localhost:8080/seriesly.html">http://localhost:8080/seriesly.html</a></p>
+
+<p>At this point, you should see the screenshot at the beginning of the blog post.</p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://github.com/dustin/seriesly">seriesly</a></li>
+<li><a href="http://dustin.sallings.org/2012/09/09/seriesly.html">seriesly blog post</a></li>
+<li><a href="https://sakamotomsh.wordpress.com/2014/05/12/the-simplest-example-of-cubism-js/">The simplest example of cubism</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Running a Walrus-backed Sync Gateway on AWS]]></title>
@@ -3136,93 +3262,6 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
 
 <ul>
 <li>All non-trivial changes should be done on feature branches and undergo code review before being merged into the master branch.</li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[A slight tweak on A Successful Git Branching Model]]></title>
-    <link href="http://tleyden.github.io/blog/2014/03/18/a-slight-tweak-on-a-successful-git-branching-model/"/>
-    <updated>2014-03-18T10:32:00-07:00</updated>
-    <id>http://tleyden.github.io/blog/2014/03/18/a-slight-tweak-on-a-successful-git-branching-model</id>
-    <content type="html"><![CDATA[<p>A great &ldquo;best practices&rdquo; for juggling git branches in a release cycle is <a href="http://nvie.com/posts/a-successful-git-branching-model/">A successful git branching model</a>.  It is also accompanied with a tool called <a href="https://github.com/nvie/gitflow">git flow</a> that makes it easy to implement in practice.</p>
-
-<p>It does however have one major issue: many people use a different naming scheme.</p>
-
-<p>Instead of:</p>
-
-<ul>
-<li><strong>Master</strong> &ndash; the latest &ldquo;stable&rdquo; branch</li>
-<li><strong>Development</strong> &ndash; bleeding edge development branch</li>
-</ul>
-
-
-<p>a slightly more common naming pattern is:</p>
-
-<ul>
-<li><strong>Master</strong> &ndash; bleeding edge development branch</li>
-<li><strong>Stable</strong> &ndash; the latest &ldquo;stable&rdquo; branch</li>
-</ul>
-
-
-<p>To that end, I&rsquo;ve tweaked the original diagram to be.</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/proposed_couchbaselite_branchingmodel.png" alt="diagram" /></p>
-
-<h2>Every branch solves a problem</h2>
-
-<p>The natural reaction to most people seeing this diagram is <em>dude, that&rsquo;s way too many branches, this is way more complicated than it needs to be</em>.  Actually, I&rsquo;d argue that it&rsquo;s minimally complex to solve the problems that these branches are designed to solve.  In other words, each type of branch justifies it&rsquo;s existence by the problem it&rsquo;s designed to solve.</p>
-
-<p>From the perspective of a library developer (in my case, <a href="https://github.com/couchbase/couchbase-lite-android">Couchbase Lite for Android</a>), here are the problems each branch is intended to solve.</p>
-
-<h3>Permanent and External Facing Branches</h3>
-
-<p><em>These branches are permanent, in the sense they have a continuous lifetime.  They are also external, and consumers of the library would typically depend on one or both of these branches</em></p>
-
-<p><strong>Master</strong></p>
-
-<ul>
-<li>A home for the latest &ldquo;feature complete&rdquo; / reviewed code.</li>
-<li>Anyone internal or external who wants to stay up to date with latest project developments needs this branch.</li>
-</ul>
-
-
-<p><strong>Stable</strong></p>
-
-<ul>
-<li>A home for the code that corresponds to the latest tagged release.</li>
-<li>This branch would be the basis for post-release bugfixes, eg an external developer who finds a bug in the latest release would send a pull request against this branch.</li>
-<li>Developers depending on this code directly in their app would likely point to this branch on their own stable branch.</li>
-</ul>
-
-
-<h3>Ephemeral and Internal Only Branches</h3>
-
-<p><em>These branches are emphemeral in nature, and are thrown away once they are no longer useful.  Developers consuming the library would typically ignore these</em></p>
-
-<p><strong>FeatureX</strong></p>
-
-<ul>
-<li>A place for in progress features to live without de-stabilizing the master branch.  Can be many of these.</li>
-</ul>
-
-
-<p><strong>Hotfix</strong></p>
-
-<ul>
-<li>An in progress fix would go here, where that fix is destined to be merged back into latest stable but not part of a new release that is branched off of master.</li>
-<li>While this hotfix is in progress, since these commits are not part of a tagged release, they cannot go on stable (yet), otherwise it would be a violation of the stable branch contract that says that stable reflects the latest tagged release.</li>
-<li>They could go directly on a &ldquo;local stable&rdquo; branch, which is only on the developers workstation, but that prevents sharing the branch or running CI unit tests against it, so it&rsquo;s not a good solution.</li>
-<li>NOTE: when hotfix merged, new release tagged simultaneously with a merge to stable, so the stable branch contract stays satisfied.</li>
-</ul>
-
-
-<p><strong>Release</strong></p>
-
-<ul>
-<li>During QA release process, need a place to QA and apply bugfixes, while isolated from destabilizing changes such as merging feature branches.</li>
-<li>Release branch allows feature branch merging to happen concurrently on master branch, which is especially crucial if release gets delayed.</li>
 </ul>
 
 ]]></content>

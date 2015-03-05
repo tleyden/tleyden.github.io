@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: cubism | Seven Story Rabbit Hole]]></title>
+  <link href="http://tleyden.github.io/blog/categories/cubism/atom.xml" rel="self"/>
+  <link href="http://tleyden.github.io/"/>
+  <updated>2015-03-04T16:48:57-08:00</updated>
+  <id>http://tleyden.github.io/</id>
+  <author>
+    <name><![CDATA[Traun Leyden]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Graphing time series data with Seriesly and Cubism]]></title>
+    <link href="http://tleyden.github.io/blog/2015/03/03/graphing-time-series-data-with-seriesly-and-cubism/"/>
+    <updated>2015-03-03T16:53:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2015/03/03/graphing-time-series-data-with-seriesly-and-cubism</id>
+    <content type="html"><![CDATA[<p>This will walk you through the basics of putting data into <a href="https://github.com/dustin/seriesly">seriesly</a> and visualizing it with <a href="https://square.github.io/cubism/">cubism</a>.</p>
+
+<p>You will end up with this in your browser:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/seriesly-cubism.png" alt="screenshot" /></p>
+
+<h2>Install seriesly</h2>
+
+<p><code>
+go get -u -v -t github.com/dustin/seriesly
+</code></p>
+
+<h2>Run seriesly</h2>
+
+<p><code>
+seriesly -flushDelay=1s -root=/tmp/seriesly-data
+</code></p>
+
+<p>and leave it running in the background.</p>
+
+<h2>Create a db</h2>
+
+<p>In another shell:</p>
+
+<p><code>
+curl -X PUT http://localhost:3133/testdb
+</code></p>
+
+<h2>Write docs to db</h2>
+
+<p>This script will write json docs with random values for the purpose of visualization.</p>
+
+<p>Copy the following to <code>add_seriesly_docs.rb</code></p>
+
+<p>```</p>
+
+<h1>!/usr/bin/env ruby</h1>
+
+<p>6000.times do |count|
+  randomNumber = rand() # random number between 0 and 1
+  cmd = &ldquo;curl -X POST -d &lsquo;{\"index\&rdquo;:#{randomNumber}}&rsquo; <a href="http://localhost:3133/testdb">http://localhost:3133/testdb</a>"
+  puts cmd
+  system(cmd)
+  system(&ldquo;sleep 1&rdquo;)
+end
+```</p>
+
+<p>and then run it</p>
+
+<p><code>
+chmod +x add_seriesly_docs.rb &amp;&amp; ./add_seriesly_docs.rb
+</code></p>
+
+<p>and let it continue running in the background.</p>
+
+<h2>Create a webserver</h2>
+
+<p>Create a directory:</p>
+
+<p><code>
+mkdir /tmp/seriesly-http/
+cd /tmp/seriesly-http/
+</code></p>
+
+<p>Create <code>fileserver.go</code>:</p>
+
+<p>```
+package main
+import &ldquo;net/http&rdquo;
+func main() {</p>
+
+<pre><code>    panic(http.ListenAndServe(":8080", http.FileServer(http.Dir("/tmp/seriesly-http/"))))
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Run webserver:</p>
+
+<p><code>
+go run fileserver.go
+</code></p>
+
+<h2>Download seriesly.html file</h2>
+
+<p>This is a file I wrote which uses seriesly as a metric data source for cubism.</p>
+
+<p>It&rsquo;s a quick hack, since I couldn&rsquo;t manage to get <a href="https://github.com/dustin/seriesly/blob/master/cubism/seriesism.js">seriesism.js</a> working.</p>
+
+<p><code>
+cd /tmp/seriesly-http/
+wget https://gist.githubusercontent.com/tleyden/ec0c9be5786e0c0bd9ba/raw/1c08ea13b8ce46e08a49df19ad44c8e6a0ade896/seriesly.html
+</code></p>
+
+<h2>Open seriesly.html</h2>
+
+<p>In your browser, point to <a href="http://localhost:8080/seriesly.html">http://localhost:8080/seriesly.html</a></p>
+
+<p>At this point, you should see the screenshot at the beginning of the blog post.</p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://github.com/dustin/seriesly">seriesly</a></li>
+<li><a href="http://dustin.sallings.org/2012/09/09/seriesly.html">seriesly blog post</a></li>
+<li><a href="https://sakamotomsh.wordpress.com/2014/05/12/the-simplest-example-of-cubism-js/">The simplest example of cubism</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>
