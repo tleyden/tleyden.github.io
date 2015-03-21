@@ -107,3 +107,4 @@ At this point, you should see the screenshot at the beginning of the blog post.
 * [seriesly](https://github.com/dustin/seriesly)
 * [seriesly blog post](http://dustin.sallings.org/2012/09/09/seriesly.html)
 * [The simplest example of cubism](https://sakamotomsh.wordpress.com/2014/05/12/the-simplest-example-of-cubism-js/)
+* [perfrunner-visualizer](https://github.com/couchbaselabs/perfrunner-visualizer)
