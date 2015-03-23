@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="This blog post is pretty out of date, you should check out Running Couchbase Cluster Under CoreOS on AWS instead This tutorial will show you how to &hellip;">
+  <meta name="description" content="If you need to debug the HTTP communication between a server and an Android app running in an emulator or device, here&rsquo;s some instructions on &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +72,102 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/11/20/debugging-http-traffic-in-android-apps-with-a-proxy/">Debugging HTTP Traffic in Android Apps With a Proxy</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-20T14:35:00-08:00" pubdate data-updated="true">Nov 20<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>If you need to debug the HTTP communication between a server and an Android app running in an emulator or device, here&rsquo;s some instructions on how I went about doing it.</p>
+
+<p>Here&rsquo;s the overall diagram of what&rsquo;s happening:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/android_proxy.png" alt="Diagram" /></p>
+
+<h2>Install a Proxy</h2>
+
+<p>I&rsquo;m using <a href="http://www.charlesproxy.com/">Charles Proxy</a> and highly recommend it.</p>
+
+<p>As far as proxy configuration, the defaults should be fine.  It should be listening on port 8888 and proxying everything.  If you need HTTPS, you might have to configure that, I don&rsquo;t remember if it&rsquo;s enabled by default.</p>
+
+<h2>Configure the Android Emulator to use that proxy</h2>
+
+<p>There is a blog that describes how to get to this screen, I don&rsquo;t have the link handy.  Essentially once you get to this screen, just update the ip to have the special 10.0.2.2 ip address which represents your workstation, and the port the proxy is listening on (port 8888).</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/android_emu_proxy_config.png" alt="Screenshot" /></p>
+
+<h2>Run an HTTP server on your workstation, on port 4984</h2>
+
+<p>Actually use any port you want, but in my case I&rsquo;m connecting to a server that runs on port 4984.</p>
+
+<h2>Configure your app to connect to 127.0.0.1:4984</h2>
+
+<p>This is actually a bit counterintuitive, but the idea is that the address must be reachable from the workstation&rsquo;s network, not from the emulator&rsquo;s network.</p>
+
+<p>So for that reason, if the server is running on the workstation, you would want to use 127.0.0.1 as the IP.</p>
+
+<p>As long as the server is reachable from your workstation, you can use that IP and it will go through the proxy.</p>
+
+<h2>View HTTP traffic in proxy</h2>
+
+<p>Here&rsquo;s what the HTTP JSON response looks like in the proxy:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/charles_proxy_screenshot.png" alt="Screenshot" /></p>
+
+<h2>If you are using the Genymotion emulator</h2>
+
+<p>The Genymotion emulator has a different method of modifying the proxy setting:</p>
+
+<p>In your virtual device:</p>
+
+<ul>
+<li>Go to Android settings menu</li>
+<li>In Wireless &amp; Networks section, select Wi-Fi</li>
+<li>Press and hold for 2 seconds WiredSSID network in the list</li>
+<li>Choose Modify Network</li>
+<li>Check Show advanced options</li>
+<li>Select Manual for Proxy settings menu entry</li>
+<li>Now enter the proxy settings provided by your network administrator
+
+<ul>
+<li>Ip: 10.0.3.2 (this is a special ip that Genymotion uses to connect back to the host)</li>
+<li>Port: 8888</li>
+</ul>
+</li>
+<li>Finally press the Save button</li>
+</ul>
+
+
+<p>If you don&rsquo;t have Genymotion running, you should check it out, it runs <em>much</em> faster than the default emulator.  <a href="http://tleyden.github.io/blog/2013/11/22/android-studio-plus-genymotion-emulator/">How to get Android Studio + Genymotion working</a></p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1112,6 +1208,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2015/03/21/nginx-proxy-for-sync-gateway-using-confd/">Nginx Proxy for Sync Gateway Using Confd</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/03/03/graphing-time-series-data-with-seriesly-and-cubism/">Graphing Time Series Data With Seriesly and Cubism</a>
       </li>
     
@@ -1125,10 +1225,6 @@
     
       <li class="post">
         <a href="/blog/2014/12/11/up-and-running-with-couchbase-lite-phonegap/">Up and Running With Couchbase Lite Phonegap Android on OSX</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/12/02/getting-started-with-go-and-protocol-buffers/">Getting Started With Go and Protocol Buffers</a>
       </li>
     
   </ul>

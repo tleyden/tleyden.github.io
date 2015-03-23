@@ -4,7 +4,7 @@
   <title><![CDATA[Category: cubism | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/cubism/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-03-04T16:48:57-08:00</updated>
+  <updated>2015-03-23T10:16:00-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -124,6 +124,7 @@ wget https://gist.githubusercontent.com/tleyden/ec0c9be5786e0c0bd9ba/raw/1c08ea1
 <li><a href="https://github.com/dustin/seriesly">seriesly</a></li>
 <li><a href="http://dustin.sallings.org/2012/09/09/seriesly.html">seriesly blog post</a></li>
 <li><a href="https://sakamotomsh.wordpress.com/2014/05/12/the-simplest-example-of-cubism-js/">The simplest example of cubism</a></li>
+<li><a href="https://github.com/couchbaselabs/perfrunner-visualizer">perfrunner-visualizer</a></li>
 </ul>
 
 ]]></content>

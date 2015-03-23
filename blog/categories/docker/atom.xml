@@ -4,7 +4,7 @@
   <title><![CDATA[Category: docker | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/docker/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-03-04T16:48:57-08:00</updated>
+  <updated>2015-03-23T10:16:00-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,141 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Nginx proxy for Sync Gateway using Confd]]></title>
+    <link href="http://tleyden.github.io/blog/2015/03/21/nginx-proxy-for-sync-gateway-using-confd/"/>
+    <updated>2015-03-21T15:25:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2015/03/21/nginx-proxy-for-sync-gateway-using-confd</id>
+    <content type="html"><![CDATA[<p>This will walk you through setting up Sync Gateway behind nginx.  The nginx conf will be auto generated based on Sync Gateway status.</p>
+
+<h3>Launch CoreOS instances on EC2</h3>
+
+<p><a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#cstack=sn%7ECouchbase-CoreOS%7Cturl%7Ehttp://tleyden-misc.s3.amazonaws.com/couchbase-coreos/sync_gateway.template"><img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"></a></p>
+
+<p>Recommended values:</p>
+
+<ul>
+<li><strong>ClusterSize</strong>: 3 nodes (default)</li>
+<li><strong>Discovery URL</strong>:  as it says, you need to grab a new token from <a href="https://discovery.etcd.io/new">https://discovery.etcd.io/new</a> and paste it in the box.</li>
+<li><strong>KeyPair</strong>: the name of the AWS keypair you want to use.  If you haven&rsquo;t already, you&rsquo;ll want to upload your local ssh key into AWS and create a named keypair.</li>
+</ul>
+
+
+<h3>Wait until instances are up</h3>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/cloud-formation-create-complete.png" alt="screenshot" /></p>
+
+<h3>ssh into a CoreOS instance</h3>
+
+<p>Go to the AWS console under EC2 instances and find the public ip of one of your newly launched CoreOS instances.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/ec2-instances-coreos.png" alt="screenshot" /></p>
+
+<p>Choose any one of them (it doesn&rsquo;t matter which), and ssh into it as the <strong>core</strong> user with the cert provided in the previous step:</p>
+
+<p><code>
+$ ssh -i aws.cer -A core@ec2-54-83-80-161.compute-1.amazonaws.com
+</code></p>
+
+<h2>Spin up Sync Gateway containers</h2>
+
+<p><code>
+$ etcdctl set /couchbase.com/enable-code-refresh
+$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go update-wrapper sync-gw-cluster launch-sgw --num-nodes=2 --config-url=http://git.io/hFwa --in-memory-db
+</code></p>
+
+<h2>Verify etcd entries</h2>
+
+<p><code>
+$ etcdctl ls --recursive /
+...
+/couchbase.com/sync-gw-node-state
+/couchbase.com/sync-gw-node-state/10.169.70.114
+/couchbase.com/sync-gw-node-state/10.231.220.110
+</code></p>
+
+<h2>Create data volume container</h2>
+
+<p><code>
+$ wget https://raw.githubusercontent.com/lordelph/confd-demo/master/confdata.service
+$ fleetctl start confdata.service
+</code></p>
+
+<h2>Launch sync-gateway-nginx-confd.service</h2>
+
+<p><code>
+$ wget https://raw.githubusercontent.com/lordelph/confd-demo/master/confd.service
+$ sed -i -e 's/lordelph\/confd-demo/tleyden5iwx\/sync-gateway-nginx-confd/' confd.service
+$ fleetctl start confd.service
+</code></p>
+
+<h2>Launch nginx service</h2>
+
+<p><code>
+$ wget https://raw.githubusercontent.com/lordelph/confd-demo/master/nginx.service
+$ fleetctl start nginx.service
+</code></p>
+
+<h2>Verify</h2>
+
+<p>Try a basic http get.</p>
+
+<p><code>
+$ nginx_ip=`fleetctl list-units | grep -i nginx | awk '{print $2}' | awk -F/ '{print $2}'`
+$ curl $nginx_ip
+{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/master(a47a17f)"}
+</code></p>
+
+<p>Add &lsquo;-v&rsquo; flag to see which Sync Gateway server is servicing the request</p>
+
+<p><code>
+$ curl -v $nginx_ip
+...
+X-Handler: 10.231.220.110:4984
+...
+</code></p>
+
+<p>If you repeat that a few more times, you should see different ip addresses for the handler.</p>
+
+<p><strong>Take a sync gateway out of rotation</strong></p>
+
+<p><code>
+$ fleetctl stop sync_gw_node@1.service sync_gw_sidekick@1.service
+</code></p>
+
+<p>Now try hitting nginx again, and should not see the Sync Gw that you just shutdown as a handler.</p>
+
+<p><code>
+$ curl -v $nginx_ip
+...
+X-Handler: 10.231.220.114:4984
+...
+</code></p>
+
+<p><strong>Put sync gateway back into rotation</strong></p>
+
+<p><code>
+$ fleetctl start sync_gw_node@1.service sync_gw_sidekick@1.service
+</code></p>
+
+<p>Now try hitting nginx again, and should not see the Sync Gw that you just restarted as being a handler.</p>
+
+<p><code>
+$ curl -v $nginx_ip
+...
+X-Handler: 10.231.220.110:4984
+...
+</code></p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="http://blog.dixo.net/2015/02/load-balancing-with-coreos">http://blog.dixo.net/2015/02/load-balancing-with-coreos</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Running a CBFS cluster on CoreOS]]></title>
@@ -734,112 +869,6 @@ I1018 17:17:58.684598    66 caffe.cpp:102] Optimization Done.
 <li><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">CUDA 6.5 on AWS GPU Instance Running Ubuntu 14.04</a></li>
 </ul>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Running couchbase cluster under docker]]></title>
-    <link href="http://tleyden.github.io/blog/2013/11/14/running-couchbase-cluster-under-docker/"/>
-    <updated>2013-11-14T15:45:00-08:00</updated>
-    <id>http://tleyden.github.io/blog/2013/11/14/running-couchbase-cluster-under-docker</id>
-    <content type="html"><![CDATA[<p><strong>This blog post is pretty out of date, you should check out <a href="http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/">Running Couchbase Cluster Under CoreOS on AWS</a> instead</strong></p>
-
-<p>This tutorial will show you how to run a cluster of Couchbase Servers, where each node is running inside of a docker image.</p>
-
-<p><img src="http://cl.ly/image/2G0h381N3o42/docker%20couchbase%20cluster.png" alt="Diagram" /></p>
-
-<p>This probably looks like <em>a lot</em> of layers, and you might be wondering if this will make your system crawl &mdash; but bear in mind that the Docker virtualization model is very lightweight, and so basically everything under CoreOS has very little resource overhead.</p>
-
-<h2>Install Docker and dependencies</h2>
-
-<p>If you are on OSX and don&rsquo;t have Docker installed, check out <a href="http://tleyden.github.io/blog/2013/11/12/docker-on-osx/">Install Docker on OSX</a> before proceeding.</p>
-
-<h2>Edit vagrant file to add port mappings</h2>
-
-<p>In order to access all the Couchbase Server nodes from the host, <em>which doesn&rsquo;t currently work</em>, you would need to add the following entries to your Vagrantfile:</p>
-
-<p><code>
-config.vm.network "forwarded_port", guest: 8091, host: 8091
-config.vm.network "forwarded_port", guest: 8092, host: 8092
-config.vm.network "forwarded_port", guest: 11210, host: 11210
-</code></p>
-
-<p>As mentioned, accessing all of the Couchbase Server nodes from the host does not currently work.  However, I think at least some of these entries are needed, so to be on the safe side just add all of them.</p>
-
-<h2>Start CoreOS and ssh in</h2>
-
-<p>Execute the following commands in the directory where you have your CoreOS Vagrantfile.  In my case, I have it under <code>~/Tools/coreos-vagrant</code> and it contains a Vagrantfile, a README.md file, and a few others.</p>
-
-<p>Start CoreOS</p>
-
-<p><code>
-$ vagrant up
-</code></p>
-
-<p>SSH into CoreOS</p>
-
-<p><code>
-$ vagrant ssh
-</code></p>
-
-<h2>Start docker image for a single node</h2>
-
-<p>Here&rsquo;s how to fire up the first docker image</p>
-
-<p><code>
-docker run -i -t -d -p 11210:11210 -p 8091:7081 -p 8092:8092 dustin/couchbase:latest
-</code>
-and you should see:</p>
-
-<p><code>
-Unable to find image 'dustin/couchbase:latest' (tag: latest) locally
-Pulling repository dustin/couchbase
-9e0279ab340d: Download complete
-...
-845987ce946b
-</code></p>
-
-<p>Find the name of the docker instance by running <code>$ docker ps</code></p>
-
-<p><code>
-core@localhost ~ $ docker ps
-CONTAINER ID        IMAGE                     COMMAND                CREATED              STATUS              PORTS                                                                      NAMES
-845987ce946b        dustin/couchbase:latest   /bin/sh -c /usr/loca   About a minute ago   Up About a minute   0.0.0.0:11210-&gt;11210/tcp, 0.0.0.0:8091-&gt;7081/tcp, 0.0.0.0:8092-&gt;8092/tcp   purple_kangaroo
-</code></p>
-
-<p>In this case it&rsquo;s <em>purple_kangaroo</em>.</p>
-
-<p>Now take a look at the logs for that docker instance:</p>
-
-<p><code>
-core@localhost ~ $ docker logs purple_kangaroo
-/opt/couchbase/etc/couchbase_init.d: 45: ulimit: error setting limit (Operation not permitted)
-/opt/couchbase/etc/couchbase_init.d: 47: ulimit: error setting limit (Operation not permitted)
- * Started couchbase-server
-Starting cluster
-SUCCESS: init 127.0.0.1
-SUCCESS: bucket-create
-</code></p>
-
-<p>If you only want to run one Couchbase Server node, you are pretty much done and you can skip to the section below to login to the Couchbase Server admin</p>
-
-<p>If you want to run a cluster of Couchbase Server nodes, read on.</p>
-
-<h2>Start docker images for other nodes</h2>
-
-<p><code>
-$ docker run -i -t -d -link purple_kangaroo:alpha dustin/couchbase:latest
-</code></p>
-
-<p>This will start another node that is linked to the initial node, and will be in the same cluster.  There is some Weird Magic behind the scenes that makes that all work.</p>
-
-<h1>Go to Couchbase Server admin</h1>
-
-<p>Open <a href="http://localhost:8091/">http://localhost:8091/</a> in your browser, and you should see a login screen, where the default credentials are Administrator/password.</p>
-
-<p>After you login, you should see the Admin UI with three nodes in your cluster:</p>
-
-<p><img src="http://cl.ly/image/2K3i1v2w3H0E/Screen%20Shot%202013-11-14%20at%204.47.18%20PM.png" alt="Screenshot" /></p>
 ]]></content>
   </entry>
   

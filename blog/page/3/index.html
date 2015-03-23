@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="A great &ldquo;best practices&rdquo; for juggling git branches in a release cycle is A successful git branching model. It is also accompanied with a &hellip;">
+  <meta name="description" content="This further extends A Slight Tweak on a Successful Git Branching Model with the addition of the concept of support branches. Release Branches When &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +72,105 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/04/09/a-successful-git-branching-model-with-enterprise-support/">A Successful Git Branching Model With Enterprise Support</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-04-09T11:39:00-07:00" pubdate data-updated="true">Apr 9<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>This further extends <a href="http://tleyden.github.io/blog/2014/03/18/a-slight-tweak-on-a-successful-git-branching-model/">A Slight Tweak on a Successful Git Branching Model</a> with the addition of the concept of support branches.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/release-branching-strategy.png" alt="diagram" /></p>
+
+<h2>Release Branches</h2>
+
+<ul>
+<li><p>When completed the release branch would be merged into both the master and stable branches, the commit on the stable branch would be tagged with a release tag (eg, 1.0.0).</p></li>
+<li><p>The release branch would be discarded after being merged back into master and stable.</p></li>
+<li><p>Release branches would be named “release/xxx”, where xxx is the target release tag for that release.  Eg, “release/1.0.0”.</p></li>
+<li><p>Release branches should only have bugfixes related to the release being committed to them.  All other changes should be on feature branches or the master branch, isolated from the release process.</p></li>
+<li><p>Release branches would help avoid making developers having to “double-commit” bugfixes related to a release to both the release branch and the master branch &mdash; because the release branch will be merged into master at the time of release, they only need to commit the fix to the release branch.</p></li>
+<li><p>Release branches should be periodically merged back into the master branch if they run longer than normal (eg, if it was expected to last 3 weeks and ended up lasting 8 weeks), rather than waiting until the time of release.  This will reduce the chance of having major merge conflicts trying to merge back into master.</p></li>
+<li><p>When a release is ready to be tagged, if the release branch does not easily merge into master, it is up to the dev lead on that team to handle the merge (not the build engineer).  In this case, the build engineer should not be blocked, because the merge into stable will be a fast-forward merge, and so the release can proceed despite not having been merged into master yet.</p></li>
+</ul>
+
+
+<h2>Support Branches</h2>
+
+<ul>
+<li><p>Support branches would be created “on demand” when requested by customers who are stuck on legacy releases and are not able to move forward to current releases, but need security and other bug fixes.</p></li>
+<li><p>Support branches should be avoided if possible, by encouraging customers to move to the current release, because they create extra work for the entire team.</p></li>
+<li><p>Support branches would follow a similar naming scheme and would be named “support/xxx”, where xxx is the release tag from which they were branched off of.  Eg, “support/1.0.1”.</p></li>
+<li><p>Support branches are essentially dead-end branches, since their changes would unlikely need to be merged back into master (or stable) as the support branch contains “ancient code” and most likely those fixes would already have been integrated into the codebase.</p></li>
+<li><p>If a customer is on the current release, then there is no need to create a support branch for their required fix.  Instead, a hotfix branch should be used and a new release tag should be created.</p></li>
+</ul>
+
+
+<h2>Hotfix Branches</h2>
+
+<ul>
+<li><p>Hotfix branches would branch off of the stable branch, and be used for minor post-release bugfixes.</p></li>
+<li><p>Hotfix branches would be named “hotfix/xxx”, where xxx might typically be an issue id.  Once their changes have been merged into master and stable, they should be deleted.</p></li>
+<li><p>Hotfix branches are expected to undergo less QA compared to release branches, and therefore are expected to contain minimum changes to fix showstopper bugs in a release.   The changes should not include refactoring or any other risky changes.</p></li>
+<li><p>If it’s being branched off the master branch, it’s not a hotfix branch.  Hotfixes are only branched off the stable branch.</p></li>
+<li><p>Hotfix branches should verified on the CI server using the automated QA suite before being considered complete.</p></li>
+<li><p>After being accepted by QA, hotfix branches are merged back into master and stable, and the latest commit on stable is tagged with a release tag.  (eg, 1.0.1)</p></li>
+<li><p>Similar to release branches, if hotfixes do not easily merge back into master, the build engineer would assign the dev lead the responsibility for completing the merge, but this should not block the release.  However since hotfix branches are so short-lived, this is very unlikely to happen.</p></li>
+</ul>
+
+
+<h2>Stable Branch</h2>
+
+<ul>
+<li><p>The stable branch would represent the “released” mainline development.</p></li>
+<li><p>The latest commit on stable should always correspond to the latest release tag.</p></li>
+<li><p>All release tags should be made against commits on stable, except for those on legacy support branches.</p></li>
+<li><p>Developers who wanted to subscribe to the latest released code would follow the stable branch.</p></li>
+</ul>
+
+
+<h2>Master Branch</h2>
+
+<ul>
+<li>The master branch would represent the “as-yet-unreleased” mainline development.</li>
+</ul>
+
+
+<h2>Feature Branches</h2>
+
+<ul>
+<li>All non-trivial changes should be done on feature branches and undergo code review before being merged into the master branch.</li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1163,102 +1262,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/11/20/debugging-http-traffic-in-android-apps-with-a-proxy/">Debugging HTTP Traffic in Android Apps With a Proxy</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-11-20T14:35:00-08:00" pubdate data-updated="true">Nov 20<span>th</span>, 2013</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>If you need to debug the HTTP communication between a server and an Android app running in an emulator or device, here&rsquo;s some instructions on how I went about doing it.</p>
-
-<p>Here&rsquo;s the overall diagram of what&rsquo;s happening:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/android_proxy.png" alt="Diagram" /></p>
-
-<h2>Install a Proxy</h2>
-
-<p>I&rsquo;m using <a href="http://www.charlesproxy.com/">Charles Proxy</a> and highly recommend it.</p>
-
-<p>As far as proxy configuration, the defaults should be fine.  It should be listening on port 8888 and proxying everything.  If you need HTTPS, you might have to configure that, I don&rsquo;t remember if it&rsquo;s enabled by default.</p>
-
-<h2>Configure the Android Emulator to use that proxy</h2>
-
-<p>There is a blog that describes how to get to this screen, I don&rsquo;t have the link handy.  Essentially once you get to this screen, just update the ip to have the special 10.0.2.2 ip address which represents your workstation, and the port the proxy is listening on (port 8888).</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/android_emu_proxy_config.png" alt="Screenshot" /></p>
-
-<h2>Run an HTTP server on your workstation, on port 4984</h2>
-
-<p>Actually use any port you want, but in my case I&rsquo;m connecting to a server that runs on port 4984.</p>
-
-<h2>Configure your app to connect to 127.0.0.1:4984</h2>
-
-<p>This is actually a bit counterintuitive, but the idea is that the address must be reachable from the workstation&rsquo;s network, not from the emulator&rsquo;s network.</p>
-
-<p>So for that reason, if the server is running on the workstation, you would want to use 127.0.0.1 as the IP.</p>
-
-<p>As long as the server is reachable from your workstation, you can use that IP and it will go through the proxy.</p>
-
-<h2>View HTTP traffic in proxy</h2>
-
-<p>Here&rsquo;s what the HTTP JSON response looks like in the proxy:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/charles_proxy_screenshot.png" alt="Screenshot" /></p>
-
-<h2>If you are using the Genymotion emulator</h2>
-
-<p>The Genymotion emulator has a different method of modifying the proxy setting:</p>
-
-<p>In your virtual device:</p>
-
-<ul>
-<li>Go to Android settings menu</li>
-<li>In Wireless &amp; Networks section, select Wi-Fi</li>
-<li>Press and hold for 2 seconds WiredSSID network in the list</li>
-<li>Choose Modify Network</li>
-<li>Check Show advanced options</li>
-<li>Select Manual for Proxy settings menu entry</li>
-<li>Now enter the proxy settings provided by your network administrator
-
-<ul>
-<li>Ip: 10.0.3.2 (this is a special ip that Genymotion uses to connect back to the host)</li>
-<li>Port: 8888</li>
-</ul>
-</li>
-<li>Finally press the Save button</li>
-</ul>
-
-
-<p>If you don&rsquo;t have Genymotion running, you should check it out, it runs <em>much</em> faster than the default emulator.  <a href="http://tleyden.github.io/blog/2013/11/22/android-studio-plus-genymotion-emulator/">How to get Android Studio + Genymotion working</a></p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/4/">&larr; Older</a>
@@ -1287,6 +1290,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2015/03/21/nginx-proxy-for-sync-gateway-using-confd/">Nginx Proxy for Sync Gateway Using Confd</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/03/03/graphing-time-series-data-with-seriesly-and-cubism/">Graphing Time Series Data With Seriesly and Cubism</a>
       </li>
     
@@ -1300,10 +1307,6 @@
     
       <li class="post">
         <a href="/blog/2014/12/11/up-and-running-with-couchbase-lite-phonegap/">Up and Running With Couchbase Lite Phonegap Android on OSX</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/12/02/getting-started-with-go-and-protocol-buffers/">Getting Started With Go and Protocol Buffers</a>
       </li>
     
   </ul>
