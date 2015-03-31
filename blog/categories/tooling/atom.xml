@@ -4,7 +4,7 @@
   <title><![CDATA[Category: tooling | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/tooling/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-03-31T08:50:28-07:00</updated>
+  <updated>2015-03-31T09:20:29-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -102,7 +102,7 @@ COVERALLS_TOKEN=&lt;coveralls_repo_token&gt;
 <p><code>
 go get github.com/axw/gocov/gocov
 go get github.com/mattn/goveralls
-goveralls -service drone.io -repotoken &lt;coveralls_repo_token&gt;
+goveralls -service drone.io -repotoken $COVERALLS_TOKEN
 </code></p>
 
 <p>Here&rsquo;s what it should look like:</p>
