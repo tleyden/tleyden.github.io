@@ -4,7 +4,7 @@
   <title><![CDATA[Category: nginx | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/nginx/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-03-23T10:16:00-07:00</updated>
+  <updated>2015-03-31T08:35:28-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -52,7 +52,7 @@ $ ssh -i aws.cer -A core@ec2-54-83-80-161.compute-1.amazonaws.com
 <h2>Spin up Sync Gateway containers</h2>
 
 <p><code>
-$ etcdctl set /couchbase.com/enable-code-refresh
+$ etcdctl set /couchbase.com/enable-code-refresh true
 $ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go update-wrapper sync-gw-cluster launch-sgw --num-nodes=2 --config-url=http://git.io/hFwa --in-memory-db
 </code></p>
 
@@ -130,7 +130,7 @@ X-Handler: 10.231.220.114:4984
 $ fleetctl start sync_gw_node@1.service sync_gw_sidekick@1.service
 </code></p>
 
-<p>Now try hitting nginx again, and should not see the Sync Gw that you just restarted as being a handler.</p>
+<p>Now try hitting nginx again, and should again see the Sync Gw that you just restarted as being a handler.</p>
 
 <p><code>
 $ curl -v $nginx_ip

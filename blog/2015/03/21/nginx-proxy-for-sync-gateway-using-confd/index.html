@@ -133,7 +133,7 @@
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ etcdctl set /couchbase.com/enable-code-refresh
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ etcdctl set /couchbase.com/enable-code-refresh true
 </span><span class='line'>$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go update-wrapper sync-gw-cluster launch-sgw --num-nodes=2 --config-url=http://git.io/hFwa --in-memory-db</span></code></pre></td></tr></table></div></figure>
 
 
@@ -227,7 +227,7 @@
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ fleetctl start sync_gw_node@1.service sync_gw_sidekick@1.service</span></code></pre></td></tr></table></div></figure>
 
 
-<p>Now try hitting nginx again, and should not see the Sync Gw that you just restarted as being a handler.</p>
+<p>Now try hitting nginx again, and should again see the Sync Gw that you just restarted as being a handler.</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -293,6 +293,8 @@
         <a class="basic-alignment left" href="/blog/2015/03/03/graphing-time-series-data-with-seriesly-and-cubism/" title="Previous Post: Graphing time series data with Seriesly and Cubism">&laquo; Graphing time series data with Seriesly and Cubism</a>
       
       
+        <a class="basic-alignment right" href="/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io/" title="Next Post: Test coverage for Go with drone.io and coveralls.io">Test coverage for Go with drone.io and coveralls.io &raquo;</a>
+      
     </p>
   </footer>
 </article>
@@ -323,6 +325,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io/">Test Coverage for Go With drone.io and coveralls.io</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/03/21/nginx-proxy-for-sync-gateway-using-confd/">Nginx Proxy for Sync Gateway Using Confd</a>
       </li>
     
@@ -336,10 +342,6 @@
     
       <li class="post">
         <a href="/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws/">Running a Sync Gateway Cluster Under CoreOS on AWS</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/12/11/up-and-running-with-couchbase-lite-phonegap/">Up and Running With Couchbase Lite Phonegap Android on OSX</a>
       </li>
     
   </ul>

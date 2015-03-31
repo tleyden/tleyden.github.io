@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Graphing time series data with Seriesly and Cubism - Seven Story Rabbit Hole</title>
+  <title>Test coverage for Go with drone.io and coveralls.io - Seven Story Rabbit Hole</title>
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="This will walk you through the basics of putting data into seriesly and visualizing it with cubism. You will end up with this in your browser: &hellip;">
+  <meta name="description" content="This will walk you through setting up a test coverage report on coveralls.io which will be updated every time a new build happens on the drone.io &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://tleyden.github.io/blog/2015/03/03/graphing-time-series-data-with-seriesly-and-cubism">
+  <link rel="canonical" href="http://tleyden.github.io/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
@@ -75,7 +75,7 @@
   
   <header>
     
-      <h1 class="entry-title">Graphing Time Series Data With Seriesly and Cubism</h1>
+      <h1 class="entry-title">Test Coverage for Go With drone.io and coveralls.io</h1>
     
     
       <p class="meta">
@@ -91,46 +91,53 @@
   
 
 
-<time datetime="2015-03-03T16:53:00-08:00" pubdate data-updated="true">Mar 3<span>rd</span>, 2015</time>
+<time datetime="2015-03-31T07:26:00-07:00" pubdate data-updated="true">Mar 31<span>st</span>, 2015</time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><p>This will walk you through the basics of putting data into <a href="https://github.com/dustin/seriesly">seriesly</a> and visualizing it with <a href="https://square.github.io/cubism/">cubism</a>.</p>
+<div class="entry-content"><p>This will walk you through setting up a test coverage report on coveralls.io which will be updated every time a new build happens on the drone.io continuous integration server.</p>
 
-<p>You will end up with this in your browser:</p>
+<p>I&rsquo;m going to use the <a href="https://github.com/couchbaselabs/sg-replicate">couchbaselabs/sg-replicate</a> repo as an example.  Currently there is no test coverage statistics for this repo, and the goal is to end up with a badge that points to test coverage statistics on coveralls.io.</p>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/seriesly-cubism.png" alt="screenshot" /></p>
-
-<h2>Install seriesly</h2>
+<h2>Clone the repo</h2>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>go get -u -v -t github.com/dustin/seriesly</span></code></pre></td></tr></table></div></figure>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ git clone https://github.com/couchbaselabs/sg-replicate.git
+</span><span class='line'>$ cd sg-replicate</span></code></pre></td></tr></table></div></figure>
 
 
-<h2>Run seriesly</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>seriesly -flushDelay=1s -root=/tmp/seriesly-data</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and leave it running in the background.</p>
-
-<h2>Create a db</h2>
-
-<p>In another shell:</p>
+<h2>Test coverage command line stats</h2>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>curl -X PUT http://localhost:3133/testdb</span></code></pre></td></tr></table></div></figure>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go test -cover
+</span><span class='line'>go tool: no such tool "cover"; to install:
+</span><span class='line'>  go get golang.org/x/tools/cmd/cover
+</span></code></pre></td></tr></table></div></figure>
 
 
-<h2>Write docs to db</h2>
+<p>Try again:</p>
 
-<p>This script will write json docs with random values for the purpose of visualization.</p>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go get golang.org/x/tools/cmd/cover && go test -cover
+</span><span class='line'>PASS
+</span><span class='line'>coverage: 69.4% of statements
+</span><span class='line'>ok    github.com/couchbaselabs/sg-replicate   0.156s</span></code></pre></td></tr></table></div></figure>
 
-<p>Copy the following to <code>add_seriesly_docs.rb</code></p>
+
+<p>Ouch, 69.4% is barely a C-. (if you round up!)</p>
+
+<h2>Coverage breakdown</h2>
+
+<p>Text report:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -138,83 +145,96 @@
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>#!/usr/bin/env ruby
-</span><span class='line'>
-</span><span class='line'>6000.times do |count|
-</span><span class='line'>  randomNumber = rand() # random number between 0 and 1
-</span><span class='line'>  cmd = "curl -X POST -d '{\"index\":#{randomNumber}}' http://localhost:3133/testdb"
-</span><span class='line'>  puts cmd
-</span><span class='line'>  system(cmd)
-</span><span class='line'>  system("sleep 1")
-</span><span class='line'>end</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go test -coverprofile=coverage.out 
+</span><span class='line'>$ go tool cover -func=coverage.out
+</span><span class='line'>github.com/couchbaselabs/sg-replicate/attachment.go:15:           NewAttachment           84.6%
+</span><span class='line'>github.com/couchbaselabs/sg-replicate/changes_feed_parameters.go:20:  NewChangesFeedParams        100.0%
+</span><span class='line'>github.com/couchbaselabs/sg-replicate/changes_feed_parameters.go:30:  FeedType            100.0%
+</span><span class='line'>github.com/couchbaselabs/sg-replicate/changes_feed_parameters.go:34:  Limit               100.0%</span></code></pre></td></tr></table></div></figure>
 
 
-<p>and then run it</p>
+<p>HTML report:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_coverage_html.png" alt="html report" /></p>
+
+<h2>Coveralls.io setup</h2>
+
+<ul>
+<li>Login to coveralls.io</li>
+<li>Create a new repo</li>
+<li>Get the repo token from the <strong>SET UP COVERALLS</strong> section</li>
+</ul>
+
+
+<p>At this point, your empty coveralls repo will look something like this:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/coveralls_empty_repo.png" alt="empty coveralls repo" /></p>
+
+<h2>Configure Drone.io + Goveralls</h2>
+
+<p>If you have not already done so, setup a drone.io build for your repo.</p>
+
+<p>On the drone.io <strong>Settings</strong> page, make the following changes:</p>
+
+<p><strong>Environment Variables</strong></p>
+
+<p>In the Environment Variables section of the web ui, add:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>chmod +x add_seriesly_docs.rb && ./add_seriesly_docs.rb</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>COVERALLS_TOKEN=&lt;coveralls_repo_token&gt;</span></code></pre></td></tr></table></div></figure>
 
 
-<p>and let it continue running in the background.</p>
+<p><strong>Commands</strong></p>
 
-<h2>Create a webserver</h2>
-
-<p>Create a directory:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>mkdir /tmp/seriesly-http/
-</span><span class='line'>cd /tmp/seriesly-http/</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Create <code>fileserver.go</code>:</p>
+<p>In the commands section, you can replace your existing <code>go test</code> call with:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>package main
-</span><span class='line'>import "net/http"
-</span><span class='line'>func main() {
-</span><span class='line'>        panic(http.ListenAndServe(":8080", http.FileServer(http.Dir("/tmp/seriesly-http/"))))
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>go get github.com/axw/gocov/gocov
+</span><span class='line'>go get github.com/mattn/goveralls
+</span><span class='line'>goveralls -service drone.io -repotoken &lt;coveralls_repo_token&gt;</span></code></pre></td></tr></table></div></figure>
 
 
-<p>Run webserver:</p>
+<p>Here&rsquo;s what it should look like:</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>go run fileserver.go</span></code></pre></td></tr></table></div></figure>
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/drone_io_coverage.png" alt="drone io ui" /></p>
 
+<h2>Kick off a build</h2>
 
-<h2>Download seriesly.html file</h2>
+<p>Go to the drone.io project page for your repo, and hit <strong>Build Now</strong></p>
 
-<p>This is a file I wrote which uses seriesly as a metric data source for cubism.</p>
-
-<p>It&rsquo;s a quick hack, since I couldn&rsquo;t manage to get <a href="https://github.com/dustin/seriesly/blob/master/cubism/seriesism.js">seriesism.js</a> working.</p>
+<p>At the bottom of the build output, you should see:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>cd /tmp/seriesly-http/
-</span><span class='line'>wget https://gist.githubusercontent.com/tleyden/ec0c9be5786e0c0bd9ba/raw/1c08ea13b8ce46e08a49df19ad44c8e6a0ade896/seriesly.html</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Job #1.1
+</span><span class='line'>https://coveralls.io/jobs/5189501</span></code></pre></td></tr></table></div></figure>
 
 
-<h2>Open seriesly.html</h2>
+<p>If you follow the link, you should see something like:</p>
 
-<p>In your browser, point to <a href="http://localhost:8080/seriesly.html">http://localhost:8080/seriesly.html</a></p>
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/coveralls_sgreplicate.png" alt="coveralls report" /></p>
 
-<p>At this point, you should see the screenshot at the beginning of the blog post.</p>
+<p>Looks like we just went from a C- to a B!  I have no idea why the coverage improved, but I&rsquo;ll take it.</p>
+
+<h2>Add a badge, call it a day</h2>
+
+<p>On the coveralls.io project page for your repo, you should see a button near the top called <strong>Badge URLS</strong>.  Click and copy/paste the markdown, which should look something like this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[![Coverage Status](https://coveralls.io/repos/couchbaselabs/sg-replicate/badge.svg?branch=master)](https://coveralls.io/r/couchbaselabs/sg-replicate?branch=master)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And add it to your project&rsquo;s README.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/sg_replicate_badges.png" alt="badges" /></p>
 
 <h2>References</h2>
 
 <ul>
-<li><a href="https://github.com/dustin/seriesly">seriesly</a></li>
-<li><a href="http://dustin.sallings.org/2012/09/09/seriesly.html">seriesly blog post</a></li>
-<li><a href="https://sakamotomsh.wordpress.com/2014/05/12/the-simplest-example-of-cubism-js/">The simplest example of cubism</a></li>
-<li><a href="https://github.com/couchbaselabs/perfrunner-visualizer">perfrunner-visualizer</a></li>
+<li><a href="https://blog.golang.org/cover">https://blog.golang.org/cover</a></li>
+<li><a href="https://github.com/mattn/goveralls">https://github.com/mattn/goveralls</a></li>
 </ul>
 
 </div>
@@ -239,12 +259,12 @@
   
 
 
-<time datetime="2015-03-03T16:53:00-08:00" pubdate data-updated="true">Mar 3<span>rd</span>, 2015</time>
+<time datetime="2015-03-31T07:26:00-07:00" pubdate data-updated="true">Mar 31<span>st</span>, 2015</time>
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/cubism/'>cubism</a>, <a class='category' href='/blog/categories/seriesly/'>seriesly,</a>
+    <a class='category' href='/blog/categories/golang/'>golang</a>, <a class='category' href='/blog/categories/testing/'>testing</a>, <a class='category' href='/blog/categories/tooling/'>tooling</a>
   
 </span>
 
@@ -253,7 +273,7 @@
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2015/03/03/graphing-time-series-data-with-seriesly-and-cubism/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2015/03/03/graphing-time-series-data-with-seriesly-and-cubism/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io/" >Tweet</a>
   
   
   
@@ -262,10 +282,8 @@
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2015/01/23/running-a-walrus-backed-sync-gateway-on-aws/" title="Previous Post: Running a Walrus-backed Sync Gateway on AWS">&laquo; Running a Walrus-backed Sync Gateway on AWS</a>
+        <a class="basic-alignment left" href="/blog/2015/03/21/nginx-proxy-for-sync-gateway-using-confd/" title="Previous Post: Nginx proxy for Sync Gateway using Confd">&laquo; Nginx proxy for Sync Gateway using Confd</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2015/03/21/nginx-proxy-for-sync-gateway-using-confd/" title="Next Post: Nginx proxy for Sync Gateway using Confd">Nginx proxy for Sync Gateway using Confd &raquo;</a>
       
     </p>
   </footer>
@@ -374,8 +392,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://tleyden.github.io/blog/2015/03/03/graphing-time-series-data-with-seriesly-and-cubism/';
-        var disqus_url = 'http://tleyden.github.io/blog/2015/03/03/graphing-time-series-data-with-seriesly-and-cubism/';
+        var disqus_identifier = 'http://tleyden.github.io/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io/';
+        var disqus_url = 'http://tleyden.github.io/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io/';
         var disqus_script = 'embed.js';
       
     (function () {

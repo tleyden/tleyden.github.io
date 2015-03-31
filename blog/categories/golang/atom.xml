@@ -4,7 +4,7 @@
   <title><![CDATA[Category: golang | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/golang/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-03-23T10:16:00-07:00</updated>
+  <updated>2015-03-31T08:35:28-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,141 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Test coverage for Go with drone.io and coveralls.io]]></title>
+    <link href="http://tleyden.github.io/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io/"/>
+    <updated>2015-03-31T07:26:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io</id>
+    <content type="html"><![CDATA[<p>This will walk you through setting up a test coverage report on coveralls.io which will be updated every time a new build happens on the drone.io continuous integration server.</p>
+
+<p>I&rsquo;m going to use the <a href="https://github.com/couchbaselabs/sg-replicate">couchbaselabs/sg-replicate</a> repo as an example.  Currently there is no test coverage statistics for this repo, and the goal is to end up with a badge that points to test coverage statistics on coveralls.io.</p>
+
+<h2>Clone the repo</h2>
+
+<p><code>
+$ git clone https://github.com/couchbaselabs/sg-replicate.git
+$ cd sg-replicate
+</code></p>
+
+<h2>Test coverage command line stats</h2>
+
+<p>```
+$ go test -cover
+go tool: no such tool &ldquo;cover&rdquo;; to install:</p>
+
+<pre><code>go get golang.org/x/tools/cmd/cover
+</code></pre>
+
+<p>```</p>
+
+<p>Try again:</p>
+
+<p><code>
+$ go get golang.org/x/tools/cmd/cover &amp;&amp; go test -cover
+PASS
+coverage: 69.4% of statements
+ok      github.com/couchbaselabs/sg-replicate   0.156s
+</code></p>
+
+<p>Ouch, 69.4% is barely a C-. (if you round up!)</p>
+
+<h2>Coverage breakdown</h2>
+
+<p>Text report:</p>
+
+<p><code>
+$ go test -coverprofile=coverage.out
+$ go tool cover -func=coverage.out
+github.com/couchbaselabs/sg-replicate/attachment.go:15:         NewAttachment           84.6%
+github.com/couchbaselabs/sg-replicate/changes_feed_parameters.go:20:    NewChangesFeedParams        100.0%
+github.com/couchbaselabs/sg-replicate/changes_feed_parameters.go:30:    FeedType            100.0%
+github.com/couchbaselabs/sg-replicate/changes_feed_parameters.go:34:    Limit               100.0%
+</code></p>
+
+<p>HTML report:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_coverage_html.png" alt="html report" /></p>
+
+<h2>Coveralls.io setup</h2>
+
+<ul>
+<li>Login to coveralls.io</li>
+<li>Create a new repo</li>
+<li>Get the repo token from the <strong>SET UP COVERALLS</strong> section</li>
+</ul>
+
+
+<p>At this point, your empty coveralls repo will look something like this:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/coveralls_empty_repo.png" alt="empty coveralls repo" /></p>
+
+<h2>Configure Drone.io + Goveralls</h2>
+
+<p>If you have not already done so, setup a drone.io build for your repo.</p>
+
+<p>On the drone.io <strong>Settings</strong> page, make the following changes:</p>
+
+<p><strong>Environment Variables</strong></p>
+
+<p>In the Environment Variables section of the web ui, add:</p>
+
+<p><code>
+COVERALLS_TOKEN=&lt;coveralls_repo_token&gt;
+</code></p>
+
+<p><strong>Commands</strong></p>
+
+<p>In the commands section, you can replace your existing <code>go test</code> call with:</p>
+
+<p><code>
+go get github.com/axw/gocov/gocov
+go get github.com/mattn/goveralls
+goveralls -service drone.io -repotoken &lt;coveralls_repo_token&gt;
+</code></p>
+
+<p>Here&rsquo;s what it should look like:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/drone_io_coverage.png" alt="drone io ui" /></p>
+
+<h2>Kick off a build</h2>
+
+<p>Go to the drone.io project page for your repo, and hit <strong>Build Now</strong></p>
+
+<p>At the bottom of the build output, you should see:</p>
+
+<p><code>
+Job #1.1
+https://coveralls.io/jobs/5189501
+</code></p>
+
+<p>If you follow the link, you should see something like:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/coveralls_sgreplicate.png" alt="coveralls report" /></p>
+
+<p>Looks like we just went from a C- to a B!  I have no idea why the coverage improved, but I&rsquo;ll take it.</p>
+
+<h2>Add a badge, call it a day</h2>
+
+<p>On the coveralls.io project page for your repo, you should see a button near the top called <strong>Badge URLS</strong>.  Click and copy/paste the markdown, which should look something like this:</p>
+
+<p><code>
+[![Coverage Status](https://coveralls.io/repos/couchbaselabs/sg-replicate/badge.svg?branch=master)](https://coveralls.io/r/couchbaselabs/sg-replicate?branch=master)
+</code></p>
+
+<p>And add it to your project&rsquo;s README.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/sg_replicate_badges.png" alt="badges" /></p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://blog.golang.org/cover">https://blog.golang.org/cover</a></li>
+<li><a href="https://github.com/mattn/goveralls">https://github.com/mattn/goveralls</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Getting started with Go and Protocol Buffers]]></title>
@@ -507,196 +642,6 @@ M-x go-oracle-callers
 <p>Now you should try it with one of your own packages.</p>
 
 <p>This is just scratching the surface &mdash; to get more information on how to use Go Oracle, see <a href="https://docs.google.com/document/d/1SLk36YRjjMgKqe490mSRzOPYEDe0Y_WQNRv-EiFYUyw/view">go oracle: user manual</a>.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Configure Emacs as a Go editor from scratch]]></title>
-    <link href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/"/>
-    <updated>2014-05-22T16:46:00-07:00</updated>
-    <id>http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch</id>
-    <content type="html"><![CDATA[<p>This explains the steps to get a productive Emacs environment for Go programming on OSX, starting from scratch.</p>
-
-<h2>Install Emacs</h2>
-
-<p>I recommend using the emacs from <a href="http://emacsformacosx.com">emacsformacosx.com</a>.</p>
-
-<p>It has a GUI installer so I won&rsquo;t say much more about it.</p>
-
-<h2>Install Go</h2>
-
-<ul>
-<li>At the time of writing, I installed <a href="https://storage.googleapis.com/golang/go1.2.2.darwin-amd64-osx10.8.pkg">https://storage.googleapis.com/golang/go1.2.2.darwin-amd64-osx10.8.pkg</a></li>
-<li>After installing the package, you&rsquo;ll want to define the following environment variables in your <code>~/.bash_profile</code>:</li>
-</ul>
-
-
-<p><code>
-export GOROOT=/usr/local/go
-export GOPATH=~/Development/gocode
-export PATH=$PATH:$GOROOT/bin
-</code></p>
-
-<h2>Configure go-mode</h2>
-
-<p>Go-mode is an Emacs major mode for editing Go code.  An absolute must for anyone writing Go w/ Emacs.</p>
-
-<p>The following is a brief summary of <a href="http://dominik.honnef.co/posts/2013/03/writing_go_in_emacs/">Dominik Honnef&rsquo;s instructions</a></p>
-
-<ul>
-<li><code>mkdir -p ~/Misc/emacs &amp;&amp; cd ~/Misc/emacs</code></li>
-<li><code>git clone git@github.com:dominikh/go-mode.el.git</code></li>
-<li>From within Emacs, run <code>M-x update-file-autoloads</code>, point it at the <strong>go-mode.el</strong> file in the cloned directory.</li>
-<li>Emacs will prompt you for a result file, and you should enter <strong>go-mode-load.el</strong></li>
-<li>Add these two lines to your ~/.emacs</li>
-</ul>
-
-
-<p><code>
-(add-to-list 'load-path "~/Misc/emacs/go-mode.el/")
-(require 'go-mode-load)
-</code></p>
-
-<p>Restart Emacs and open a .go file, you should see the mode as &ldquo;Go&rdquo; rather than &ldquo;Fundamental&rdquo;.</p>
-
-<p>For a full description of what go-mode can do for you, see <a href="http://dominik.honnef.co/posts/2013/03/writing_go_in_emacs/">Dominik Honnef&rsquo;s blog</a>, but one really useful thing to be aware of is that you can quickly import packages via <code>C-c C-a</code></p>
-
-<h2>Update Emacs config for <code>godoc</code></h2>
-
-<p>It&rsquo;s really useful to be able to able to pull up 3rd party or standard library docs from within Emacs using the <code>godoc</code> tool.</p>
-
-<p><em>Unfortunately, it was necessary to duplicate the $PATH and $GOPATH environment variables in the .emacs file, so that the GUI Emacs app can see it.  @eentzel tweeted me a <a href="http://blog.gaz-jones.com/2012/02/01/setting_up_emacs_for_clojure_development.html">blog post</a> that explains how to deal with this, and I will update this blog post to reflect that at some point.</em></p>
-
-<p><strong>NOTE</strong>: you will need to modify the snippet below to reflect the $PATH and $GOPATH variables, don&rsquo;t just blindly copy and paste these.</p>
-
-<ul>
-<li>Add your $PATH and $GOPATH to your ~/.emacs</li>
-</ul>
-
-
-<p><code>
-(setenv "PATH" "/Users/tleyden/.rbenv/shims:/Users/tleyden/.rbenv/shims:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/go/bin")
-(setenv "GOPATH" "/Users/tleyden/Development/gocode")
-</code></p>
-
-<p>After doing this step, you should be able to run <code>M-x godoc</code> and it should be able to autocomplete paths of packages.  (of course, you may want to <code>go get</code> some packages first if you don&rsquo;t have any)</p>
-
-<h2>Automatically call gofmt on save</h2>
-
-<p><code>gofmt</code> reformats code into the One True Go Style Coding Standard.  You&rsquo;ll want to call it every time you save a file.</p>
-
-<p>Add these to your ~/.emacs:</p>
-
-<p><code>
-(setq exec-path (cons "/usr/local/go/bin" exec-path))
-(add-to-list 'exec-path "/Users/tleyden/Development/gocode/bin")
-(add-hook 'before-save-hook 'gofmt-before-save)
-</code></p>
-
-<p>After this step, whenever you save a Go file, it will automatically reformat the file with <code>gofmt</code>.</p>
-
-<h2>Godef</h2>
-
-<p>Godef is essential: it lets you quickly jump around the code, as you might be used to with a full featured IDE.</p>
-
-<p>From what I can tell, installing <a href="https://github.com/dominikh/go-mode.el">go-mode</a> seems to automatically install godef.</p>
-
-<p>To verify that godef is indeed installed:</p>
-
-<ul>
-<li>Putting the cursor over a method name</li>
-<li>Try doing <code>M-x godef-jump</code> to jump into the method, and <code>M-*</code> to go back.</li>
-</ul>
-
-
-<p>In order to add godef key bindings, add these to your ~/.emacs:</p>
-
-<p><code>
-(defun my-go-mode-hook ()
-  ; Call Gofmt before saving                                                    
-  (add-hook 'before-save-hook 'gofmt-before-save)
-  ; Godef jump key binding                                                      
-  (local-set-key (kbd "M-.") 'godef-jump))
-(add-hook 'go-mode-hook 'my-go-mode-hook)
-</code></p>
-
-<p>and remove your previous call to <code>(add-hook 'before-save-hook 'gofmt-before-save)</code> since it&rsquo;s now redundant</p>
-
-<p>Now you can jump into code with <code>M-.</code> and jump back with <code>M-*</code></p>
-
-<h2>Autocomplete</h2>
-
-<p>The following is a brief summary of the <a href="http://cx4a.org/software/auto-complete/manual.html#Installation">emacs autocomplete manual</a></p>
-
-<ul>
-<li>Download and extract <a href="http://cx4a.org/pub/auto-complete/auto-complete-1.3.1.tar.bz2">http://cx4a.org/pub/auto-complete/auto-complete-1.3.1.tar.bz2</a></li>
-<li>Cd into extracted dir and run <code>emacs -batch -l etc/install.el</code></li>
-<li>It will tell you to add the following to your ~/.emacs:</li>
-</ul>
-
-
-<p><code>
-(add-to-list 'load-path "/Users/tleyden/.emacs.d/")
-(require 'auto-complete-config)
-(add-to-list 'ac-dictionary-directories "/Users/tleyden/.emacs.d//ac-dict")
-(ac-config-default)
-</code></p>
-
-<p>To see any effect, we need to install gocode in the next step.</p>
-
-<h2>Gocode: Go aware Autocomplete</h2>
-
-<p>The following is a brief summary of the <a href="https://github.com/nsf/gocode">gocode README</a></p>
-
-<ul>
-<li><code>go get -u -v github.com/nsf/gocode</code></li>
-<li><code>cp /Users/tleyden/Development/gocode/src/github.com/nsf/gocode/emacs/go-autocomplete.el ~/.emacs.d/</code></li>
-<li>Add the following to your ~/.emacs</li>
-</ul>
-
-
-<p><code>
-(require 'go-autocomplete)
-(require 'auto-complete-config)
-</code></p>
-
-<p>At this point, after you restart emacs, when you start typing something, you should see a popup menu with choices, like <a href="http://tleyden-misc.s3.amazonaws.com/blog_images/emacs_autocomplete.png">this screenshot</a>.</p>
-
-<h2>Customize compile command to run <code>go build</code></h2>
-
-<p>It&rsquo;s convenient to be able to run <code>M-x compile</code> to compile and test your Go code from within emacs.</p>
-
-<p>To do that, edit your ~/.emacs and replace your go-mode hook with:</p>
-
-<p>```
-(defun my-go-mode-hook ()
-  ; Call Gofmt before saving
-  (add-hook &lsquo;before-save-hook 'gofmt-before-save)
-  ; Customize compile command to run go build
-  (if (not (string-match &ldquo;go&rdquo; compile-command))</p>
-
-<pre><code>  (set (make-local-variable 'compile-command)
-       "go build -v &amp;&amp; go test -v &amp;&amp; go vet"))
-</code></pre>
-
-<p>  ; Godef jump key binding
-  (local-set-key (kbd &ldquo;M-.&rdquo;) &lsquo;godef-jump))
-(add-hook 'go-mode-hook 'my-go-mode-hook)
-```</p>
-
-<p>After that, restart emacs, and when you type <code>M-x compile</code>, it should try to execute <code>go build -v &amp;&amp; go test -v &amp;&amp; go vet</code> instead of the default behavior.</p>
-
-<p><strong>Power tip</strong>: you can jump straight to each compile error by running <code>C-x `</code>.  Each time you do it, it will jump to the next error.</p>
-
-<h2>Is this too easy for you?</h2>
-
-<p>If you&rsquo;re yawning and you already know all this stuff, or you&rsquo;re ready to take it to the next level, check out <a href="http://www.youtube.com/watch?v=5wipWZKvNSo">5 minutes of go in emacs</a></p>
-
-<p>(PS: thanks <a href="https://twitter.com/dlsspy">@dlsspy</a> for taking the time to teach me the Emacs wrestling techniques needed to get this far.)</p>
-
-<h2>Continue to Part 2</h2>
-
-<p>go-imports and go-oracle are covered in <a href="../../27/configure-emacs-as-a-go-editor-from-scratch-part-2/">Part 2</a></p>
 ]]></content>
   </entry>
   

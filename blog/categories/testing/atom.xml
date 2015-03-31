@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: testing | Seven Story Rabbit Hole]]></title>
+  <link href="http://tleyden.github.io/blog/categories/testing/atom.xml" rel="self"/>
+  <link href="http://tleyden.github.io/"/>
+  <updated>2015-03-31T08:35:28-07:00</updated>
+  <id>http://tleyden.github.io/</id>
+  <author>
+    <name><![CDATA[Traun Leyden]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Test coverage for Go with drone.io and coveralls.io]]></title>
+    <link href="http://tleyden.github.io/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io/"/>
+    <updated>2015-03-31T07:26:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io</id>
+    <content type="html"><![CDATA[<p>This will walk you through setting up a test coverage report on coveralls.io which will be updated every time a new build happens on the drone.io continuous integration server.</p>
+
+<p>I&rsquo;m going to use the <a href="https://github.com/couchbaselabs/sg-replicate">couchbaselabs/sg-replicate</a> repo as an example.  Currently there is no test coverage statistics for this repo, and the goal is to end up with a badge that points to test coverage statistics on coveralls.io.</p>
+
+<h2>Clone the repo</h2>
+
+<p><code>
+$ git clone https://github.com/couchbaselabs/sg-replicate.git
+$ cd sg-replicate
+</code></p>
+
+<h2>Test coverage command line stats</h2>
+
+<p>```
+$ go test -cover
+go tool: no such tool &ldquo;cover&rdquo;; to install:</p>
+
+<pre><code>go get golang.org/x/tools/cmd/cover
+</code></pre>
+
+<p>```</p>
+
+<p>Try again:</p>
+
+<p><code>
+$ go get golang.org/x/tools/cmd/cover &amp;&amp; go test -cover
+PASS
+coverage: 69.4% of statements
+ok      github.com/couchbaselabs/sg-replicate   0.156s
+</code></p>
+
+<p>Ouch, 69.4% is barely a C-. (if you round up!)</p>
+
+<h2>Coverage breakdown</h2>
+
+<p>Text report:</p>
+
+<p><code>
+$ go test -coverprofile=coverage.out
+$ go tool cover -func=coverage.out
+github.com/couchbaselabs/sg-replicate/attachment.go:15:         NewAttachment           84.6%
+github.com/couchbaselabs/sg-replicate/changes_feed_parameters.go:20:    NewChangesFeedParams        100.0%
+github.com/couchbaselabs/sg-replicate/changes_feed_parameters.go:30:    FeedType            100.0%
+github.com/couchbaselabs/sg-replicate/changes_feed_parameters.go:34:    Limit               100.0%
+</code></p>
+
+<p>HTML report:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_coverage_html.png" alt="html report" /></p>
+
+<h2>Coveralls.io setup</h2>
+
+<ul>
+<li>Login to coveralls.io</li>
+<li>Create a new repo</li>
+<li>Get the repo token from the <strong>SET UP COVERALLS</strong> section</li>
+</ul>
+
+
+<p>At this point, your empty coveralls repo will look something like this:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/coveralls_empty_repo.png" alt="empty coveralls repo" /></p>
+
+<h2>Configure Drone.io + Goveralls</h2>
+
+<p>If you have not already done so, setup a drone.io build for your repo.</p>
+
+<p>On the drone.io <strong>Settings</strong> page, make the following changes:</p>
+
+<p><strong>Environment Variables</strong></p>
+
+<p>In the Environment Variables section of the web ui, add:</p>
+
+<p><code>
+COVERALLS_TOKEN=&lt;coveralls_repo_token&gt;
+</code></p>
+
+<p><strong>Commands</strong></p>
+
+<p>In the commands section, you can replace your existing <code>go test</code> call with:</p>
+
+<p><code>
+go get github.com/axw/gocov/gocov
+go get github.com/mattn/goveralls
+goveralls -service drone.io -repotoken &lt;coveralls_repo_token&gt;
+</code></p>
+
+<p>Here&rsquo;s what it should look like:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/drone_io_coverage.png" alt="drone io ui" /></p>
+
+<h2>Kick off a build</h2>
+
+<p>Go to the drone.io project page for your repo, and hit <strong>Build Now</strong></p>
+
+<p>At the bottom of the build output, you should see:</p>
+
+<p><code>
+Job #1.1
+https://coveralls.io/jobs/5189501
+</code></p>
+
+<p>If you follow the link, you should see something like:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/coveralls_sgreplicate.png" alt="coveralls report" /></p>
+
+<p>Looks like we just went from a C- to a B!  I have no idea why the coverage improved, but I&rsquo;ll take it.</p>
+
+<h2>Add a badge, call it a day</h2>
+
+<p>On the coveralls.io project page for your repo, you should see a button near the top called <strong>Badge URLS</strong>.  Click and copy/paste the markdown, which should look something like this:</p>
+
+<p><code>
+[![Coverage Status](https://coveralls.io/repos/couchbaselabs/sg-replicate/badge.svg?branch=master)](https://coveralls.io/r/couchbaselabs/sg-replicate?branch=master)
+</code></p>
+
+<p>And add it to your project&rsquo;s README.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/sg_replicate_badges.png" alt="badges" /></p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://blog.golang.org/cover">https://blog.golang.org/cover</a></li>
+<li><a href="https://github.com/mattn/goveralls">https://github.com/mattn/goveralls</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>
