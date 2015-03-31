@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-03-31T08:35:28-07:00</updated>
+  <updated>2015-03-31T08:50:28-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -18,9 +18,9 @@
     <link href="http://tleyden.github.io/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io/"/>
     <updated>2015-03-31T07:26:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io</id>
-    <content type="html"><![CDATA[<p>This will walk you through setting up a test coverage report on coveralls.io which will be updated every time a new build happens on the drone.io continuous integration server.</p>
+    <content type="html"><![CDATA[<p>This will walk you through setting up a test coverage report on coveralls.io which will be updated every time a new build happens on drone.io (a continuous integration server similar to TavisCI).</p>
 
-<p>I&rsquo;m going to use the <a href="https://github.com/couchbaselabs/sg-replicate">couchbaselabs/sg-replicate</a> repo as an example.  Currently there is no test coverage statistics for this repo, and the goal is to end up with a badge that points to test coverage statistics on coveralls.io.</p>
+<p>I&rsquo;m going to use the <a href="https://github.com/couchbaselabs/sg-replicate">couchbaselabs/sg-replicate</a> repo as an example, since it currently does not have any test coverage statistics.  The goal is to end up with a badge in the README that points to a test coverage report hosted on coveralls.io.</p>
 
 <h2>Clone the repo</h2>
 
