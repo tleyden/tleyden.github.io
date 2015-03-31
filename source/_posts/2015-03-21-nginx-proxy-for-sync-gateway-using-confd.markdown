@@ -37,7 +37,7 @@ $ ssh -i aws.cer -A core@ec2-54-83-80-161.compute-1.amazonaws.com
 ## Spin up Sync Gateway containers
 
 ```
-$ etcdctl set /couchbase.com/enable-code-refresh
+$ etcdctl set /couchbase.com/enable-code-refresh true
 $ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go update-wrapper sync-gw-cluster launch-sgw --num-nodes=2 --config-url=http://git.io/hFwa --in-memory-db
 ```
 
@@ -115,7 +115,7 @@ X-Handler: 10.231.220.114:4984
 $ fleetctl start sync_gw_node@1.service sync_gw_sidekick@1.service
 ```
 
-Now try hitting nginx again, and should not see the Sync Gw that you just restarted as being a handler.
+Now try hitting nginx again, and should again see the Sync Gw that you just restarted as being a handler.
 
 ```
 $ curl -v $nginx_ip
