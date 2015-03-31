@@ -6,9 +6,9 @@ comments: true
 categories: golang testing tooling
 ---
 
-This will walk you through setting up a test coverage report on coveralls.io which will be updated every time a new build happens on the drone.io continuous integration server.
+This will walk you through setting up a test coverage report on coveralls.io which will be updated every time a new build happens on drone.io (a continuous integration server similar to TavisCI).
 
-I'm going to use the [couchbaselabs/sg-replicate](https://github.com/couchbaselabs/sg-replicate) repo as an example.  Currently there is no test coverage statistics for this repo, and the goal is to end up with a badge that points to test coverage statistics on coveralls.io.
+I'm going to use the [couchbaselabs/sg-replicate](https://github.com/couchbaselabs/sg-replicate) repo as an example, since it currently does not have any test coverage statistics.  The goal is to end up with a badge in the README that points to a test coverage report hosted on coveralls.io.
 
 ## Clone the repo
 
@@ -85,7 +85,7 @@ In the commands section, you can replace your existing `go test` call with:
 ```
 go get github.com/axw/gocov/gocov
 go get github.com/mattn/goveralls
-goveralls -service drone.io -repotoken <coveralls_repo_token>
+goveralls -service drone.io -repotoken $COVERALLS_TOKEN
 ```
 
 Here's what it should look like:
