@@ -52,6 +52,12 @@ github.com/couchbaselabs/sg-replicate/changes_feed_parameters.go:34:	Limit				10
 
 HTML report:
 
+```
+$ go tool cover -html=coverage.out
+```
+
+This should open up the following report in your default browser: 
+
 ![html report](http://tleyden-misc.s3.amazonaws.com/blog_images/go_coverage_html.png)
 
 ## Coveralls.io setup
