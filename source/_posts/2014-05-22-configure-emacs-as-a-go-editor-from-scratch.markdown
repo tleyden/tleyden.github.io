@@ -34,7 +34,7 @@ The following is a brief summary of [Dominik Honnef's instructions](http://domin
 * `mkdir -p ~/Misc/emacs && cd ~/Misc/emacs`
 * `git clone git@github.com:dominikh/go-mode.el.git`
 * From within Emacs, run `M-x update-file-autoloads`, point it at the **go-mode.el** file in the cloned directory.
-* Emacs will prompt you for a result file, and you should enter **go-mode-load.el** 
+* Emacs will prompt you for a result path, and you should enter **~/Misc/emacs/go-mode.el/go-mode-load.el** 
 * Add these two lines to your ~/.emacs
 
 ```
