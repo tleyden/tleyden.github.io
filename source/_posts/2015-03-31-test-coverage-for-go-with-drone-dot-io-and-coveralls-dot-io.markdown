@@ -53,6 +53,7 @@ github.com/couchbaselabs/sg-replicate/changes_feed_parameters.go:34:	Limit				10
 HTML report:
 
 ```
+$ go test -coverprofile=coverage.out 
 $ go tool cover -html=coverage.out
 ```
 
