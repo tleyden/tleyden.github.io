@@ -13,16 +13,10 @@ This is a continuation of [Part 1](http://tleyden.github.io/blog/2014/05/22/conf
 
 The idea of goimports is that every time you save a file, it will automatically update all of your imports, so you don't have to.  This can save a lot of time.  Kudos to [@bradfitz](https://twitter.com/bradfitz) for taking the time to build this nifty tool.
 
-Since this project is hosted on Google Code's mercurial repository, if you don't have mercurial installed already, you'll first need to install it with:
+go get goimports with:
 
 ```
-$ brew install hg
-```
-
-Next, go get goimports with:
-
-```
-$ go get code.google.com/p/go.tools/cmd/goimports
+$ go get golang.org/x/tools/cmd/goimports
 ```
 
 Continuing on previous .emacs in [Part 1](http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/), update your .emacs to:
@@ -57,14 +51,14 @@ Basically any time you add or remove code that requires a different set of impor
 
 ## The Go Oracle
 
-The Go Oracle will blow your mind!  It can do things like find all the callers of a given function/method.  It can also show you all the functions that read or write from a given channel.  In short, it rocks.
+The [Go Oracle](https://docs.google.com/document/d/1SLk36YRjjMgKqe490mSRzOPYEDe0Y_WQNRv-EiFYUyw/view) will blow your mind!  It can do things like find all the callers of a given function/method.  It can also show you all the functions that read or write from a given channel.  In short, it rocks.
 
 Here's what you need to do in order to wield this powerful tool from within Emacs.
 
 ### Go get oracle
 
 ```
-go get code.google.com/p/go.tools/cmd/oracle
+go get golang.org/x/tools/cmd/oracle
 ```
 
 ### Move oracle binary so Emacs can find it
@@ -75,25 +69,10 @@ sudo mv $GOPATH/bin/oracle $GOROOT/bin/
 
 ### Update .emacs
 
+Add the following to your `.emacs` file, **above** the `(defun my-go-mode-hook ()` line.
+
 ```
-; Go Oracle
-(load-file "$GOPATH/src/code.google.com/p/go.tools/cmd/oracle/oracle.el")
-
-(defun my-go-mode-hook ()
-  ; Use goimports instead of go-fmt
-  (setq gofmt-command "goimports")
-  ; Call Gofmt before saving
-  (add-hook 'before-save-hook 'gofmt-before-save)
-  ; Customize compile command to run go build
-  (if (not (string-match "go" compile-command))
-      (set (make-local-variable 'compile-command)
-           "go build -v && go test -v && go vet"))
-  ; Godef jump key binding
-  (local-set-key (kbd "M-.") 'godef-jump))
-  ; Go Oracle
-  (go-oracle-mode)
-(add-hook 'go-mode-hook 'my-go-mode-hook)
-
+(load-file "$GOPATH/src/golang.org/x/tools/cmd/oracle/oracle.el")
 ```
 
 **Restart Emacs** to make these changes take effect.

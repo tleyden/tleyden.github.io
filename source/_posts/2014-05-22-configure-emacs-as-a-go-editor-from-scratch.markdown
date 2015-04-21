@@ -35,7 +35,7 @@ The following is a brief summary of [Dominik Honnef's instructions](http://domin
 * `git clone git@github.com:dominikh/go-mode.el.git`
 * From within Emacs, run `M-x update-file-autoloads`, point it at the **go-mode.el** file in the cloned directory.
 * Emacs will prompt you for a result path, and you should enter **~/Misc/emacs/go-mode.el/go-mode-load.el** 
-* Add these two lines to your ~/.emacs
+* Add these two lines to your ~/.emacs  (if you don't already have this file, you should create an empty one)
 
 ```
 (add-to-list 'load-path "~/Misc/emacs/go-mode.el/")
@@ -50,19 +50,34 @@ For a full description of what go-mode can do for you, see [Dominik Honnef's blo
 
 It's really useful to be able to able to pull up 3rd party or standard library docs from within Emacs using the `godoc` tool.
 
-*Unfortunately, it was necessary to duplicate the $PATH and $GOPATH environment variables in the .emacs file, so that the GUI Emacs app can see it.  @eentzel tweeted me a [blog post](http://blog.gaz-jones.com/2012/02/01/setting_up_emacs_for_clojure_development.html) that explains how to deal with this, and I will update this blog post to reflect that at some point.*
+**PATH**
 
-**NOTE**: you will need to modify the snippet below to reflect the $PATH and $GOPATH variables, don't just blindly copy and paste these.
-
-* Add your $PATH and $GOPATH to your ~/.emacs
+Add the following to your `.emacs` file so that it gets the PATH environment:
 
 ```
-(setenv "PATH" "/Users/tleyden/.rbenv/shims:/Users/tleyden/.rbenv/shims:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/go/bin")
+(defun set-exec-path-from-shell-PATH ()
+  (let ((path-from-shell (replace-regexp-in-string
+                          "[ \t\n]*$"
+                          ""
+                          (shell-command-to-string "$SHELL --login -i -c 'echo $PATH'"))))
+    (setenv "PATH" path-from-shell)
+    (setq eshell-path-env path-from-shell) ; for eshell users
+    (setq exec-path (split-string path-from-shell path-separator))))
+
+(when window-system (set-exec-path-from-shell-PATH))
+```
+
+NOTE: according to [this StackOverflow post](http://stackoverflow.com/questions/6411121/how-to-make-emacs-use-my-bashrc-file), it's possible to achieve this via downloading the [exec-path-from-shell](https://github.com/purcell/exec-path-from-shell) emacs plugin from Marmelade or Melpa.
+
+**GOPATH**
+
+```
 (setenv "GOPATH" "/Users/tleyden/Development/gocode")
 ```
 
-After doing this step, you should be able to run `M-x godoc` and it should be able to autocomplete paths of packages.  (of course, you may want to `go get` some packages first if you don't have any)
+(replace the above path to the absolute path to the directory where you store your Go code)
 
+After doing this step, you should be able to run `M-x godoc` and it should be able to autocomplete paths of packages.  (of course, you may want to `go get` some packages first if you don't have any)
 
 ## Automatically call gofmt on save
 
@@ -75,6 +90,8 @@ Add these to your ~/.emacs:
 (add-to-list 'exec-path "/Users/tleyden/Development/gocode/bin")
 (add-hook 'before-save-hook 'gofmt-before-save)
 ```
+
+(replace the above path to the absolute path to your `$GOPATH/bin` directory)
 
 After this step, whenever you save a Go file, it will automatically reformat the file with `gofmt`.
 
@@ -110,12 +127,14 @@ The following is a brief summary of the [emacs autocomplete manual](http://cx4a.
 
 * Download and extract http://cx4a.org/pub/auto-complete/auto-complete-1.3.1.tar.bz2
 * Cd into extracted dir and run `emacs -batch -l etc/install.el`
+* Create a `lisp` subdirectory under your `~/.emacs.d` directory
+* When prompted for where to install, give it the full path to your `~/.emacs.d/lisp` directory, eg: `/Users/tleyden/.emacs.d/lisp`
 * It will tell you to add the following to your ~/.emacs:
 
 ```
-(add-to-list 'load-path "/Users/tleyden/.emacs.d/")
+(add-to-list 'load-path "/Users/tleyden/.emacs.d/lisp")
 (require 'auto-complete-config)
-(add-to-list 'ac-dictionary-directories "/Users/tleyden/.emacs.d//ac-dict")
+(add-to-list 'ac-dictionary-directories "/Users/tleyden/.emacs.d/lisp/ac-dict")
 (ac-config-default)
 ```
 
@@ -149,7 +168,7 @@ To do that, edit your ~/.emacs and replace your go-mode hook with:
   ; Customize compile command to run go build
   (if (not (string-match "go" compile-command))
       (set (make-local-variable 'compile-command)
-           "go build -v && go test -v && go vet"))
+           "go generate && go build -v && go test -v && go vet"))
   ; Godef jump key binding
   (local-set-key (kbd "M-.") 'godef-jump))
 (add-hook 'go-mode-hook 'my-go-mode-hook)
@@ -159,9 +178,9 @@ After that, restart emacs, and when you type `M-x compile`, it should try to exe
 
 **Power tip**: you can jump straight to each compile error by running ``C-x ` ``.  Each time you do it, it will jump to the next error.
 
-## Is this too easy for you?
+## Ready for more?
 
-If you're yawning and you already know all this stuff, or you're ready to take it to the next level, check out [5 minutes of go in emacs](http://www.youtube.com/watch?v=5wipWZKvNSo)
+If you're ready to take it to the next level, check out [5 minutes of go in emacs](http://www.youtube.com/watch?v=5wipWZKvNSo)
 
 (PS: thanks [@dlsspy](https://twitter.com/dlsspy) for taking the time to teach me the Emacs wrestling techniques needed to get this far.)
 
