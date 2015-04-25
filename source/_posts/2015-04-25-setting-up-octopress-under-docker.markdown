@@ -71,7 +71,7 @@ As a smoke test, run:
 $ bundle exec rake preview
 ```
 
-NOTE: I have no idea why `bundle exec` is required here, I just used this in reponse to a previous error message and it's accompanying suggestion.
+NOTE: I have no idea why `bundle exec` is required here, I just used this in response to a previous error message and it's accompanying suggestion.
 
 If this gives no errors, that's a good sign.
 
