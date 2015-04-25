@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-04-25T05:13:54+00:00</updated>
+  <updated>2015-04-25T05:24:24+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -128,6 +128,13 @@
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ export LC_ALL=C.UTF-8</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://github.com/imathis/octopress/issues/1344">https://github.com/imathis/octopress/issues/1344</a></li>
+</ul>
 
 ]]></content>
   </entry>
