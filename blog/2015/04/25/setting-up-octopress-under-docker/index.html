@@ -106,11 +106,9 @@
 
 <h2>Run Docker</h2>
 
-<p>If you&rsquo;re on Linux, it&rsquo;s as easy as <code>apt-get install docker</code> or <code>yum install docker</code>.</p>
+<p>See <a href="https://docs.docker.com/installation/">Installing Docker</a> for instructions.</p>
 
-<p>If you&rsquo;re on OSX, I wrote a <a href="http://tleyden.github.io/blog/2013/11/12/docker-on-osx/">blog post</a> on how to do this, which is probably way out of date, but at least will point you in the right direction.</p>
-
-<p>This blog assumes you <strong>already have an Octopress git repo</strong>.  If you are starting from scratch, then check out <a href="http://tleyden.github.io/blog/2013/09/07/octopress-setup-part-i/">Octopress Setup Part I</a></p>
+<p>This blog post assumes you <strong>already have an Octopress git repo</strong>.  If you are starting from scratch, then check out <a href="http://tleyden.github.io/blog/2013/09/07/octopress-setup-part-i/">Octopress Setup Part I</a> to become even more confused.</p>
 
 <h2>Install Octopress Docker image</h2>
 
@@ -118,9 +116,11 @@
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run -ti tleyden5iwx/octopress /bin/bash</span></code></pre></td></tr></table></div></figure>
 
 
-<p>After this point, you&rsquo;ll be inside the Docker Container (Ubuntu 14).</p>
+<p>After this point, the rest of the instructions assume that you are executing commands from inside the Docker Container.</p>
 
 <h2>Delete Octopress dir + clone your Octopress repo</h2>
+
+<p>The Docker container will contain an Octopress directory, but it&rsquo;s not needed.</p>
 
 <p>From within the container:</p>
 
@@ -166,6 +166,8 @@
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ bundle exec rake preview</span></code></pre></td></tr></table></div></figure>
 
 
+<p>NOTE: I have no idea why <code>bundle exec</code> is required here, I just used this in reponse to a previous error message and it&rsquo;s accompanying suggestion.</p>
+
 <p>If this gives no errors, that&rsquo;s a good sign.</p>
 
 <h2>Create a new blog post</h2>
@@ -174,13 +176,19 @@
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ bundle exec rake new_post["Setting up Octopress under Docker"]</span></code></pre></td></tr></table></div></figure>
 
 
+<p>It will tell you the path to the blog post.  Now open the file in your favorite editor and add contect.</p>
+
 <h2>Push to Source branch</h2>
+
+<p>The source branch has the <strong>source markdown content</strong>.  It&rsquo;s actually the most important thing to preserve, because the HTML can always be regnerated from it.</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ git push origin source</span></code></pre></td></tr></table></div></figure>
 
 
 <h2>Deploy to Master branch</h2>
+
+<p>The master branch contains the <strong>rendered HTML content</strong>.  Here&rsquo;s how to push it up to your github pages repo (remember, in an earlier step you cloned your github pages repo at <a href="https://github.com/your-github-username/your-github-username.github.io.git">https://github.com/your-github-username/your-github-username.github.io.git</a>)</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ bundle exec rake generate && bundle exec rake deploy</span></code></pre></td></tr></table></div></figure>
