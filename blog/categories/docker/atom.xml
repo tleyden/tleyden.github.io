@@ -4,7 +4,7 @@
   <title><![CDATA[Category: docker | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/docker/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-04-25T04:53:14+00:00</updated>
+  <updated>2015-04-25T05:09:54+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -112,6 +112,20 @@ $ bundle exec rake generate &amp;&amp; bundle exec rake deploy
 </code></p>
 
 <p>After the above command, the changes should be visible on your github pages blog (eg, your-username.github.io)</p>
+
+<h2>Common errors</h2>
+
+<p>If you get:</p>
+
+<p><code>
+YAML Exception reading 2014-04-09-a-successful-git-branching-model-with-enterprise-support.markdown: invalid byte sequence in US-ASCII
+</code></p>
+
+<p>Run:</p>
+
+<p><code>
+$ export LC_ALL=C.UTF-8
+</code></p>
 ]]></content>
   </entry>
   
