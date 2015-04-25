@@ -101,5 +101,16 @@ $ bundle exec rake generate && bundle exec rake deploy
 
 After the above command, the changes should be visible on your github pages blog (eg, your-username.github.io)
 
+## Common errors
 
+If you get:
 
+```
+YAML Exception reading 2014-04-09-a-successful-git-branching-model-with-enterprise-support.markdown: invalid byte sequence in US-ASCII
+```
+
+Run:
+
+```
+$ export LC_ALL=C.UTF-8
+```
