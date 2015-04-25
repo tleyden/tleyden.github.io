@@ -4,7 +4,7 @@
   <title><![CDATA[Category: docker | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/docker/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-04-25T05:09:54+00:00</updated>
+  <updated>2015-04-25T05:13:54+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -83,7 +83,7 @@ $ git clone https://github.com/your-github-username/your-github-username.github.
 $ bundle exec rake preview
 </code></p>
 
-<p>NOTE: I have no idea why <code>bundle exec</code> is required here, I just used this in reponse to a previous error message and it&rsquo;s accompanying suggestion.</p>
+<p>NOTE: I have no idea why <code>bundle exec</code> is required here, I just used this in response to a previous error message and it&rsquo;s accompanying suggestion.</p>
 
 <p>If this gives no errors, that&rsquo;s a good sign.</p>
 

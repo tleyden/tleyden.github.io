@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-04-25T05:09:54+00:00</updated>
+  <updated>2015-04-25T05:13:54+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -86,7 +86,7 @@
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ bundle exec rake preview</span></code></pre></td></tr></table></div></figure>
 
 
-<p>NOTE: I have no idea why <code>bundle exec</code> is required here, I just used this in reponse to a previous error message and it&rsquo;s accompanying suggestion.</p>
+<p>NOTE: I have no idea why <code>bundle exec</code> is required here, I just used this in response to a previous error message and it&rsquo;s accompanying suggestion.</p>
 
 <p>If this gives no errors, that&rsquo;s a good sign.</p>
 
