@@ -4,7 +4,7 @@
   <title><![CDATA[Category: octopress | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/octopress/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-04-25T04:15:13+00:00</updated>
+  <updated>2015-04-25T04:41:26+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -30,11 +30,80 @@
 
 <p>If you&rsquo;re on OSX, I wrote a <a href="http://tleyden.github.io/blog/2013/11/12/docker-on-osx/">blog post</a> on how to do this, which is probably way out of date, but at least will point you in the right direction.</p>
 
+<p>This blog assumes you <strong>already have an Octopress git repo</strong>.  If you are starting from scratch, then check out <a href="http://tleyden.github.io/blog/2013/09/07/octopress-setup-part-i/">Octopress Setup Part I</a></p>
+
 <h2>Install Octopress Docker image</h2>
 
 <p><code>
 $ docker run -ti tleyden5iwx/octopress /bin/bash
 </code></p>
+
+<p>After this point, you&rsquo;ll be inside the Docker Container (Ubuntu 14).</p>
+
+<h2>Delete Octopress dir + clone your Octopress repo</h2>
+
+<p>From within the container:</p>
+
+<p><code>
+$ cd /root
+$ rm -rf octopress/
+$ git clone https://github.com/your-github-username/your-github-username.github.io.git octopress
+$ cd octopress/
+</code></p>
+
+<p>Now, switch to the source branch (which contains the content)</p>
+
+<p><code>
+$ git checkout source
+</code></p>
+
+<p>Re-install dependencies:</p>
+
+<p><code>
+$ bundle install
+</code></p>
+
+<p>Prevent ASCII encoding errors:</p>
+
+<p><code>
+$ export LC_ALL=C.UTF-8
+</code></p>
+
+<p><strong>Clone deploy directory</strong></p>
+
+<p><code>
+$ git clone https://github.com/your-github-username/your-github-username.github.io.git _deploy
+</code></p>
+
+<h2>Rake preview</h2>
+
+<p>As a smoke test, run:</p>
+
+<p><code>
+$ bundle exec rake preview
+</code></p>
+
+<p>If this gives no errors, that&rsquo;s a good sign.</p>
+
+<h2>Create a new blog post</h2>
+
+<p><code>
+$ bundle exec rake new_post["Setting up Octopress under Docker"]
+</code></p>
+
+<h2>Push to Source branch</h2>
+
+<p><code>
+$ git push origin source
+</code></p>
+
+<h2>Deploy to Master branch</h2>
+
+<p><code>
+$ bundle exec rake generate &amp;&amp; bundle exec rake deploy
+</code></p>
+
+<p>After the above command, the changes should be visible on your github pages blog (eg, your-username.github.io)</p>
 ]]></content>
   </entry>
   

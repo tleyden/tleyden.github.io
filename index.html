@@ -113,13 +113,83 @@
 
 <p>If you&rsquo;re on OSX, I wrote a <a href="http://tleyden.github.io/blog/2013/11/12/docker-on-osx/">blog post</a> on how to do this, which is probably way out of date, but at least will point you in the right direction.</p>
 
+<p>This blog assumes you <strong>already have an Octopress git repo</strong>.  If you are starting from scratch, then check out <a href="http://tleyden.github.io/blog/2013/09/07/octopress-setup-part-i/">Octopress Setup Part I</a></p>
+
 <h2>Install Octopress Docker image</h2>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run -ti tleyden5iwx/octopress /bin/bash</span></code></pre></td></tr></table></div></figure>
 
 
+<p>After this point, you&rsquo;ll be inside the Docker Container (Ubuntu 14).</p>
 
+<h2>Delete Octopress dir + clone your Octopress repo</h2>
+
+<p>From within the container:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /root
+</span><span class='line'>$ rm -rf octopress/
+</span><span class='line'>$ git clone https://github.com/your-github-username/your-github-username.github.io.git octopress
+</span><span class='line'>$ cd octopress/</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now, switch to the source branch (which contains the content)</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ git checkout source</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Re-install dependencies:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ bundle install</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Prevent ASCII encoding errors:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ export LC_ALL=C.UTF-8</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Clone deploy directory</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ git clone https://github.com/your-github-username/your-github-username.github.io.git _deploy</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Rake preview</h2>
+
+<p>As a smoke test, run:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ bundle exec rake preview</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If this gives no errors, that&rsquo;s a good sign.</p>
+
+<h2>Create a new blog post</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ bundle exec rake new_post["Setting up Octopress under Docker"]</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Push to Source branch</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ git push origin source</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Deploy to Master branch</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ bundle exec rake generate && bundle exec rake deploy</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After the above command, the changes should be visible on your github pages blog (eg, your-username.github.io)</p>
 </div>
   
   
