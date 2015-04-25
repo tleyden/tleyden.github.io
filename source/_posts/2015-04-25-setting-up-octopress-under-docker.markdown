@@ -114,3 +114,7 @@ Run:
 ```
 $ export LC_ALL=C.UTF-8
 ```
+
+## References
+
+* https://github.com/imathis/octopress/issues/1344
