@@ -4,7 +4,7 @@
   <title><![CDATA[Category: coreos | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/coreos/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-04-02T11:45:28-07:00</updated>
+  <updated>2015-04-25T04:15:13+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Nginx proxy for Sync Gateway using Confd]]></title>
     <link href="http://tleyden.github.io/blog/2015/03/21/nginx-proxy-for-sync-gateway-using-confd/"/>
-    <updated>2015-03-21T15:25:00-07:00</updated>
+    <updated>2015-03-21T15:25:00+00:00</updated>
     <id>http://tleyden.github.io/blog/2015/03/21/nginx-proxy-for-sync-gateway-using-confd</id>
     <content type="html"><![CDATA[<p>This will walk you through setting up Sync Gateway behind nginx.  The nginx conf will be auto generated based on Sync Gateway status.</p>
 
@@ -151,7 +151,7 @@ X-Handler: 10.231.220.110:4984
   <entry>
     <title type="html"><![CDATA[Running a Sync Gateway Cluster Under CoreOS on AWS]]></title>
     <link href="http://tleyden.github.io/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws/"/>
-    <updated>2014-12-15T19:22:00-08:00</updated>
+    <updated>2014-12-15T19:22:00+00:00</updated>
     <id>http://tleyden.github.io/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws</id>
     <content type="html"><![CDATA[<p>Follow the steps below to create a Sync Gateway + Couchbase Server cluster running under AWS with the following architecture:</p>
 
@@ -362,7 +362,7 @@ $ curl http://coreos-322270867.us-east-1.elb.amazonaws.com/
   <entry>
     <title type="html"><![CDATA[Running a CBFS cluster on CoreOS]]></title>
     <link href="http://tleyden.github.io/blog/2014/11/14/running-cbfs/"/>
-    <updated>2014-11-14T06:43:00-08:00</updated>
+    <updated>2014-11-14T06:43:00+00:00</updated>
     <id>http://tleyden.github.io/blog/2014/11/14/running-cbfs</id>
     <content type="html"><![CDATA[<p>This will walk you through getting a cbfs cluster up and running.</p>
 
@@ -544,7 +544,7 @@ $ sudo docker run -ti --net=host tleyden5iwx/cbfs /bin/bash
   <entry>
     <title type="html"><![CDATA[CoreOS with Nvidia CUDA GPU drivers]]></title>
     <link href="http://tleyden.github.io/blog/2014/11/04/coreos-with-nvidia-cuda-gpu-drivers/"/>
-    <updated>2014-11-04T07:08:00-08:00</updated>
+    <updated>2014-11-04T07:08:00+00:00</updated>
     <id>http://tleyden.github.io/blog/2014/11/04/coreos-with-nvidia-cuda-gpu-drivers</id>
     <content type="html"><![CDATA[<p>This will walk you through installing the Nvidia GPU kernel module and CUDA drivers on a docker container running inside of CoreOS.</p>
 
@@ -836,7 +836,7 @@ $ sudo docker run -ti --device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl
   <entry>
     <title type="html"><![CDATA[Running Couchbase Cluster Under CoreOS on AWS]]></title>
     <link href="http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/"/>
-    <updated>2014-11-01T12:16:00-07:00</updated>
+    <updated>2014-11-01T12:16:00+00:00</updated>
     <id>http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws</id>
     <content type="html"><![CDATA[<p>Here are instructions on how to fire up a Couchbase Server cluster running under CoreOS on AWS CloudFormation.  You will end up with the following system:</p>
 

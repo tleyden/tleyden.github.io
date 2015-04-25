@@ -4,7 +4,7 @@
   <title><![CDATA[Category: couchbase-mobile | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/couchbase-mobile/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-04-02T11:45:28-07:00</updated>
+  <updated>2015-04-25T04:15:13+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Running a Sync Gateway Cluster Under CoreOS on AWS]]></title>
     <link href="http://tleyden.github.io/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws/"/>
-    <updated>2014-12-15T19:22:00-08:00</updated>
+    <updated>2014-12-15T19:22:00+00:00</updated>
     <id>http://tleyden.github.io/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws</id>
     <content type="html"><![CDATA[<p>Follow the steps below to create a Sync Gateway + Couchbase Server cluster running under AWS with the following architecture:</p>
 

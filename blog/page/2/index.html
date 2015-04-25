@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Here are instructions on how to fire up a Couchbase Server cluster running under CoreOS on AWS CloudFormation. You will end up with the following &hellip;">
+  <meta name="description" content="This will walk you through installing the Nvidia GPU kernel module and CUDA drivers on a docker container running inside of CoreOS. Launch CoreOS on &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +78,303 @@
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2014/11/04/coreos-with-nvidia-cuda-gpu-drivers/">CoreOS With Nvidia CUDA GPU Drivers</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-11-04T07:08:00+00:00" pubdate data-updated="true">Nov 4<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>This will walk you through installing the Nvidia GPU kernel module and CUDA drivers on a docker container running inside of CoreOS.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/coreos-nvidia-gpu.png" alt="architecture diagram" /></p>
+
+<h2>Launch CoreOS on an AWS GPU instance</h2>
+
+<ul>
+<li><p>Launch a new EC2 instance</p></li>
+<li><p>Under &ldquo;Community AMIs&rdquo;, search for <strong>ami-f669f29e</strong> (CoreOS stable 494.4.0 (HVM))</p></li>
+<li><p>Select the GPU instances: <strong>g2.2xlarge</strong></p></li>
+<li><p>Increase root EBS store from 8 GB &ndash;> 20 GB to give yourself some breathing room</p></li>
+</ul>
+
+
+<h2>ssh into CoreOS instance</h2>
+
+<p>Find the public ip of the EC2 instance launched above, and ssh into it:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ssh -A core@ec2-54-80-24-46.compute-1.amazonaws.com</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Run Ubuntu 14 docker container in privileged mode</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run --privileged=true -i -t ubuntu:14.04 /bin/bash</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After the above command, you should be inside a root shell in your docker container.  The rest of the steps will assume this.</p>
+
+<h2>Install build tools + other required packages</h2>
+
+<p>In order to match the version of gcc that was used to build the CoreOS kernel.  (gcc 4.7)</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># apt-get update
+</span><span class='line'># apt-get install gcc-4.7 g++-4.7 wget git make dpkg-dev</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Set gcc 4.7 as default</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># update-alternatives --remove gcc /usr/bin/gcc-4.8
+</span><span class='line'># update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.7 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.7
+</span><span class='line'># update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 40 --slave /usr/bin/g++ g++ /usr/bin/g++-4.8</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Verify</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># update-alternatives --config gcc</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It should list gcc 4.7 with an asterisk next to it:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>* 0            /usr/bin/gcc-4.7   60        auto mode</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Prepare CoreOS kernel source</h2>
+
+<p><strong>Clone CoreOS kernel repository</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ mkdir -p /usr/src/kernels
+</span><span class='line'>$ cd /usr/src/kernels
+</span><span class='line'>$ git clone https://github.com/coreos/linux.git</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Find CoreOS kernel version</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># uname -a
+</span><span class='line'>Linux ip-10-11-167-200.ec2.internal 3.17.2+ #2 SMP Tue Nov 4 04:15:48 UTC 2014 x86_64 Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz GenuineIntel GNU/Linux</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The CoreOS kernel version is <strong>3.17.2</strong></p>
+
+<p><strong>Switch correct branch for this kernel version </strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># cd linux
+</span><span class='line'># git checkout remotes/origin/coreos/v3.17.2</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Create kernel configuration file</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># zcat /proc/config.gz &gt; /usr/src/kernels/linux/.config</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Prepare kernel source for building modules</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># make modules_prepare</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now you should be ready to install the nvidia driver.</p>
+
+<p><strong>Hack the kernel version</strong></p>
+
+<p>In order to avoid <a href="https://gist.github.com/tleyden/2a46a86056e476976a8e#file-gistfile1-txt-L956">nvidia: version magic errors</a>, the following hack is required:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># sed -i -e 's/3.17.2/3.17.2+/' include/generated/utsrelease.h</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I&rsquo;ve <a href="https://groups.google.com/d/msg/coreos-user/CSp_wSywmI4/CBHwocj8v9oJ">posted to the CoreOS Group</a> to ask why this hack is needed.</p>
+
+<h2>Install nvidia driver</h2>
+
+<p><strong>Download</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># mkdir -p /opt/nvidia
+</span><span class='line'># cd /opt/nvidia
+</span><span class='line'># wget http://developer.download.nvidia.com/compute/cuda/6_5/rel/installers/cuda_6.5.14_linux_64.run</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Unpack</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># chmod +x cuda_6.5.14_linux_64.run
+</span><span class='line'># mkdir nvidia_installers
+</span><span class='line'># ./cuda_6.5.14_linux_64.run -extract=`pwd`/nvidia_installers</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Install</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># cd nvidia_installers
+</span><span class='line'># ./NVIDIA-Linux-x86_64-340.29.run --kernel-source-path=/usr/src/kernels/linux/</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Installer Questions</strong></p>
+
+<ul>
+<li>Install NVidia&rsquo;s 32-bit compatibility libraries? <strong>YES</strong></li>
+<li>Would you like to run nvidia-xconfig? <strong>NO</strong></li>
+</ul>
+
+
+<p>If everything worked, you should see:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/nvidia_driver_installed.png" alt="nvidia drivers installed" /></p>
+
+<p>your <code>/var/log/nvidia-installer.log</code> should look something like <a href="https://gist.github.com/tleyden/6d585fb8ab08154949c8">this</a></p>
+
+<h2>Load nvidia kernel module</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># modprobe nvidia</span></code></pre></td></tr></table></div></figure>
+
+
+<p>No errors should be returned.  Verify it&rsquo;s loaded by running:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># lsmod | grep -i nvidia</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and you should see:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>nvidia              10533711  0
+</span><span class='line'>i2c_core               41189  2 nvidia,i2c_piix4</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Install CUDA</h2>
+
+<p>In order to fully verify that the kernel module is working correctly, install the CUDA drivers + library and run a device query.</p>
+
+<p>To install CUDA:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># ./cuda-linux64-rel-6.5.14-18749181.run
+</span><span class='line'># ./cuda-samples-linux-6.5.14-18745345.run</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Verify CUDA</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># cd /usr/local/cuda/samples/1_Utilities/deviceQuery
+</span><span class='line'># make
+</span><span class='line'># ./deviceQuery   </span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see the following output:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 6.5, CUDA Runtime Version = 6.5, NumDevs = 1, Device0 = GRID K520
+</span><span class='line'>Result = PASS</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Congratulations!  You now have a docker container running under CoreOS that can access the GPU.</p>
+
+<h1>Appendix: Expose GPU to other docker containers</h1>
+
+<p>If you need <em>other</em> docker containers on this CoreOS instance to be able to access the GPU, you can do the following steps.</p>
+
+<p><strong>Exit docker container</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># exit</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should be back to your CoreOS shell.</p>
+
+<p><strong>Add nvidia device nodes</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://gist.githubusercontent.com/tleyden/74f593a0beea300de08c/raw/95ed93c5751a989e58153db6f88c35515b7af120/nvidia_devices.sh
+</span><span class='line'>$ chmod +x nvidia_devices.sh
+</span><span class='line'>$ sudo ./nvidia_devices.sh</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Verify device nodes</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ls -alh /dev | grep -i nvidia
+</span><span class='line'>crw-rw-rw-  1 root root  251,   0 Nov  5 16:37 nvidia-uvm
+</span><span class='line'>crw-rw-rw-  1 root root  195,   0 Nov  5 16:37 nvidia0
+</span><span class='line'>crw-rw-rw-  1 root root  195, 255 Nov  5 16:37 nvidiactl</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Launch docker containers</strong></p>
+
+<p>When you launch other docker containers on the same CoreOS instance, to allow them to access the GPU device you will need to add the following arguments:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run -ti --device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm tleyden5iwx/ubuntu-cuda /bin/bash</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://github.com/tleyden/tleyden.github.io/blob/6d71759cc5e530efcae10d9c6012dd217f76795c/source/_posts/2014-11-04-coreos-with-nvidia-cuda-gpu-drivers.markdown">Previous version of this blog post</a></li>
+<li><a href="https://groups.google.com/forum/#!topic/coreos-user/CSp_wSywmI4">CoreOS Google Group thread</a> &ndash; Thanks Сергей!</li>
+<li><a href="http://tleyden.github.io/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5/">Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/">Running Couchbase Cluster Under CoreOS on AWS</a></h1>
     
     
@@ -94,7 +391,7 @@
   
 
 
-<time datetime="2014-11-01T12:16:00-07:00" pubdate data-updated="true">Nov 1<span>st</span>, 2014</time>
+<time datetime="2014-11-01T12:16:00+00:00" pubdate data-updated="true">Nov 1<span>st</span>, 2014</time>
         
       </p>
     
@@ -247,7 +544,7 @@
   
 
 
-<time datetime="2014-10-30T06:28:00-07:00" pubdate data-updated="true">Oct 30<span>th</span>, 2014</time>
+<time datetime="2014-10-30T06:28:00+00:00" pubdate data-updated="true">Oct 30<span>th</span>, 2014</time>
         
       </p>
     
@@ -314,7 +611,7 @@
   
 
 
-<time datetime="2014-10-25T20:42:00-07:00" pubdate data-updated="true">Oct 25<span>th</span>, 2014</time>
+<time datetime="2014-10-25T20:42:00+00:00" pubdate data-updated="true">Oct 25<span>th</span>, 2014</time>
         
       </p>
     
@@ -484,7 +781,7 @@
   
 
 
-<time datetime="2014-10-25T13:25:00-07:00" pubdate data-updated="true">Oct 25<span>th</span>, 2014</time>
+<time datetime="2014-10-25T13:25:00+00:00" pubdate data-updated="true">Oct 25<span>th</span>, 2014</time>
         
       </p>
     
@@ -641,7 +938,7 @@
   
 
 
-<time datetime="2014-10-25T11:56:00-07:00" pubdate data-updated="true">Oct 25<span>th</span>, 2014</time>
+<time datetime="2014-10-25T11:56:00+00:00" pubdate data-updated="true">Oct 25<span>th</span>, 2014</time>
         
       </p>
     
@@ -871,7 +1168,7 @@
   
 
 
-<time datetime="2014-09-10T15:57:00-07:00" pubdate data-updated="true">Sep 10<span>th</span>, 2014</time>
+<time datetime="2014-09-10T15:57:00+00:00" pubdate data-updated="true">Sep 10<span>th</span>, 2014</time>
         
       </p>
     
@@ -927,7 +1224,7 @@
   
 
 
-<time datetime="2014-06-22T19:10:00-07:00" pubdate data-updated="true">Jun 22<span>nd</span>, 2014</time>
+<time datetime="2014-06-22T19:10:00+00:00" pubdate data-updated="true">Jun 22<span>nd</span>, 2014</time>
         
       </p>
     
@@ -1129,7 +1426,7 @@
   
 
 
-<time datetime="2014-06-22T15:52:00-07:00" pubdate data-updated="true">Jun 22<span>nd</span>, 2014</time>
+<time datetime="2014-06-22T15:52:00+00:00" pubdate data-updated="true">Jun 22<span>nd</span>, 2014</time>
         
       </p>
     
@@ -1332,7 +1629,7 @@
   
 
 
-<time datetime="2014-05-27T12:03:00-07:00" pubdate data-updated="true">May 27<span>th</span>, 2014</time>
+<time datetime="2014-05-27T12:03:00+00:00" pubdate data-updated="true">May 27<span>th</span>, 2014</time>
         
       </p>
     
@@ -1345,16 +1642,10 @@
 
 <p>The idea of goimports is that every time you save a file, it will automatically update all of your imports, so you don&rsquo;t have to.  This can save a lot of time.  Kudos to <a href="https://twitter.com/bradfitz">@bradfitz</a> for taking the time to build this nifty tool.</p>
 
-<p>Since this project is hosted on Google Code&rsquo;s mercurial repository, if you don&rsquo;t have mercurial installed already, you&rsquo;ll first need to install it with:</p>
+<p>go get goimports with:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ brew install hg</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Next, go get goimports with:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ go get code.google.com/p/go.tools/cmd/goimports</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go get golang.org/x/tools/cmd/goimports</span></code></pre></td></tr></table></div></figure>
 
 
 <p>Continuing on previous .emacs in <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">Part 1</a>, update your .emacs to:</p>
@@ -1402,14 +1693,14 @@
 
 <h2>The Go Oracle</h2>
 
-<p>The Go Oracle will blow your mind!  It can do things like find all the callers of a given function/method.  It can also show you all the functions that read or write from a given channel.  In short, it rocks.</p>
+<p>The <a href="https://docs.google.com/document/d/1SLk36YRjjMgKqe490mSRzOPYEDe0Y_WQNRv-EiFYUyw/view">Go Oracle</a> will blow your mind!  It can do things like find all the callers of a given function/method.  It can also show you all the functions that read or write from a given channel.  In short, it rocks.</p>
 
 <p>Here&rsquo;s what you need to do in order to wield this powerful tool from within Emacs.</p>
 
 <h3>Go get oracle</h3>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>go get code.google.com/p/go.tools/cmd/oracle</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>go get golang.org/x/tools/cmd/oracle</span></code></pre></td></tr></table></div></figure>
 
 
 <h3>Move oracle binary so Emacs can find it</h3>
@@ -1420,41 +1711,10 @@
 
 <h3>Update .emacs</h3>
 
+<p>Add the following to your <code>.emacs</code> file, <strong>above</strong> the <code>(defun my-go-mode-hook ()</code> line.</p>
+
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>; Go Oracle
-</span><span class='line'>(load-file "$GOPATH/src/code.google.com/p/go.tools/cmd/oracle/oracle.el")
-</span><span class='line'>
-</span><span class='line'>(defun my-go-mode-hook ()
-</span><span class='line'>  ; Use goimports instead of go-fmt
-</span><span class='line'>  (setq gofmt-command "goimports")
-</span><span class='line'>  ; Call Gofmt before saving
-</span><span class='line'>  (add-hook 'before-save-hook 'gofmt-before-save)
-</span><span class='line'>  ; Customize compile command to run go build
-</span><span class='line'>  (if (not (string-match "go" compile-command))
-</span><span class='line'>      (set (make-local-variable 'compile-command)
-</span><span class='line'>           "go build -v && go test -v && go vet"))
-</span><span class='line'>  ; Godef jump key binding
-</span><span class='line'>  (local-set-key (kbd "M-.") 'godef-jump))
-</span><span class='line'>  ; Go Oracle
-</span><span class='line'>  (go-oracle-mode)
-</span><span class='line'>(add-hook 'go-mode-hook 'my-go-mode-hook)
-</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>(load-file "$GOPATH/src/golang.org/x/tools/cmd/oracle/oracle.el")</span></code></pre></td></tr></table></div></figure>
 
 
 <p><strong>Restart Emacs</strong> to make these changes take effect.</p>
@@ -1523,244 +1783,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">Configure Emacs as a Go Editor From Scratch</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-05-22T16:46:00-07:00" pubdate data-updated="true">May 22<span>nd</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>This explains the steps to get a productive Emacs environment for Go programming on OSX, starting from scratch.</p>
-
-<h2>Install Emacs</h2>
-
-<p>I recommend using the emacs from <a href="http://emacsformacosx.com">emacsformacosx.com</a>.</p>
-
-<p>It has a GUI installer so I won&rsquo;t say much more about it.</p>
-
-<h2>Install Go</h2>
-
-<ul>
-<li>At the time of writing, I installed <a href="https://storage.googleapis.com/golang/go1.2.2.darwin-amd64-osx10.8.pkg">https://storage.googleapis.com/golang/go1.2.2.darwin-amd64-osx10.8.pkg</a></li>
-<li>After installing the package, you&rsquo;ll want to define the following environment variables in your <code>~/.bash_profile</code>:</li>
-</ul>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>export GOROOT=/usr/local/go
-</span><span class='line'>export GOPATH=~/Development/gocode
-</span><span class='line'>export PATH=$PATH:$GOROOT/bin</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Configure go-mode</h2>
-
-<p>Go-mode is an Emacs major mode for editing Go code.  An absolute must for anyone writing Go w/ Emacs.</p>
-
-<p>The following is a brief summary of <a href="http://dominik.honnef.co/posts/2013/03/writing_go_in_emacs/">Dominik Honnef&rsquo;s instructions</a></p>
-
-<ul>
-<li><code>mkdir -p ~/Misc/emacs &amp;&amp; cd ~/Misc/emacs</code></li>
-<li><code>git clone git@github.com:dominikh/go-mode.el.git</code></li>
-<li>From within Emacs, run <code>M-x update-file-autoloads</code>, point it at the <strong>go-mode.el</strong> file in the cloned directory.</li>
-<li>Emacs will prompt you for a result file, and you should enter <strong>go-mode-load.el</strong></li>
-<li>Add these two lines to your ~/.emacs</li>
-</ul>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>(add-to-list 'load-path "~/Misc/emacs/go-mode.el/")
-</span><span class='line'>(require 'go-mode-load)</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Restart Emacs and open a .go file, you should see the mode as &ldquo;Go&rdquo; rather than &ldquo;Fundamental&rdquo;.</p>
-
-<p>For a full description of what go-mode can do for you, see <a href="http://dominik.honnef.co/posts/2013/03/writing_go_in_emacs/">Dominik Honnef&rsquo;s blog</a>, but one really useful thing to be aware of is that you can quickly import packages via <code>C-c C-a</code></p>
-
-<h2>Update Emacs config for <code>godoc</code></h2>
-
-<p>It&rsquo;s really useful to be able to able to pull up 3rd party or standard library docs from within Emacs using the <code>godoc</code> tool.</p>
-
-<p><em>Unfortunately, it was necessary to duplicate the $PATH and $GOPATH environment variables in the .emacs file, so that the GUI Emacs app can see it.  @eentzel tweeted me a <a href="http://blog.gaz-jones.com/2012/02/01/setting_up_emacs_for_clojure_development.html">blog post</a> that explains how to deal with this, and I will update this blog post to reflect that at some point.</em></p>
-
-<p><strong>NOTE</strong>: you will need to modify the snippet below to reflect the $PATH and $GOPATH variables, don&rsquo;t just blindly copy and paste these.</p>
-
-<ul>
-<li>Add your $PATH and $GOPATH to your ~/.emacs</li>
-</ul>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>(setenv "PATH" "/Users/tleyden/.rbenv/shims:/Users/tleyden/.rbenv/shims:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/go/bin")
-</span><span class='line'>(setenv "GOPATH" "/Users/tleyden/Development/gocode")</span></code></pre></td></tr></table></div></figure>
-
-
-<p>After doing this step, you should be able to run <code>M-x godoc</code> and it should be able to autocomplete paths of packages.  (of course, you may want to <code>go get</code> some packages first if you don&rsquo;t have any)</p>
-
-<h2>Automatically call gofmt on save</h2>
-
-<p><code>gofmt</code> reformats code into the One True Go Style Coding Standard.  You&rsquo;ll want to call it every time you save a file.</p>
-
-<p>Add these to your ~/.emacs:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>(setq exec-path (cons "/usr/local/go/bin" exec-path))
-</span><span class='line'>(add-to-list 'exec-path "/Users/tleyden/Development/gocode/bin")
-</span><span class='line'>(add-hook 'before-save-hook 'gofmt-before-save)</span></code></pre></td></tr></table></div></figure>
-
-
-<p>After this step, whenever you save a Go file, it will automatically reformat the file with <code>gofmt</code>.</p>
-
-<h2>Godef</h2>
-
-<p>Godef is essential: it lets you quickly jump around the code, as you might be used to with a full featured IDE.</p>
-
-<p>From what I can tell, installing <a href="https://github.com/dominikh/go-mode.el">go-mode</a> seems to automatically install godef.</p>
-
-<p>To verify that godef is indeed installed:</p>
-
-<ul>
-<li>Putting the cursor over a method name</li>
-<li>Try doing <code>M-x godef-jump</code> to jump into the method, and <code>M-*</code> to go back.</li>
-</ul>
-
-
-<p>In order to add godef key bindings, add these to your ~/.emacs:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>(defun my-go-mode-hook ()
-</span><span class='line'>  ; Call Gofmt before saving                                                    
-</span><span class='line'>  (add-hook 'before-save-hook 'gofmt-before-save)
-</span><span class='line'>  ; Godef jump key binding                                                      
-</span><span class='line'>  (local-set-key (kbd "M-.") 'godef-jump))
-</span><span class='line'>(add-hook 'go-mode-hook 'my-go-mode-hook)</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and remove your previous call to <code>(add-hook 'before-save-hook 'gofmt-before-save)</code> since it&rsquo;s now redundant</p>
-
-<p>Now you can jump into code with <code>M-.</code> and jump back with <code>M-*</code></p>
-
-<h2>Autocomplete</h2>
-
-<p>The following is a brief summary of the <a href="http://cx4a.org/software/auto-complete/manual.html#Installation">emacs autocomplete manual</a></p>
-
-<ul>
-<li>Download and extract <a href="http://cx4a.org/pub/auto-complete/auto-complete-1.3.1.tar.bz2">http://cx4a.org/pub/auto-complete/auto-complete-1.3.1.tar.bz2</a></li>
-<li>Cd into extracted dir and run <code>emacs -batch -l etc/install.el</code></li>
-<li>It will tell you to add the following to your ~/.emacs:</li>
-</ul>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>(add-to-list 'load-path "/Users/tleyden/.emacs.d/")
-</span><span class='line'>(require 'auto-complete-config)
-</span><span class='line'>(add-to-list 'ac-dictionary-directories "/Users/tleyden/.emacs.d//ac-dict")
-</span><span class='line'>(ac-config-default)</span></code></pre></td></tr></table></div></figure>
-
-
-<p>To see any effect, we need to install gocode in the next step.</p>
-
-<h2>Gocode: Go aware Autocomplete</h2>
-
-<p>The following is a brief summary of the <a href="https://github.com/nsf/gocode">gocode README</a></p>
-
-<ul>
-<li><code>go get -u -v github.com/nsf/gocode</code></li>
-<li><code>cp /Users/tleyden/Development/gocode/src/github.com/nsf/gocode/emacs/go-autocomplete.el ~/.emacs.d/</code></li>
-<li>Add the following to your ~/.emacs</li>
-</ul>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>(require 'go-autocomplete)
-</span><span class='line'>(require 'auto-complete-config)</span></code></pre></td></tr></table></div></figure>
-
-
-<p>At this point, after you restart emacs, when you start typing something, you should see a popup menu with choices, like <a href="http://tleyden-misc.s3.amazonaws.com/blog_images/emacs_autocomplete.png">this screenshot</a>.</p>
-
-<h2>Customize compile command to run <code>go build</code></h2>
-
-<p>It&rsquo;s convenient to be able to run <code>M-x compile</code> to compile and test your Go code from within emacs.</p>
-
-<p>To do that, edit your ~/.emacs and replace your go-mode hook with:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>(defun my-go-mode-hook ()
-</span><span class='line'>  ; Call Gofmt before saving
-</span><span class='line'>  (add-hook 'before-save-hook 'gofmt-before-save)
-</span><span class='line'>  ; Customize compile command to run go build
-</span><span class='line'>  (if (not (string-match "go" compile-command))
-</span><span class='line'>      (set (make-local-variable 'compile-command)
-</span><span class='line'>           "go build -v && go test -v && go vet"))
-</span><span class='line'>  ; Godef jump key binding
-</span><span class='line'>  (local-set-key (kbd "M-.") 'godef-jump))
-</span><span class='line'>(add-hook 'go-mode-hook 'my-go-mode-hook)</span></code></pre></td></tr></table></div></figure>
-
-
-<p>After that, restart emacs, and when you type <code>M-x compile</code>, it should try to execute <code>go build -v &amp;&amp; go test -v &amp;&amp; go vet</code> instead of the default behavior.</p>
-
-<p><strong>Power tip</strong>: you can jump straight to each compile error by running <code>C-x `</code>.  Each time you do it, it will jump to the next error.</p>
-
-<h2>Is this too easy for you?</h2>
-
-<p>If you&rsquo;re yawning and you already know all this stuff, or you&rsquo;re ready to take it to the next level, check out <a href="http://www.youtube.com/watch?v=5wipWZKvNSo">5 minutes of go in emacs</a></p>
-
-<p>(PS: thanks <a href="https://twitter.com/dlsspy">@dlsspy</a> for taking the time to teach me the Emacs wrestling techniques needed to get this far.)</p>
-
-<h2>Continue to Part 2</h2>
-
-<p>go-imports and go-oracle are covered in <a href="../../27/configure-emacs-as-a-go-editor-from-scratch-part-2/">Part 2</a></p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/3/">&larr; Older</a>
@@ -1789,6 +1811,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2015/04/25/setting-up-octopress-under-docker/">Setting Up Octopress Under Docker</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io/">Test Coverage for Go With drone.io and coveralls.io</a>
       </li>
     
@@ -1802,10 +1828,6 @@
     
       <li class="post">
         <a href="/blog/2015/01/23/running-a-walrus-backed-sync-gateway-on-aws/">Running a Walrus-backed Sync Gateway on AWS</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws/">Running a Sync Gateway Cluster Under CoreOS on AWS</a>
       </li>
     
   </ul>

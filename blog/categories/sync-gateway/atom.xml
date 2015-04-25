@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: sync-gateway, | Seven Story Rabbit Hole]]></title>
+  <title><![CDATA[Category: sync-gateway | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/sync-gateway/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-04-02T11:45:28-07:00</updated>
+  <updated>2015-04-25T04:15:13+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -14,214 +14,213 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Running a Walrus-backed Sync Gateway on AWS]]></title>
-    <link href="http://tleyden.github.io/blog/2015/01/23/running-a-walrus-backed-sync-gateway-on-aws/"/>
-    <updated>2015-01-23T09:30:00-08:00</updated>
-    <id>http://tleyden.github.io/blog/2015/01/23/running-a-walrus-backed-sync-gateway-on-aws</id>
-    <content type="html"><![CDATA[<p>Follow the steps below to create a Sync Gateway instance running under AWS with the following architecture:</p>
+    <title type="html"><![CDATA[Running a Sync Gateway Cluster Under CoreOS on AWS]]></title>
+    <link href="http://tleyden.github.io/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws/"/>
+    <updated>2014-12-15T19:22:00+00:00</updated>
+    <id>http://tleyden.github.io/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws</id>
+    <content type="html"><![CDATA[<p>Follow the steps below to create a Sync Gateway + Couchbase Server cluster running under AWS with the following architecture:</p>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/sync_gw_walrus_aws.png" alt="architecture diagram" /></p>
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/sync-gw-coreos-onion.png" alt="architecture diagram" /></p>
 
-<p>It will be using the <a href="https://github.com/couchbaselabs/walrus">Walrus</a> in-memory database, and so it is only useful for light testing.  Walrus does have the abiity to snapshot its memory contents to a file, so your data can persist across restarts.</p>
+<p><em>Disclaimer: this approach to running Couchbase Server and Sync Gateway is entirely <strong>experimental</strong> and you should do your own testing before running a production system.  Having said that, this approach has undergone a <a href="https://github.com/couchbaselabs/couchbase-server-docker/issues/2">major feedback loop</a> from real users, and this version is a lot more stable than the initial version.</em></p>
 
-<p><strong>Warning: don&rsquo;t run this in production!</strong>  If you want something that is closer to production ready, check out <a href="http://tleyden.github.io/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws/">Running a Sync Gateway Cluster Under CoreOS on AWS</a> instead.</p>
+<h2>Kick off Couchbase Server + Sync Gateway cluster</h2>
 
-<h2>Launch EC2 instance</h2>
+<h3>Launch EC2 instances</h3>
 
-<p>Go to the <a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#cstack=sn%7ECouchbase-CoreOS%7Cturl%7Ehttp://tleyden-misc.s3.amazonaws.com/couchbase-coreos/sync_gateway.template">Cloudformation Wizard</a></p>
+<p><a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#cstack=sn%7ECouchbase-CoreOS%7Cturl%7Ehttp://tleyden-misc.s3.amazonaws.com/couchbase-coreos/sync_gateway.template"><img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"></a></p>
 
 <p>Recommended values:</p>
 
 <ul>
-<li><strong>ClusterSize</strong>: 1 node</li>
+<li><strong>ClusterSize</strong>: 3 nodes (default)</li>
 <li><strong>Discovery URL</strong>:  as it says, you need to grab a new token from <a href="https://discovery.etcd.io/new">https://discovery.etcd.io/new</a> and paste it in the box.</li>
-<li><strong>KeyPair</strong>: the name of the AWS keypair you want to use.</li>
+<li><strong>KeyPair</strong>: the name of the AWS keypair you want to use.  If you haven&rsquo;t already, you&rsquo;ll want to upload your local ssh key into AWS and create a named keypair.</li>
 </ul>
 
 
-<p>For the keypair that you use, your local ssh client will need to have the private key side of that keypair.</p>
-
 <h3>Wait until instances are up</h3>
-
-<p>Hit the &ldquo;reload&rdquo; button until it goes to the CREATE_COMPLETE state.</p>
 
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/cloud-formation-create-complete.png" alt="screenshot" /></p>
 
-<h2>Find ip of instance</h2>
+<h3>ssh into a CoreOS instance</h3>
 
-<p>Go to the AWS console under the &ldquo;EC2 instances&rdquo; section and find the public ip of one of your newly launched CoreOS instances.</p>
+<p>Go to the AWS console under EC2 instances and find the public ip of one of your newly launched CoreOS instances.</p>
 
-<p>Choose any one of them (it doesn&rsquo;t matter which), and look for the <strong>Public IP</strong>.  Copy that value onto your clipboard.</p>
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/ec2-instances-coreos.png" alt="screenshot" /></p>
 
-<h3>SSH into instance</h3>
-
-<p>ssh into it as the <strong>core</strong> user with the cert provided in the previous step:</p>
+<p>Choose any one of them (it doesn&rsquo;t matter which), and ssh into it as the <strong>core</strong> user with the cert provided in the previous step:</p>
 
 <p><code>
-$ ssh -A core@ec2-54-83-80-161.compute-1.amazonaws.com
+$ ssh -i aws.cer -A core@ec2-54-83-80-161.compute-1.amazonaws.com
 </code></p>
 
-<h2>Create a volume directory</h2>
-
-<p>After you ssh into your instance, create a volume directory so that the data persists across different container instances.</p>
+<h3>Kick off Couchbase Server cluster</h3>
 
 <p><code>
-$ sudo mkdir -p /opt/sync_gateway/data
-$ sudo chown -R core:core /opt/sync_gateway/data
+$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.8 couchbase-fleet launch-cbs --version 3.0.1 --num-nodes 3 --userpass "user:passw0rd" --docker-tag 0.8
 </code></p>
 
-<h2>Launch Sync Gateway</h2>
+<p>Where:</p>
+
+<ul>
+<li>&mdash;version=&lt;cb-version> Couchbase Server version (3.0.1 or 2.2)</li>
+<li>&mdash;num-nodes=&lt;num_nodes> number of couchbase nodes to start</li>
+<li>&mdash;userpass &lt;user:pass> the username and password as a single string, delimited by a colon (:)</li>
+<li>&mdash;etcd-servers=&lt;server-list>  Comma separated list of etcd servers, or omit to connect to etcd running on localhost</li>
+<li>&mdash;docker-tag=&lt;docker-tag>  if present, use this docker tag for spawned containers, otherwise, default to &ldquo;latest&rdquo;</li>
+</ul>
+
+
+<p>Replace <code>user:passw0rd</code> with a sensible username and password.  It <strong>must</strong> be colon separated, with no spaces.  The password itself must be at least 6 characters.</p>
+
+<p>The output should look something like <a href="https://gist.github.com/tleyden/bc0975778216281b80e7">this gist</a>.</p>
+
+<h3>Kick off Sync Gateway cluster</h3>
 
 <p><code>
-$ SYNC_GW_CONFIG=https://gist.githubusercontent.com/tleyden/368f01218baf4e760267/raw/a65be036bc3855d5ab4e73b849f4caa1dc7d390f/config.json
-$ sudo docker run -d --name sync_gw --net=host -v /opt/sync_gateway/data:/opt/sync_gateway/data tleyden5iwx/sync-gateway-coreos sync-gw-start -c master -g $SYNC_GW_CONFIG
+$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.8 sync-gw-cluster launch-sgw --num-nodes=1 --config-url=http://git.io/b9PK --create-bucket todos --create-bucket-size 512 --create-bucket-replicas 1 --docker-tag 0.8
 </code></p>
 
-<p>You should see the following output:</p>
+<p>Where:</p>
+
+<ul>
+<li>&mdash;num-nodes=&lt;num_nodes> number of sync gw nodes to start</li>
+<li>&mdash;config-url=&lt;config_url> the url where the sync gw config json is stored</li>
+<li>&mdash;sync-gw-commit=&lt;branch-or-commit> the branch or commit of sync gw to use, defaults to &ldquo;image&rdquo;, which is the master branch at the time the docker image was built.</li>
+<li>&mdash;create-bucket=&lt;bucket-name> create a bucket on couchbase server with the given name</li>
+<li>&mdash;create-bucket-size=&lt;bucket-size-mb> if creating a bucket, use this size in MB</li>
+<li>&mdash;create-bucket-replicas=&lt;replica-count> if creating a bucket, use this replica count (defaults to 1)</li>
+<li>&mdash;etcd-servers=&lt;server-list>  Comma separated list of etcd servers, or omit to connect to etcd running on localhost</li>
+<li>&mdash;docker-tag=&lt;docker-tag>  if present, use this docker tag for spawned containers, otherwise, default to &ldquo;latest&rdquo;</li>
+</ul>
+
+
+<h3>View cluster</h3>
+
+<p>After the above script finishes, run <code>fleetctl list-units</code> to list the services in your cluster, and you should see:</p>
 
 <p><code>
-Unable to find image 'tleyden5iwx/sync-gateway-coreos' locally
-Pulling repository tleyden5iwx/sync-gateway-coreos
-daa0c81d9745: Download complete
-......
-Status: Downloaded newer image for tleyden5iwx/sync-gateway-coreos:latest
-d22035060882a2071c3e0a556ae5db5041f84e3004d67fb11355b6d8a7bf40b8
-$
+UNIT                            MACHINE                         ACTIVE  SUB
+couchbase_node@1.service        2ad1cfaf.../10.95.196.213       active  running
+couchbase_node@2.service        a688ca8e.../10.216.199.207      active  running
+couchbase_node@3.service        fb241f71.../10.153.232.237      active  running
+sync_gw_node@1.service          2ad1cfaf.../10.95.196.213       active  running
 </code></p>
 
-<p>Congratulations!  You now have a Sync Gateway running.</p>
+<p>They should all be in the <code>active</code> state.  If any are in the <code>activating</code> state &mdash; which is normal because it might take some time to download the docker image &mdash; then you should wait until they are all active before continuing.</p>
 
-<p>It might feel underwhelming, because nothing appears to be happening, but sync gateway is actually running in the background.  To verify that, run:</p>
+<h2>Verify internal</h2>
+
+<p><strong>Find internal ip</strong></p>
 
 <p><code>
-$ sudo docker ps
-CONTAINER ID        IMAGE                                    COMMAND                CREATED              STATUS              PORTS               NAMES
-d22035060882        tleyden5iwx/sync-gateway-coreos:latest   "sync-gw-start -c ma   About a minute ago   Up About a minute                       sync_gw
+$ fleetctl list-units
+sync_gw_node.1.service              209a8a2e.../10.164.175.9    active  running
 </code></p>
 
-<h2>View logs</h2>
+<p><strong>Curl</strong></p>
+
+<p>On the CoreOS instance you are already ssh&rsquo;d into, Use the ip found above and run a curl request against the server root:</p>
 
 <p><code>
-$ CONTAINER_ID=$(sudo docker ps | grep -iv container | awk '{ print $1 }')
-$ sudo docker logs --follow ${CONTAINER_ID}
+$ curl 10.164.175.9:4984
+{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/master(6356065)"}
 </code></p>
 
-<h2>Verify Sync Gateway</h2>
+<h2>Verify external</h2>
 
-<p>Assuming your public ip is <code>54.81.228.221</code>, paste <code>http://54.81.228.221:4984</code> into your web browser and you should see:</p>
+<p><strong>Find external ip</strong></p>
 
-<p>```
-{</p>
+<p>Using the internal ip found above, go to the EC2 Instances section of the AWS console, and hunt around until you find the instance with that internal ip, and then get the public ip for that instance, eg: <code>ec2-54-211-206-18.compute-1.amazonaws.com</code></p>
 
-<pre><code>"couchdb":"Welcome",
-"vendor":{
-    "name":"Couchbase Sync Gateway",
-    "version":1
-},
-"version":"Couchbase Sync Gateway/master(6356065)"
-</code></pre>
+<p><strong>Curl</strong></p>
 
-<p>}
-```</p>
-
-<p>To make sure the database was configured correctly, change the url to <code>http://54.81.228.221:4984/db</code>, and you should see:</p>
-
-<p>```
-{</p>
-
-<pre><code>"db_name":"db",
-.. etc ..
-</code></pre>
-
-<p>}
-```</p>
-
-<h2>Try out document API via curl</h2>
-
-<p><strong>Create a new document</strong></p>
+<p>From your laptop, use the ip found above and run a curl request against the server root:</p>
 
 <p><code>
-$ curl -H 'Content-Type: application/json' -X POST -d '{"hello":"sync gateway"}' http://54.81.228.221:4984/db/
+$ curl ec2-54-211-206-18.compute-1.amazonaws.com:4984
+{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/master(6356065)"}
 </code></p>
 
-<p>This will return the following JSON:</p>
+<p>Congratulations!  You now have a Couchbase Server + Sync Gateway cluster running.</p>
 
-<p>```
-{</p>
+<h2>Appendix A: Kicking off more Sync Gateway nodes.</h2>
 
-<pre><code>"id":"f1c8c5f8de22a09544b97fcc20fce316",
-"ok":true,
-"rev":"1-016b8855d6faf2d703a8b35a44cd4a40"
-</code></pre>
-
-<p>}
-```</p>
-
-<p><strong>View the document</strong></p>
-
-<p>Using the doc id returned above:</p>
+<p>To launch two more Sync Gateway nodes, run the following command:</p>
 
 <p><code>
-$ curl http://54.81.228.221:4984/db/f1c8c5f8de22a09544b97fcc20fce316
+$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.8 sync-gw-cluster launch-sgw --num-nodes=2 --config-url=http://git.io/b9PK --docker-tag 0.8
 </code></p>
 
-<p>You should see:</p>
+<h2>Appendix B: Setting up Elastic Load Balancer.</h2>
 
-<p>```
-{</p>
+<p><em>Warning: Users have been having <a href="https://groups.google.com/d/msg/mobile-couchbase/jJMqnoauMWQ/FHND_WqtYaMJ">problems</a> getting WebSockets to work behind ELB, as well as <a href="https://groups.google.com/d/msg/mobile-couchbase/oxeSlYS2-Aw/gw4UcA89KlsJ">connection timeouts</a>.  Unless you are planning to disable websocket support for iOS clients, you should use <a href="http://developer.couchbase.com/mobile/develop/guides/sync-gateway/nginx/index.html">nginx as described here</a> rather than ELB.</em></p>
 
-<pre><code>"_id":"f1c8c5f8de22a09544b97fcc20fce316",
-"_rev":"1-016b8855d6faf2d703a8b35a44cd4a40",
-"hello":"sync gateway"
-</code></pre>
+<p>Setup an Elastic Load Balancer with the following settings:</p>
 
-<p>}
-```</p>
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/sync_gateway_coreos_elb.png" alt="elb screenshot" /></p>
 
-<p>Check out the <a href="http://developer.couchbase.com/mobile/develop/references/sync-gateway/rest-api/index.html">Sync Gateway REST API docs</a> for full documentation on the available REST calls you can make.</p>
+<p>Note that it forwards to <strong>port 4984</strong>.</p>
 
-<h2>Restart Sync Gateway with new config</h2>
+<p>Once the Load Balancer has been created, go to its configuration to get its DNS name:</p>
 
-<p>If you need to change your sync gateway config, follow the instructions below.</p>
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/sync_gateway_coreos_elb2.png" alt="elb screenshot" /></p>
 
-<p><strong>Stop and remove existing container</strong></p>
-
-<p>Find the container id via <code>sudo docker ps</code> as shown above, and run this command with your own container id:</p>
+<p>Now you should be able to run curl against that:</p>
 
 <p><code>
-$ CONTAINER_ID=$(sudo docker ps | grep -iv container | awk '{ print $1 }')
-$ sudo docker stop ${CONTAINER_ID} &amp;&amp; sudo docker rm ${CONTAINER_ID}
+$ curl http://coreos-322270867.us-east-1.elb.amazonaws.com/
+{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/master(b47aee8)"}
 </code></p>
 
-<p><strong>Update sync gateway config</strong></p>
+<h2>Appendix C: Verify with a sample app</h2>
 
-<p>You can take this <a href="https://gist.githubusercontent.com/tleyden/368f01218baf4e760267/raw/a65be036bc3855d5ab4e73b849f4caa1dc7d390f/config.json">sample config</a> and customize it to your needs, and then upload it somewhere on the web.</p>
-
-<p>Make sure you keep the <code>server</code> field as <code>"walrus:data"</code>, since that tells Sync Gateway to use walrus and to store the data in the <code>/opt/sync_gateway/data</code> directory.</p>
-
-<p><strong>Start container with new config</strong></p>
-
-<p><code>
-$ SYNC_GW_CONFIG=https://yourserver.com/yourconfig.json
-$ sudo docker run --name sync_gw --net=host -v /opt/sync_gateway/data:/opt/sync_gateway/data tleyden5iwx/sync-gateway-coreos sync-gw-start -c master -g $SYNC_GW_CONFIG
-</code></p>
-
-<p>After it starts up, your sync gateway will be running with the new config.</p>
-
-<h2>Next step: try out the GrocerySync app</h2>
-
-<p>Choose the GrocerySync app for your platform:</p>
+<p>Try running either of the following sample apps:</p>
 
 <ul>
 <li><a href="https://github.com/couchbaselabs/GrocerySync-Android">GrocerySync-Android</a></li>
 <li><a href="https://github.com/couchbaselabs/Grocery-Sync-iOS">GrocerySync-iOS</a></li>
-<li><a href="https://github.com/couchbase/couchbase-lite-net/tree/master/samples">GrocerySync-DotNet</a></li>
 </ul>
 
 
-<p>and point the sync url at your server instead of the default.  Now should be able to sync data through your own Sync Gateway.</p>
+<p>and pointing the Sync Gateway URL to your own Sync Gateway instance.</p>
 
-<p>If you are on Phonegap, check our <a href="http://developer.couchbase.com/mobile/develop/samples/samples/index.html">sample apps</a> listing which has a link to the TodoLite-Phonegap app.</p>
+<h2>Appendix D: Shutting down the cluster.</h2>
+
+<p>Warning: if you try to shutdown the individual ec2 instances, <strong>you must use the CloudFormation console</strong>.  If you try to shutdown the instances via the EC2 control panel, AWS will restart them, because that is what the CloudFormation is telling it to do.</p>
+
+<p>Here is the web UI where you need to shutdown the cluster:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/shutdown_cluster.png" alt="screenshot" /></p>
+
+<h2>Appendix E: Disabling CoreOS auto-restarts</h2>
+
+<p>CoreOS automatically restart nodes when security updates are available.  Initially, this caused <a href="https://github.com/couchbaselabs/couchbase-server-docker/issues/2">major problems</a> with the way Couchbase Server was being spawned by the scripts used in this blog post.  Those issues are now fixed, but it&rsquo;s always possible new issues might arise.</p>
+
+<p>To play it safe, if you want to prevent CoreOS from restarting itself:</p>
+
+<ul>
+<li>Shut down your existing cluster via CloudFormation (if you have data already, then please post a comment to this blog post asking for help)</li>
+<li>Make a copy of the <a href="http://tleyden-misc.s3.amazonaws.com/couchbase-coreos/sync_gateway.template">default CloudFormation template</a> and save it on an S3 bucket.</li>
+<li>Change the <code>reboot-strategy</code> to <code>off</code>.  Here is an <a href="http://tleyden-misc.s3.amazonaws.com/couchbase-coreos/sync_gateway_noreboot.template">example cloudformation template</a> with rebooting disabled.  See also: <a href="https://coreos.com/docs/cluster-management/setup/update-strategies/">CoreOS update strategies document</a>.  After you&rsquo;ve made your changes, upload the edited version to S3.</li>
+<li>Kick off a new cluster from the Go to the <a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#cstack=sn%7ECouchbase-CoreOS%7Cturl%7Ehttp://tleyden-misc.s3.amazonaws.com/couchbase-coreos/sync_gateway.template">Cloudformation Wizard</a>, but change the value under <code>Specify an Amazon S3 template URL</code> to use your own template stored on S3 rather than the default.</li>
+</ul>
+
+
+<p>But be warned, this is a less secure approach to running CoreOS.</p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://github.com/tleyden/sync-gateway-coreos">sync gateway Docker + CoreOS fleet files</a></li>
+<li><a href="https://github.com/tleyden/couchbase-server-coreos">couchbase-server-coreos</a></li>
+<li><a href="http://developer.couchbase.com/mobile/develop/guides/sync-gateway/nginx/index.html">Sync Gateway docs regarding reverse proxies</a></li>
+<li><a href="https://groups.google.com/forum/?utm_medium=email&amp;utm_source=footer#!msg/mobile-couchbase/pXKQIAiCaW8/s9W_gSfRL50J">Couchbase Mobile Google Group discussion on ELB</a></li>
+<li><a href="https://github.com/couchbase/sync_gateway">sync gateway</a></li>
+<li><a href="https://github.com/andrewwebber/couchbase-array">andrewwebber/couchbase-array</a></li>
+</ul>
+
 ]]></content>
   </entry>
   

@@ -91,7 +91,7 @@
   
 
 
-<time datetime="2015-03-31T07:26:00-07:00" pubdate data-updated="true">Mar 31<span>st</span>, 2015</time>
+<time datetime="2015-03-31T07:26:00+00:00" pubdate data-updated="true">Mar 31<span>st</span>, 2015</time>
         
       </p>
     
@@ -156,7 +156,9 @@
 <p>HTML report:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ go tool cover -html=coverage.out</span></code></pre></td></tr></table></div></figure>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go test -coverprofile=coverage.out 
+</span><span class='line'>$ go tool cover -html=coverage.out</span></code></pre></td></tr></table></div></figure>
 
 
 <p>This should open up the following report in your default browser:</p>
@@ -265,7 +267,7 @@
   
 
 
-<time datetime="2015-03-31T07:26:00-07:00" pubdate data-updated="true">Mar 31<span>st</span>, 2015</time>
+<time datetime="2015-03-31T07:26:00+00:00" pubdate data-updated="true">Mar 31<span>st</span>, 2015</time>
       
 
 <span class="categories">
@@ -290,6 +292,8 @@
       
         <a class="basic-alignment left" href="/blog/2015/03/21/nginx-proxy-for-sync-gateway-using-confd/" title="Previous Post: Nginx proxy for Sync Gateway using Confd">&laquo; Nginx proxy for Sync Gateway using Confd</a>
       
+      
+        <a class="basic-alignment right" href="/blog/2015/04/25/setting-up-octopress-under-docker/" title="Next Post: Setting up Octopress under Docker">Setting up Octopress under Docker &raquo;</a>
       
     </p>
   </footer>
@@ -321,6 +325,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2015/04/25/setting-up-octopress-under-docker/">Setting Up Octopress Under Docker</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io/">Test Coverage for Go With drone.io and coveralls.io</a>
       </li>
     
@@ -334,10 +342,6 @@
     
       <li class="post">
         <a href="/blog/2015/01/23/running-a-walrus-backed-sync-gateway-on-aws/">Running a Walrus-backed Sync Gateway on AWS</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws/">Running a Sync Gateway Cluster Under CoreOS on AWS</a>
       </li>
     
   </ul>

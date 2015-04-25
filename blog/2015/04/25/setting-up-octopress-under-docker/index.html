@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Category: androidstudio - Seven Story Rabbit Hole</title>
+  <title>Setting up Octopress under Docker - Seven Story Rabbit Hole</title>
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Category: androidstudio">
+  <meta name="description" content="I got a new computer last week. It&rsquo;s the latest macbook retina, and I needed to refresh because I wanted a bigger SSD drive (and after having &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://tleyden.github.ioblog/categories/androidstudio">
+  <link rel="canonical" href="http://tleyden.github.io/blog/2015/04/25/setting-up-octopress-under-docker">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
@@ -71,42 +71,126 @@
   <div id="main">
     <div id="content">
       <div>
-<article role="article">
+<article class="hentry" role="article">
   
   <header>
-    <h1 class="entry-title">Category: Androidstudio</h1>
+    
+      <h1 class="entry-title">Setting Up Octopress Under Docker</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-04-25T03:57:00+00:00" pubdate data-updated="true">Apr 25<span>th</span>, 2015</time>
+        
+      </p>
     
   </header>
-  
-  <div id="blog-archives" class="category">
 
 
+<div class="entry-content"><p>I got a new computer last week.  It&rsquo;s the latest macbook retina, and I needed to refresh because I wanted a bigger SSD drive (and after having an SSD drive, I&rsquo;ll never go back)</p>
 
-  
-  <h2>2014</h2>
+<p>Anyway, I&rsquo;m trying to get my Octopress blog going again, and oh my God, what a nightmare.  Octopress was working beautifully for me for years, and then all of the sudden I am at the edge of Ruby Dependency Hell staring at an Octopress giving me eight fingers.</p>
 
-<article>
-  
-<h1><a href="/blog/2014/09/10/debugging-into-android-source/">Debugging into Android source</a></h1>
-<time datetime="2014-09-10T15:57:00+00:00" pubdate><span class='month'>Sep</span> <span class='day'>10</span> <span class='year'>2014</span></time>
+<p>With the help of Docker, I&rsquo;ve managed to tame this eight legged beast, barely.</p>
 
-<footer>
-  <span class="categories">posted in <a class='category' href='/blog/categories/android/'>android,</a>, <a class='category' href='/blog/categories/androidstudio/'>androidstudio</a></span>
-</footer>
+<h2>Run Docker</h2>
+
+<p>If you&rsquo;re on Linux, it&rsquo;s as easy as <code>apt-get install docker</code> or <code>yum install docker</code>.</p>
+
+<p>If you&rsquo;re on OSX, I wrote a <a href="http://tleyden.github.io/blog/2013/11/12/docker-on-osx/">blog post</a> on how to do this, which is probably way out of date, but at least will point you in the right direction.</p>
+
+<h2>Install Octopress Docker image</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run -ti tleyden5iwx/octopress /bin/bash</span></code></pre></td></tr></table></div></figure>
 
 
-</article>
 
 </div>
 
+
+  <footer>
+    <p class="meta">
+      
   
+
+<span class="byline author vcard">Posted by <span class="fn">Traun Leyden</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-04-25T03:57:00+00:00" pubdate data-updated="true">Apr 25<span>th</span>, 2015</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/docker/'>docker</a>, <a class='category' href='/blog/categories/octopress/'>octopress</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2015/04/25/setting-up-octopress-under-docker/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2015/04/25/setting-up-octopress-under-docker/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io/" title="Previous Post: Test coverage for Go with drone.io and coveralls.io">&laquo; Test coverage for Go with drone.io and coveralls.io</a>
+      
+      
+    </p>
+  </footer>
 </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
 
 </div>
 
 <aside class="sidebar">
   
     <section>
+  <h1>About Me</h1>
+  <p>
+  I'm a software engineer at Couchbase, working on <a href="http://developer.couchbase.com/mobile/">Couchbase Mobile</a> -- a mobile NoSQL database with Sync that runs on iOS, Android, and .NET platforms.
+  </p>
+
+  <p>
+  In my spare time I am working on <a href="https://github.com/tleyden/elastic-thought">ElasticThought</a> -- a scalable containerized REST API wrapper for the Caffe Deep Learning toolkit.
+  </p>
+
+</section>
+<section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
     
@@ -187,7 +271,10 @@
       var disqus_shortname = 'sevenstoryrabbithole';
       
         
-        var disqus_script = 'count.js';
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://tleyden.github.io/blog/2015/04/25/setting-up-octopress-under-docker/';
+        var disqus_url = 'http://tleyden.github.io/blog/2015/04/25/setting-up-octopress-under-docker/';
+        var disqus_script = 'embed.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;

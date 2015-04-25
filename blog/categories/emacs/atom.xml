@@ -4,7 +4,7 @@
   <title><![CDATA[Category: emacs | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/emacs/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-04-02T11:45:28-07:00</updated>
+  <updated>2015-04-25T04:15:13+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Configure Emacs as a Go Editor From Scratch Part 2]]></title>
     <link href="http://tleyden.github.io/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2/"/>
-    <updated>2014-05-27T12:03:00-07:00</updated>
+    <updated>2014-05-27T12:03:00+00:00</updated>
     <id>http://tleyden.github.io/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2</id>
     <content type="html"><![CDATA[<p>This is a continuation of <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">Part 1</a>, so if you haven&rsquo;t read that already, you should do so now.</p>
 
@@ -24,16 +24,10 @@
 
 <p>The idea of goimports is that every time you save a file, it will automatically update all of your imports, so you don&rsquo;t have to.  This can save a lot of time.  Kudos to <a href="https://twitter.com/bradfitz">@bradfitz</a> for taking the time to build this nifty tool.</p>
 
-<p>Since this project is hosted on Google Code&rsquo;s mercurial repository, if you don&rsquo;t have mercurial installed already, you&rsquo;ll first need to install it with:</p>
+<p>go get goimports with:</p>
 
 <p><code>
-$ brew install hg
-</code></p>
-
-<p>Next, go get goimports with:</p>
-
-<p><code>
-$ go get code.google.com/p/go.tools/cmd/goimports
+$ go get golang.org/x/tools/cmd/goimports
 </code></p>
 
 <p>Continuing on previous .emacs in <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">Part 1</a>, update your .emacs to:</p>
@@ -73,14 +67,14 @@ $ go get code.google.com/p/go.tools/cmd/goimports
 
 <h2>The Go Oracle</h2>
 
-<p>The Go Oracle will blow your mind!  It can do things like find all the callers of a given function/method.  It can also show you all the functions that read or write from a given channel.  In short, it rocks.</p>
+<p>The <a href="https://docs.google.com/document/d/1SLk36YRjjMgKqe490mSRzOPYEDe0Y_WQNRv-EiFYUyw/view">Go Oracle</a> will blow your mind!  It can do things like find all the callers of a given function/method.  It can also show you all the functions that read or write from a given channel.  In short, it rocks.</p>
 
 <p>Here&rsquo;s what you need to do in order to wield this powerful tool from within Emacs.</p>
 
 <h3>Go get oracle</h3>
 
 <p><code>
-go get code.google.com/p/go.tools/cmd/oracle
+go get golang.org/x/tools/cmd/oracle
 </code></p>
 
 <h3>Move oracle binary so Emacs can find it</h3>
@@ -91,29 +85,11 @@ sudo mv $GOPATH/bin/oracle $GOROOT/bin/
 
 <h3>Update .emacs</h3>
 
-<p>```
-; Go Oracle
-(load-file &ldquo;$GOPATH/src/code.google.com/p/go.tools/cmd/oracle/oracle.el&rdquo;)</p>
+<p>Add the following to your <code>.emacs</code> file, <strong>above</strong> the <code>(defun my-go-mode-hook ()</code> line.</p>
 
-<p>(defun my-go-mode-hook ()
-  ; Use goimports instead of go-fmt
-  (setq gofmt-command &ldquo;goimports&rdquo;)
-  ; Call Gofmt before saving
-  (add-hook &lsquo;before-save-hook 'gofmt-before-save)
-  ; Customize compile command to run go build
-  (if (not (string-match &ldquo;go&rdquo; compile-command))</p>
-
-<pre><code>  (set (make-local-variable 'compile-command)
-       "go build -v &amp;&amp; go test -v &amp;&amp; go vet"))
-</code></pre>
-
-<p>  ; Godef jump key binding
-  (local-set-key (kbd &ldquo;M-.&rdquo;) &lsquo;godef-jump))
-  ; Go Oracle
-  (go-oracle-mode)
-(add-hook 'go-mode-hook 'my-go-mode-hook)</p>
-
-<p>```</p>
+<p><code>
+(load-file "$GOPATH/src/golang.org/x/tools/cmd/oracle/oracle.el")
+</code></p>
 
 <p><strong>Restart Emacs</strong> to make these changes take effect.</p>
 
@@ -180,7 +156,7 @@ M-x go-oracle-callers
   <entry>
     <title type="html"><![CDATA[Configure Emacs as a Go editor from scratch]]></title>
     <link href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/"/>
-    <updated>2014-05-22T16:46:00-07:00</updated>
+    <updated>2014-05-22T16:46:00+00:00</updated>
     <id>http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch</id>
     <content type="html"><![CDATA[<p>This explains the steps to get a productive Emacs environment for Go programming on OSX, starting from scratch.</p>
 
@@ -214,8 +190,8 @@ export PATH=$PATH:$GOROOT/bin
 <li><code>mkdir -p ~/Misc/emacs &amp;&amp; cd ~/Misc/emacs</code></li>
 <li><code>git clone git@github.com:dominikh/go-mode.el.git</code></li>
 <li>From within Emacs, run <code>M-x update-file-autoloads</code>, point it at the <strong>go-mode.el</strong> file in the cloned directory.</li>
-<li>Emacs will prompt you for a result file, and you should enter <strong>go-mode-load.el</strong></li>
-<li>Add these two lines to your ~/.emacs</li>
+<li>Emacs will prompt you for a result path, and you should enter <strong>~/Misc/emacs/go-mode.el/go-mode-load.el</strong></li>
+<li>Add these two lines to your ~/.emacs  (if you don&rsquo;t already have this file, you should create an empty one)</li>
 </ul>
 
 
@@ -232,19 +208,34 @@ export PATH=$PATH:$GOROOT/bin
 
 <p>It&rsquo;s really useful to be able to able to pull up 3rd party or standard library docs from within Emacs using the <code>godoc</code> tool.</p>
 
-<p><em>Unfortunately, it was necessary to duplicate the $PATH and $GOPATH environment variables in the .emacs file, so that the GUI Emacs app can see it.  @eentzel tweeted me a <a href="http://blog.gaz-jones.com/2012/02/01/setting_up_emacs_for_clojure_development.html">blog post</a> that explains how to deal with this, and I will update this blog post to reflect that at some point.</em></p>
+<p><strong>PATH</strong></p>
 
-<p><strong>NOTE</strong>: you will need to modify the snippet below to reflect the $PATH and $GOPATH variables, don&rsquo;t just blindly copy and paste these.</p>
+<p>Add the following to your <code>.emacs</code> file so that it gets the PATH environment:</p>
 
-<ul>
-<li>Add your $PATH and $GOPATH to your ~/.emacs</li>
-</ul>
+<p>```
+(defun set-exec-path-from-shell-PATH ()
+  (let ((path-from-shell (replace-regexp-in-string</p>
 
+<pre><code>                      "[ \t\n]*$"
+                      ""
+                      (shell-command-to-string "$SHELL --login -i -c 'echo $PATH'"))))
+(setenv "PATH" path-from-shell)
+(setq eshell-path-env path-from-shell) ; for eshell users
+(setq exec-path (split-string path-from-shell path-separator))))
+</code></pre>
+
+<p>(when window-system (set-exec-path-from-shell-PATH))
+```</p>
+
+<p>NOTE: according to <a href="http://stackoverflow.com/questions/6411121/how-to-make-emacs-use-my-bashrc-file">this StackOverflow post</a>, it&rsquo;s possible to achieve this via downloading the <a href="https://github.com/purcell/exec-path-from-shell">exec-path-from-shell</a> emacs plugin from Marmelade or Melpa.</p>
+
+<p><strong>GOPATH</strong></p>
 
 <p><code>
-(setenv "PATH" "/Users/tleyden/.rbenv/shims:/Users/tleyden/.rbenv/shims:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/local/go/bin")
 (setenv "GOPATH" "/Users/tleyden/Development/gocode")
 </code></p>
+
+<p>(replace the above path to the absolute path to the directory where you store your Go code)</p>
 
 <p>After doing this step, you should be able to run <code>M-x godoc</code> and it should be able to autocomplete paths of packages.  (of course, you may want to <code>go get</code> some packages first if you don&rsquo;t have any)</p>
 
@@ -259,6 +250,8 @@ export PATH=$PATH:$GOROOT/bin
 (add-to-list 'exec-path "/Users/tleyden/Development/gocode/bin")
 (add-hook 'before-save-hook 'gofmt-before-save)
 </code></p>
+
+<p>(replace the above path to the absolute path to your <code>$GOPATH/bin</code> directory)</p>
 
 <p>After this step, whenever you save a Go file, it will automatically reformat the file with <code>gofmt</code>.</p>
 
@@ -298,14 +291,16 @@ export PATH=$PATH:$GOROOT/bin
 <ul>
 <li>Download and extract <a href="http://cx4a.org/pub/auto-complete/auto-complete-1.3.1.tar.bz2">http://cx4a.org/pub/auto-complete/auto-complete-1.3.1.tar.bz2</a></li>
 <li>Cd into extracted dir and run <code>emacs -batch -l etc/install.el</code></li>
+<li>Create a <code>lisp</code> subdirectory under your <code>~/.emacs.d</code> directory</li>
+<li>When prompted for where to install, give it the full path to your <code>~/.emacs.d/lisp</code> directory, eg: <code>/Users/tleyden/.emacs.d/lisp</code></li>
 <li>It will tell you to add the following to your ~/.emacs:</li>
 </ul>
 
 
 <p><code>
-(add-to-list 'load-path "/Users/tleyden/.emacs.d/")
+(add-to-list 'load-path "/Users/tleyden/.emacs.d/lisp")
 (require 'auto-complete-config)
-(add-to-list 'ac-dictionary-directories "/Users/tleyden/.emacs.d//ac-dict")
+(add-to-list 'ac-dictionary-directories "/Users/tleyden/.emacs.d/lisp/ac-dict")
 (ac-config-default)
 </code></p>
 
@@ -343,7 +338,7 @@ export PATH=$PATH:$GOROOT/bin
   (if (not (string-match &ldquo;go&rdquo; compile-command))</p>
 
 <pre><code>  (set (make-local-variable 'compile-command)
-       "go build -v &amp;&amp; go test -v &amp;&amp; go vet"))
+       "go generate &amp;&amp; go build -v &amp;&amp; go test -v &amp;&amp; go vet"))
 </code></pre>
 
 <p>  ; Godef jump key binding
@@ -355,9 +350,9 @@ export PATH=$PATH:$GOROOT/bin
 
 <p><strong>Power tip</strong>: you can jump straight to each compile error by running <code>C-x `</code>.  Each time you do it, it will jump to the next error.</p>
 
-<h2>Is this too easy for you?</h2>
+<h2>Ready for more?</h2>
 
-<p>If you&rsquo;re yawning and you already know all this stuff, or you&rsquo;re ready to take it to the next level, check out <a href="http://www.youtube.com/watch?v=5wipWZKvNSo">5 minutes of go in emacs</a></p>
+<p>If you&rsquo;re ready to take it to the next level, check out <a href="http://www.youtube.com/watch?v=5wipWZKvNSo">5 minutes of go in emacs</a></p>
 
 <p>(PS: thanks <a href="https://twitter.com/dlsspy">@dlsspy</a> for taking the time to teach me the Emacs wrestling techniques needed to get this far.)</p>
 

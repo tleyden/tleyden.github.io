@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Couchbase Mobile just announced it&rsquo;s 1.0 release today. What is Couchbase Mobile? Couchbase Lite is an open source iOS/Android NoSQL DB with &hellip;">
+  <meta name="description" content="This explains the steps to get a productive Emacs environment for Go programming on OSX, starting from scratch. Install Emacs I recommend using the &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +78,269 @@
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">Configure Emacs as a Go Editor From Scratch</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-05-22T16:46:00+00:00" pubdate data-updated="true">May 22<span>nd</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>This explains the steps to get a productive Emacs environment for Go programming on OSX, starting from scratch.</p>
+
+<h2>Install Emacs</h2>
+
+<p>I recommend using the emacs from <a href="http://emacsformacosx.com">emacsformacosx.com</a>.</p>
+
+<p>It has a GUI installer so I won&rsquo;t say much more about it.</p>
+
+<h2>Install Go</h2>
+
+<ul>
+<li>At the time of writing, I installed <a href="https://storage.googleapis.com/golang/go1.2.2.darwin-amd64-osx10.8.pkg">https://storage.googleapis.com/golang/go1.2.2.darwin-amd64-osx10.8.pkg</a></li>
+<li>After installing the package, you&rsquo;ll want to define the following environment variables in your <code>~/.bash_profile</code>:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>export GOROOT=/usr/local/go
+</span><span class='line'>export GOPATH=~/Development/gocode
+</span><span class='line'>export PATH=$PATH:$GOROOT/bin</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Configure go-mode</h2>
+
+<p>Go-mode is an Emacs major mode for editing Go code.  An absolute must for anyone writing Go w/ Emacs.</p>
+
+<p>The following is a brief summary of <a href="http://dominik.honnef.co/posts/2013/03/writing_go_in_emacs/">Dominik Honnef&rsquo;s instructions</a></p>
+
+<ul>
+<li><code>mkdir -p ~/Misc/emacs &amp;&amp; cd ~/Misc/emacs</code></li>
+<li><code>git clone git@github.com:dominikh/go-mode.el.git</code></li>
+<li>From within Emacs, run <code>M-x update-file-autoloads</code>, point it at the <strong>go-mode.el</strong> file in the cloned directory.</li>
+<li>Emacs will prompt you for a result path, and you should enter <strong>~/Misc/emacs/go-mode.el/go-mode-load.el</strong></li>
+<li>Add these two lines to your ~/.emacs  (if you don&rsquo;t already have this file, you should create an empty one)</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>(add-to-list 'load-path "~/Misc/emacs/go-mode.el/")
+</span><span class='line'>(require 'go-mode-load)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Restart Emacs and open a .go file, you should see the mode as &ldquo;Go&rdquo; rather than &ldquo;Fundamental&rdquo;.</p>
+
+<p>For a full description of what go-mode can do for you, see <a href="http://dominik.honnef.co/posts/2013/03/writing_go_in_emacs/">Dominik Honnef&rsquo;s blog</a>, but one really useful thing to be aware of is that you can quickly import packages via <code>C-c C-a</code></p>
+
+<h2>Update Emacs config for <code>godoc</code></h2>
+
+<p>It&rsquo;s really useful to be able to able to pull up 3rd party or standard library docs from within Emacs using the <code>godoc</code> tool.</p>
+
+<p><strong>PATH</strong></p>
+
+<p>Add the following to your <code>.emacs</code> file so that it gets the PATH environment:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>(defun set-exec-path-from-shell-PATH ()
+</span><span class='line'>  (let ((path-from-shell (replace-regexp-in-string
+</span><span class='line'>                          "[ \t\n]*$"
+</span><span class='line'>                          ""
+</span><span class='line'>                          (shell-command-to-string "$SHELL --login -i -c 'echo $PATH'"))))
+</span><span class='line'>    (setenv "PATH" path-from-shell)
+</span><span class='line'>    (setq eshell-path-env path-from-shell) ; for eshell users
+</span><span class='line'>    (setq exec-path (split-string path-from-shell path-separator))))
+</span><span class='line'>
+</span><span class='line'>(when window-system (set-exec-path-from-shell-PATH))</span></code></pre></td></tr></table></div></figure>
+
+
+<p>NOTE: according to <a href="http://stackoverflow.com/questions/6411121/how-to-make-emacs-use-my-bashrc-file">this StackOverflow post</a>, it&rsquo;s possible to achieve this via downloading the <a href="https://github.com/purcell/exec-path-from-shell">exec-path-from-shell</a> emacs plugin from Marmelade or Melpa.</p>
+
+<p><strong>GOPATH</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>(setenv "GOPATH" "/Users/tleyden/Development/gocode")</span></code></pre></td></tr></table></div></figure>
+
+
+<p>(replace the above path to the absolute path to the directory where you store your Go code)</p>
+
+<p>After doing this step, you should be able to run <code>M-x godoc</code> and it should be able to autocomplete paths of packages.  (of course, you may want to <code>go get</code> some packages first if you don&rsquo;t have any)</p>
+
+<h2>Automatically call gofmt on save</h2>
+
+<p><code>gofmt</code> reformats code into the One True Go Style Coding Standard.  You&rsquo;ll want to call it every time you save a file.</p>
+
+<p>Add these to your ~/.emacs:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>(setq exec-path (cons "/usr/local/go/bin" exec-path))
+</span><span class='line'>(add-to-list 'exec-path "/Users/tleyden/Development/gocode/bin")
+</span><span class='line'>(add-hook 'before-save-hook 'gofmt-before-save)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>(replace the above path to the absolute path to your <code>$GOPATH/bin</code> directory)</p>
+
+<p>After this step, whenever you save a Go file, it will automatically reformat the file with <code>gofmt</code>.</p>
+
+<h2>Godef</h2>
+
+<p>Godef is essential: it lets you quickly jump around the code, as you might be used to with a full featured IDE.</p>
+
+<p>From what I can tell, installing <a href="https://github.com/dominikh/go-mode.el">go-mode</a> seems to automatically install godef.</p>
+
+<p>To verify that godef is indeed installed:</p>
+
+<ul>
+<li>Putting the cursor over a method name</li>
+<li>Try doing <code>M-x godef-jump</code> to jump into the method, and <code>M-*</code> to go back.</li>
+</ul>
+
+
+<p>In order to add godef key bindings, add these to your ~/.emacs:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>(defun my-go-mode-hook ()
+</span><span class='line'>  ; Call Gofmt before saving                                                    
+</span><span class='line'>  (add-hook 'before-save-hook 'gofmt-before-save)
+</span><span class='line'>  ; Godef jump key binding                                                      
+</span><span class='line'>  (local-set-key (kbd "M-.") 'godef-jump))
+</span><span class='line'>(add-hook 'go-mode-hook 'my-go-mode-hook)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and remove your previous call to <code>(add-hook 'before-save-hook 'gofmt-before-save)</code> since it&rsquo;s now redundant</p>
+
+<p>Now you can jump into code with <code>M-.</code> and jump back with <code>M-*</code></p>
+
+<h2>Autocomplete</h2>
+
+<p>The following is a brief summary of the <a href="http://cx4a.org/software/auto-complete/manual.html#Installation">emacs autocomplete manual</a></p>
+
+<ul>
+<li>Download and extract <a href="http://cx4a.org/pub/auto-complete/auto-complete-1.3.1.tar.bz2">http://cx4a.org/pub/auto-complete/auto-complete-1.3.1.tar.bz2</a></li>
+<li>Cd into extracted dir and run <code>emacs -batch -l etc/install.el</code></li>
+<li>Create a <code>lisp</code> subdirectory under your <code>~/.emacs.d</code> directory</li>
+<li>When prompted for where to install, give it the full path to your <code>~/.emacs.d/lisp</code> directory, eg: <code>/Users/tleyden/.emacs.d/lisp</code></li>
+<li>It will tell you to add the following to your ~/.emacs:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>(add-to-list 'load-path "/Users/tleyden/.emacs.d/lisp")
+</span><span class='line'>(require 'auto-complete-config)
+</span><span class='line'>(add-to-list 'ac-dictionary-directories "/Users/tleyden/.emacs.d/lisp/ac-dict")
+</span><span class='line'>(ac-config-default)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To see any effect, we need to install gocode in the next step.</p>
+
+<h2>Gocode: Go aware Autocomplete</h2>
+
+<p>The following is a brief summary of the <a href="https://github.com/nsf/gocode">gocode README</a></p>
+
+<ul>
+<li><code>go get -u -v github.com/nsf/gocode</code></li>
+<li><code>cp /Users/tleyden/Development/gocode/src/github.com/nsf/gocode/emacs/go-autocomplete.el ~/.emacs.d/</code></li>
+<li>Add the following to your ~/.emacs</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>(require 'go-autocomplete)
+</span><span class='line'>(require 'auto-complete-config)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>At this point, after you restart emacs, when you start typing something, you should see a popup menu with choices, like <a href="http://tleyden-misc.s3.amazonaws.com/blog_images/emacs_autocomplete.png">this screenshot</a>.</p>
+
+<h2>Customize compile command to run <code>go build</code></h2>
+
+<p>It&rsquo;s convenient to be able to run <code>M-x compile</code> to compile and test your Go code from within emacs.</p>
+
+<p>To do that, edit your ~/.emacs and replace your go-mode hook with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>(defun my-go-mode-hook ()
+</span><span class='line'>  ; Call Gofmt before saving
+</span><span class='line'>  (add-hook 'before-save-hook 'gofmt-before-save)
+</span><span class='line'>  ; Customize compile command to run go build
+</span><span class='line'>  (if (not (string-match "go" compile-command))
+</span><span class='line'>      (set (make-local-variable 'compile-command)
+</span><span class='line'>           "go generate && go build -v && go test -v && go vet"))
+</span><span class='line'>  ; Godef jump key binding
+</span><span class='line'>  (local-set-key (kbd "M-.") 'godef-jump))
+</span><span class='line'>(add-hook 'go-mode-hook 'my-go-mode-hook)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After that, restart emacs, and when you type <code>M-x compile</code>, it should try to execute <code>go build -v &amp;&amp; go test -v &amp;&amp; go vet</code> instead of the default behavior.</p>
+
+<p><strong>Power tip</strong>: you can jump straight to each compile error by running <code>C-x `</code>.  Each time you do it, it will jump to the next error.</p>
+
+<h2>Ready for more?</h2>
+
+<p>If you&rsquo;re ready to take it to the next level, check out <a href="http://www.youtube.com/watch?v=5wipWZKvNSo">5 minutes of go in emacs</a></p>
+
+<p>(PS: thanks <a href="https://twitter.com/dlsspy">@dlsspy</a> for taking the time to teach me the Emacs wrestling techniques needed to get this far.)</p>
+
+<h2>Continue to Part 2</h2>
+
+<p>go-imports and go-oracle are covered in <a href="../../27/configure-emacs-as-a-go-editor-from-scratch-part-2/">Part 2</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2014/05/21/what-is-couchbase-mobile-and-why-should-you-care/">What Is Couchbase Mobile and Why Should You Care?</a></h1>
     
     
@@ -94,7 +357,7 @@
   
 
 
-<time datetime="2014-05-21T13:57:00-07:00" pubdate data-updated="true">May 21<span>st</span>, 2014</time>
+<time datetime="2014-05-21T13:57:00+00:00" pubdate data-updated="true">May 21<span>st</span>, 2014</time>
         
       </p>
     
@@ -239,7 +502,7 @@
   
 
 
-<time datetime="2014-04-09T11:39:00-07:00" pubdate data-updated="true">Apr 9<span>th</span>, 2014</time>
+<time datetime="2014-04-09T11:39:00+00:00" pubdate data-updated="true">Apr 9<span>th</span>, 2014</time>
         
       </p>
     
@@ -338,7 +601,7 @@
   
 
 
-<time datetime="2014-03-18T10:32:00-07:00" pubdate data-updated="true">Mar 18<span>th</span>, 2014</time>
+<time datetime="2014-03-18T10:32:00+00:00" pubdate data-updated="true">Mar 18<span>th</span>, 2014</time>
         
       </p>
     
@@ -452,7 +715,7 @@
   
 
 
-<time datetime="2014-02-08T16:01:00-08:00" pubdate data-updated="true">Feb 8<span>th</span>, 2014</time>
+<time datetime="2014-02-08T16:01:00+00:00" pubdate data-updated="true">Feb 8<span>th</span>, 2014</time>
         
       </p>
     
@@ -513,7 +776,7 @@
   
 
 
-<time datetime="2014-02-06T08:25:00-08:00" pubdate data-updated="true">Feb 6<span>th</span>, 2014</time>
+<time datetime="2014-02-06T08:25:00+00:00" pubdate data-updated="true">Feb 6<span>th</span>, 2014</time>
         
       </p>
     
@@ -586,7 +849,7 @@
   
 
 
-<time datetime="2014-01-31T10:50:00-08:00" pubdate data-updated="true">Jan 31<span>st</span>, 2014</time>
+<time datetime="2014-01-31T10:50:00+00:00" pubdate data-updated="true">Jan 31<span>st</span>, 2014</time>
         
       </p>
     
@@ -650,7 +913,7 @@
   
 
 
-<time datetime="2014-01-13T11:45:00-08:00" pubdate data-updated="true">Jan 13<span>th</span>, 2014</time>
+<time datetime="2014-01-13T11:45:00+00:00" pubdate data-updated="true">Jan 13<span>th</span>, 2014</time>
         
       </p>
     
@@ -751,7 +1014,7 @@
   
 
 
-<time datetime="2013-12-19T17:01:00-08:00" pubdate data-updated="true">Dec 19<span>th</span>, 2013</time>
+<time datetime="2013-12-19T17:01:00+00:00" pubdate data-updated="true">Dec 19<span>th</span>, 2013</time>
         
       </p>
     
@@ -808,7 +1071,7 @@
   
 
 
-<time datetime="2013-11-23T07:58:00-08:00" pubdate data-updated="true">Nov 23<span>rd</span>, 2013</time>
+<time datetime="2013-11-23T07:58:00+00:00" pubdate data-updated="true">Nov 23<span>rd</span>, 2013</time>
         
       </p>
     
@@ -950,129 +1213,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/11/22/android-studio-plus-genymotion-emulator/">Android Studio + Genymotion Emulator</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-11-22T15:51:00-08:00" pubdate data-updated="true">Nov 22<span>nd</span>, 2013</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>The Android emulator is dog slow.  The x86 intel emulators only work with certain versions of OSX, otherwise they crash miserably.</p>
-
-<p>Genymotion is apparently pretty good, so I&rsquo;m giving that a shot.</p>
-
-<p>Here&rsquo;s how to do it.</p>
-
-<h2>Download and Install VirtualBox</h2>
-
-<p><a href="https://www.virtualbox.org/wiki/Downloads">Download VirtualBox</a> + follow instructions to install.</p>
-
-<h2>Signup with Genymotion + Download installer</h2>
-
-<ul>
-<li><p>Go to <a href="http://www.genymotion.com">genymotion.com</a> and signup</p></li>
-<li><p>Click the &ldquo;Get Genymotion&rdquo; button and <a href="https://cloud.genymotion.com/page/launchpad/download/">download</a> the appropriate version for your OS.</p></li>
-</ul>
-
-
-<h2>Run the Genymotion application</h2>
-
-<p>It will install Genymotion and Genmotion shell &mdash; run the Genymotion application (not the shell).</p>
-
-<p>When you run it, you will see:</p>
-
-<p><img src="http://cl.ly/image/0e1j3t1j1V3F/Screen%20Shot%202013-11-22%20at%203.57.11%20PM.png" alt="Screenshot" /></p>
-
-<p>Click add new virtual device.  It will ask you to login, then show you a list:</p>
-
-<p><img src="http://cl.ly/image/2i3M2D0p2M2J/Screen%20Shot%202013-11-22%20at%203.59.41%20PM.png" alt="Screenshot" /></p>
-
-<p>Pick the virtual device you want and it will download it.</p>
-
-<h2>Try starting a virtual device</h2>
-
-<p>Here&rsquo;s what happened on my system:</p>
-
-<ul>
-<li>Hit Play to run virtual device</li>
-<li>It asked me to configure the Android SDK location, I said &ldquo;No&rdquo;</li>
-<li>Then it gave me an error that VirtualBox was not installed</li>
-<li>I started VirtualBox manually</li>
-<li>I retried running the virtual device, this time it worked and I saw</li>
-</ul>
-
-
-<p><img src="http://cl.ly/image/252a1T3d2U1x/Screen%20Shot%202013-11-22%20at%204.06.46%20PM.png" alt="Screenshot" /></p>
-
-<h2>Configure Android Studio plugin</h2>
-
-<p>Go to Preferences / Plugins and click &ldquo;Browse Repositories&rdquo;, then search for Genymotion.  Right click and choose &ldquo;Download and Install&rdquo;.</p>
-
-<p><img src="http://cl.ly/image/110z2N2i1S3N/Screen%20Shot%202013-11-22%20at%204.08.42%20PM.png" alt="Screenshot" /></p>
-
-<p>Restart Android Studio and you should see a new icon in your IDE.</p>
-
-<p><img src="http://cl.ly/image/0F0N330u0C32/Screen%20Shot%202013-11-22%20at%204.11.00%20PM.png" alt="Screenshot" /></p>
-
-<p>Click the icon and it will bring up Preferences, and choose the path to the Genymotion application.</p>
-
-<p><img src="http://cl.ly/image/3G3K1s0p2h3x/Screen%20Shot%202013-11-22%20at%204.14.05%20PM.png" alt="Screenshot" /></p>
-
-<p>Now if you click the Genymotion icon again, you will see the list of devices available:</p>
-
-<p><img src="http://cl.ly/image/1Y120s1n1d2l/Screen%20Shot%202013-11-22%20at%204.15.20%20PM.png" alt="Screenshot" /></p>
-
-<h2>Start an emulator</h2>
-
-<p>Click the Genymotion icon within Android studio, select a virtual device, and hit start.</p>
-
-<p>It will ask you to choose the location of the SDK:</p>
-
-<p><img src="http://cl.ly/image/2N0W1h0O3Q2H/Screen%20Shot%202013-11-22%20at%204.18.02%20PM.png" alt="Screenshot" /></p>
-
-<p>On Mac OSX, I was not able to brows to the path since the application was greyed out in the chooser dialog, so I went onto the shell and found it (/Applications/Android Studio.app/sdk) and just copied and pasted it:</p>
-
-<p><img src="http://cl.ly/image/2V2H0d0M1z0f/Screen%20Shot%202013-11-22%20at%204.21.12%20PM.png" alt="Screenshot" /></p>
-
-<p>Select a virtual device, and hit start (again).  It should come up now.</p>
-
-<h2>Deploy an application/test to that emulator</h2>
-
-<p>In Android Studio, hit the &ldquo;Play&rdquo; or &ldquo;Debug&rdquo; button, and you should see the dialog that asks you to choose an emulator:</p>
-
-<p><img src="http://cl.ly/image/1I43000V3h12/Screen%20Shot%202013-11-22%20at%204.25.21%20PM.png" alt="Screenshot" /></p>
-
-<p>and one of the emulators will be the Genymotion emulator.  After you choose that emulator and hit &ldquo;OK&rdquo;, it will run your application in the Genymotion emulator (this is showing the <a href="https://github.com/couchbaselabs/GrocerySync-Android">Grocery Sync</a> demo app for <a href="https://github.com/couchbase/couchbase-lite-android">Couchbase Lite</a>):</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/Genymotion_Grocery_sync.png" alt="Screenshot" /></p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/4/">&larr; Older</a>
@@ -1101,6 +1241,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2015/04/25/setting-up-octopress-under-docker/">Setting Up Octopress Under Docker</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io/">Test Coverage for Go With drone.io and coveralls.io</a>
       </li>
     
@@ -1114,10 +1258,6 @@
     
       <li class="post">
         <a href="/blog/2015/01/23/running-a-walrus-backed-sync-gateway-on-aws/">Running a Walrus-backed Sync Gateway on AWS</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws/">Running a Sync Gateway Cluster Under CoreOS on AWS</a>
       </li>
     
   </ul>

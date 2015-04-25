@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: aws | Seven Story Rabbit Hole]]></title>
+  <title><![CDATA[Category: aws, | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/aws/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-04-02T11:45:28-07:00</updated>
+  <updated>2015-04-25T04:15:13+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -14,461 +14,186 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Running a Sync Gateway Cluster Under CoreOS on AWS]]></title>
-    <link href="http://tleyden.github.io/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws/"/>
-    <updated>2014-12-15T19:22:00-08:00</updated>
-    <id>http://tleyden.github.io/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws</id>
-    <content type="html"><![CDATA[<p>Follow the steps below to create a Sync Gateway + Couchbase Server cluster running under AWS with the following architecture:</p>
+    <title type="html"><![CDATA[CUDA 6.5 on AWS GPU instance running Ubuntu 14.04]]></title>
+    <link href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/"/>
+    <updated>2014-10-25T11:56:00+00:00</updated>
+    <id>http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04</id>
+    <content type="html"><![CDATA[<h2>Using a pre-built public AMI</h2>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/sync-gw-coreos-onion.png" alt="architecture diagram" /></p>
-
-<p><em>Disclaimer: this approach to running Couchbase Server and Sync Gateway is entirely <strong>experimental</strong> and you should do your own testing before running a production system.  Having said that, this approach has undergone a <a href="https://github.com/couchbaselabs/couchbase-server-docker/issues/2">major feedback loop</a> from real users, and this version is a lot more stable than the initial version.</em></p>
-
-<h2>Kick off Couchbase Server + Sync Gateway cluster</h2>
-
-<h3>Launch EC2 instances</h3>
-
-<p><a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#cstack=sn%7ECouchbase-CoreOS%7Cturl%7Ehttp://tleyden-misc.s3.amazonaws.com/couchbase-coreos/sync_gateway.template"><img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"></a></p>
-
-<p>Recommended values:</p>
+<p>Based on the instructions in this blog post, I&rsquo;ve created an AMI and shared it publicly.  So the easiest thing to do is just use that pre-built AMI:</p>
 
 <ul>
-<li><strong>ClusterSize</strong>: 3 nodes (default)</li>
-<li><strong>Discovery URL</strong>:  as it says, you need to grab a new token from <a href="https://discovery.etcd.io/new">https://discovery.etcd.io/new</a> and paste it in the box.</li>
-<li><strong>KeyPair</strong>: the name of the AWS keypair you want to use.  If you haven&rsquo;t already, you&rsquo;ll want to upload your local ssh key into AWS and create a named keypair.</li>
+<li>Image: <strong>ami-2cbf3e44</strong> for US-East or <strong>ami-c38babf3</strong> for US-West (Ubuntu Server 14.04 LTS (HVM) &ndash; CUDA 6.5)</li>
+<li>Instance type: <strong>g2.2xlarge</strong> (if you skip this step, you won&rsquo;t have an nvidia device)</li>
+<li>Storage: Use at least 8 GB, 20+ GB recommended</li>
 </ul>
 
 
-<h3>Wait until instances are up</h3>
+<p>If you use the pre-built AMI, then you can skip down to the <strong>Verify CUDA is correctly installed</strong> section, since all of the rest of the steps are &ldquo;baked in&rdquo; to the AMI.</p>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/cloud-formation-create-complete.png" alt="screenshot" /></p>
+<p><em>Note regarding AMI regions: the AMI only currently works in the US-East and US-West regions.  If you need it added to another region, please post a comment below</em></p>
 
-<h3>ssh into a CoreOS instance</h3>
+<h2>Building from scratch</h2>
 
-<p>Go to the AWS console under EC2 instances and find the public ip of one of your newly launched CoreOS instances.</p>
+<p>Or if you prefer to build your own instance from scratch, keep reading.</p>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/ec2-instances-coreos.png" alt="screenshot" /></p>
-
-<p>Choose any one of them (it doesn&rsquo;t matter which), and ssh into it as the <strong>core</strong> user with the cert provided in the previous step:</p>
-
-<p><code>
-$ ssh -i aws.cer -A core@ec2-54-83-80-161.compute-1.amazonaws.com
-</code></p>
-
-<h3>Kick off Couchbase Server cluster</h3>
-
-<p><code>
-$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.8 couchbase-fleet launch-cbs --version 3.0.1 --num-nodes 3 --userpass "user:passw0rd" --docker-tag 0.8
-</code></p>
-
-<p>Where:</p>
+<p>Create a new EC2 instance:</p>
 
 <ul>
-<li>&mdash;version=&lt;cb-version> Couchbase Server version (3.0.1 or 2.2)</li>
-<li>&mdash;num-nodes=&lt;num_nodes> number of couchbase nodes to start</li>
-<li>&mdash;userpass &lt;user:pass> the username and password as a single string, delimited by a colon (:)</li>
-<li>&mdash;etcd-servers=&lt;server-list>  Comma separated list of etcd servers, or omit to connect to etcd running on localhost</li>
-<li>&mdash;docker-tag=&lt;docker-tag>  if present, use this docker tag for spawned containers, otherwise, default to &ldquo;latest&rdquo;</li>
+<li>Image: ami-9eaa1cf6 (Ubuntu Server 14.04 LTS (HVM), SSD Volume Type)</li>
+<li>Instance type: g2.2xlarge</li>
+<li>Storage: Use at least 8 GB, 20+ GB recommended</li>
 </ul>
 
 
-<p>Replace <code>user:passw0rd</code> with a sensible username and password.  It <strong>must</strong> be colon separated, with no spaces.  The password itself must be at least 6 characters.</p>
-
-<p>The output should look something like <a href="https://gist.github.com/tleyden/bc0975778216281b80e7">this gist</a>.</p>
-
-<h3>Kick off Sync Gateway cluster</h3>
+<p>Install build-essential:</p>
 
 <p><code>
-$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.8 sync-gw-cluster launch-sgw --num-nodes=1 --config-url=http://git.io/b9PK --create-bucket todos --create-bucket-size 512 --create-bucket-replicas 1 --docker-tag 0.8
+$ apt-get update &amp;&amp; apt-get install build-essential
 </code></p>
 
-<p>Where:</p>
-
-<ul>
-<li>&mdash;num-nodes=&lt;num_nodes> number of sync gw nodes to start</li>
-<li>&mdash;config-url=&lt;config_url> the url where the sync gw config json is stored</li>
-<li>&mdash;sync-gw-commit=&lt;branch-or-commit> the branch or commit of sync gw to use, defaults to &ldquo;image&rdquo;, which is the master branch at the time the docker image was built.</li>
-<li>&mdash;create-bucket=&lt;bucket-name> create a bucket on couchbase server with the given name</li>
-<li>&mdash;create-bucket-size=&lt;bucket-size-mb> if creating a bucket, use this size in MB</li>
-<li>&mdash;create-bucket-replicas=&lt;replica-count> if creating a bucket, use this replica count (defaults to 1)</li>
-<li>&mdash;etcd-servers=&lt;server-list>  Comma separated list of etcd servers, or omit to connect to etcd running on localhost</li>
-<li>&mdash;docker-tag=&lt;docker-tag>  if present, use this docker tag for spawned containers, otherwise, default to &ldquo;latest&rdquo;</li>
-</ul>
-
-
-<h3>View cluster</h3>
-
-<p>After the above script finishes, run <code>fleetctl list-units</code> to list the services in your cluster, and you should see:</p>
+<p>Get CUDA installer:</p>
 
 <p><code>
-UNIT                            MACHINE                         ACTIVE  SUB
-couchbase_node@1.service        2ad1cfaf.../10.95.196.213       active  running
-couchbase_node@2.service        a688ca8e.../10.216.199.207      active  running
-couchbase_node@3.service        fb241f71.../10.153.232.237      active  running
-sync_gw_node@1.service          2ad1cfaf.../10.95.196.213       active  running
+$ wget http://developer.download.nvidia.com/compute/cuda/6_5/rel/installers/cuda_6.5.14_linux_64.run
 </code></p>
 
-<p>They should all be in the <code>active</code> state.  If any are in the <code>activating</code> state &mdash; which is normal because it might take some time to download the docker image &mdash; then you should wait until they are all active before continuing.</p>
-
-<h2>Verify internal</h2>
-
-<p><strong>Find internal ip</strong></p>
+<p>Extract CUDA installer:</p>
 
 <p><code>
-$ fleetctl list-units
-sync_gw_node.1.service              209a8a2e.../10.164.175.9    active  running
+$ chmod +x cuda_6.5.14_linux_64.run
+$ mkdir nvidia_installers
+$ ./cuda_6.5.14_linux_64.run -extract=`pwd`/nvidia_installers
 </code></p>
 
-<p><strong>Curl</strong></p>
-
-<p>On the CoreOS instance you are already ssh&rsquo;d into, Use the ip found above and run a curl request against the server root:</p>
+<p>Run Nvidia driver installer:</p>
 
 <p><code>
-$ curl 10.164.175.9:4984
-{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/master(6356065)"}
+$ cd nvidia_installers
+$ ./NVIDIA-Linux-x86_64-340.29.run
 </code></p>
 
-<h2>Verify external</h2>
+<p>At this point it will popup an 8-bit UI that will ask you to accept a license agreement, and then start installing.</p>
 
-<p><strong>Find external ip</strong></p>
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/install_cuda.png" alt="screenshot" /></p>
 
-<p>Using the internal ip found above, go to the EC2 Instances section of the AWS console, and hunt around until you find the instance with that internal ip, and then get the public ip for that instance, eg: <code>ec2-54-211-206-18.compute-1.amazonaws.com</code></p>
+<p>At this point, I got an error:</p>
 
-<p><strong>Curl</strong></p>
+<p>```
+Unable to load the kernel module &lsquo;nvidia.ko&rsquo;.  This happens most frequently when this kernel module was built against the wrong or</p>
 
-<p>From your laptop, use the ip found above and run a curl request against the server root:</p>
+<pre><code>     improperly configured kernel sources, with a version of gcc that differs from the one used to build the target kernel, or if a driver
+     such as rivafb, nvidiafb, or nouveau is present and prevents the NVIDIA kernel module from obtaining ownership of the NVIDIA graphics
+     device(s), or no NVIDIA GPU installed in this system is supported by this NVIDIA Linux graphics driver release.
+
+     Please see the log entries 'Kernel module load error' and 'Kernel messages' at the end of the file '/var/log/nvidia-installer.log'
+     for more information.
+</code></pre>
+
+<p>```</p>
+
+<p>After <a href="https://devtalk.nvidia.com/default/topic/547588/error-installing-nvidia-drivers-on-x86_64-amazon-ec2-gpu-cluster-t20-gpu-/">reading this forum post</a> I installed:</p>
 
 <p><code>
-$ curl ec2-54-211-206-18.compute-1.amazonaws.com:4984
-{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/master(6356065)"}
+$ sudo apt-get install linux-image-extra-virtual
 </code></p>
 
-<p>Congratulations!  You now have a Couchbase Server + Sync Gateway cluster running.</p>
+<p>When it prompted me what do to about the grub changes, I chose &ldquo;choose package maintainers version&rdquo;.</p>
 
-<h2>Appendix A: Kicking off more Sync Gateway nodes.</h2>
-
-<p>To launch two more Sync Gateway nodes, run the following command:</p>
+<p>Reboot:</p>
 
 <p><code>
-$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.8 sync-gw-cluster launch-sgw --num-nodes=2 --config-url=http://git.io/b9PK --docker-tag 0.8
+$ reboot
 </code></p>
 
-<h2>Appendix B: Setting up Elastic Load Balancer.</h2>
+<h2>Disable nouveau</h2>
 
-<p><em>Warning: Users have been having <a href="https://groups.google.com/d/msg/mobile-couchbase/jJMqnoauMWQ/FHND_WqtYaMJ">problems</a> getting WebSockets to work behind ELB, as well as <a href="https://groups.google.com/d/msg/mobile-couchbase/oxeSlYS2-Aw/gw4UcA89KlsJ">connection timeouts</a>.  Unless you are planning to disable websocket support for iOS clients, you should use <a href="http://developer.couchbase.com/mobile/develop/guides/sync-gateway/nginx/index.html">nginx as described here</a> rather than ELB.</em></p>
+<p>At this point you need to disable nouveau, since it conflicts with the nvidia kernel module.</p>
 
-<p>Setup an Elastic Load Balancer with the following settings:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/sync_gateway_coreos_elb.png" alt="elb screenshot" /></p>
-
-<p>Note that it forwards to <strong>port 4984</strong>.</p>
-
-<p>Once the Load Balancer has been created, go to its configuration to get its DNS name:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/sync_gateway_coreos_elb2.png" alt="elb screenshot" /></p>
-
-<p>Now you should be able to run curl against that:</p>
+<p>Open a new file</p>
 
 <p><code>
-$ curl http://coreos-322270867.us-east-1.elb.amazonaws.com/
-{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/master(b47aee8)"}
+$ vi /etc/modprobe.d/blacklist-nouveau.conf
 </code></p>
 
-<h2>Appendix C: Verify with a sample app</h2>
+<p>and add these lines to it</p>
 
-<p>Try running either of the following sample apps:</p>
+<p><code>
+blacklist nouveau
+blacklist lbm-nouveau
+options nouveau modeset=0
+alias nouveau off
+alias lbm-nouveau off
+</code></p>
 
-<ul>
-<li><a href="https://github.com/couchbaselabs/GrocerySync-Android">GrocerySync-Android</a></li>
-<li><a href="https://github.com/couchbaselabs/Grocery-Sync-iOS">GrocerySync-iOS</a></li>
-</ul>
+<p>and then save the file.</p>
 
+<p>Disable the Kernel Nouveau:</p>
 
-<p>and pointing the Sync Gateway URL to your own Sync Gateway instance.</p>
+<p><code>
+$ echo options nouveau modeset=0 | sudo tee -a /etc/modprobe.d/nouveau-kms.conf
+</code></p>
 
-<h2>Appendix D: Shutting down the cluster.</h2>
+<p>Reboot:</p>
 
-<p>Warning: if you try to shutdown the individual ec2 instances, <strong>you must use the CloudFormation console</strong>.  If you try to shutdown the instances via the EC2 control panel, AWS will restart them, because that is what the CloudFormation is telling it to do.</p>
+<p><code>
+$ update-initramfs -u
+$ reboot
+</code></p>
 
-<p>Here is the web UI where you need to shutdown the cluster:</p>
+<h2>One more try &mdash; this time it works</h2>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/shutdown_cluster.png" alt="screenshot" /></p>
+<p>Get Kernel source:</p>
 
-<h2>Appendix E: Disabling CoreOS auto-restarts</h2>
+<p>```
+$ apt-get install linux-source
+$ apt-get install linux-headers-3.13.0-37-generic</p>
 
-<p>CoreOS automatically restart nodes when security updates are available.  Initially, this caused <a href="https://github.com/couchbaselabs/couchbase-server-docker/issues/2">major problems</a> with the way Couchbase Server was being spawned by the scripts used in this blog post.  Those issues are now fixed, but it&rsquo;s always possible new issues might arise.</p>
+<p>```</p>
 
-<p>To play it safe, if you want to prevent CoreOS from restarting itself:</p>
+<p>Rerun Nvidia driver installer:</p>
 
-<ul>
-<li>Shut down your existing cluster via CloudFormation (if you have data already, then please post a comment to this blog post asking for help)</li>
-<li>Make a copy of the <a href="http://tleyden-misc.s3.amazonaws.com/couchbase-coreos/sync_gateway.template">default CloudFormation template</a> and save it on an S3 bucket.</li>
-<li>Change the <code>reboot-strategy</code> to <code>off</code>.  Here is an <a href="http://tleyden-misc.s3.amazonaws.com/couchbase-coreos/sync_gateway_noreboot.template">example cloudformation template</a> with rebooting disabled.  See also: <a href="https://coreos.com/docs/cluster-management/setup/update-strategies/">CoreOS update strategies document</a>.  After you&rsquo;ve made your changes, upload the edited version to S3.</li>
-<li>Kick off a new cluster from the Go to the <a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#cstack=sn%7ECouchbase-CoreOS%7Cturl%7Ehttp://tleyden-misc.s3.amazonaws.com/couchbase-coreos/sync_gateway.template">Cloudformation Wizard</a>, but change the value under <code>Specify an Amazon S3 template URL</code> to use your own template stored on S3 rather than the default.</li>
-</ul>
+<p><code>
+$ cd nvidia_installers
+$ ./NVIDIA-Linux-x86_64-340.29.run
+</code></p>
 
+<p>Load nvidia kernel module:</p>
 
-<p>But be warned, this is a less secure approach to running CoreOS.</p>
+<p><code>
+$ modprobe nvidia
+</code></p>
+
+<p>Run CUDA + samples installer:</p>
+
+<p><code>
+$ ./cuda-linux64-rel-6.5.14-18749181.run
+$ ./cuda-samples-linux-6.5.14-18745345.run
+</code></p>
+
+<h2>Verify CUDA is correctly installed</h2>
+
+<p><code>
+$ cd /usr/local/cuda/samples/1_Utilities/deviceQuery
+$ make
+$ ./deviceQuery   
+</code></p>
+
+<p>You should see the following output:</p>
+
+<p><code>
+deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 6.5, CUDA Runtime Version = 6.5, NumDevs = 1, Device0 = GRID K520
+Result = PASS
+</code></p>
 
 <h2>References</h2>
 
 <ul>
-<li><a href="https://github.com/tleyden/sync-gateway-coreos">sync gateway Docker + CoreOS fleet files</a></li>
-<li><a href="https://github.com/tleyden/couchbase-server-coreos">couchbase-server-coreos</a></li>
-<li><a href="http://developer.couchbase.com/mobile/develop/guides/sync-gateway/nginx/index.html">Sync Gateway docs regarding reverse proxies</a></li>
-<li><a href="https://groups.google.com/forum/?utm_medium=email&amp;utm_source=footer#!msg/mobile-couchbase/pXKQIAiCaW8/s9W_gSfRL50J">Couchbase Mobile Google Group discussion on ELB</a></li>
-<li><a href="https://github.com/couchbase/sync_gateway">sync gateway</a></li>
-<li><a href="https://github.com/andrewwebber/couchbase-array">andrewwebber/couchbase-array</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Running Couchbase Cluster Under CoreOS on AWS]]></title>
-    <link href="http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/"/>
-    <updated>2014-11-01T12:16:00-07:00</updated>
-    <id>http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws</id>
-    <content type="html"><![CDATA[<p>Here are instructions on how to fire up a Couchbase Server cluster running under CoreOS on AWS CloudFormation.  You will end up with the following system:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase-coreos-onion.png" alt="architecture diagram" /></p>
-
-<h2>Launch CoreOS instances via AWS Cloud Formation</h2>
-
-<p>Click the &ldquo;Launch Stack&rdquo; button to launch your CoreOS instances via AWS Cloud Formation:</p>
-
-<p><a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#cstack=sn%7ECouchbase-CoreOS%7Cturl%7Ehttp://tleyden-misc.s3.amazonaws.com/couchbase-coreos/couchbase_server.template"><img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"></a></p>
-
-<p><em>NOTE: this is hardcoded to use the us-east-1 region, so if you need a different region, you should edit the URL accordingly</em></p>
-
-<p>Use the following parameters in the form:</p>
-
-<ul>
-<li><strong>ClusterSize</strong>: 3 nodes (default)</li>
-<li><strong>Discovery URL</strong>:  as it says, you need to grab a new token from <a href="https://discovery.etcd.io/new">https://discovery.etcd.io/new</a> and paste it in the box.</li>
-<li><strong>KeyPair</strong>:  use whatever you normally use to start EC2 instances.  For this discussion, let&rsquo;s assumed you used <code>aws</code>, which corresponds to a file you have on your laptop called <code>aws.cer</code></li>
-</ul>
-
-
-<h2>ssh into a CoreOS instance</h2>
-
-<p>Go to the AWS console under EC2 instances and find the public ip of one of your newly launched CoreOS instances.</p>
-
-<p>Choose any one of them (it doesn&rsquo;t matter which), and ssh into it as the <strong>core</strong> user with the cert provided in the previous step:</p>
-
-<p><code>
-$ ssh -i aws.cer -A core@ec2-54-83-80-161.compute-1.amazonaws.com
-</code></p>
-
-<h2>Sanity check</h2>
-
-<p>Let&rsquo;s make sure the CoreOS cluster is healthy first:</p>
-
-<p><code>
-$ fleetctl list-machines
-</code></p>
-
-<p>This should return a list of machines in the cluster, like this:</p>
-
-<p><code>
-MACHINE         IP              METADATA
-03b08680...     10.33.185.16    -
-209a8a2e...     10.164.175.9    -
-25dd84b7...     10.13.180.194   -
-</code></p>
-
-<h2>Launch cluster</h2>
-
-<p><code>
-$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.8 couchbase-fleet launch-cbs --version 3.0.1 --num-nodes 3 --userpass "user:passw0rd" --docker-tag 0.8
-</code></p>
-
-<p>Where:</p>
-
-<ul>
-<li>&mdash;version=&lt;cb-version> Couchbase Server version (3.0.1 or 2.2)</li>
-<li>&mdash;num-nodes=&lt;num_nodes> number of couchbase nodes to start</li>
-<li>&mdash;userpass &lt;user:pass> the username and password as a single string, delimited by a colon (:)</li>
-<li>&mdash;etcd-servers=&lt;server-list>  Comma separated list of etcd servers, or omit to connect to etcd running on localhost</li>
-<li>&mdash;docker-tag=&lt;docker-tag>  if present, use this docker tag for spawned containers, otherwise, default to &ldquo;latest&rdquo;</li>
-</ul>
-
-
-<p>Replace <code>user:passw0rd</code> with a sensible username and password.  It <strong>must</strong> be colon separated, with no spaces.  The password itself must be at least 6 characters.</p>
-
-<p>Once this command completes, your cluster will be up and running.  The output should look something like <a href="https://gist.github.com/tleyden/bc0975778216281b80e7">this gist</a>.</p>
-
-<h2>Verify</h2>
-
-<p>To check the status of your cluster, run:</p>
-
-<p><code>
-$ fleetctl list-units
-</code></p>
-
-<p>You should see three units, all as active.</p>
-
-<p><code>
-UNIT                            MACHINE                         ACTIVE  SUB
-couchbase_node@1.service        3c819355.../10.239.170.243      active  running
-couchbase_node@2.service        782b35d4.../10.168.87.23        active  running
-couchbase_node@3.service        7cd5f94c.../10.234.188.145      active  running
-</code></p>
-
-<h1>Login to Admin Web UI</h1>
-
-<ul>
-<li>Find the public ip of any of your CoreOS instances via the AWS console</li>
-<li>In a browser, go to <code>http://&lt;instance_public_ip&gt;:8091</code></li>
-<li>Login with the username/password you provided above</li>
-</ul>
-
-
-<p>You should see:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_admin_ui_post_rebalance.png" alt="screenshot" /></p>
-
-<p>When CoreOS reboots a machine automatically for a security upgrade, the data will be automatically rebalanced before and after the reboot.  <a href="https://github.com/couchbaselabs/couchbase-server-docker/issues/3#issuecomment-75984021">Details + screenshots here</a>.</p>
-
-<p>Congratulations!  You now have a 3 node Couchbase Server cluster running under CoreOS / Docker.</p>
-
-<h1>References</h1>
-
-<ul>
-<li><a href="https://github.com/couchbaselabs/couchbase-server-docker">Dockerfiles + Fleet init scripts</a></li>
-<li><a href="https://gist.github.com/dustin/6605182">How I built couchbase 2.2 for docker</a> by <a href="https://twitter.com/dlsspy">@dlsspy</a></li>
-<li><a href="https://registry.hub.docker.com/u/ncolomer/couchbase/">https://registry.hub.docker.com/u/ncolomer/couchbase/</a></li>
-<li><a href="https://github.com/lifegadget/docker-couchbase">https://github.com/lifegadget/docker-couchbase</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Running Caffe on AWS GPU instance via Docker]]></title>
-    <link href="http://tleyden.github.io/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker/"/>
-    <updated>2014-10-25T20:42:00-07:00</updated>
-    <id>http://tleyden.github.io/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker</id>
-    <content type="html"><![CDATA[<p>This is a tutorial to help you get the <a href="http://caffe.berkeleyvision.org/">Caffe deep learning framework</a> up and running on a GPU-powered AWS instance running inside a Docker container.</p>
-
-<h2>Architecture</h2>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/caffe_docker_aws_onion.png" alt="architecture diagram" /></p>
-
-<h2>Setup host</h2>
-
-<p>Before you can start your docker container, you will need to go <strong>deeper down the rabbit hole</strong>.</p>
-
-<p>You&rsquo;ll first need to complete the steps here:</p>
-
-<p><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">Setting up an Ubuntu 14.04 box running on a GPU-enabled AWS instance</a></p>
-
-<p>After you&rsquo;re done, you&rsquo;ll end up with a host OS with the following properties:</p>
-
-<ul>
-<li>A GPU enabled AWS instance running Ubuntu 14.04</li>
-<li>Nvidia kernel module</li>
-<li>Nvidia device drivers</li>
-<li>CUDA 6.5 installed and verified</li>
-</ul>
-
-
-<h2>Install Docker</h2>
-
-<p>Once your host OS is setup, you&rsquo;re ready to install docker.  (version 1.3 at the time of this writing)</p>
-
-<p>Setup the key for the docker repo:</p>
-
-<p><code>
-$ sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9
-</code></p>
-
-<p>Add the docker repo:</p>
-
-<p><code>
-$ sudo sh -c "echo deb https://get.docker.com/ubuntu docker main &gt; /etc/apt/sources.list.d/docker.list"
-$ sudo apt-get update
-</code></p>
-
-<p>Install docker:</p>
-
-<p><code>
-$ sudo apt-get install lxc-docker
-</code></p>
-
-<h2>Run the docker container</h2>
-
-<p><strong>Find your nvidia devices</strong></p>
-
-<p><code>
-$ ls -la /dev | grep nvidia
-</code></p>
-
-<p>You should see:</p>
-
-<p><code>
-crw-rw-rw-  1 root root    195,   0 Oct 25 19:37 nvidia0
-crw-rw-rw-  1 root root    195, 255 Oct 25 19:37 nvidiactl
-crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm
-</code></p>
-
-<p>You&rsquo;ll have to adapt the <code>DOCKER_NVIDIA_DEVICES</code> variable below to match your particular devices.</p>
-
-<p>Here&rsquo;s how to start the docker container:</p>
-
-<p><code>
-$ DOCKER_NVIDIA_DEVICES="--device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm"
-$ sudo docker run -ti $DOCKER_NVIDIA_DEVICES tleyden5iwx/caffe-gpu-master /bin/bash
-</code></p>
-
-<p>It&rsquo;s a large docker image, so this might take a few minutes, depending on your network connection.</p>
-
-<h2>Run caffe test suite</h2>
-
-<p>After the above <code>docker run</code> command completes, your shell will now be inside a docker container that has Caffe installed.</p>
-
-<p>You&rsquo;ll want run the Caffe test suite and make sure it passes.  This will validate your environment, including your GPU drivers.</p>
-
-<p><code>
-$ cd /opt/caffe
-$ make test &amp;&amp; make runtest
-</code></p>
-
-<p><strong>Expected Result:</strong> <code>... [  PASSED  ] 838 tests.</code></p>
-
-<h2>Run the MNIST LeNet example</h2>
-
-<p>A more comprehensive way to verify your environment is to train the MNIST LeNet example:</p>
-
-<p><code>
-$ cd /opt/caffe/data/mnist
-$ ./get_mnist.sh
-$ cd /opt/caffe
-$ ./examples/mnist/create_mnist.sh
-$ ./examples/mnist/train_lenet.sh
-</code></p>
-
-<p>This will take a few minutes.</p>
-
-<p><strong>Expected output:</strong></p>
-
-<p><code>
-libdc1394 error: Failed to initialize libdc1394
-I1018 17:02:23.552733    66 caffe.cpp:90] Starting Optimization
-I1018 17:02:23.553583    66 solver.cpp:32] Initializing solver from parameters:
-... lots of output ...
-I1018 17:17:58.684598    66 caffe.cpp:102] Optimization Done.
-</code></p>
-
-<p>Congratulations, you&rsquo;ve got GPU-powered Caffe running in a docker container &mdash; celebrate with a cup of <a href="http://www.yelp.com/biz/philz-coffee-berkeley-2">Philz</a>!</p>
-
-<h1>References</h1>
-
-<ul>
-<li><a href="https://registry.hub.docker.com/u/tleyden5iwx/caffe-gpu-master">tleyden5iwx/caffe-gpu-master</a> Caffe Docker image (GPU)</li>
-<li><a href="https://registry.hub.docker.com/u/tleyden5iwx/caffe-cpu-master">tleyden5iwx/caffe-cpu-master</a> Caffe Docker image (CPU-only)</li>
-<li><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5</a></li>
-<li><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">CUDA 6.5 on AWS GPU Instance Running Ubuntu 14.04</a></li>
+<li><a href="http://www.r-tutor.com/gpu-computing/cuda-installation/cuda6.5-ubuntu">http://www.r-tutor.com/gpu-computing/cuda-installation/cuda6.5-ubuntu</a></li>
+<li><a href="http://askubuntu.com/questions/451672/installing-and-testing-cuda-in-ubuntu-14-04">http://askubuntu.com/questions/451672/installing-and-testing-cuda-in-ubuntu-14-04</a></li>
+<li><a href="https://devtalk.nvidia.com/default/topic/547588/error-installing-nvidia-drivers-on-x86_64-amazon-ec2-gpu-cluster-t20-gpu-/">https://devtalk.nvidia.com/default/topic/547588/error-installing-nvidia-drivers-on-x86_64-amazon-ec2-gpu-cluster-t20-gpu-/</a></li>
+<li><a href="https://devtalk.nvidia.com/default/topic/769719/drm-ko-missing-on-ubuntu-14-04-1-lts-aws-ec2-g2-2xlarge-instance/">https://devtalk.nvidia.com/default/topic/769719/drm-ko-missing-on-ubuntu-14-04-1-lts-aws-ec2-g2-2xlarge-instance/</a></li>
+<li><a href="http://askubuntu.com/questions/451221/ubuntu-14-04-install-nvidia-driver">http://askubuntu.com/questions/451221/ubuntu-14-04-install-nvidia-driver</a></li>
 </ul>
 
 ]]></content>
