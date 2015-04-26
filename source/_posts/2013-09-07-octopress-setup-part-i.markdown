@@ -69,7 +69,7 @@ please read /Users/traun/.rvm/log/1378534467_ruby-1.9.3-p448/update_system.log
 Requirements installation failed with status: 1.
 ```
 
-I managed to get past this error by following this [stack overflow post](http://stackoverflow.com/questions/14113427/brew-update-failed)
+I managed to get past this error by following this [stack overflow post](http://stackoverflow.com/questions/14113427/brew-update-failed).  However, the second time I went through these instructions, I got [this error](https://gist.github.com/tleyden/f7553a4c5843d553d695) which I haven't figured out yet.
 
 Let's try this again ..
 
