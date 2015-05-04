@@ -42,7 +42,7 @@ If you are on a version before 1.4.1 (like I was), you can upgrade Docker via th
 Get the sdc-docker repo (sdc == Smart Data Center): 
 
 ```
-$ git clone git@github.com:joyent/sdc-docker.git
+$ git clone https://github.com/joyent/sdc-docker.git
 ```
 
 Perform setup via:
@@ -122,7 +122,7 @@ Now it's time to run Couchbase Server.
 To kick off three Couchbase Server containers, run:
 
 ```
-$ for i in `seq 1 3`; do export container_$i=`docker run --name couchbase-server-$i -d -P tleyden5iwx/couchbase-server-3.0.1 couchbase-start`; done
+$ for i in `seq 1 3`; do export container_$i=`docker run --name couchbase-server-$i -d -P couchbase/server couchbase-start`; done
 ```
 
 To confirm the containers are up, run:
