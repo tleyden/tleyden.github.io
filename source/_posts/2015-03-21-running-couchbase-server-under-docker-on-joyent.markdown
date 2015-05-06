@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Running Couchbase Server under Joyent Triton"
-date: 2015-03-21 09:31
+date: 2015-05-05 09:31
 comments: true
 categories: docker joyent couchbase
 ---
