@@ -104,6 +104,7 @@ Congratulations!  You now have a 3 node Couchbase Server cluster running under C
 
 # References
 
+* [couchbase-cluster-go github repo](https://github.com/tleyden/couchbase-cluster-go)
 * [Dockerfiles + Fleet init scripts](https://github.com/couchbaselabs/couchbase-server-docker)
 * [How I built couchbase 2.2 for docker](https://gist.github.com/dustin/6605182) by [@dlsspy](https://twitter.com/dlsspy)
 * https://registry.hub.docker.com/u/ncolomer/couchbase/
