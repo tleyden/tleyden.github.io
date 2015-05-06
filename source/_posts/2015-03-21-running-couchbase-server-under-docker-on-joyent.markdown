@@ -8,13 +8,13 @@ categories: docker joyent couchbase
 
 Joyent has recently announced their new Triton Docker container hosting service.  The advantages of running Docker containers on Triton over a more traditional cloud hosting platform:
 
-* Better performance since their is no hardware level virtualization overhead.  Your containers run on bare-metal machines.
+* Better performance since there is no hardware level virtualization overhead.  Your containers run on bare-metal.
 
 * Simplified networking between containers.  Each container gets its own private (and optionally public) ip address.
 
 * Hosts are abstracted away -- you just deploy into the "container cloud", and don't care which host your container is running on.
 
-Check out Bryan Cantrill'stalk about [Docker and the Future of Containers in Production](https://www.joyent.com/developers/videos/docker-and-the-future-of-containers-in-production) for more details.
+For more details, check out Bryan Cantrill's talk about [Docker and the Future of Containers in Production](https://www.joyent.com/developers/videos/docker-and-the-future-of-containers-in-production).
 
 Let's give it a spin with a "hello world" container, and then with a cluster of Couchbase servers.
 
@@ -125,7 +125,7 @@ Remember you're running the Docker client on your workstation, not in the cloud.
 $ docker run ubuntu:14.04 echo "Hello Docker World, from Joyent"
 ```
 
-After a fairly long delay (Joyent knows about this and they're working on it), you should see the following output:
+You should see the following output:
 
 ```
 Unable to find image 'ubuntu:14.04' locally
@@ -156,9 +156,9 @@ and you should see:
 
 ```
 CONTAINER ID        IMAGE                                       COMMAND             CREATED             STATUS              PORTS               NAMES
-5bea8901814c        tleyden5iwx/couchbase-server-3.0.1:latest   "couchbase-start"   3 minutes ago       Up 2 minutes                            couchbase-server-1
-bef1f2f32726        tleyden5iwx/couchbase-server-3.0.1:latest   "couchbase-start"   2 minutes ago       Up 2 minutes                            couchbase-server-2
-6f4e2a1e8e63        tleyden5iwx/couchbase-server-3.0.1:latest   "couchbase-start"   2 minutes ago       Up About a minute                       couchbase-server-3
+5bea8901814c        couchbase/server   "couchbase-start"   3 minutes ago       Up 2 minutes                            couchbase-server-1
+bef1f2f32726        couchbase/server   "couchbase-start"   2 minutes ago       Up 2 minutes                            couchbase-server-2
+6f4e2a1e8e63        couchbase/server   "couchbase-start"   2 minutes ago       Up About a minute                       couchbase-server-3
 ```
 
 At this point you will have environment variables defined with the container ids of each container.  You can check this by running:
@@ -213,7 +213,7 @@ The following command will do the following:
 * Set the cluster RAM size to 600 MB 
 
 ```
-$ docker run tleyden5iwx/couchbase-server-3.0.1 couchbase-cli cluster-init -c $container_1_ip --cluster-init-username=Administrator --cluster-init-password=password --cluster-init-ramsize=600 -u admin -p password
+$ docker run couchbase/server couchbase-cli cluster-init -c $container_1_ip --cluster-init-username=Administrator --cluster-init-password=password --cluster-init-ramsize=600 -u admin -p password
 ```
 
 You should see a response like:
@@ -227,7 +227,7 @@ SUCCESS: init 165.225.185.11
 A bucket is equivalent to a database in typical RDMS systems.  
 
 ```
-$ docker run tleyden5iwx/couchbase-server-3.0.1 couchbase-cli bucket-create -c $container_1_ip:8091 --bucket=default --bucket-type=couchbase --bucket-port=11211 --bucket-ramsize=600 --bucket-replica=1 -u Administrator -p password
+$ docker run couchbase/server couchbase-cli bucket-create -c $container_1_ip:8091 --bucket=default --bucket-type=couchbase --bucket-port=11211 --bucket-ramsize=600 --bucket-replica=1 -u Administrator -p password
 ```
 
 You should see:
@@ -241,7 +241,7 @@ SUCCESS: bucket-create
 Add in the second Couchbase node with this command
 
 ```
-$ docker run tleyden5iwx/couchbase-server-3.0.1 couchbase-cli server-add -c $container_1_ip -u Administrator -p password --server-add $container_2_ip --server-add-username Administrator --server-add-password password 
+$ docker run couchbase/server couchbase-cli server-add -c $container_1_ip -u Administrator -p password --server-add $container_2_ip --server-add-username Administrator --server-add-password password 
 ```
 
 You should see:
@@ -253,7 +253,7 @@ SUCCESS: server-add 165.225.185.12:8091
 To verify it was added, run:
 
 ```
-$ docker run tleyden5iwx/couchbase-server-3.0.1 couchbase-cli server-list -c $container_1_ip -u Administrator -p password
+$ docker run couchbase/server couchbase-cli server-list -c $container_1_ip -u Administrator -p password
 ```
 
 which should return the list of Couchbase Server nodes that are now part of the cluster:
@@ -271,7 +271,7 @@ In this step we will:
 * Trigger a "rebalance", which distributes the (empty) bucket's data across the cluster
 
 ```
-$ docker run tleyden5iwx/couchbase-server-3.0.1 couchbase-cli rebalance -c $container_1_ip -u Administrator -p password --server-add $container_3_ip --server-add-username Administrator --server-add-password password 
+$ docker run couchbase/server couchbase-cli rebalance -c $container_1_ip -u Administrator -p password --server-add $container_3_ip --server-add-username Administrator --server-add-password password 
 ```
 
 You should see:
