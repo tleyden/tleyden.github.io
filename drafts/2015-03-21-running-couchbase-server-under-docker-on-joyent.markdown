@@ -6,25 +6,23 @@ comments: true
 categories: docker joyent couchbase
 ---
 
-In case you haven't heard, Joyent has recently burst onto the Docker hosting scene with their new Triton container hosting service.  If you're thinking, "Ugh, not another Docker hosting service" -- this one is different.
+Joyent has recently announced their new Triton Docker container hosting service.  The advantages of running Docker containers on Triton over a more traditional cloud hosting platform:
 
-To paraphrase Joyent CTO Bryan Cantrill:
+* Better performance since their is no hardware level virtualization overhead.  Your containers run on bare-metal machines.
 
-* Joyent has been pounding the table on OS-level containerization for the past 10 years as offering superior performance over hardware level virtualization.
+* Simplified networking between containers.  Each container gets its own private (and optionally public) ip address.
 
-* Joyent recently created the ability to run Docker images on their mature container platform.
+* Hosts are abstracted away -- you just deploy into the "container cloud", and don't care which host your container is running on.
 
-* Joyent + Docker == Containerization with Bare Metal performance.
-
-Check out Bryan Cantrill's highly animated talk about [Docker and the Future of Containers in Production](https://www.joyent.com/developers/videos/docker-and-the-future-of-containers-in-production) for more details.
+Check out Bryan Cantrill'stalk about [Docker and the Future of Containers in Production](https://www.joyent.com/developers/videos/docker-and-the-future-of-containers-in-production) for more details.
 
 Let's give it a spin with a "hello world" container, and then with a cluster of Couchbase servers.
 
 ## Sign up for a Joyent account
 
-[You know the drill](https://www.joyent.com/lp/preview)
+[Follow the signup instructions on the Joyent website](https://www.joyent.com/lp/preview)
 
-You will need to add your SSH key to your account.
+You will also need to add your SSH key to your account.
 
 ## Upgrade Docker client to 1.4.1 or later
 
@@ -98,7 +96,30 @@ Let's spin up an Ubuntu docker image that says hello world.
 
 Remember you're running the Docker client on your workstation, not in the cloud.  Here's an overview on what's going to be happening:
 
-![overview](http://tleyden-misc.s3.amazonaws.com/blog_images/joyent_container_hello_world.png)
+```
+                                            +--------------------------------+
+                                            | Joyent Triton Container Cloud  |
+                                            | +----------------------------+ |
+                                            | |   Physical Host running    | |
++----------------------+                    | |          SmartOS           | |
+|   OSX Workstation    |                    | | +------------------------+ | |
+|                      |                    | | |   Docker-compatible    | | |
+|  +----------------+  |                    | | |       container        | | |
+|  | Docker Client  |  |                    | | | +--------------------+ | | |
+|  |                |  |    +---------+     | | | |    Ubuntu Linux    | | | |
+|  |                |  |    |HTTP/REST|     | | | |                    | | | |
+|  |                |  |    +---------+     | | | |                    | | | |
+|  |                |<-+------------------->| | | |                    | | | |
+|  |                |  |                    | | | |                    | | | |
+|  |                |  |                    | | | |                    | | | |
+|  |                |  |                    | | | |                    | | | |
+|  +----------------+  |                    | | | |                    | | | |
++----------------------+                    | | | +--------------------+ | | |
+                                            | | +------------------------+ | |
+                                            | +----------------------------+ |
+                                            +--------------------------------+
+```
+
 
 ```
 $ docker run ubuntu:14.04 echo "Hello Docker World, from Joyent"
@@ -284,39 +305,7 @@ And you should see:
 Congratulations!  You have a Couchbase Server cluster up and running on Joyent Triton.
 
 
-## Appendix A: Running Sync Gateway
-
-If you are planning to use Couchbase Mobile, you'll want to run a Sync Gateway server.
-
-**NOTE: You will need to copy the contents of this gist and edit the ip address to match the IP of a Couchbase Server launched above.**
-
-```
-$ sg_container_id=`docker run -d --name sync_gw -P tleyden5iwx/sync-gateway-coreos sync-gw-start -c master -g https://gist.githubusercontent.com/tleyden/95cd87153c304ac57c04/raw/8674aa867f31c774c4c1bdd19385cbf3267cd766/gistfile1.json`
-```
-
-Or to use a walrus bucket instead of sync gw, use `-g https://gist.githubusercontent.com/tleyden/10a5bccef08842b8f27e/raw/b256b3c54783af64ac88c77847fc1c19479748a4/gistfile1.txt`
-
-
-Get the sync gateway ip via:
-
-```
-$ sg_ip=`docker inspect $sg_container_id | grep -i IPAddress | awk -F: '{print $2}' |  grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b"`
-```
-
-Now run a curl request against it:
-
-```
-$ curl $sg_ip:4984
-```
-
-And you should see the following welcome message:
-
-```
-{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/master(52a87d3)"}
-```
-
-
-## Appendix B: Installing the SDC tools
+## Installing the SDC tools (optional)
 
 In order to list your containers running on Joyent with extra metadata, such as the internal IP of each container, you'll need to install the sdc-tools suite.
 
