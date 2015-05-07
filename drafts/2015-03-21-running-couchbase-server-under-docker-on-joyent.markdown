@@ -1,12 +1,12 @@
 ---
 layout: post
 title: "Running Couchbase Server under Joyent Triton"
-date: 2015-03-21 09:31
+date: 2015-05-05 09:31
 comments: true
 categories: docker joyent couchbase
 ---
 
-Joyent has recently announced their new Triton Docker container hosting service.  The advantages of running Docker containers on Triton over a more traditional cloud hosting platform:
+Joyent has recently announced their new Triton Docker container hosting service.  There are several advantages of running Docker containers on Triton over a more traditional cloud hosting platform:
 
 * Better performance since there is no hardware level virtualization overhead.  Your containers run on bare-metal.
 
@@ -96,33 +96,10 @@ Let's spin up an Ubuntu docker image that says hello world.
 
 Remember you're running the Docker client on your workstation, not in the cloud.  Here's an overview on what's going to be happening:
 
-```
-                                            +--------------------------------+
-                                            | Joyent Triton Container Cloud  |
-                                            | +----------------------------+ |
-                                            | |   Physical Host running    | |
-+----------------------+                    | |          SmartOS           | |
-|   OSX Workstation    |                    | | +------------------------+ | |
-|                      |                    | | |   Docker-compatible    | | |
-|  +----------------+  |                    | | |       container        | | |
-|  | Docker Client  |  |                    | | | +--------------------+ | | |
-|  |                |  |    +---------+     | | | |    Ubuntu Linux    | | | |
-|  |                |  |    |HTTP/REST|     | | | |                    | | | |
-|  |                |  |    +---------+     | | | |                    | | | |
-|  |                |<-+------------------->| | | |                    | | | |
-|  |                |  |                    | | | |                    | | | |
-|  |                |  |                    | | | |                    | | | |
-|  |                |  |                    | | | |                    | | | |
-|  +----------------+  |                    | | | |                    | | | |
-+----------------------+                    | | | +--------------------+ | | |
-                                            | | +------------------------+ | |
-                                            | +----------------------------+ |
-                                            +--------------------------------+
-```
-
+![diagram](http://tleyden-misc.s3.amazonaws.com/blog_images/joyent_couchbase_blog.png)
 
 ```
-$ docker run ubuntu:14.04 echo "Hello Docker World, from Joyent"
+$ docker run --rm ubuntu:14.04 echo "Hello Docker World, from Joyent"
 ```
 
 You should see the following output:
@@ -134,6 +111,8 @@ Pulling repository library/ubuntu
 Hello Docker World, from Joyent
 ```
 
+Also, since the `--rm` flag was passed, the container will have been removed after exiting.  You can verify this by running `docker ps -a`.  This is important because **Joyent charges you for stopped containers**.  
+
 Congratulations!  You've gotten a "hello world" Docker container running on Joyent.
 
 ## Run Couchbase Server containers
@@ -143,7 +122,7 @@ Now it's time to run Couchbase Server.
 To kick off three Couchbase Server containers, run:
 
 ```
-$ for i in `seq 1 3`; do export container_$i=`docker run --name couchbase-server-$i -d -P couchbase/server couchbase-start`; done
+$ for i in `seq 1 3`; do export container_$i=`docker run --name couchbase-server-$i -d -P couchbase/server`; done
 ```
 
 To confirm the containers are up, run:
@@ -213,7 +192,7 @@ The following command will do the following:
 * Set the cluster RAM size to 600 MB 
 
 ```
-$ docker run couchbase/server couchbase-cli cluster-init -c $container_1_ip --cluster-init-username=Administrator --cluster-init-password=password --cluster-init-ramsize=600 -u admin -p password
+$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server cluster-init -c $container_1_ip --cluster-init-username=Administrator --cluster-init-password=password --cluster-init-ramsize=600 -u admin -p password
 ```
 
 You should see a response like:
@@ -227,7 +206,7 @@ SUCCESS: init 165.225.185.11
 A bucket is equivalent to a database in typical RDMS systems.  
 
 ```
-$ docker run couchbase/server couchbase-cli bucket-create -c $container_1_ip:8091 --bucket=default --bucket-type=couchbase --bucket-port=11211 --bucket-ramsize=600 --bucket-replica=1 -u Administrator -p password
+$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server bucket-create -c $container_1_ip:8091 --bucket=default --bucket-type=couchbase --bucket-port=11211 --bucket-ramsize=600 --bucket-replica=1 -u Administrator -p password
 ```
 
 You should see:
@@ -241,7 +220,7 @@ SUCCESS: bucket-create
 Add in the second Couchbase node with this command
 
 ```
-$ docker run couchbase/server couchbase-cli server-add -c $container_1_ip -u Administrator -p password --server-add $container_2_ip --server-add-username Administrator --server-add-password password 
+$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server server-add -c $container_1_ip -u Administrator -p password --server-add $container_2_ip --server-add-username Administrator --server-add-password password 
 ```
 
 You should see:
@@ -253,7 +232,7 @@ SUCCESS: server-add 165.225.185.12:8091
 To verify it was added, run:
 
 ```
-$ docker run couchbase/server couchbase-cli server-list -c $container_1_ip -u Administrator -p password
+$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server server-list -c $container_1_ip -u Administrator -p password
 ```
 
 which should return the list of Couchbase Server nodes that are now part of the cluster:
@@ -271,7 +250,7 @@ In this step we will:
 * Trigger a "rebalance", which distributes the (empty) bucket's data across the cluster
 
 ```
-$ docker run couchbase/server couchbase-cli rebalance -c $container_1_ip -u Administrator -p password --server-add $container_3_ip --server-add-username Administrator --server-add-password password 
+$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server rebalance -c $container_1_ip -u Administrator -p password --server-add $container_3_ip --server-add-username Administrator --server-add-password password 
 ```
 
 You should see:
@@ -305,9 +284,22 @@ And you should see:
 Congratulations!  You have a Couchbase Server cluster up and running on Joyent Triton.
 
 
+## Teardown
+
+To stop and remove your Couchbase server containers, run:
+
+```
+$ docker stop $container_1 $container_2 $container_3
+$ docker rm $container_1 $container_2 $container_3
+```
+
+To double check that you no longer have any containers running or in the stopped state (which will incur billing), run `docker ps -a` and you should see an empty list.
+
 ## Installing the SDC tools (optional)
 
-In order to list your containers running on Joyent with extra metadata, such as the internal IP of each container, you'll need to install the sdc-tools suite.
+Installing the Joyent Smart Data Center (SDC) tools will allow you to gain more visibility into your container cluster -- for example being able to view the internal IP of each continer.
+
+Here's how to install the sdc-tools suite.
 
 ### Install smartdc
 
