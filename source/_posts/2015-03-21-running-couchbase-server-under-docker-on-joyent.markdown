@@ -6,7 +6,7 @@ comments: true
 categories: docker joyent couchbase
 ---
 
-Joyent has recently announced their new Triton Docker container hosting service.  The advantages of running Docker containers on Triton over a more traditional cloud hosting platform:
+Joyent has recently announced their new Triton Docker container hosting service.  There are several advantages of running Docker containers on Triton over a more traditional cloud hosting platform:
 
 * Better performance since there is no hardware level virtualization overhead.  Your containers run on bare-metal.
 
@@ -284,7 +284,9 @@ Congratulations!  You have a Couchbase Server cluster up and running on Joyent T
 
 ## Installing the SDC tools (optional)
 
-In order to list your containers running on Joyent with extra metadata, such as the internal IP of each container, you'll need to install the sdc-tools suite.
+Installing the Joyent Smart Data Center (SDC) tools will allow you to gain more visibility into your container cluster -- for example being able to view the internal IP of each continer.
+
+Here's how to install the sdc-tools suite.
 
 ### Install smartdc
 
