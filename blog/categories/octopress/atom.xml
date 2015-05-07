@@ -4,7 +4,7 @@
   <title><![CDATA[Category: octopress | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/octopress/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-04-25T05:24:24+00:00</updated>
+  <updated>2015-05-07T19:50:16+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -279,7 +279,7 @@ please read /Users/traun/.rvm/log/1378534467_ruby-1.9.3-p448/update_system.log
 Requirements installation failed with status: 1.
 </code></p>
 
-<p>I managed to get past this error by following this <a href="http://stackoverflow.com/questions/14113427/brew-update-failed">stack overflow post</a></p>
+<p>I managed to get past this error by following this <a href="http://stackoverflow.com/questions/14113427/brew-update-failed">stack overflow post</a>.  However, the second time I went through these instructions, I got <a href="https://gist.github.com/tleyden/f7553a4c5843d553d695">this error</a> which I haven&rsquo;t figured out yet.</p>
 
 <p>Let&rsquo;s try this again ..</p>
 

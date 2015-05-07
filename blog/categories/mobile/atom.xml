@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: mobile, | Seven Story Rabbit Hole]]></title>
+  <title><![CDATA[Category: mobile | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/mobile/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-04-25T05:24:24+00:00</updated>
+  <updated>2015-05-07T19:50:16+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -14,168 +14,230 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Running Couchbase Sync Gateway on Google Compute Engine]]></title>
-    <link href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-sync-gateway-on-gce/"/>
-    <updated>2014-06-22T19:10:00+00:00</updated>
-    <id>http://tleyden.github.io/blog/2014/06/22/running-couchbase-sync-gateway-on-gce</id>
-    <content type="html"><![CDATA[<p>First, a quick refresh of what Couchbase Sync Gateway actually <em>is</em>.</p>
+    <title type="html"><![CDATA[Up and Running with Couchbase Lite Phonegap Android on OSX]]></title>
+    <link href="http://tleyden.github.io/blog/2014/12/11/up-and-running-with-couchbase-lite-phonegap/"/>
+    <updated>2014-12-11T12:48:00+00:00</updated>
+    <id>http://tleyden.github.io/blog/2014/12/11/up-and-running-with-couchbase-lite-phonegap</id>
+    <content type="html"><![CDATA[<p>This will walk you through the steps to install the TodoLite-Phonegap sample app that uses Couchbase Lite Android.  After you&rsquo;re finished, you&rsquo;ll end up with <a href="http://tleyden-misc.s3.amazonaws.com/blog_images/TodoLitePhonegap.png">this app</a>.</p>
 
-<p>So here&rsquo;s a birds-eye-view of the <a href="http://developer.couchbase.com/mobile">Couchbase Mobile</a> architecture:</p>
+<h1>Install Homebrew</h1>
 
-<p><img src="https://camo.githubusercontent.com/c1aa705fde3eb12245c06730d850c23e5a84ad8d/687474703a2f2f746c657964656e2d6d6973632e73332e616d617a6f6e6177732e636f6d2f636f756368626173652d6c6974652f636f756368626173652d6c6974652d6172636869746563747572652e706e67" alt="diagram" /></p>
+<ul>
+<li>Install <a href="http://brew.sh/">homebrew</a></li>
+</ul>
 
-<p>Sync Gateway allows Couchbase Lite mobile apps to sync data between each other and the Couchbase Server running on the backend.</p>
 
-<p>This blog post will walk you through how to run Sync Gateway in a Docker container on Google Compute Engine.</p>
+<h2>Install Android Studio</h2>
 
-<h2>Create GCE instance and ssh in</h2>
+<ul>
+<li><p>Install <a href="https://developer.android.com/sdk/index.html">Android Studio 1.0</a></p></li>
+<li><p>Setup an AVD + emulator &mdash; in my case I&rsquo;m using the <a href="https://www.genymotion.com/">Genymotion emulator</a>, with a Google Nexus 4 &ndash; 4.4.4 API 19</p></li>
+<li><p>At this point you should verify your setup by deploying <a href="https://github.com/couchbaselabs/ToDoLite-Android">TodoLite-Android</a> to your emulator</p></li>
+</ul>
 
-<p>Follow the instructions on <a href="http://docs.docker.com/installation/google/">Running Docker on Google Compute Engine</a>.</p>
 
-<p>At this point you should be ssh&rsquo;d into your GCE instance</p>
+<h1>Install Phonegap</h1>
 
-<h2>Create a configuration JSON</h2>
+<h2>Install Node.js</h2>
 
-<p>Here&rsquo;s a sample <a href="https://gist.github.com/tleyden/d97d985eb1e0725e858e">example JSON configuration</a> for Sync Gateway which uses <a href="https://github.com/couchbaselabs/walrus">walrus</a> as it&rsquo;s backing store, rather than Couchbase Server.  Later we will swap in Couchbase Server as a backing store.</p>
-
-<h2>Run Sync Gateway docker container</h2>
+<p>Phonegap is installed with the Node Package Manager (npm), so we need to get Node.js first.</p>
 
 <p><code>
-gce:~$ sudo docker run -d -name sg -p 4984:4984 -p 4985:4985 tleyden5iwx/couchbase-sync-gateway sync_gateway "https://gist.githubusercontent.com/tleyden/d97d985eb1e0725e858e/raw"
+brew install node
 </code></p>
 
-<p>This will return a container id, eg <code>8ffb83fd1f</code>.</p>
-
-<p>Check the logs to make sure there are no serious errors in the logs:</p>
+<h2>Install Phonegap</h2>
 
 <p><code>
-gce:~$ sudo docker logs 8ffb83fd1f
+$ sudo npm install -g phonegap
 </code></p>
 
-<p>You should see something along the lines of:</p>
+<p>You should see <a href="https://gist.github.com/tleyden/94bf77d084fa9a6cca0c">this output</a></p>
+
+<p>Check your version with:</p>
 
 <p><code>
-02:23:58.905587 Enabling logging: [REST]
-02:23:58.905818 ==== Couchbase Sync Gateway/1.00 (unofficial) ====
-02:23:58.905863 Opening db /sync_gateway as bucket "sync_gateway", pool "default", server &lt;walrus:/opt/sync_gateway/data&gt;
-02:23:58.905964 Opening Walrus database sync_gateway on &lt;walrus:/opt/sync_gateway/data&gt;
-02:23:58.909659 Starting admin server on :4985
-02:23:58.913260 Starting server on :4984 ...
+$ phonegap -v
+4.1.2-0.22.9
 </code></p>
 
-<h2>Expose API port 4984 via Firewall rule</h2>
-
-<p>On your workstation with the <code>gcloud</code> tool installed, run:</p>
+<h2>Install Ant</h2>
 
 <p><code>
-$ gcloud compute firewalls create sg-4984 --allow tcp:4984
+$ brew install ant
 </code></p>
 
-<h2>Verify that it&rsquo;s running</h2>
-
-<h3>Find out external ip address of instance</h3>
-
-<p>On your workstation with the <code>gcloud</code> tool installed, run:</p>
+<p>Check your Ant version with:</p>
 
 <p><code>
-$ gcloud compute instances list
-name     status  zone          machineType internalIP   externalIP
-couchbse RUNNING us-central1-a f1-micro    10.240.74.44 142.222.178.49
-</code>
-Your external ip is listed under the externalIP column, eg <code>142.222.178.49</code> in this example.</p>
-
-<h3>Run curl request</h3>
-
-<p>On your workstation, replace the ip below with your own ip, and run:</p>
-
-<p><code>
-$ curl http://142.222.178.49:4984
+$ ant -version
+Apache Ant(TM) version 1.9.4 compiled on April 29 2014
 </code></p>
 
-<p>You should get a response like:</p>
+<p><em>Note: according to <a href="http://superuser.com/questions/610157/how-do-i-install-ant-on-os-x-mavericks">Stack Overflow</a> you may have to install XCode and the Command Line Tools for this to work</em></p>
+
+<h2>Create new Phonegap App</h2>
+
+<p>```
+$ phonegap create todo-lite com.couchbase.TodoLite TodoLite</p>
+
+<p>```</p>
+
+<p>You should see the following output:</p>
+
+<pre><code>Creating a new cordova project with name "TodoLite" and id "com.couchbase.TodoLite" at location "/Users/tleyden/Development/todo-lite"
+Using custom www assets from https://github.com/phonegap/phonegap-app-hello-world/archive/master.tar.gz
+Downloading com.phonegap.hello-world library for www...
+Download complete
+</code></pre>
+
+<p>cd into the newly created directory:</p>
 
 <p><code>
-{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/1.00 (unofficial)"}
+$ cd todo-lite
 </code></p>
 
-<h2>Re-run it with Couchbase Server backing store</h2>
-
-<p><em>OK, so we&rsquo;ve gotten it working with walrus.  But have you looked at the walrus website lately?  One <a href="https://camo.githubusercontent.com/1bd1955b96628260b27320f099aeac0585229c2f/687474703a2f2f7777772e69686173616275636b65742e636f6d2f696d616765732f77616c7275735f6275636b65742e6a7067">click</a> and it&rsquo;s pretty obvious that this thing is not exactly meant to be a scalable production ready backend, nor has it ever claimed to be.</em></p>
-
-<p>Let&rsquo;s dump walrus for now and use Couchbase Server from this point onwards.</p>
-
-<h3>Start Couchbase Server</h3>
-
-<p>Before moving on, you will need to go through the instructions in <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">Running Couchbase Server on GCE</a> in order to get a Couchbase Server instance running.</p>
-
-<h3>Stop Sync Gateway</h3>
-
-<p>Run this command to stop the Sync Gateway container and completely remove it, using the same container id you used earlier:</p>
+<h2>Add the Couchbase Lite plugin</h2>
 
 <p><code>
-gce:~$ sudo docker stop 8ffb83fd1f &amp;&amp; sudo docker rm 8ffb83fd1f
+$ phonegap local plugin add https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin.git
 </code></p>
 
-<h3>Update config</h3>
+<p>You should see the following output:</p>
 
-<p>Copy this <a href="https://gist.github.com/tleyden/c9e6396f7183c0f3e28c">example JSON configuration</a>, which expects a Couchbase Server running on <code>http://172.17.0.2:8091</code>, and update it with the ip address of the docker instance where your Couchbase Server is running.  To get this ip address, follow the <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">these instructions</a> in the &ldquo;Find the Docker instance IP address&rdquo; section.</p>
+<pre><code>[warning] The command `phonegap local &lt;command&gt;` has been DEPRECATED.
+[warning] The command has been delegated to `phonegap &lt;command&gt;`.
+[warning] The command `phonegap local &lt;command&gt;` will soon be removed.
+Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin.git" via git clone
+</code></pre>
 
-<p>Now upload your modified JSON configuration to a website that is publicly accessible, for example in a <a href="http://gist.github.com">Github Gist</a>.</p>
-
-<h3>Run Sync Gateway</h3>
-
-<p>Run Sync Gateway again, this time using Couchbase Server as a backing store this time.</p>
-
-<p>Replace <code>http://yourserver.co/yourconfig.json</code> with the URL where you&rsquo;ve uploaded your JSON configuration from the previous step.</p>
+<h2>Add additional plugins required by TodoLite-Phonegap</h2>
 
 <p><code>
-gce:~$ sudo docker run -d -name sg -p 4984:4984 -p 4985:4985 tleyden5iwx/couchbase-sync-gateway sync_gateway "http://yourserver.co/yourconfig.json"
+$ phonegap local plugin add https://git-wip-us.apache.org/repos/asf/cordova-plugin-camera.git
+$ phonegap local plugin add https://github.com/apache/cordova-plugin-inappbrowser.git
+$ phonegap local plugin add https://git-wip-us.apache.org/repos/asf/cordova-plugin-network-information.git
 </code></p>
 
-<p>This will return a container id, eg <code>9ffb83fd1f</code>.  Again, check the logs to make sure there are no serious errors in the logs:</p>
+<h2>Clone the example app source code</h2>
 
 <p><code>
-gce:~$ sudo docker logs 9ffb83fd1f
+$ rm -rf www
+$ git clone https://github.com/couchbaselabs/TodoLite-PhoneGap.git www
 </code></p>
 
-<p>You should see something along the lines of:</p>
+<h1>Verify ANDROID_HOME environment variable</h1>
+
+<p>If you don&rsquo;t already have it set, you will need to set your ANDROID_HOME environment variable:</p>
 
 <p><code>
-...
-02:23:58.913260 Starting server on :4984 ...
+$ export ANDROID_HOME="/Applications/Android Studio.app/sdk"
+$ export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools
 </code></p>
 
-<p>with no errors.</p>
-
-<h2>Verify it&rsquo;s working</h2>
-
-<h3>Save a document via curl</h3>
-
-<p>The easiest way to add a document is via the Admin port, since there is no authentication to worry about.  Since we haven&rsquo;t added a firewall rule to expose the admin port (4985), (and doing so without tight filtering would be a major security hole), the following command to create a new document must be run on the GCE instance.</p>
+<h2>Run app</h2>
 
 <p><code>
-gce:~$ curl -H "Content-Type: application/json" -d '{"such":"json"}' http://localhost:4985/sync_gateway/
+$ phonegap run android
 </code></p>
 
-<p>If it worked, you should see a response like:</p>
+<p>You should see the following output:</p>
+
+<pre><code>[phonegap] executing 'cordova platform add android'...
+[phonegap] completed 'cordova platform add android'
+[phonegap] executing 'cordova run android'...
+[phonegap] completed 'cordova run android'
+</code></pre>
+
+<h2>Verify app</h2>
+
+<p>TodoLite-Phonegap should launch on the emulator and look like this:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/TodoLitePhonegap.png" alt="screenshot" /></p>
+
+<h2>Facebook login</h2>
+
+<p>Hit the happy face in the top right, and it will prompt you to login via Facebook.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/TodoLitePhoneGapFacebook.png" alt="Screenshot" /></p>
+
+<h2>View data</h2>
+
+<p>After logging in, it will sync any data for your user stored on the Couchbase Mobile <a href="https://github.com/couchbaselabs/TodoLite-PhoneGap/blob/aa8bc5a6b35ce8d49ec089ec79952f1a50e207a2/js/index.js#L30">demo cluster</a>.</p>
+
+<p>For example, if you&rsquo;ve previously used <a href="https://github.com/couchbaselabs/ToDoLite-iOS">TodoLite-iOS</a> or <a href="https://github.com/couchbaselabs/ToDoLite-Android">TodoLite-Android</a>, your data should appear here.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/TodoLitePhoneGapData.png" alt="screenshot" /></p>
+
+<h2>Test Sync via single device</h2>
+
+<ul>
+<li>Login with Facebook as described above</li>
+<li>Add a new Todo List</li>
+<li>Add an item to your Todo List</li>
+<li>Uninstall the app</li>
+<li>Re-install the app by running <code>phonegap run android</code> again</li>
+<li>Login with Facebook</li>
+<li>Your Todo List and item added above should now appear</li>
+</ul>
+
+
+<h2>Test Sync via 2 apps</h2>
+
+<ul>
+<li>Install <a href="https://github.com/couchbaselabs/ToDoLite-Android">TodoLite-Android</a></li>
+<li>Login with Facebook</li>
+<li>Add / edit / delete items on <a href="https://github.com/couchbaselabs/ToDoLite-Android">TodoLite-Android</a></li>
+<li>Verify the changes appear in TodoLite-Phonegap</li>
+</ul>
+
+
+<p><em>Note: you could also setup two emulators and run the apps separately</em></p>
+
+<h2>Appendix A: using a more recent build of the Phonegap Plugin</h2>
+
+<h2>Reset state</h2>
 
 <p><code>
-{"id":"3cbfbe43e76b7eb5c4c221a78b2cf0cc","ok":true,"rev":"1-cd809becc169215072fd567eebd8b8de"}
+$ cd ..
+$ rm -rf todo-lite
 </code></p>
 
-<h3>View document on Couchbase Server</h3>
+<h2>Create another phonegap app</h2>
 
-<p>To verify the document was successfully stored on Couchbase Server, you&rsquo;ll need to login to the Couchbase Server Web Admin UI.  There are instructions <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">here</a> on how to do that.</p>
+<p><code>
+$ phonegap create todo-lite com.couchbase.TodoLite TodoLite
+$ cd todo-lite
+</code></p>
 
-<p>From there, navigate to Data Buckets / default / Documents, and you should see:</p>
+<h2>Download zip file</h2>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_server_docs.png" alt="screenshot" /></p>
+<p><code>
+$ mkdir Couchbase-Lite-PhoneGap-Plugin &amp;&amp; cd Couchbase-Lite-PhoneGap-Plugin
+$ wget http://cbfs-ext.hq.couchbase.com/builds/Couchbase-Lite-PhoneGap-Plugin_1.0.4-41.zip
+$ unzip Couchbase-Lite-PhoneGap-Plugin_1.0.4-41.zip
+</code></p>
 
-<p>Click on the document that has a UUID (eg, &ldquo;29f8d7..&rdquo; in the screenshot above), and you should see the document&rsquo;s contents:</p>
+<h2>Add local plugin</h2>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_server_doc.png" alt="screenshot" /></p>
+<p><code>
+$ phonegap local plugin add Couchbase-Lite-PhoneGap-Plugin
+</code></p>
 
-<p>The <code>_sync</code> metadata field is used internally by the Sync Gateway and can be ignored.  The actual doc contents are towards the end of the file: <code>.."such":"json"}</code></p>
+<p>You should see output:</p>
+
+<p> [warning] The command <code>phonegap local &lt;command&gt;</code> has been DEPRECATED.
+ [warning] The command has been delegated to <code>phonegap &lt;command&gt;</code>.
+ [warning] The command <code>phonegap local &lt;command&gt;</code> will soon be removed.</p>
+
+<p>Now just follow the rest of the steps above ..</p>
+
+<h1>References</h1>
+
+<ul>
+<li><a href="http://developer.couchbase.com/mobile/get-started/get-started-mobile/phonegap/prepare/index.html">http://developer.couchbase.com/mobile/get-started/get-started-mobile/phonegap/prepare/index.html</a></li>
+</ul>
+
 ]]></content>
   </entry>
   

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: docker | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/docker/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-04-25T05:24:24+00:00</updated>
+  <updated>2015-05-07T19:50:16+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -801,17 +801,17 @@ MACHINE         IP              METADATA
 <h2>Launch cluster</h2>
 
 <p><code>
-$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.8 couchbase-fleet launch-cbs --version 3.0.1 --num-nodes 3 --userpass "user:passw0rd" --docker-tag 0.8
+$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.8.5 couchbase-fleet launch-cbs --version latest --num-nodes 3 --userpass "user:passw0rd"
 </code></p>
 
 <p>Where:</p>
 
 <ul>
-<li>&mdash;version=&lt;cb-version> Couchbase Server version (3.0.1 or 2.2)</li>
+<li>&mdash;version=&lt;cb-version> Couchbase Server version &mdash; see <a href="https://registry.hub.docker.com/u/couchbase/server/tags/manage/">Docker Tags</a> for a list of versions that can be used.</li>
 <li>&mdash;num-nodes=&lt;num_nodes> number of couchbase nodes to start</li>
 <li>&mdash;userpass &lt;user:pass> the username and password as a single string, delimited by a colon (:)</li>
 <li>&mdash;etcd-servers=&lt;server-list>  Comma separated list of etcd servers, or omit to connect to etcd running on localhost</li>
-<li>&mdash;docker-tag=&lt;docker-tag>  if present, use this docker tag for spawned containers, otherwise, default to &ldquo;latest&rdquo;</li>
+<li>&mdash;docker-tag=&lt;docker-tag>  if present, use this docker tag the couchbase-cluster-go version in spawned containers, otherwise, default to &ldquo;latest&rdquo;</li>
 </ul>
 
 
@@ -856,6 +856,7 @@ couchbase_node@3.service        7cd5f94c.../10.234.188.145      active  running
 <h1>References</h1>
 
 <ul>
+<li><a href="https://github.com/tleyden/couchbase-cluster-go">couchbase-cluster-go github repo</a></li>
 <li><a href="https://github.com/couchbaselabs/couchbase-server-docker">Dockerfiles + Fleet init scripts</a></li>
 <li><a href="https://gist.github.com/dustin/6605182">How I built couchbase 2.2 for docker</a> by <a href="https://twitter.com/dlsspy">@dlsspy</a></li>
 <li><a href="https://registry.hub.docker.com/u/ncolomer/couchbase/">https://registry.hub.docker.com/u/ncolomer/couchbase/</a></li>
