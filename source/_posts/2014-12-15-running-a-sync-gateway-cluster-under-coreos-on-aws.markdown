@@ -43,12 +43,12 @@ $ ssh -i aws.cer -A core@ec2-54-83-80-161.compute-1.amazonaws.com
 ### Kick off Couchbase Server cluster
 
 ```
-$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.8 couchbase-fleet launch-cbs --version 3.0.1 --num-nodes 3 --userpass "user:passw0rd" --docker-tag 0.8
+$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.8.5 couchbase-fleet launch-cbs --version latest --num-nodes 3 --userpass "user:passw0rd" --docker-tag 0.8.5
 ```
 
 Where:
 
-* --version=<cb-version> Couchbase Server version (3.0.1 or 2.2) 
+* --version=<cb-version> Couchbase Server version -- see [Docker Tags](https://registry.hub.docker.com/u/couchbase/server/tags/manage/) for a list of versions that can be used.
 * --num-nodes=<num_nodes> number of couchbase nodes to start
 * --userpass <user:pass> the username and password as a single string, delimited by a colon (:)
 * --etcd-servers=<server-list>  Comma separated list of etcd servers, or omit to connect to etcd running on localhost
@@ -61,7 +61,7 @@ The output should look something like [this gist](https://gist.github.com/tleyde
 ### Kick off Sync Gateway cluster 
 
 ```
-$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.8 sync-gw-cluster launch-sgw --num-nodes=1 --config-url=http://git.io/b9PK --create-bucket todos --create-bucket-size 512 --create-bucket-replicas 1 --docker-tag 0.8
+$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.8.5 sync-gw-cluster launch-sgw --num-nodes=1 --config-url=http://git.io/b9PK --create-bucket todos --create-bucket-size 512 --create-bucket-replicas 1 --docker-tag 0.8.5
 ```
 
 Where:
@@ -130,7 +130,7 @@ Congratulations!  You now have a Couchbase Server + Sync Gateway cluster running
 To launch two more Sync Gateway nodes, run the following command:
 
 ```
-$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.8 sync-gw-cluster launch-sgw --num-nodes=2 --config-url=http://git.io/b9PK --docker-tag 0.8
+$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.8.5 sync-gw-cluster launch-sgw --num-nodes=2 --config-url=http://git.io/b9PK --docker-tag 0.8.5
 ```
 
 ## Appendix B: Setting up Elastic Load Balancer.

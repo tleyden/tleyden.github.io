@@ -56,16 +56,16 @@ MACHINE	        IP              METADATA
 
 
 ```
-$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.8 couchbase-fleet launch-cbs --version 3.0.1 --num-nodes 3 --userpass "user:passw0rd" --docker-tag 0.8
+$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.8.5 couchbase-fleet launch-cbs --version latest --num-nodes 3 --userpass "user:passw0rd"
 ```
 
 Where:
 
-* --version=<cb-version> Couchbase Server version (3.0.1 or 2.2) 
+* --version=<cb-version> Couchbase Server version -- see [Docker Tags](https://registry.hub.docker.com/u/couchbase/server/tags/manage/) for a list of versions that can be used. 
 * --num-nodes=<num_nodes> number of couchbase nodes to start
 * --userpass <user:pass> the username and password as a single string, delimited by a colon (:)
 * --etcd-servers=<server-list>  Comma separated list of etcd servers, or omit to connect to etcd running on localhost
-* --docker-tag=<docker-tag>  if present, use this docker tag for spawned containers, otherwise, default to "latest"
+* --docker-tag=<docker-tag>  if present, use this docker tag the couchbase-cluster-go version in spawned containers, otherwise, default to "latest"
 
 Replace `user:passw0rd` with a sensible username and password.  It **must** be colon separated, with no spaces.  The password itself must be at least 6 characters.
 
