@@ -122,7 +122,10 @@ Now it's time to run Couchbase Server.
 To kick off three Couchbase Server containers, run:
 
 ```
-$ for i in `seq 1 3`; do export container_$i=`docker run --name couchbase-server-$i -d -P couchbase/server`; done
+$ for i in `seq 1 3`; do \
+      echo "Starting container $i"; \
+      export container_$i=$(docker run --name couchbase-server-$i -d -P couchbase/server); \
+  done
 ```
 
 To confirm the containers are up, run:
@@ -182,15 +185,6 @@ Open your browser to $container_1_ip:8091 and you should see:
 
 At this point, it's possible to setup the cluster by going to each Couchbase node's Web UI and following the Setup Wizard.  However, in case you want to automate this in the future, let's do this over the command line instead.
 
-### Obtain the Private IP addresses of nodes
-
-TODO: section on installing tools goes here ..
-
-```
-$ container_1_private_ip=192.168.128.133
-$ container_2_private_ip=192.168.128.134
-```
-
 ### Setup first Couchbase node
 
 Let's arbitrarily pick **container_1** as the first node in the cluster.  This node is special in the sense that other nodes will join it.
@@ -202,7 +196,7 @@ The following command will do the following:
 
 ```
 $ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
-cluster-init -c $container_1_private_ip \
+cluster-init -c $container_1_ip \
 --cluster-init-username=Administrator \
 --cluster-init-password=password \
 --cluster-init-ramsize=600 \
@@ -221,7 +215,7 @@ A bucket is equivalent to a database in typical RDMS systems.
 
 ```
 $ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
-bucket-create -c $container_1_private_ip:8091 \
+bucket-create -c $container_1_ip:8091 \
 --bucket=default \
 --bucket-type=couchbase \
 --bucket-port=11211 \
@@ -242,9 +236,9 @@ Add in the second Couchbase node with this command
 
 ```
 $ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
-server-add -c $container_1_private_ip \
+server-add -c $container_1_ip \
 -u Administrator -p password \
---server-add $container_2_private_ip \
+--server-add $container_2_ip \
 --server-add-username Administrator \
 --server-add-password password 
 ```
@@ -259,7 +253,7 @@ To verify it was added, run:
 
 ```
 $ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
-server-list -c $container_1_private_ip \
+server-list -c $container_1_ip \
 -u Administrator -p password
 ```
 
@@ -279,9 +273,9 @@ In this step we will:
 
 ```
 $ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
-rebalance -c $container_1_private_ip \
+rebalance -c $container_1_ip \
 -u Administrator -p password \
---server-add $container_3_private_ip \
+--server-add $container_3_ip \
 --server-add-username Administrator \
 --server-add-password password 
 ```
@@ -315,7 +309,6 @@ And you should see:
 ![Couchbase Nodes](http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_cluster_nodes.png)
 
 Congratulations!  You have a Couchbase Server cluster up and running on Joyent Triton.
-
 
 ## Teardown
 
