@@ -182,6 +182,15 @@ Open your browser to $container_1_ip:8091 and you should see:
 
 At this point, it's possible to setup the cluster by going to each Couchbase node's Web UI and following the Setup Wizard.  However, in case you want to automate this in the future, let's do this over the command line instead.
 
+### Obtain the Private IP addresses of nodes
+
+TODO: section on installing tools goes here ..
+
+```
+$ container_1_private_ip=192.168.128.133
+$ container_2_private_ip=192.168.128.134
+```
+
 ### Setup first Couchbase node
 
 Let's arbitrarily pick **container_1** as the first node in the cluster.  This node is special in the sense that other nodes will join it.
@@ -192,7 +201,12 @@ The following command will do the following:
 * Set the cluster RAM size to 600 MB 
 
 ```
-$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server cluster-init -c $container_1_ip --cluster-init-username=Administrator --cluster-init-password=password --cluster-init-ramsize=600 -u admin -p password
+$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+cluster-init -c $container_1_private_ip \
+--cluster-init-username=Administrator \
+--cluster-init-password=password \
+--cluster-init-ramsize=600 \
+-u admin -p password
 ```
 
 You should see a response like:
@@ -206,7 +220,14 @@ SUCCESS: init 165.225.185.11
 A bucket is equivalent to a database in typical RDMS systems.  
 
 ```
-$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server bucket-create -c $container_1_ip:8091 --bucket=default --bucket-type=couchbase --bucket-port=11211 --bucket-ramsize=600 --bucket-replica=1 -u Administrator -p password
+$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+bucket-create -c $container_1_private_ip:8091 \
+--bucket=default \
+--bucket-type=couchbase \
+--bucket-port=11211 \
+--bucket-ramsize=600 \
+--bucket-replica=1 \
+-u Administrator -p password
 ```
 
 You should see:
@@ -220,7 +241,12 @@ SUCCESS: bucket-create
 Add in the second Couchbase node with this command
 
 ```
-$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server server-add -c $container_1_ip -u Administrator -p password --server-add $container_2_ip --server-add-username Administrator --server-add-password password 
+$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+server-add -c $container_1_private_ip \
+-u Administrator -p password \
+--server-add $container_2_private_ip \
+--server-add-username Administrator \
+--server-add-password password 
 ```
 
 You should see:
@@ -232,7 +258,9 @@ SUCCESS: server-add 165.225.185.12:8091
 To verify it was added, run:
 
 ```
-$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server server-list -c $container_1_ip -u Administrator -p password
+$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+server-list -c $container_1_private_ip \
+-u Administrator -p password
 ```
 
 which should return the list of Couchbase Server nodes that are now part of the cluster:
@@ -250,7 +278,12 @@ In this step we will:
 * Trigger a "rebalance", which distributes the (empty) bucket's data across the cluster
 
 ```
-$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server rebalance -c $container_1_ip -u Administrator -p password --server-add $container_3_ip --server-add-username Administrator --server-add-password password 
+$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+rebalance -c $container_1_private_ip \
+-u Administrator -p password \
+--server-add $container_3_private_ip \
+--server-add-username Administrator \
+--server-add-password password 
 ```
 
 You should see:
@@ -357,6 +390,12 @@ $ sdc-listmachines
     "package": "t4-standard-1G"
   },
 ]
+```
+
+### Find private IP of an individual machine
+
+```
+$ sdc-getmachine <machine_id> | json -aH ips | json -aH | egrep "10\.|192\.”
 ```
 
 ## References
