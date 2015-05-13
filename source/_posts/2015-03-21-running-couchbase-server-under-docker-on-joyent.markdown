@@ -97,30 +97,31 @@ Let's spin up an Ubuntu docker image that says hello world.
 Remember you're running the Docker client on your workstation, not in the cloud.  Here's an overview on what's going to be happening:
 
 ```
-                                             +--------------------------------+
-                                             | Joyent Triton Container Cloud  |
-                                             | +----------------------------+ |
-                                             | |   Physical Host running    | |
- +----------------------+                    | |          SmartOS           | |
- |   OSX Workstation    |                    | | +------------------------+ | |
- |                      |                    | | |   Docker-compatible    | | |
- |  +----------------+  |                    | | |       container        | | |
- |  | Docker Client  |  |                    | | | +--------------------+ | | |
- |  |                |  |    +---------+     | | | |    Ubuntu Linux    | | | |
- |  |                |  |    |HTTP/REST|     | | | |                    | | | |
- |  |                |  |    +---------+     | | | |                    | | | |
- |  |                |<-+------------------->| | | |                    | | | |
- |  |                |  |                    | | | |                    | | | |
- |  |                |  |                    | | | |                    | | | |
- |  |                |  |                    | | | |                    | | | |
- |  +----------------+  |                    | | | |                    | | | |
- +----------------------+                    | | | +--------------------+ | | |
-                                             | | +------------------------+ | |
-                                             | +----------------------------+ |
-                                             +--------------------------------+
+                                            ┌────────────────────────────────┐
+                                            │ Joyent Triton Container Cloud  │
+                                            │ ┌────────────────────────────┐ │
+                                            │ │   Physical Host running    │ │
+┌──────────────────────┐                    │ │          SmartOS           │ │
+│   OSX Workstation    │                    │ │ ┌────────────────────────┐ │ │
+│                      │                    │ │ │   Docker-compatible    │ │ │
+│  ┌────────────────┐  │                    │ │ │       container        │ │ │
+│  │ Docker Client  │  │                    │ │ │ ┌────────────────────┐ │ │ │
+│  │                │  │    ┌─────────┐     │ │ │ │    Ubuntu Linux    │ │ │ │
+│  │                │  │    │HTTP/REST│     │ │ │ │                    │ │ │ │
+│  │                │  │    └─────────┘     │ │ │ │                    │ │ │ │
+│  │                │  │  ◀──────────────▶  │ │ │ │                    │ │ │ │
+│  │                │  │                    │ │ │ │                    │ │ │ │
+│  │                │  │                    │ │ │ │                    │ │ │ │
+│  │                │  │                    │ │ │ │                    │ │ │ │
+│  └────────────────┘  │                    │ │ │ │                    │ │ │ │
+└──────────────────────┘                    │ │ │ └────────────────────┘ │ │ │
+                                            │ │ └────────────────────────┘ │ │
+                                            │ └────────────────────────────┘ │
+                                            └────────────────────────────────┘
+
 ```
 
-To start the docker container:
+To start the docker container::
 
 ```
 $ docker run --rm ubuntu:14.04 echo "Hello Docker World, from Joyent"
