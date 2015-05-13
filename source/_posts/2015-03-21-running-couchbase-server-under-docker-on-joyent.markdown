@@ -113,7 +113,7 @@ Pulling repository library/ubuntu
 Hello Docker World, from Joyent
 ```
 
-Also, since the `--rm` flag was passed, the container will have been removed after exiting.  You can verify this by running `docker ps -a`.  This is important because **Joyent charges you for stopped containers**.  
+Also, since the `--rm` flag was passed, the container will have been removed after exiting.  You can verify this by running `docker ps -a`.  This is important because **stopped containers incur charges on Joyent**.  
 
 Congratulations!  You've gotten a "hello world" Docker container running on Joyent.
 
@@ -321,7 +321,7 @@ $ docker stop $container_1 $container_2 $container_3
 $ docker rm $container_1 $container_2 $container_3
 ```
 
-To double check that you no longer have any containers running or in the stopped state (which will incur billing), run `docker ps -a` and you should see an empty list.
+To double check that you no longer have any containers running or in the stopped state, run `docker ps -a` and you should see an empty list.
 
 ## Installing the SDC tools (optional)
 
