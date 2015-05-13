@@ -96,30 +96,7 @@ Let's spin up an Ubuntu docker image that says hello world.
 
 Remember you're running the Docker client on your workstation, not in the cloud.  Here's an overview on what's going to be happening:
 
-```
-                                            ┌────────────────────────────────┐
-                                            │ Joyent Triton Container Cloud  │
-                                            │ ┌────────────────────────────┐ │
-                                            │ │   Physical Host running    │ │
-┌──────────────────────┐                    │ │          SmartOS           │ │
-│   OSX Workstation    │                    │ │ ┌────────────────────────┐ │ │
-│                      │                    │ │ │   Docker-compatible    │ │ │
-│  ┌────────────────┐  │                    │ │ │       container        │ │ │
-│  │ Docker Client  │  │                    │ │ │ ┌────────────────────┐ │ │ │
-│  │                │  │    ┌─────────┐     │ │ │ │    Ubuntu Linux    │ │ │ │
-│  │                │  │    │HTTP/REST│     │ │ │ │                    │ │ │ │
-│  │                │  │    └─────────┘     │ │ │ │                    │ │ │ │
-│  │                │  │  ◀──────────────▶  │ │ │ │                    │ │ │ │
-│  │                │  │                    │ │ │ │                    │ │ │ │
-│  │                │  │                    │ │ │ │                    │ │ │ │
-│  │                │  │                    │ │ │ │                    │ │ │ │
-│  └────────────────┘  │                    │ │ │ │                    │ │ │ │
-└──────────────────────┘                    │ │ │ └────────────────────┘ │ │ │
-                                            │ │ └────────────────────────┘ │ │
-                                            │ └────────────────────────────┘ │
-                                            └────────────────────────────────┘
-
-```
+![diagram](http://tleyden-misc.s3.amazonaws.com/blog_images/joyent_couchbase_blog.png)
 
 To start the docker container::
 
