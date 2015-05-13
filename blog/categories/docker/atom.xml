@@ -4,7 +4,7 @@
   <title><![CDATA[Category: docker | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/docker/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-05-13T03:45:49+00:00</updated>
+  <updated>2015-05-13T03:47:34+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -14,7 +14,7 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Running a Couchbase cluster on the Joyent Triton container cloud]]></title>
+    <title type="html"><![CDATA[Running Couchbase Server under Joyent Triton]]></title>
     <link href="http://tleyden.github.io/blog/2015/05/05/running-couchbase-server-under-docker-on-joyent/"/>
     <updated>2015-05-05T09:31:00+00:00</updated>
     <id>http://tleyden.github.io/blog/2015/05/05/running-couchbase-server-under-docker-on-joyent</id>
