@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Running a Couchbase cluster on the Joyent Triton container cloud"
+title: "Running Couchbase Server under Joyent Triton"
 date: 2015-05-05 09:31
 comments: true
 categories: docker joyent couchbase
