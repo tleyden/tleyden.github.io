@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-05-07T19:50:16+00:00</updated>
+  <updated>2015-05-13T03:38:17+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,531 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Running Couchbase Server under Joyent Triton]]></title>
+    <link href="http://tleyden.github.io/blog/2015/05/05/running-couchbase-server-under-docker-on-joyent/"/>
+    <updated>2015-05-05T09:31:00+00:00</updated>
+    <id>http://tleyden.github.io/blog/2015/05/05/running-couchbase-server-under-docker-on-joyent</id>
+    <content type="html"><![CDATA[<p>Joyent has recently announced their new Triton Docker container hosting service.  There are several advantages of running Docker containers on Triton over a more traditional cloud hosting platform:</p>
+
+<ul>
+<li><p>Better performance since there is no hardware level virtualization overhead.  Your containers run on bare-metal.</p></li>
+<li><p>Simplified networking between containers.  Each container gets its own private (and optionally public) ip address.</p></li>
+<li><p>Hosts are abstracted away &mdash; you just deploy into the &ldquo;container cloud&rdquo;, and don&rsquo;t care which host your container is running on.</p></li>
+</ul>
+
+
+<p>For more details, check out Bryan Cantrill&rsquo;s talk about <a href="https://www.joyent.com/developers/videos/docker-and-the-future-of-containers-in-production">Docker and the Future of Containers in Production</a>.</p>
+
+<p>Let&rsquo;s give it a spin with a &ldquo;hello world&rdquo; container, and then with a cluster of Couchbase servers.</p>
+
+<h2>Sign up for a Joyent account</h2>
+
+<p><a href="https://www.joyent.com/lp/preview">Follow the signup instructions on the Joyent website</a></p>
+
+<p>You will also need to add your SSH key to your account.</p>
+
+<h2>Upgrade Docker client to 1.4.1 or later</h2>
+
+<p>Check your version of Docker with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker --version
+</span><span class='line'>Docker version 1.0.1, build 990021a</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If you are on a version before 1.4.1 (like I was), you can upgrade Docker via the <a href="https://github.com/boot2docker/osx-installer/releases">boot2docker installers</a>.</p>
+
+<h2>Joyent + Docker setup</h2>
+
+<p>Get the sdc-docker repo (sdc == Smart Data Center):</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ git clone https://github.com/joyent/sdc-docker.git</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Perform setup via:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd sdc-docker
+</span><span class='line'>$  ./tools/sdc-docker-setup.sh -k 165.225.168.22 $ACCOUNT ~/.ssh/$PRIVATE_KEY_FILE</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Replace values as follows:</p>
+
+<ul>
+<li><strong>$ACCOUNT</strong>: you can get this by logging into the Joyent web ui and going to the Account menu from the pulldown in the top-right corner.  Find the <strong>Username</strong> field, and use that</li>
+<li><strong>$PRIVATE_KEY_FILE</strong>: the name of the file where your private key is stored, typically this will be <code>id_rsa</code></li>
+</ul>
+
+
+<p>Run the command and you should see the following output:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Setting up Docker client for SDC using:
+</span><span class='line'>    CloudAPI:        https://165.225.168.22
+</span><span class='line'>    Account:         &lt;your username&gt;
+</span><span class='line'>    Key:             /home/ubuntu/.ssh/id_rsa
+</span><span class='line'>
+</span><span class='line'>[..snip..]
+</span><span class='line'>
+</span><span class='line'>Wrote certificate files to /home/ubuntu/.sdc/docker/&lt;username&gt;
+</span><span class='line'>
+</span><span class='line'>Docker service endpoint is: tcp://&lt;generated ip&gt;:2376
+</span><span class='line'>
+</span><span class='line'>* * *
+</span><span class='line'>Success. Set your environment as follows:
+</span><span class='line'>
+</span><span class='line'>    export DOCKER_CERT_PATH=/home/ubuntu/.sdc/docker/&lt;username&gt;
+</span><span class='line'>    export DOCKER_HOST=tcp://&lt;generated-ip&gt;:2376
+</span><span class='line'>    alias docker="docker --tls"
+</span><span class='line'>
+</span><span class='line'>Then you should be able to run 'docker info' and see your account
+</span><span class='line'>name 'SDCAccount: &lt;username&gt;' in the output.</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Export environment variables</strong></p>
+
+<p>As the outuput above suggests, copy and paste the commands from the output.  Here&rsquo;s an example of what that will look like (but you should copy and paste from your command output, not the snippet below):</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ export DOCKER_CERT_PATH=/home/ubuntu/.sdc/docker/&lt;username&gt;
+</span><span class='line'>$ export DOCKER_HOST=tcp://&lt;generated-ip&gt;:2376
+</span><span class='line'>$ alias docker="docker --tls"</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Docker Hello World</h2>
+
+<p>Let&rsquo;s spin up an Ubuntu docker image that says hello world.</p>
+
+<p>Remember you&rsquo;re running the Docker client on your workstation, not in the cloud.  Here&rsquo;s an overview on what&rsquo;s going to be happening:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/joyent_container_hello_world.png" alt="diagram" /></p>
+
+<p>To start the docker container::</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run --rm ubuntu:14.04 echo "Hello Docker World, from Joyent"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see the following output:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Unable to find image 'ubuntu:14.04' locally
+</span><span class='line'>Pulling repository library/ubuntu
+</span><span class='line'>...
+</span><span class='line'>Hello Docker World, from Joyent</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Also, since the <code>--rm</code> flag was passed, the container will have been removed after exiting.  You can verify this by running <code>docker ps -a</code>.  This is important because <strong>stopped containers incur charges on Joyent</strong>.</p>
+
+<p>Congratulations!  You&rsquo;ve gotten a &ldquo;hello world&rdquo; Docker container running on Joyent.</p>
+
+<h2>Run Couchbase Server containers</h2>
+
+<p>Now it&rsquo;s time to run Couchbase Server.</p>
+
+<p>To kick off three Couchbase Server containers, run:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ for i in `seq 1 3`; do \
+</span><span class='line'>      echo "Starting container $i"; \
+</span><span class='line'>      export container_$i=$(docker run --name couchbase-server-$i -d -P couchbase/server); \
+</span><span class='line'>  done</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To confirm the containers are up, run:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker ps</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and you should see:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>CONTAINER ID        IMAGE                                       COMMAND             CREATED             STATUS              PORTS               NAMES
+</span><span class='line'>5bea8901814c        couchbase/server   "couchbase-start"   3 minutes ago       Up 2 minutes                            couchbase-server-1
+</span><span class='line'>bef1f2f32726        couchbase/server   "couchbase-start"   2 minutes ago       Up 2 minutes                            couchbase-server-2
+</span><span class='line'>6f4e2a1e8e63        couchbase/server   "couchbase-start"   2 minutes ago       Up About a minute                       couchbase-server-3</span></code></pre></td></tr></table></div></figure>
+
+
+<p>At this point you will have environment variables defined with the container ids of each container.  You can check this by running:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ echo $container_1 && echo $container_2 && echo $container_3
+</span><span class='line'>21264e44d66b4004b4828b7ae408979e7f71924aadab435aa9de662024a37b0e
+</span><span class='line'>ff9fb4db7b304e769f694802e6a072656825aa2059604ba4ab4d579bd2e5d18d
+</span><span class='line'>0c6f8ca2951448e497d7e12026dcae4aeaf990ec51e047cf9d8b2cbdd9bd7668</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Get public ip addresses of the containers</h3>
+
+<p>Each container will have two IP addresses assigned:</p>
+
+<ul>
+<li>A public IP, accessible from anywhere</li>
+<li>A private IP, only accessible from containers/machines in your Joyent account</li>
+</ul>
+
+
+<p>To get the public IP, we can use the Docker client.  (to get the private IP, you need to use the Joyent SmartDataCenter tools, which is described below)</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ container_1_ip=`docker inspect $container_1 | grep -i IPAddress | awk -F: '{print $2}' |  grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b"`
+</span><span class='line'>$ container_2_ip=`docker inspect $container_2 | grep -i IPAddress | awk -F: '{print $2}' |  grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b"`
+</span><span class='line'>$ container_3_ip=`docker inspect $container_3 | grep -i IPAddress | awk -F: '{print $2}' |  grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b"`
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You will now have the public IP addresses of each container defined in environment variables.  You can check that it worked via:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ echo $container_1_ip && echo $container_2_ip && echo $container_3_ip
+</span><span class='line'>165.225.185.11
+</span><span class='line'>165.225.185.12
+</span><span class='line'>165.225.185.13</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Connect to Couchbase Web UI</h3>
+
+<p>Open your browser to $container_1_ip:8091 and you should see:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_cluster_setup.png" alt="Couchbase Welcome Screen" /></p>
+
+<p>At this point, it&rsquo;s possible to setup the cluster by going to each Couchbase node&rsquo;s Web UI and following the Setup Wizard.  However, in case you want to automate this in the future, let&rsquo;s do this over the command line instead.</p>
+
+<h3>Setup first Couchbase node</h3>
+
+<p>Let&rsquo;s arbitrarily pick <strong>container_1</strong> as the first node in the cluster.  This node is special in the sense that other nodes will join it.</p>
+
+<p>The following command will do the following:</p>
+
+<ul>
+<li>Set the Administrator&rsquo;s username and password</li>
+<li>Set the cluster RAM size to 600 MB</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+</span><span class='line'>cluster-init -c $container_1_ip \
+</span><span class='line'>--cluster-init-username=Administrator \
+</span><span class='line'>--cluster-init-password=password \
+</span><span class='line'>--cluster-init-ramsize=600 \
+</span><span class='line'>-u admin -p password</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see a response like:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>SUCCESS: init 165.225.185.11</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Create a default bucket</h3>
+
+<p>A bucket is equivalent to a database in typical RDMS systems.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+</span><span class='line'>bucket-create -c $container_1_ip:8091 \
+</span><span class='line'>--bucket=default \
+</span><span class='line'>--bucket-type=couchbase \
+</span><span class='line'>--bucket-port=11211 \
+</span><span class='line'>--bucket-ramsize=600 \
+</span><span class='line'>--bucket-replica=1 \
+</span><span class='line'>-u Administrator -p password</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>SUCCESS: bucket-create</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Add 2nd Couchbase node</h3>
+
+<p>Add in the second Couchbase node with this command</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+</span><span class='line'>server-add -c $container_1_ip \
+</span><span class='line'>-u Administrator -p password \
+</span><span class='line'>--server-add $container_2_ip \
+</span><span class='line'>--server-add-username Administrator \
+</span><span class='line'>--server-add-password password </span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>SUCCESS: server-add 165.225.185.12:8091</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To verify it was added, run:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+</span><span class='line'>server-list -c $container_1_ip \
+</span><span class='line'>-u Administrator -p password</span></code></pre></td></tr></table></div></figure>
+
+
+<p>which should return the list of Couchbase Server nodes that are now part of the cluster:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ns_1@165.225.185.11 165.225.185.11:8091 healthy active
+</span><span class='line'>ns_1@165.225.185.12 165.225.185.12:8091 healthy inactiveAdded</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Add 3rd Couchbase node and rebalance</h3>
+
+<p>In this step we will:</p>
+
+<ul>
+<li>Add the 3rd Couchbase node</li>
+<li>Trigger a &ldquo;rebalance&rdquo;, which distributes the (empty) bucket&rsquo;s data across the cluster</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+</span><span class='line'>rebalance -c $container_1_ip \
+</span><span class='line'>-u Administrator -p password \
+</span><span class='line'>--server-add $container_3_ip \
+</span><span class='line'>--server-add-username Administrator \
+</span><span class='line'>--server-add-password password </span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>INFO: rebalancing . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+</span><span class='line'>SUCCESS: rebalanced cluster
+</span><span class='line'>close failed in file object destructor:
+</span><span class='line'>Error in sys.excepthook:
+</span><span class='line'>
+</span><span class='line'>Original exception was:</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If you see <strong>SUCCESS</strong>, then it worked.  <em>(I&rsquo;m not sure why the &ldquo;close failed in file ..&rdquo; error is happening, but so far it appears that it can be safely ignored.)</em></p>
+
+<h3>Login to Web UI</h3>
+
+<p>Open your browser to $container_1_ip:8091 and you should see:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_cluster_login.png" alt="Couchbase Login Screen" /></p>
+
+<p>Login with:</p>
+
+<ul>
+<li>Username: <strong>Administrator</strong></li>
+<li>Password: <strong>password</strong></li>
+</ul>
+
+
+<p>And you should see:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_cluster_nodes.png" alt="Couchbase Nodes" /></p>
+
+<p>Congratulations!  You have a Couchbase Server cluster up and running on Joyent Triton.</p>
+
+<h2>Teardown</h2>
+
+<p>To stop and remove your Couchbase server containers, run:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker stop $container_1 $container_2 $container_3
+</span><span class='line'>$ docker rm $container_1 $container_2 $container_3</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To double check that you no longer have any containers running or in the stopped state, run <code>docker ps -a</code> and you should see an empty list.</p>
+
+<h2>Installing the SDC tools (optional)</h2>
+
+<p>Installing the Joyent Smart Data Center (SDC) tools will allow you to gain more visibility into your container cluster &mdash; for example being able to view the internal IP of each continer.</p>
+
+<p>Here&rsquo;s how to install the sdc-tools suite.</p>
+
+<h3>Install smartdc</h3>
+
+<p>First <a href="http://coolestguidesontheplanet.com/installing-node-js-on-osx-10-10-yosemite/">install NodeJS + NPM</a></p>
+
+<p>Install smartdc:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>npm install -g smartdc</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Configure environment variables</h3>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ export SDC_URL=https://us-east-3b.api.joyent.com
+</span><span class='line'>$ export SDC_ACCOUNT=&lt;ACCOUNT&gt;
+</span><span class='line'>$ export SDC_KEY_ID=$(ssh-keygen -l -f $HOME/.ssh/id_rsa.pub | awk '{print $2}')</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Replace values as follows:</p>
+
+<ul>
+<li><strong>ACCOUNT</strong>: you can get this by logging into the Joyent web ui and going to the Account menu from the pulldown in the top-right corner.  Find the <strong>Username</strong> field, and use that</li>
+</ul>
+
+
+<h3>List machines</h3>
+
+<p>Run <code>sdc-listmachines</code> to list all the containers running under your Joyent account.  Your output should look something like this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sdc-listmachines
+</span><span class='line'>[
+</span><span class='line'>{
+</span><span class='line'>    "id": "0c6f8ca2-9514-48e4-97d7-e12026dcae4a",
+</span><span class='line'>    "name": "couchbase-server-3",
+</span><span class='line'>    "type": "smartmachine",
+</span><span class='line'>    "state": "running",
+</span><span class='line'>    "image": "335a8046-0749-1174-5666-6f084472b5ef",
+</span><span class='line'>    "ips": [
+</span><span class='line'>      "192.168.128.32",
+</span><span class='line'>      "165.225.185.13"
+</span><span class='line'>    ],
+</span><span class='line'>    "memory": 1024,
+</span><span class='line'>    "disk": 25600,
+</span><span class='line'>    "metadata": {},
+</span><span class='line'>    "tags": {},
+</span><span class='line'>    "created": "2015-03-26T14:50:31.196Z",
+</span><span class='line'>    "updated": "2015-03-26T14:50:45.000Z",
+</span><span class='line'>    "networks": [
+</span><span class='line'>      "7cfe29d4-e313-4c3b-a967-a28ea34342e9",
+</span><span class='line'>      "178967cb-8d11-4f53-8434-9c91ff819a0d"
+</span><span class='line'>    ],
+</span><span class='line'>    "dataset": "335a8046-0749-1174-5666-6f084472b5ef",
+</span><span class='line'>    "primaryIp": "165.225.185.13",
+</span><span class='line'>    "firewall_enabled": false,
+</span><span class='line'>    "compute_node": "44454c4c-4400-1046-8050-b5c04f383432",
+</span><span class='line'>    "package": "t4-standard-1G"
+</span><span class='line'>  },
+</span><span class='line'>]</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Find private IP of an individual machine</h3>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sdc-getmachine &lt;machine_id&gt; | json -aH ips | json -aH | egrep "10\.|192\.”</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>References</h2>
+
+<ul>
+<li><p><a href="https://github.com/joyent/sdc-docker/blob/master/docs/divergence.md">Native Docker API vs Joyent Triton API</a></p></li>
+<li><p><a href="https://www.joyent.com/blog/container-service-preview">https://www.joyent.com/blog/container-service-preview</a></p></li>
+<li><p><a href="https://www.joyent.com/blog/docker-bake-off-aws-vs-joyent">https://www.joyent.com/blog/docker-bake-off-aws-vs-joyent</a></p></li>
+<li><p><a href="https://github.com/joyent/sdc-docker">https://github.com/joyent/sdc-docker</a></p></li>
+<li><p><a href="https://github.com/joyent/sdc-docker/blob/master/docs/divergence.md">https://github.com/joyent/sdc-docker/blob/master/docs/divergence.md</a></p></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Setting up Octopress under Docker]]></title>
@@ -3116,154 +3641,6 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
 <li><a href="https://registry.hub.docker.com/u/ncolomer/couchbase/">ncolomer/couchbase Docker instructions</a></li>
 </ul>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Configure Emacs as a Go Editor From Scratch Part 2]]></title>
-    <link href="http://tleyden.github.io/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2/"/>
-    <updated>2014-05-27T12:03:00+00:00</updated>
-    <id>http://tleyden.github.io/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2</id>
-    <content type="html"><![CDATA[<p>This is a continuation of <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">Part 1</a>, so if you haven&rsquo;t read that already, you should do so now.</p>
-
-<h2>goimports</h2>
-
-<p>The idea of goimports is that every time you save a file, it will automatically update all of your imports, so you don&rsquo;t have to.  This can save a lot of time.  Kudos to <a href="https://twitter.com/bradfitz">@bradfitz</a> for taking the time to build this nifty tool.</p>
-
-<p>go get goimports with:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ go get golang.org/x/tools/cmd/goimports</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Continuing on previous .emacs in <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">Part 1</a>, update your .emacs to:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>(defun my-go-mode-hook ()
-</span><span class='line'>  ; Use goimports instead of go-fmt
-</span><span class='line'>  (setq gofmt-command "goimports")
-</span><span class='line'>  ; Call Gofmt before saving
-</span><span class='line'>  (add-hook 'before-save-hook 'gofmt-before-save)
-</span><span class='line'>  ; Customize compile command to run go build
-</span><span class='line'>  (if (not (string-match "go" compile-command))
-</span><span class='line'>      (set (make-local-variable 'compile-command)
-</span><span class='line'>           "go build -v && go test -v && go vet"))
-</span><span class='line'>  ; Godef jump key binding
-</span><span class='line'>  (local-set-key (kbd "M-.") 'godef-jump))
-</span><span class='line'>(add-hook 'go-mode-hook 'my-go-mode-hook)</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Restart emacs</strong> to force it to reload the configuration</p>
-
-<h3>Testing out goimports</h3>
-
-<ul>
-<li>Open an existing .go file that contains imports</li>
-<li>Remove one or more of the imports</li>
-<li>Save the file</li>
-</ul>
-
-
-<p>After you save the file, it should re-add the imports.  Yay!</p>
-
-<p>Basically any time you add or remove code that requires a different set of imports, saving the file will cause it to re-write the file with the correct imports.</p>
-
-<h2>The Go Oracle</h2>
-
-<p>The <a href="https://docs.google.com/document/d/1SLk36YRjjMgKqe490mSRzOPYEDe0Y_WQNRv-EiFYUyw/view">Go Oracle</a> will blow your mind!  It can do things like find all the callers of a given function/method.  It can also show you all the functions that read or write from a given channel.  In short, it rocks.</p>
-
-<p>Here&rsquo;s what you need to do in order to wield this powerful tool from within Emacs.</p>
-
-<h3>Go get oracle</h3>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>go get golang.org/x/tools/cmd/oracle</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Move oracle binary so Emacs can find it</h3>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>sudo mv $GOPATH/bin/oracle $GOROOT/bin/</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Update .emacs</h3>
-
-<p>Add the following to your <code>.emacs</code> file, <strong>above</strong> the <code>(defun my-go-mode-hook ()</code> line.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>(load-file "$GOPATH/src/golang.org/x/tools/cmd/oracle/oracle.el")</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Restart Emacs</strong> to make these changes take effect.</p>
-
-<h3>Get a test package to play with</h3>
-
-<p>This package works with go-oracle (I tested it out while writing this blog post), so you should use it to give Go Oracle a spin:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>go get github.com/tleyden/checkers-bot-minimax</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Set the oracle analysis scope</h3>
-
-<p>From within emacs, open <code>$GOPATH/src/github.com/tleyden/checkers-bot-minimax/thinker.go</code></p>
-
-<p>You need to tell Go Oracle the <strong>main</strong> package scope under which you want it to operate:</p>
-
-<p><code>M-x go-oracle-set-scope</code></p>
-
-<p>it will prompt you with:</p>
-
-<p><code>Go oracle scope:</code></p>
-
-<p>and you should enter:</p>
-
-<p><code>github.com/tleyden/checkers-bot-minimax</code> and hit Enter.</p>
-
-<p>Nothing will appear to happen, but now Go Oracle is now ready to show it&rsquo;s magic.  (<em>note</em> it will <strong>not</strong> autocomplete packages in this dialog, which is mildly annoying.  Make sure to spell them correctly.)</p>
-
-<p><strong>Important:</strong> When you call <code>go-oracle-set-scope</code>, you always need to give it a <strong>main</strong> package.  This is something that will probably frequently trip you up while using Go Oracle.</p>
-
-<h3>Use oracle to find the callers of a method</h3>
-
-<p>You should still have the <code>$GOPATH/src/github.com/tleyden/checkers-bot-minimax/thinker.go</code> file open within emacs.</p>
-
-<p>Position the cursor on the &ldquo;T&rdquo; in the <code>Think</code> method (line 13 of thinker.go):</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/Emacs_go_oracle_0" alt="screenshot" /></p>
-
-<p>And then run</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>M-x go-oracle-callers</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Emacs should open a new buffer on the right hand side with all of the places where the <code>Think</code> method is called.  In this case, there is only one place in the code that calls it:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/Emacs_go_oracle" alt="screenshot" /></p>
-
-<p>To go to the call site, position your cursor on the red underscore to the left of &ldquo;dynamic method call&rdquo; and hit Enter.  It should take you to line 240 in gamecontroller.go:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/Emacs_go_oracle2" alt="screenshot" /></p>
-
-<p>Note that it actually crossed package boundaries, since the called function (<code>Think</code>) was in the <code>main</code> package, while the call site was in the <code>checkersbot</code> package.</p>
-
-<p>If you got this far, you are up and running with The Go Oracle on Emacs!</p>
-
-<p>Now you should try it with one of your own packages.</p>
-
-<p>This is just scratching the surface &mdash; to get more information on how to use Go Oracle, see <a href="https://docs.google.com/document/d/1SLk36YRjjMgKqe490mSRzOPYEDe0Y_WQNRv-EiFYUyw/view">go oracle: user manual</a>.</p>
 ]]></content>
   </entry>
   

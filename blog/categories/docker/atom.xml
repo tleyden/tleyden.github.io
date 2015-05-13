@@ -4,7 +4,7 @@
   <title><![CDATA[Category: docker | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/docker/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-05-07T19:50:16+00:00</updated>
+  <updated>2015-05-13T03:38:17+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,440 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Running Couchbase Server under Joyent Triton]]></title>
+    <link href="http://tleyden.github.io/blog/2015/05/05/running-couchbase-server-under-docker-on-joyent/"/>
+    <updated>2015-05-05T09:31:00+00:00</updated>
+    <id>http://tleyden.github.io/blog/2015/05/05/running-couchbase-server-under-docker-on-joyent</id>
+    <content type="html"><![CDATA[<p>Joyent has recently announced their new Triton Docker container hosting service.  There are several advantages of running Docker containers on Triton over a more traditional cloud hosting platform:</p>
+
+<ul>
+<li><p>Better performance since there is no hardware level virtualization overhead.  Your containers run on bare-metal.</p></li>
+<li><p>Simplified networking between containers.  Each container gets its own private (and optionally public) ip address.</p></li>
+<li><p>Hosts are abstracted away &mdash; you just deploy into the &ldquo;container cloud&rdquo;, and don&rsquo;t care which host your container is running on.</p></li>
+</ul>
+
+
+<p>For more details, check out Bryan Cantrill&rsquo;s talk about <a href="https://www.joyent.com/developers/videos/docker-and-the-future-of-containers-in-production">Docker and the Future of Containers in Production</a>.</p>
+
+<p>Let&rsquo;s give it a spin with a &ldquo;hello world&rdquo; container, and then with a cluster of Couchbase servers.</p>
+
+<h2>Sign up for a Joyent account</h2>
+
+<p><a href="https://www.joyent.com/lp/preview">Follow the signup instructions on the Joyent website</a></p>
+
+<p>You will also need to add your SSH key to your account.</p>
+
+<h2>Upgrade Docker client to 1.4.1 or later</h2>
+
+<p>Check your version of Docker with:</p>
+
+<p><code>
+$ docker --version
+Docker version 1.0.1, build 990021a
+</code></p>
+
+<p>If you are on a version before 1.4.1 (like I was), you can upgrade Docker via the <a href="https://github.com/boot2docker/osx-installer/releases">boot2docker installers</a>.</p>
+
+<h2>Joyent + Docker setup</h2>
+
+<p>Get the sdc-docker repo (sdc == Smart Data Center):</p>
+
+<p><code>
+$ git clone https://github.com/joyent/sdc-docker.git
+</code></p>
+
+<p>Perform setup via:</p>
+
+<p><code>
+$ cd sdc-docker
+$  ./tools/sdc-docker-setup.sh -k 165.225.168.22 $ACCOUNT ~/.ssh/$PRIVATE_KEY_FILE
+</code></p>
+
+<p>Replace values as follows:</p>
+
+<ul>
+<li><strong>$ACCOUNT</strong>: you can get this by logging into the Joyent web ui and going to the Account menu from the pulldown in the top-right corner.  Find the <strong>Username</strong> field, and use that</li>
+<li><strong>$PRIVATE_KEY_FILE</strong>: the name of the file where your private key is stored, typically this will be <code>id_rsa</code></li>
+</ul>
+
+
+<p>Run the command and you should see the following output:</p>
+
+<p>```
+Setting up Docker client for SDC using:</p>
+
+<pre><code>CloudAPI:        https://165.225.168.22
+Account:         &lt;your username&gt;
+Key:             /home/ubuntu/.ssh/id_rsa
+</code></pre>
+
+<p>[..snip..]</p>
+
+<p>Wrote certificate files to /home/ubuntu/.sdc/docker/<username></p>
+
+<p>Docker service endpoint is: tcp://<generated ip>:2376</p>
+
+<hr />
+
+<p>Success. Set your environment as follows:</p>
+
+<pre><code>export DOCKER_CERT_PATH=/home/ubuntu/.sdc/docker/&lt;username&gt;
+export DOCKER_HOST=tcp://&lt;generated-ip&gt;:2376
+alias docker="docker --tls"
+</code></pre>
+
+<p>Then you should be able to run &lsquo;docker info&rsquo; and see your account
+name &lsquo;SDCAccount: <username>&rsquo; in the output.
+```</p>
+
+<p><strong>Export environment variables</strong></p>
+
+<p>As the outuput above suggests, copy and paste the commands from the output.  Here&rsquo;s an example of what that will look like (but you should copy and paste from your command output, not the snippet below):</p>
+
+<p><code>
+$ export DOCKER_CERT_PATH=/home/ubuntu/.sdc/docker/&lt;username&gt;
+$ export DOCKER_HOST=tcp://&lt;generated-ip&gt;:2376
+$ alias docker="docker --tls"
+</code></p>
+
+<h2>Docker Hello World</h2>
+
+<p>Let&rsquo;s spin up an Ubuntu docker image that says hello world.</p>
+
+<p>Remember you&rsquo;re running the Docker client on your workstation, not in the cloud.  Here&rsquo;s an overview on what&rsquo;s going to be happening:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/joyent_container_hello_world.png" alt="diagram" /></p>
+
+<p>To start the docker container::</p>
+
+<p><code>
+$ docker run --rm ubuntu:14.04 echo "Hello Docker World, from Joyent"
+</code></p>
+
+<p>You should see the following output:</p>
+
+<p><code>
+Unable to find image 'ubuntu:14.04' locally
+Pulling repository library/ubuntu
+...
+Hello Docker World, from Joyent
+</code></p>
+
+<p>Also, since the <code>--rm</code> flag was passed, the container will have been removed after exiting.  You can verify this by running <code>docker ps -a</code>.  This is important because <strong>stopped containers incur charges on Joyent</strong>.</p>
+
+<p>Congratulations!  You&rsquo;ve gotten a &ldquo;hello world&rdquo; Docker container running on Joyent.</p>
+
+<h2>Run Couchbase Server containers</h2>
+
+<p>Now it&rsquo;s time to run Couchbase Server.</p>
+
+<p>To kick off three Couchbase Server containers, run:</p>
+
+<p><code>``
+$ for i in</code>seq 1 3`; do \</p>
+
+<pre><code>  echo "Starting container $i"; \
+  export container_$i=$(docker run --name couchbase-server-$i -d -P couchbase/server); \
+</code></pre>
+
+<p>  done
+```</p>
+
+<p>To confirm the containers are up, run:</p>
+
+<p><code>
+$ docker ps
+</code></p>
+
+<p>and you should see:</p>
+
+<p><code>
+CONTAINER ID        IMAGE                                       COMMAND             CREATED             STATUS              PORTS               NAMES
+5bea8901814c        couchbase/server   "couchbase-start"   3 minutes ago       Up 2 minutes                            couchbase-server-1
+bef1f2f32726        couchbase/server   "couchbase-start"   2 minutes ago       Up 2 minutes                            couchbase-server-2
+6f4e2a1e8e63        couchbase/server   "couchbase-start"   2 minutes ago       Up About a minute                       couchbase-server-3
+</code></p>
+
+<p>At this point you will have environment variables defined with the container ids of each container.  You can check this by running:</p>
+
+<p><code>
+$ echo $container_1 &amp;&amp; echo $container_2 &amp;&amp; echo $container_3
+21264e44d66b4004b4828b7ae408979e7f71924aadab435aa9de662024a37b0e
+ff9fb4db7b304e769f694802e6a072656825aa2059604ba4ab4d579bd2e5d18d
+0c6f8ca2951448e497d7e12026dcae4aeaf990ec51e047cf9d8b2cbdd9bd7668
+</code></p>
+
+<h3>Get public ip addresses of the containers</h3>
+
+<p>Each container will have two IP addresses assigned:</p>
+
+<ul>
+<li>A public IP, accessible from anywhere</li>
+<li>A private IP, only accessible from containers/machines in your Joyent account</li>
+</ul>
+
+
+<p>To get the public IP, we can use the Docker client.  (to get the private IP, you need to use the Joyent SmartDataCenter tools, which is described below)</p>
+
+<p><code>``
+$ container_1_ip=</code>docker inspect $container_1 | grep -i IPAddress | awk -F: &lsquo;{print $2}&rsquo; |  grep -oE &ldquo;\b([0-9]{1,3}.){3}[0-9]{1,3}\b&rdquo;<code>
+$ container_2_ip=</code>docker inspect $container_2 | grep -i IPAddress | awk -F: &lsquo;{print $2}&rsquo; |  grep -oE &ldquo;\b([0-9]{1,3}.){3}[0-9]{1,3}\b&rdquo;<code>
+$ container_3_ip=</code>docker inspect $container_3 | grep -i IPAddress | awk -F: &lsquo;{print $2}&rsquo; |  grep -oE &ldquo;\b([0-9]{1,3}.){3}[0-9]{1,3}\b&rdquo;`</p>
+
+<p>```</p>
+
+<p>You will now have the public IP addresses of each container defined in environment variables.  You can check that it worked via:</p>
+
+<p><code>
+$ echo $container_1_ip &amp;&amp; echo $container_2_ip &amp;&amp; echo $container_3_ip
+165.225.185.11
+165.225.185.12
+165.225.185.13
+</code></p>
+
+<h3>Connect to Couchbase Web UI</h3>
+
+<p>Open your browser to $container_1_ip:8091 and you should see:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_cluster_setup.png" alt="Couchbase Welcome Screen" /></p>
+
+<p>At this point, it&rsquo;s possible to setup the cluster by going to each Couchbase node&rsquo;s Web UI and following the Setup Wizard.  However, in case you want to automate this in the future, let&rsquo;s do this over the command line instead.</p>
+
+<h3>Setup first Couchbase node</h3>
+
+<p>Let&rsquo;s arbitrarily pick <strong>container_1</strong> as the first node in the cluster.  This node is special in the sense that other nodes will join it.</p>
+
+<p>The following command will do the following:</p>
+
+<ul>
+<li>Set the Administrator&rsquo;s username and password</li>
+<li>Set the cluster RAM size to 600 MB</li>
+</ul>
+
+
+<p><code>
+$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+cluster-init -c $container_1_ip \
+--cluster-init-username=Administrator \
+--cluster-init-password=password \
+--cluster-init-ramsize=600 \
+-u admin -p password
+</code></p>
+
+<p>You should see a response like:</p>
+
+<p><code>
+SUCCESS: init 165.225.185.11
+</code></p>
+
+<h3>Create a default bucket</h3>
+
+<p>A bucket is equivalent to a database in typical RDMS systems.</p>
+
+<p><code>
+$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+bucket-create -c $container_1_ip:8091 \
+--bucket=default \
+--bucket-type=couchbase \
+--bucket-port=11211 \
+--bucket-ramsize=600 \
+--bucket-replica=1 \
+-u Administrator -p password
+</code></p>
+
+<p>You should see:</p>
+
+<p><code>
+SUCCESS: bucket-create
+</code></p>
+
+<h3>Add 2nd Couchbase node</h3>
+
+<p>Add in the second Couchbase node with this command</p>
+
+<p><code>
+$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+server-add -c $container_1_ip \
+-u Administrator -p password \
+--server-add $container_2_ip \
+--server-add-username Administrator \
+--server-add-password password
+</code></p>
+
+<p>You should see:</p>
+
+<p><code>
+SUCCESS: server-add 165.225.185.12:8091
+</code></p>
+
+<p>To verify it was added, run:</p>
+
+<p><code>
+$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+server-list -c $container_1_ip \
+-u Administrator -p password
+</code></p>
+
+<p>which should return the list of Couchbase Server nodes that are now part of the cluster:</p>
+
+<p><code>
+ns_1@165.225.185.11 165.225.185.11:8091 healthy active
+ns_1@165.225.185.12 165.225.185.12:8091 healthy inactiveAdded
+</code></p>
+
+<h3>Add 3rd Couchbase node and rebalance</h3>
+
+<p>In this step we will:</p>
+
+<ul>
+<li>Add the 3rd Couchbase node</li>
+<li>Trigger a &ldquo;rebalance&rdquo;, which distributes the (empty) bucket&rsquo;s data across the cluster</li>
+</ul>
+
+
+<p><code>
+$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+rebalance -c $container_1_ip \
+-u Administrator -p password \
+--server-add $container_3_ip \
+--server-add-username Administrator \
+--server-add-password password
+</code></p>
+
+<p>You should see:</p>
+
+<p>```
+INFO: rebalancing &hellip; &hellip; &hellip; &hellip; &hellip; &hellip; &hellip; &hellip; &hellip; &hellip; &hellip; &hellip; &hellip; &hellip; &hellip; &hellip; &hellip; &hellip; &hellip;
+SUCCESS: rebalanced cluster
+close failed in file object destructor:
+Error in sys.excepthook:</p>
+
+<p>Original exception was:
+```</p>
+
+<p>If you see <strong>SUCCESS</strong>, then it worked.  <em>(I&rsquo;m not sure why the &ldquo;close failed in file ..&rdquo; error is happening, but so far it appears that it can be safely ignored.)</em></p>
+
+<h3>Login to Web UI</h3>
+
+<p>Open your browser to $container_1_ip:8091 and you should see:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_cluster_login.png" alt="Couchbase Login Screen" /></p>
+
+<p>Login with:</p>
+
+<ul>
+<li>Username: <strong>Administrator</strong></li>
+<li>Password: <strong>password</strong></li>
+</ul>
+
+
+<p>And you should see:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_cluster_nodes.png" alt="Couchbase Nodes" /></p>
+
+<p>Congratulations!  You have a Couchbase Server cluster up and running on Joyent Triton.</p>
+
+<h2>Teardown</h2>
+
+<p>To stop and remove your Couchbase server containers, run:</p>
+
+<p><code>
+$ docker stop $container_1 $container_2 $container_3
+$ docker rm $container_1 $container_2 $container_3
+</code></p>
+
+<p>To double check that you no longer have any containers running or in the stopped state, run <code>docker ps -a</code> and you should see an empty list.</p>
+
+<h2>Installing the SDC tools (optional)</h2>
+
+<p>Installing the Joyent Smart Data Center (SDC) tools will allow you to gain more visibility into your container cluster &mdash; for example being able to view the internal IP of each continer.</p>
+
+<p>Here&rsquo;s how to install the sdc-tools suite.</p>
+
+<h3>Install smartdc</h3>
+
+<p>First <a href="http://coolestguidesontheplanet.com/installing-node-js-on-osx-10-10-yosemite/">install NodeJS + NPM</a></p>
+
+<p>Install smartdc:</p>
+
+<p><code>
+npm install -g smartdc
+</code></p>
+
+<h3>Configure environment variables</h3>
+
+<p><code>
+$ export SDC_URL=https://us-east-3b.api.joyent.com
+$ export SDC_ACCOUNT=&lt;ACCOUNT&gt;
+$ export SDC_KEY_ID=$(ssh-keygen -l -f $HOME/.ssh/id_rsa.pub | awk '{print $2}')
+</code></p>
+
+<p>Replace values as follows:</p>
+
+<ul>
+<li><strong>ACCOUNT</strong>: you can get this by logging into the Joyent web ui and going to the Account menu from the pulldown in the top-right corner.  Find the <strong>Username</strong> field, and use that</li>
+</ul>
+
+
+<h3>List machines</h3>
+
+<p>Run <code>sdc-listmachines</code> to list all the containers running under your Joyent account.  Your output should look something like this:</p>
+
+<p>```
+$ sdc-listmachines
+[
+{</p>
+
+<pre><code>"id": "0c6f8ca2-9514-48e4-97d7-e12026dcae4a",
+"name": "couchbase-server-3",
+"type": "smartmachine",
+"state": "running",
+"image": "335a8046-0749-1174-5666-6f084472b5ef",
+"ips": [
+  "192.168.128.32",
+  "165.225.185.13"
+],
+"memory": 1024,
+"disk": 25600,
+"metadata": {},
+"tags": {},
+"created": "2015-03-26T14:50:31.196Z",
+"updated": "2015-03-26T14:50:45.000Z",
+"networks": [
+  "7cfe29d4-e313-4c3b-a967-a28ea34342e9",
+  "178967cb-8d11-4f53-8434-9c91ff819a0d"
+],
+"dataset": "335a8046-0749-1174-5666-6f084472b5ef",
+"primaryIp": "165.225.185.13",
+"firewall_enabled": false,
+"compute_node": "44454c4c-4400-1046-8050-b5c04f383432",
+"package": "t4-standard-1G"
+</code></pre>
+
+<p>  },
+]
+```</p>
+
+<h3>Find private IP of an individual machine</h3>
+
+<p><code>
+$ sdc-getmachine &lt;machine_id&gt; | json -aH ips | json -aH | egrep "10\.|192\.”
+</code></p>
+
+<h2>References</h2>
+
+<ul>
+<li><p><a href="https://github.com/joyent/sdc-docker/blob/master/docs/divergence.md">Native Docker API vs Joyent Triton API</a></p></li>
+<li><p><a href="https://www.joyent.com/blog/container-service-preview">https://www.joyent.com/blog/container-service-preview</a></p></li>
+<li><p><a href="https://www.joyent.com/blog/docker-bake-off-aws-vs-joyent">https://www.joyent.com/blog/docker-bake-off-aws-vs-joyent</a></p></li>
+<li><p><a href="https://github.com/joyent/sdc-docker">https://github.com/joyent/sdc-docker</a></p></li>
+<li><p><a href="https://github.com/joyent/sdc-docker/blob/master/docs/divergence.md">https://github.com/joyent/sdc-docker/blob/master/docs/divergence.md</a></p></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Setting up Octopress under Docker]]></title>
@@ -740,127 +1174,6 @@ $ sudo docker run -ti --device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl
 <li><a href="https://github.com/tleyden/tleyden.github.io/blob/6d71759cc5e530efcae10d9c6012dd217f76795c/source/_posts/2014-11-04-coreos-with-nvidia-cuda-gpu-drivers.markdown">Previous version of this blog post</a></li>
 <li><a href="https://groups.google.com/forum/#!topic/coreos-user/CSp_wSywmI4">CoreOS Google Group thread</a> &ndash; Thanks Сергей!</li>
 <li><a href="http://tleyden.github.io/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5/">Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Running Couchbase Cluster Under CoreOS on AWS]]></title>
-    <link href="http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/"/>
-    <updated>2014-11-01T12:16:00+00:00</updated>
-    <id>http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws</id>
-    <content type="html"><![CDATA[<p>Here are instructions on how to fire up a Couchbase Server cluster running under CoreOS on AWS CloudFormation.  You will end up with the following system:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase-coreos-onion.png" alt="architecture diagram" /></p>
-
-<h2>Launch CoreOS instances via AWS Cloud Formation</h2>
-
-<p>Click the &ldquo;Launch Stack&rdquo; button to launch your CoreOS instances via AWS Cloud Formation:</p>
-
-<p><a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#cstack=sn%7ECouchbase-CoreOS%7Cturl%7Ehttp://tleyden-misc.s3.amazonaws.com/couchbase-coreos/couchbase_server.template"><img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"></a></p>
-
-<p><em>NOTE: this is hardcoded to use the us-east-1 region, so if you need a different region, you should edit the URL accordingly</em></p>
-
-<p>Use the following parameters in the form:</p>
-
-<ul>
-<li><strong>ClusterSize</strong>: 3 nodes (default)</li>
-<li><strong>Discovery URL</strong>:  as it says, you need to grab a new token from <a href="https://discovery.etcd.io/new">https://discovery.etcd.io/new</a> and paste it in the box.</li>
-<li><strong>KeyPair</strong>:  use whatever you normally use to start EC2 instances.  For this discussion, let&rsquo;s assumed you used <code>aws</code>, which corresponds to a file you have on your laptop called <code>aws.cer</code></li>
-</ul>
-
-
-<h2>ssh into a CoreOS instance</h2>
-
-<p>Go to the AWS console under EC2 instances and find the public ip of one of your newly launched CoreOS instances.</p>
-
-<p>Choose any one of them (it doesn&rsquo;t matter which), and ssh into it as the <strong>core</strong> user with the cert provided in the previous step:</p>
-
-<p><code>
-$ ssh -i aws.cer -A core@ec2-54-83-80-161.compute-1.amazonaws.com
-</code></p>
-
-<h2>Sanity check</h2>
-
-<p>Let&rsquo;s make sure the CoreOS cluster is healthy first:</p>
-
-<p><code>
-$ fleetctl list-machines
-</code></p>
-
-<p>This should return a list of machines in the cluster, like this:</p>
-
-<p><code>
-MACHINE         IP              METADATA
-03b08680...     10.33.185.16    -
-209a8a2e...     10.164.175.9    -
-25dd84b7...     10.13.180.194   -
-</code></p>
-
-<h2>Launch cluster</h2>
-
-<p><code>
-$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go:0.8.5 couchbase-fleet launch-cbs --version latest --num-nodes 3 --userpass "user:passw0rd"
-</code></p>
-
-<p>Where:</p>
-
-<ul>
-<li>&mdash;version=&lt;cb-version> Couchbase Server version &mdash; see <a href="https://registry.hub.docker.com/u/couchbase/server/tags/manage/">Docker Tags</a> for a list of versions that can be used.</li>
-<li>&mdash;num-nodes=&lt;num_nodes> number of couchbase nodes to start</li>
-<li>&mdash;userpass &lt;user:pass> the username and password as a single string, delimited by a colon (:)</li>
-<li>&mdash;etcd-servers=&lt;server-list>  Comma separated list of etcd servers, or omit to connect to etcd running on localhost</li>
-<li>&mdash;docker-tag=&lt;docker-tag>  if present, use this docker tag the couchbase-cluster-go version in spawned containers, otherwise, default to &ldquo;latest&rdquo;</li>
-</ul>
-
-
-<p>Replace <code>user:passw0rd</code> with a sensible username and password.  It <strong>must</strong> be colon separated, with no spaces.  The password itself must be at least 6 characters.</p>
-
-<p>Once this command completes, your cluster will be up and running.  The output should look something like <a href="https://gist.github.com/tleyden/bc0975778216281b80e7">this gist</a>.</p>
-
-<h2>Verify</h2>
-
-<p>To check the status of your cluster, run:</p>
-
-<p><code>
-$ fleetctl list-units
-</code></p>
-
-<p>You should see three units, all as active.</p>
-
-<p><code>
-UNIT                            MACHINE                         ACTIVE  SUB
-couchbase_node@1.service        3c819355.../10.239.170.243      active  running
-couchbase_node@2.service        782b35d4.../10.168.87.23        active  running
-couchbase_node@3.service        7cd5f94c.../10.234.188.145      active  running
-</code></p>
-
-<h1>Login to Admin Web UI</h1>
-
-<ul>
-<li>Find the public ip of any of your CoreOS instances via the AWS console</li>
-<li>In a browser, go to <code>http://&lt;instance_public_ip&gt;:8091</code></li>
-<li>Login with the username/password you provided above</li>
-</ul>
-
-
-<p>You should see:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_admin_ui_post_rebalance.png" alt="screenshot" /></p>
-
-<p>When CoreOS reboots a machine automatically for a security upgrade, the data will be automatically rebalanced before and after the reboot.  <a href="https://github.com/couchbaselabs/couchbase-server-docker/issues/3#issuecomment-75984021">Details + screenshots here</a>.</p>
-
-<p>Congratulations!  You now have a 3 node Couchbase Server cluster running under CoreOS / Docker.</p>
-
-<h1>References</h1>
-
-<ul>
-<li><a href="https://github.com/tleyden/couchbase-cluster-go">couchbase-cluster-go github repo</a></li>
-<li><a href="https://github.com/couchbaselabs/couchbase-server-docker">Dockerfiles + Fleet init scripts</a></li>
-<li><a href="https://gist.github.com/dustin/6605182">How I built couchbase 2.2 for docker</a> by <a href="https://twitter.com/dlsspy">@dlsspy</a></li>
-<li><a href="https://registry.hub.docker.com/u/ncolomer/couchbase/">https://registry.hub.docker.com/u/ncolomer/couchbase/</a></li>
-<li><a href="https://github.com/lifegadget/docker-couchbase">https://github.com/lifegadget/docker-couchbase</a></li>
 </ul>
 
 ]]></content>
