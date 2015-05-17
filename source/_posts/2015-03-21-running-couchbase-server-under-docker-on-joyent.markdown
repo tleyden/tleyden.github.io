@@ -82,7 +82,7 @@ name 'SDCAccount: <username>' in the output.
 
 **Export environment variables**
 
-As the outuput above suggests, copy and paste the commands from the output.  Here's an example of what that will look like (but you should copy and paste from your command output, not the snippet below):
+As the output above suggests, copy and paste the commands from the output.  Here's an example of what that will look like (but you should copy and paste from your command output, not the snippet below):
 
 ```
 $ export DOCKER_CERT_PATH=/home/ubuntu/.sdc/docker/<username>
@@ -193,8 +193,10 @@ Let's arbitrarily pick **container_1** as the first node in the cluster.  This n
 
 The following command will do the following:
 
-* Set the Administrator's username and password 
+* Set the Administrator's username and password to Administrator / password (you should change this)
 * Set the cluster RAM size to 600 MB 
+
+Note: the `-u admin -p password` should be left as-is, since that is just passing in the default admin name and password for auth purposes.
 
 ```
 $ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
