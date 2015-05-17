@@ -199,7 +199,7 @@ The following command will do the following:
 Note: the `-u admin -p password` should be left as-is, since that is just passing in the default admin name and password for auth purposes.
 
 ```
-$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+$ docker run --rm --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
 cluster-init -c $container_1_ip \
 --cluster-init-username=Administrator \
 --cluster-init-password=password \
@@ -218,7 +218,7 @@ SUCCESS: init 165.225.185.11
 A bucket is equivalent to a database in typical RDMS systems.  
 
 ```
-$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+$ docker run --rm --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
 bucket-create -c $container_1_ip:8091 \
 --bucket=default \
 --bucket-type=couchbase \
@@ -239,7 +239,7 @@ SUCCESS: bucket-create
 Add in the second Couchbase node with this command
 
 ```
-$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+$ docker run --rm --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
 server-add -c $container_1_ip \
 -u Administrator -p password \
 --server-add $container_2_ip \
@@ -256,7 +256,7 @@ SUCCESS: server-add 165.225.185.12:8091
 To verify it was added, run:
 
 ```
-$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+$ docker run --rm --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
 server-list -c $container_1_ip \
 -u Administrator -p password
 ```
@@ -276,7 +276,7 @@ In this step we will:
 * Trigger a "rebalance", which distributes the (empty) bucket's data across the cluster
 
 ```
-$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+$ docker run --rm --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
 rebalance -c $container_1_ip \
 -u Administrator -p password \
 --server-add $container_3_ip \
