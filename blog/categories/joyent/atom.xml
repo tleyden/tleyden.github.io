@@ -4,7 +4,7 @@
   <title><![CDATA[Category: joyent | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/joyent/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-05-13T03:47:34+00:00</updated>
+  <updated>2015-05-22T22:09:30+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -102,7 +102,7 @@ name &lsquo;SDCAccount: <username>&rsquo; in the output.
 
 <p><strong>Export environment variables</strong></p>
 
-<p>As the outuput above suggests, copy and paste the commands from the output.  Here&rsquo;s an example of what that will look like (but you should copy and paste from your command output, not the snippet below):</p>
+<p>As the output above suggests, copy and paste the commands from the output.  Here&rsquo;s an example of what that will look like (but you should copy and paste from your command output, not the snippet below):</p>
 
 <p><code>
 $ export DOCKER_CERT_PATH=/home/ubuntu/.sdc/docker/&lt;username&gt;
@@ -220,13 +220,15 @@ $ echo $container_1_ip &amp;&amp; echo $container_2_ip &amp;&amp; echo $containe
 <p>The following command will do the following:</p>
 
 <ul>
-<li>Set the Administrator&rsquo;s username and password</li>
+<li>Set the Administrator&rsquo;s username and password to Administrator / password (you should change this)</li>
 <li>Set the cluster RAM size to 600 MB</li>
 </ul>
 
 
+<p>Note: the <code>-u admin -p password</code> should be left as-is, since that is just passing in the default admin name and password for auth purposes.</p>
+
 <p><code>
-$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+$ docker run --rm --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
 cluster-init -c $container_1_ip \
 --cluster-init-username=Administrator \
 --cluster-init-password=password \
@@ -245,7 +247,7 @@ SUCCESS: init 165.225.185.11
 <p>A bucket is equivalent to a database in typical RDMS systems.</p>
 
 <p><code>
-$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+$ docker run --rm --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
 bucket-create -c $container_1_ip:8091 \
 --bucket=default \
 --bucket-type=couchbase \
@@ -266,7 +268,7 @@ SUCCESS: bucket-create
 <p>Add in the second Couchbase node with this command</p>
 
 <p><code>
-$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+$ docker run --rm --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
 server-add -c $container_1_ip \
 -u Administrator -p password \
 --server-add $container_2_ip \
@@ -283,7 +285,7 @@ SUCCESS: server-add 165.225.185.12:8091
 <p>To verify it was added, run:</p>
 
 <p><code>
-$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+$ docker run --rm --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
 server-list -c $container_1_ip \
 -u Administrator -p password
 </code></p>
@@ -306,7 +308,7 @@ ns_1@165.225.185.12 165.225.185.12:8091 healthy inactiveAdded
 
 
 <p><code>
-$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+$ docker run --rm --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
 rebalance -c $container_1_ip \
 -u Administrator -p password \
 --server-add $container_3_ip \

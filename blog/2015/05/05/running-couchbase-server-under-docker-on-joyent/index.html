@@ -199,7 +199,7 @@
 
 <p><strong>Export environment variables</strong></p>
 
-<p>As the outuput above suggests, copy and paste the commands from the output.  Here&rsquo;s an example of what that will look like (but you should copy and paste from your command output, not the snippet below):</p>
+<p>As the output above suggests, copy and paste the commands from the output.  Here&rsquo;s an example of what that will look like (but you should copy and paste from your command output, not the snippet below):</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -333,10 +333,12 @@
 <p>The following command will do the following:</p>
 
 <ul>
-<li>Set the Administrator&rsquo;s username and password</li>
+<li>Set the Administrator&rsquo;s username and password to Administrator / password (you should change this)</li>
 <li>Set the cluster RAM size to 600 MB</li>
 </ul>
 
+
+<p>Note: the <code>-u admin -p password</code> should be left as-is, since that is just passing in the default admin name and password for auth purposes.</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -344,7 +346,7 @@
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run --rm --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
 </span><span class='line'>cluster-init -c $container_1_ip \
 </span><span class='line'>--cluster-init-username=Administrator \
 </span><span class='line'>--cluster-init-password=password \
@@ -370,7 +372,7 @@
 <span class='line-number'>6</span>
 <span class='line-number'>7</span>
 <span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run --rm --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
 </span><span class='line'>bucket-create -c $container_1_ip:8091 \
 </span><span class='line'>--bucket=default \
 </span><span class='line'>--bucket-type=couchbase \
@@ -396,7 +398,7 @@
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run --rm --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
 </span><span class='line'>server-add -c $container_1_ip \
 </span><span class='line'>-u Administrator -p password \
 </span><span class='line'>--server-add $container_2_ip \
@@ -415,7 +417,7 @@
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run --rm --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
 </span><span class='line'>server-list -c $container_1_ip \
 </span><span class='line'>-u Administrator -p password</span></code></pre></td></tr></table></div></figure>
 
@@ -444,7 +446,7 @@
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run --rm --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
 </span><span class='line'>rebalance -c $container_1_ip \
 </span><span class='line'>-u Administrator -p password \
 </span><span class='line'>--server-add $container_3_ip \
