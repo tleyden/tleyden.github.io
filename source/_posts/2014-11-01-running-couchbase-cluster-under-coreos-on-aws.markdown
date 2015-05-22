@@ -6,5 +6,8 @@ comments: true
 categories: docker coreos aws couchbase
 ---
 
-The content from this blog post has moved to the [couchbaselabs/couchbase-server-coreos README](https://github.com/couchbaselabs/couchbase-server-coreos)
+The content in this blog post has **moved**.
+
+Please go [HERE](https://github.com/couchbaselabs/couchbase-server-coreos) to view the updated content.
+
 
