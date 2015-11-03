@@ -4,7 +4,7 @@
   <title><![CDATA[Category: blog | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/blog/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-05-22T22:10:25+00:00</updated>
+  <updated>2015-11-03T12:15:17-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Octopress Setup Part II]]></title>
     <link href="http://tleyden.github.io/blog/2013/09/07/octopress-setup-part-ii/"/>
-    <updated>2013-09-07T11:46:00+00:00</updated>
+    <updated>2013-09-07T11:46:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2013/09/07/octopress-setup-part-ii</id>
     <content type="html"><![CDATA[<h1>Showing my tweets on my blog</h1>
 
@@ -92,7 +92,7 @@ twitter_user: tleydn
   <entry>
     <title type="html"><![CDATA[Octopress Setup Part I]]></title>
     <link href="http://tleyden.github.io/blog/2013/09/07/octopress-setup-part-i/"/>
-    <updated>2013-09-07T11:26:00+00:00</updated>
+    <updated>2013-09-07T11:26:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2013/09/07/octopress-setup-part-i</id>
     <content type="html"><![CDATA[<p>I&rsquo;m writing this blog entry as I&rsquo;m creating my blog.  I have decided to use <a href="http://octopress.org/">Octopress</a>, and I&rsquo;m initially going to host it on <a href="http://pages.github.com/">Github Pages</a>.</p>
 

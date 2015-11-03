@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-05-22T22:10:25+00:00</updated>
+  <updated>2015-11-03T12:15:17-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -14,9 +14,96 @@
 
   
   <entry>
+    <title type="html"><![CDATA[Running the Sync Gateway Amazon AMI]]></title>
+    <link href="http://tleyden.github.io/blog/2015/11/03/running-the-sync-gateway-amazon-ami/"/>
+    <updated>2015-11-03T11:11:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2015/11/03/running-the-sync-gateway-amazon-ami</id>
+    <content type="html"><![CDATA[<p>How to run the Couchbase Sync Gateway AWS AMI</p>
+
+<h2>Kick off AWS instance</h2>
+
+<ul>
+<li>Browse to the <a href="https://aws.amazon.com/marketplace/pp/B013XDO1B4">Sync Gateway AMI</a> in the AWS Marketplace</li>
+<li>Click Continue</li>
+<li>Change all ports to &ldquo;MY IP&rdquo; except for port 4984</li>
+<li>Make sure you choose a key that you have locally</li>
+</ul>
+
+
+<h2>SSH in and start Sync Gateway</h2>
+
+<ul>
+<li>Go to the AWS console, find the EC2 instance, and find the instance public ip address.  It should look like this: <code>ec2-54-161-201-224.compute-1.amazonaws.com</code>.  The rest of the instructions will refer to this as <instance public ip></li>
+<li><code>ssh ec2-user@&lt;instance public ip&gt;</code> (this should let you in without prompting you for a password.  if not, you chose a key when you launched that you don&rsquo;t have locally)</li>
+<li>Start the Sync Gateway with this command:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>/opt/couchbase-sync-gateway/bin/sync_gateway -interface=0.0.0.0:4984 -url=http://localhost:8091 -bucket=sync_gateway -dbname=sync_gateway</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>You should see output like this:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>2015-11-03T19:37:05.384Z ==== Couchbase Sync Gateway/1.1.0(28;86f028c) ====
+</span><span class='line'>2015-11-03T19:37:05.384Z Opening db /sync_gateway as bucket "sync_gateway", pool "default", server &lt;http://localhost:8091&gt;
+</span><span class='line'>2015-11-03T19:37:05.384Z Opening Couchbase database sync_gateway on &lt;http://localhost:8091&gt;
+</span><span class='line'>2015/11/03 19:37:05  Trying with selected node 0
+</span><span class='line'>2015/11/03 19:37:05  Trying with selected node 0
+</span><span class='line'>2015-11-03T19:37:05.536Z Using default sync function 'channel(doc.channels)' for database "sync_gateway"
+</span><span class='line'>2015-11-03T19:37:05.536Z     Reset guest user to config
+</span><span class='line'>2015-11-03T19:37:05.536Z Starting profile server on
+</span><span class='line'>2015-11-03T19:37:05.536Z Starting admin server on 127.0.0.1:4985
+</span><span class='line'>2015-11-03T19:37:05.550Z Starting server on localhost:4984 ...</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Verify via curl</h2>
+
+<p>From your workstation:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl http://&lt;instance public ip&gt;:4984/sync_gateway/</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should get a response like:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{"committed_update_seq":1,"compact_running":false,"db_name":"sync_gateway","disk_format_version":0,"instance_start_time":1446579479331843,"purge_seq":0,"update_seq":1}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Customize configuration</h2>
+
+<p>For more advanced Sync Gateway configuration, you will want to create a JSON config file on the EC2 instance itself and pass that to Sync Gateway when you launch it, or host your config JSON on the internet somewhere and pass Sync Gateway the URL to the file.</p>
+
+<h2>View Couchbase Server UI</h2>
+
+<p>In order to login to the Couchbase Server UI, go to <instance public ip>:8091 and use:</p>
+
+<ul>
+<li><strong>Username:</strong> Administrator</li>
+<li><strong>Password:</strong> <code>&lt;aws instance id, eg: i-8a9f8335&gt;</code></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
     <title type="html"><![CDATA[Running Couchbase Server under Joyent Triton]]></title>
     <link href="http://tleyden.github.io/blog/2015/05/05/running-couchbase-server-under-docker-on-joyent/"/>
-    <updated>2015-05-05T09:31:00+00:00</updated>
+    <updated>2015-05-05T09:31:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2015/05/05/running-couchbase-server-under-docker-on-joyent</id>
     <content type="html"><![CDATA[<p>Joyent has recently announced their new Triton Docker container hosting service.  There are several advantages of running Docker containers on Triton over a more traditional cloud hosting platform:</p>
 
@@ -36,6 +123,16 @@
 <p><a href="https://www.joyent.com/lp/preview">Follow the signup instructions on the Joyent website</a></p>
 
 <p>You will also need to add your SSH key to your account.</p>
+
+<h2>Install or Upgrade Docker</h2>
+
+<p>If you don&rsquo;t have Docker installed already and you are on Ubuntu, run:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -sSL https://get.docker.com/ | sh</span></code></pre></td></tr></table></div></figure>
+
+
+<p>See <a href="https://docs.docker.com/installation/ubuntulinux/">install Docker on Ubuntu</a> for more details.</p>
 
 <h2>Upgrade Docker client to 1.4.1 or later</h2>
 
@@ -543,7 +640,7 @@
   <entry>
     <title type="html"><![CDATA[Setting up Octopress under Docker]]></title>
     <link href="http://tleyden.github.io/blog/2015/04/25/setting-up-octopress-under-docker/"/>
-    <updated>2015-04-25T03:57:00+00:00</updated>
+    <updated>2015-04-25T03:57:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2015/04/25/setting-up-octopress-under-docker</id>
     <content type="html"><![CDATA[<p>I got a new computer last week.  It&rsquo;s the latest macbook retina, and I needed to refresh because I wanted a bigger SSD drive (and after having an SSD drive, I&rsquo;ll never go back)</p>
 
@@ -669,7 +766,7 @@
   <entry>
     <title type="html"><![CDATA[Test coverage for Go with drone.io and coveralls.io]]></title>
     <link href="http://tleyden.github.io/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io/"/>
-    <updated>2015-03-31T07:26:00+00:00</updated>
+    <updated>2015-03-31T07:26:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io</id>
     <content type="html"><![CDATA[<p>This will walk you through setting up a test coverage report on coveralls.io which will be updated every time a new build happens on drone.io (a continuous integration server similar to TavisCI).</p>
 
@@ -824,7 +921,7 @@
   <entry>
     <title type="html"><![CDATA[Nginx proxy for Sync Gateway using Confd]]></title>
     <link href="http://tleyden.github.io/blog/2015/03/21/nginx-proxy-for-sync-gateway-using-confd/"/>
-    <updated>2015-03-21T15:25:00+00:00</updated>
+    <updated>2015-03-21T15:25:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2015/03/21/nginx-proxy-for-sync-gateway-using-confd</id>
     <content type="html"><![CDATA[<p>This will walk you through setting up Sync Gateway behind nginx.  The nginx conf will be auto generated based on Sync Gateway status.</p>
 
@@ -979,7 +1076,7 @@
   <entry>
     <title type="html"><![CDATA[Graphing time series data with Seriesly and Cubism]]></title>
     <link href="http://tleyden.github.io/blog/2015/03/03/graphing-time-series-data-with-seriesly-and-cubism/"/>
-    <updated>2015-03-03T16:53:00+00:00</updated>
+    <updated>2015-03-03T16:53:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2015/03/03/graphing-time-series-data-with-seriesly-and-cubism</id>
     <content type="html"><![CDATA[<p>This will walk you through the basics of putting data into <a href="https://github.com/dustin/seriesly">seriesly</a> and visualizing it with <a href="https://square.github.io/cubism/">cubism</a>.</p>
 
@@ -1106,7 +1203,7 @@
   <entry>
     <title type="html"><![CDATA[Running a Walrus-backed Sync Gateway on AWS]]></title>
     <link href="http://tleyden.github.io/blog/2015/01/23/running-a-walrus-backed-sync-gateway-on-aws/"/>
-    <updated>2015-01-23T09:30:00+00:00</updated>
+    <updated>2015-01-23T09:30:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2015/01/23/running-a-walrus-backed-sync-gateway-on-aws</id>
     <content type="html"><![CDATA[<p>Follow the steps below to create a Sync Gateway instance running under AWS with the following architecture:</p>
 
@@ -1337,7 +1434,7 @@
   <entry>
     <title type="html"><![CDATA[Running a Sync Gateway Cluster Under CoreOS on AWS]]></title>
     <link href="http://tleyden.github.io/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws/"/>
-    <updated>2014-12-15T19:22:00+00:00</updated>
+    <updated>2014-12-15T19:22:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws</id>
     <content type="html"><![CDATA[<p>The content in this blog post has <strong>moved</strong>.</p>
 
@@ -1348,7 +1445,7 @@
   <entry>
     <title type="html"><![CDATA[Up and Running with Couchbase Lite Phonegap Android on OSX]]></title>
     <link href="http://tleyden.github.io/blog/2014/12/11/up-and-running-with-couchbase-lite-phonegap/"/>
-    <updated>2014-12-11T12:48:00+00:00</updated>
+    <updated>2014-12-11T12:48:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2014/12/11/up-and-running-with-couchbase-lite-phonegap</id>
     <content type="html"><![CDATA[<p>This will walk you through the steps to install the TodoLite-Phonegap sample app that uses Couchbase Lite Android.  After you&rsquo;re finished, you&rsquo;ll end up with <a href="http://tleyden-misc.s3.amazonaws.com/blog_images/TodoLitePhonegap.png">this app</a>.</p>
 
@@ -1586,7 +1683,7 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
   <entry>
     <title type="html"><![CDATA[Getting started with Go and Protocol Buffers]]></title>
     <link href="http://tleyden.github.io/blog/2014/12/02/getting-started-with-go-and-protocol-buffers/"/>
-    <updated>2014-12-02T06:32:00+00:00</updated>
+    <updated>2014-12-02T06:32:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2014/12/02/getting-started-with-go-and-protocol-buffers</id>
     <content type="html"><![CDATA[<p>I found the <a href="https://github.com/golang/protobuf">official docs</a> on using Google Protocol Buffers from Go a bit confusing, and couldn&rsquo;t find any other clearly written blog posts on the subject, so I figured I&rsquo;d write my own.</p>
 
@@ -1773,7 +1870,7 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
   <entry>
     <title type="html"><![CDATA[Running a CBFS cluster on CoreOS]]></title>
     <link href="http://tleyden.github.io/blog/2014/11/14/running-cbfs/"/>
-    <updated>2014-11-14T06:43:00+00:00</updated>
+    <updated>2014-11-14T06:43:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2014/11/14/running-cbfs</id>
     <content type="html"><![CDATA[<p>This will walk you through getting a cbfs cluster up and running.</p>
 
@@ -1969,7 +2066,7 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
   <entry>
     <title type="html"><![CDATA[An example of using NSQ from Go]]></title>
     <link href="http://tleyden.github.io/blog/2014/11/12/an-example-of-using-nsq-from-go/"/>
-    <updated>2014-11-12T07:26:00+00:00</updated>
+    <updated>2014-11-12T07:26:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2014/11/12/an-example-of-using-nsq-from-go</id>
     <content type="html"><![CDATA[<p><a href="https://github.com/bitly/nsq">NSQ</a> is a message queue, similar to RabbitMQ.  I decided I&rsquo;d give it a whirl.</p>
 
@@ -2148,7 +2245,7 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
   <entry>
     <title type="html"><![CDATA[CoreOS with Nvidia CUDA GPU drivers]]></title>
     <link href="http://tleyden.github.io/blog/2014/11/04/coreos-with-nvidia-cuda-gpu-drivers/"/>
-    <updated>2014-11-04T07:08:00+00:00</updated>
+    <updated>2014-11-04T07:08:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2014/11/04/coreos-with-nvidia-cuda-gpu-drivers</id>
     <content type="html"><![CDATA[<p>This will walk you through installing the Nvidia GPU kernel module and CUDA drivers on a docker container running inside of CoreOS.</p>
 
@@ -2418,7 +2515,7 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
   <entry>
     <title type="html"><![CDATA[Running Couchbase Cluster Under CoreOS on AWS]]></title>
     <link href="http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/"/>
-    <updated>2014-11-01T12:16:00+00:00</updated>
+    <updated>2014-11-01T12:16:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws</id>
     <content type="html"><![CDATA[<p>The content in this blog post has <strong>moved</strong>.</p>
 
@@ -2429,7 +2526,7 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
   <entry>
     <title type="html"><![CDATA[Goroutines vs Threads]]></title>
     <link href="http://tleyden.github.io/blog/2014/10/30/goroutines-vs-threads/"/>
-    <updated>2014-10-30T06:28:00+00:00</updated>
+    <updated>2014-10-30T06:28:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2014/10/30/goroutines-vs-threads</id>
     <content type="html"><![CDATA[<p>Here are some of the advantages of Goroutines over threads:</p>
 
@@ -2469,7 +2566,7 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
   <entry>
     <title type="html"><![CDATA[Running Caffe on AWS GPU instance via Docker]]></title>
     <link href="http://tleyden.github.io/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker/"/>
-    <updated>2014-10-25T20:42:00+00:00</updated>
+    <updated>2014-10-25T20:42:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker</id>
     <content type="html"><![CDATA[<p>This is a tutorial to help you get the <a href="http://caffe.berkeleyvision.org/">Caffe deep learning framework</a> up and running on a GPU-powered AWS instance running inside a Docker container.</p>
 
@@ -2612,7 +2709,7 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
   <entry>
     <title type="html"><![CDATA[Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5]]></title>
     <link href="http://tleyden.github.io/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5/"/>
-    <updated>2014-10-25T13:25:00+00:00</updated>
+    <updated>2014-10-25T13:25:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5</id>
     <content type="html"><![CDATA[<h2>Architecture</h2>
 
@@ -2742,7 +2839,7 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
   <entry>
     <title type="html"><![CDATA[CUDA 6.5 on AWS GPU instance running Ubuntu 14.04]]></title>
     <link href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/"/>
-    <updated>2014-10-25T11:56:00+00:00</updated>
+    <updated>2014-10-25T11:56:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04</id>
     <content type="html"><![CDATA[<h2>Using a pre-built public AMI</h2>
 
@@ -2945,7 +3042,7 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
   <entry>
     <title type="html"><![CDATA[Debugging into Android source]]></title>
     <link href="http://tleyden.github.io/blog/2014/09/10/debugging-into-android-source/"/>
-    <updated>2014-09-10T15:57:00+00:00</updated>
+    <updated>2014-09-10T15:57:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2014/09/10/debugging-into-android-source</id>
     <content type="html"><![CDATA[<p>Debugging into the core Android source code can be useful.  Here&rsquo;s how to do it in Android Studio 0.8.2.</p>
 
@@ -2974,7 +3071,7 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
   <entry>
     <title type="html"><![CDATA[Running Couchbase Sync Gateway on Google Compute Engine]]></title>
     <link href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-sync-gateway-on-gce/"/>
-    <updated>2014-06-22T19:10:00+00:00</updated>
+    <updated>2014-06-22T19:10:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2014/06/22/running-couchbase-sync-gateway-on-gce</id>
     <content type="html"><![CDATA[<p>First, a quick refresh of what Couchbase Sync Gateway actually <em>is</em>.</p>
 
@@ -3143,182 +3240,6 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_server_doc.png" alt="screenshot" /></p>
 
 <p>The <code>_sync</code> metadata field is used internally by the Sync Gateway and can be ignored.  The actual doc contents are towards the end of the file: <code>.."such":"json"}</code></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Running a Couchbase Cluster on Google Compute Engine]]></title>
-    <link href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/"/>
-    <updated>2014-06-22T15:52:00+00:00</updated>
-    <id>http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce</id>
-    <content type="html"><![CDATA[<p>The easiest way to run Couchbase cluster on Google Compute Engine is to run all of the nodes in Docker containers.</p>
-
-<h2>Create GCE instance and ssh in</h2>
-
-<p>Follow the instructions on <a href="http://docs.docker.com/installation/google/">Running Docker on Google Compute Engine</a>.</p>
-
-<p>At this point you should be ssh&rsquo;d into your GCE instance</p>
-
-<h2>Increase max number of files limit</h2>
-
-<p>If you try to run Couchbase Server at this point, you will get <a href="http://stackoverflow.com/questions/24356815/running-couchbase-under-gce-docker-and-getting-error-about-max-number-of-files">this warning</a> because the file ulimit is too low.</p>
-
-<p>Here&rsquo;s how to fix it:</p>
-
-<ul>
-<li>Edit <code>/etc/default/docker</code></li>
-<li>Add a new line in the file with:</li>
-</ul>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ulimit -n 262144</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>Restart the GCE instance in the GCE web admin by going to Compute Engine / VM Instances / <your instance> and hitting the &ldquo;Reboot&rdquo; button.</li>
-</ul>
-
-
-<p><em>Note: in theory it should be possible to just restart docker via <code>sudo service docker restart</code>, however this didn&rsquo;t work for me when I tried it, so I ended up restarting the whole GCE instance</em></p>
-
-<h2>Start Couchbase Server</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -d -name cb1 -p 8091:8091 -p 8092:8092 -p 11210:11210 -p 11211:11211 ncolomer/couchbase</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Verify it&rsquo;s running</h2>
-
-<h3>Find the Docker instance IP address</h3>
-
-<p>On the GCE instance, run:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker inspect -format '{{ .NetworkSettings.IPAddress }}' cb1</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This should return an ip address, eg <code>172.17.0.2</code></p>
-
-<p>Set it as an environment variable so we can use it in later steps:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ export CB1_IP=172.17.0.2</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Run couchbase-cli</h3>
-
-<p>To verify that couchbase server is running, use the <code>couchbase-cli</code> to ask for server info:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -rm ncolomer/couchbase couchbase-cli server-info -c ${CB1_IP} -u Administrator -p couchbase</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If everything is working correctly, this should return a json response, eg:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>{
-</span><span class='line'>  "availableStorage": {
-</span><span class='line'>    "hdd": [
-</span><span class='line'>      {
-</span><span class='line'>        "path": "/",
-</span><span class='line'>  ...
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Start a 3-node cluster</h2>
-
-<p>On the GCE instance, run the following commands:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -d -name cb2 ncolomer/couchbase couchbase-start ${CB1_IP}
-</span><span class='line'>gce:~$ sudo docker run -d -name cb3 ncolomer/couchbase couchbase-start ${CB1_IP}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The nodes <code>cb2</code> and <code>cb3</code> will automatically join the cluster via <code>cb1</code>. The cluster needs a rebalance to be fully operational. To do so, run the following command:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -rm ncolomer/couchbase couchbase-cli rebalance -c ${CB1_IP} -u Administrator -p couchbase</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Connect to admin web UI</h2>
-
-<p>The easiest way to manage a Couchbase Server cluster is via the built-in Web Admin UI.</p>
-
-<p>In order to access it, we will need to make some network changes.</p>
-
-<h3>Expose port 8091 via firewall rule for your machine</h3>
-
-<p>Go to <a href="http://www.whatismyip.com/">whatismyip.com</a> or equivalent, and find your ip address.  Eg, <code>67.161.66.7</code></p>
-
-<p>On your workstation with the <code>gcloud</code> tool installed, run:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ gcloud compute firewalls create cb-8091 --allow tcp:8091 --source-ranges 67.161.66.7/32</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This will allow your machine, as well any other machine behind your internet router, to connect to the Couchbase Web UI running on GCE.</p>
-
-<p>To increase security, you should use ipv6 and pass your workstation&rsquo;s ipv6 hostname in the <code>--source-ranges</code> parameter.</p>
-
-<h3>Find out external ip address of instance</h3>
-
-<p>On your workstation with the <code>gcloud</code> tool installed, run:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ gcloud compute instances list
-</span><span class='line'>name     status  zone          machineType internalIP   externalIP
-</span><span class='line'>couchbse RUNNING us-central1-a f1-micro    10.240.74.44 142.222.178.49</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Your external ip is listed under the externalIP column, eg <code>142.222.178.49</code> in this example.</p>
-
-<h3>Go to admin in web browser</h3>
-
-<p>Go to <a href="http://142.222.178.49:8091">http://142.222.178.49:8091</a> into your web browser (replacing w/ your external ip)</p>
-
-<p>You should see a screen like this:</p>
-
-<p><img src="http://cl.ly/image/2m1i01192U0G/Screen%20Shot%202014-06-22%20at%207.07.36%20PM.png" alt="screenshot" /></p>
-
-<p>Login with the default credentials:</p>
-
-<ul>
-<li>Username: Administrator</li>
-<li>Password: couchbase</li>
-</ul>
-
-
-<p>And you should see the Web Admin dashboard:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_dashboard.png" alt="screenshot" /></p>
-
-<h2>Increase default bucket size</h2>
-
-<p>The default bucket size is set to a very low number by default (128M in my case).  To increase this:</p>
-
-<ul>
-<li>In Web Admin UI, go to Data Buckets / Default / Edit</li>
-<li>Change Per Node RAM Quota to 1024 MB</li>
-<li>Hit &ldquo;Save&rdquo; button</li>
-</ul>
-
-
-<h2>References</h2>
-
-<ul>
-<li><a href="https://registry.hub.docker.com/u/ncolomer/couchbase/">ncolomer/couchbase Docker instructions</a></li>
-</ul>
-
 ]]></content>
   </entry>
   

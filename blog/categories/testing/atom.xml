@@ -4,7 +4,7 @@
   <title><![CDATA[Category: testing | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/testing/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-05-22T22:10:25+00:00</updated>
+  <updated>2015-11-03T12:15:17-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Test coverage for Go with drone.io and coveralls.io]]></title>
     <link href="http://tleyden.github.io/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io/"/>
-    <updated>2015-03-31T07:26:00+00:00</updated>
+    <updated>2015-03-31T07:26:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io</id>
     <content type="html"><![CDATA[<p>This will walk you through setting up a test coverage report on coveralls.io which will be updated every time a new build happens on drone.io (a continuous integration server similar to TavisCI).</p>
 

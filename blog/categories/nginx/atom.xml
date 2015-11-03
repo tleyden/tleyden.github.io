@@ -4,7 +4,7 @@
   <title><![CDATA[Category: nginx | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/nginx/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-05-22T22:10:25+00:00</updated>
+  <updated>2015-11-03T12:15:17-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Nginx proxy for Sync Gateway using Confd]]></title>
     <link href="http://tleyden.github.io/blog/2015/03/21/nginx-proxy-for-sync-gateway-using-confd/"/>
-    <updated>2015-03-21T15:25:00+00:00</updated>
+    <updated>2015-03-21T15:25:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2015/03/21/nginx-proxy-for-sync-gateway-using-confd</id>
     <content type="html"><![CDATA[<p>This will walk you through setting up Sync Gateway behind nginx.  The nginx conf will be auto generated based on Sync Gateway status.</p>
 

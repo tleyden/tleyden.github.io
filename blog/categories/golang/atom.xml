@@ -4,7 +4,7 @@
   <title><![CDATA[Category: golang | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/golang/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-05-22T22:10:25+00:00</updated>
+  <updated>2015-11-03T12:15:17-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Test coverage for Go with drone.io and coveralls.io]]></title>
     <link href="http://tleyden.github.io/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io/"/>
-    <updated>2015-03-31T07:26:00+00:00</updated>
+    <updated>2015-03-31T07:26:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io</id>
     <content type="html"><![CDATA[<p>This will walk you through setting up a test coverage report on coveralls.io which will be updated every time a new build happens on drone.io (a continuous integration server similar to TavisCI).</p>
 
@@ -158,7 +158,7 @@ https://coveralls.io/jobs/5189501
   <entry>
     <title type="html"><![CDATA[Getting started with Go and Protocol Buffers]]></title>
     <link href="http://tleyden.github.io/blog/2014/12/02/getting-started-with-go-and-protocol-buffers/"/>
-    <updated>2014-12-02T06:32:00+00:00</updated>
+    <updated>2014-12-02T06:32:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2014/12/02/getting-started-with-go-and-protocol-buffers</id>
     <content type="html"><![CDATA[<p>I found the <a href="https://github.com/golang/protobuf">official docs</a> on using Google Protocol Buffers from Go a bit confusing, and couldn&rsquo;t find any other clearly written blog posts on the subject, so I figured I&rsquo;d write my own.</p>
 
@@ -311,7 +311,7 @@ Unmarshalled to: label:"hello" type:17 OptionalGroup{RequiredField:"good bye" }
   <entry>
     <title type="html"><![CDATA[An example of using NSQ from Go]]></title>
     <link href="http://tleyden.github.io/blog/2014/11/12/an-example-of-using-nsq-from-go/"/>
-    <updated>2014-11-12T07:26:00+00:00</updated>
+    <updated>2014-11-12T07:26:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2014/11/12/an-example-of-using-nsq-from-go</id>
     <content type="html"><![CDATA[<p><a href="https://github.com/bitly/nsq">NSQ</a> is a message queue, similar to RabbitMQ.  I decided I&rsquo;d give it a whirl.</p>
 
@@ -451,7 +451,7 @@ err := q.ConnectToNSQLookupd("127.0.0.1:4161")
   <entry>
     <title type="html"><![CDATA[Goroutines vs Threads]]></title>
     <link href="http://tleyden.github.io/blog/2014/10/30/goroutines-vs-threads/"/>
-    <updated>2014-10-30T06:28:00+00:00</updated>
+    <updated>2014-10-30T06:28:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2014/10/30/goroutines-vs-threads</id>
     <content type="html"><![CDATA[<p>Here are some of the advantages of Goroutines over threads:</p>
 
@@ -491,7 +491,7 @@ err := q.ConnectToNSQLookupd("127.0.0.1:4161")
   <entry>
     <title type="html"><![CDATA[Configure Emacs as a Go Editor From Scratch Part 2]]></title>
     <link href="http://tleyden.github.io/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2/"/>
-    <updated>2014-05-27T12:03:00+00:00</updated>
+    <updated>2014-05-27T12:03:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2</id>
     <content type="html"><![CDATA[<p>This is a continuation of <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">Part 1</a>, so if you haven&rsquo;t read that already, you should do so now.</p>
 

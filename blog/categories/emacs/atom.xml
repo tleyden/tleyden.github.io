@@ -4,7 +4,7 @@
   <title><![CDATA[Category: emacs | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/emacs/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-05-22T22:10:25+00:00</updated>
+  <updated>2015-11-03T12:15:17-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Configure Emacs as a Go Editor From Scratch Part 2]]></title>
     <link href="http://tleyden.github.io/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2/"/>
-    <updated>2014-05-27T12:03:00+00:00</updated>
+    <updated>2014-05-27T12:03:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2</id>
     <content type="html"><![CDATA[<p>This is a continuation of <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">Part 1</a>, so if you haven&rsquo;t read that already, you should do so now.</p>
 
@@ -156,7 +156,7 @@ M-x go-oracle-callers
   <entry>
     <title type="html"><![CDATA[Configure Emacs as a Go editor from scratch]]></title>
     <link href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/"/>
-    <updated>2014-05-22T16:46:00+00:00</updated>
+    <updated>2014-05-22T16:46:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch</id>
     <content type="html"><![CDATA[<p>This explains the steps to get a productive Emacs environment for Go programming on OSX, starting from scratch.</p>
 

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: gpu | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/gpu/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-05-22T22:10:25+00:00</updated>
+  <updated>2015-11-03T12:15:17-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[CoreOS with Nvidia CUDA GPU drivers]]></title>
     <link href="http://tleyden.github.io/blog/2014/11/04/coreos-with-nvidia-cuda-gpu-drivers/"/>
-    <updated>2014-11-04T07:08:00+00:00</updated>
+    <updated>2014-11-04T07:08:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2014/11/04/coreos-with-nvidia-cuda-gpu-drivers</id>
     <content type="html"><![CDATA[<p>This will walk you through installing the Nvidia GPU kernel module and CUDA drivers on a docker container running inside of CoreOS.</p>
 
@@ -308,7 +308,7 @@ $ sudo docker run -ti --device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl
   <entry>
     <title type="html"><![CDATA[Running Caffe on AWS GPU instance via Docker]]></title>
     <link href="http://tleyden.github.io/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker/"/>
-    <updated>2014-10-25T20:42:00+00:00</updated>
+    <updated>2014-10-25T20:42:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker</id>
     <content type="html"><![CDATA[<p>This is a tutorial to help you get the <a href="http://caffe.berkeleyvision.org/">Caffe deep learning framework</a> up and running on a GPU-powered AWS instance running inside a Docker container.</p>
 
@@ -438,7 +438,7 @@ I1018 17:17:58.684598    66 caffe.cpp:102] Optimization Done.
   <entry>
     <title type="html"><![CDATA[CUDA 6.5 on AWS GPU instance running Ubuntu 14.04]]></title>
     <link href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/"/>
-    <updated>2014-10-25T11:56:00+00:00</updated>
+    <updated>2014-10-25T11:56:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04</id>
     <content type="html"><![CDATA[<h2>Using a pre-built public AMI</h2>
 

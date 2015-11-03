@@ -5,11 +5,13 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Debugging into Android source - Seven Story Rabbit Hole</title>
+  <title>Running the Sync Gateway Amazon AMI - Seven Story Rabbit Hole</title>
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Debugging into the core Android source code can be useful. Here&rsquo;s how to do it in Android Studio 0.8.2. Starting out, if we hit a breakpoint &hellip;">
+  <meta name="description" content="How to run the Couchbase Sync Gateway AWS AMI Kick off AWS instance Browse to the Sync Gateway AMI in the AWS Marketplace
+Click Continue
+Change all &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +20,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://tleyden.github.io/blog/2014/09/10/debugging-into-android-source">
+  <link rel="canonical" href="http://tleyden.github.io/blog/2015/11/03/running-the-sync-gateway-amazon-ami">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
@@ -75,7 +77,7 @@
   
   <header>
     
-      <h1 class="entry-title">Debugging Into Android Source</h1>
+      <h1 class="entry-title">Running the Sync Gateway Amazon AMI</h1>
     
     
       <p class="meta">
@@ -91,34 +93,92 @@
   
 
 
-<time datetime="2014-09-10T15:57:00-07:00" pubdate data-updated="true">Sep 10<span>th</span>, 2014</time>
+<time datetime="2015-11-03T11:11:00-08:00" pubdate data-updated="true">Nov 3<span>rd</span>, 2015</time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><p>Debugging into the core Android source code can be useful.  Here&rsquo;s how to do it in Android Studio 0.8.2.</p>
+<div class="entry-content"><p>How to run the Couchbase Sync Gateway AWS AMI</p>
 
-<p>Starting out, if we hit a breakpoint where we have a sqlite database object:</p>
+<h2>Kick off AWS instance</h2>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/outside_db_breakpoint.png" alt="screenshot" /></p>
+<ul>
+<li>Browse to the <a href="https://aws.amazon.com/marketplace/pp/B013XDO1B4">Sync Gateway AMI</a> in the AWS Marketplace</li>
+<li>Click Continue</li>
+<li>Change all ports to &ldquo;MY IP&rdquo; except for port 4984</li>
+<li>Make sure you choose a key that you have locally</li>
+</ul>
 
-<p>And if you step in, you get this, which isn&rsquo;t very useful:</p>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/inside_db_breakpoint.png" alt="screenshot" /></p>
+<h2>SSH in and start Sync Gateway</h2>
 
-<p>To fix that, go to Android SDK, find the API level you are using, and check the Sources for Android SDK box.</p>
+<ul>
+<li>Go to the AWS console, find the EC2 instance, and find the instance public ip address.  It should look like this: <code>ec2-54-161-201-224.compute-1.amazonaws.com</code>.  The rest of the instructions will refer to this as <instance public ip></li>
+<li><code>ssh ec2-user@&lt;instance public ip&gt;</code> (this should let you in without prompting you for a password.  if not, you chose a key when you launched that you don&rsquo;t have locally)</li>
+<li>Start the Sync Gateway with this command:</li>
+</ul>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/android_sdk.png" alt="screenshot" /></p>
 
-<p><strong>You must restart Android Studio at this point</strong></p>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>/opt/couchbase-sync-gateway/bin/sync_gateway -interface=0.0.0.0:4984 -url=http://localhost:8091 -bucket=sync_gateway -dbname=sync_gateway</span></code></pre></td></tr></table></div></figure>
 
-<p>Did you restart Android Studio?  Now re-run your app in the debugger, and when you try to step into the <code>database.execSQL()</code> method, you should see this:</p>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/db_source_breakpoint.png" alt="screenshot" /></p>
+<ul>
+<li>You should see output like this:</li>
+</ul>
 
-<p>It worked!  Now you can debug into any Android code.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>2015-11-03T19:37:05.384Z ==== Couchbase Sync Gateway/1.1.0(28;86f028c) ====
+</span><span class='line'>2015-11-03T19:37:05.384Z Opening db /sync_gateway as bucket "sync_gateway", pool "default", server &lt;http://localhost:8091&gt;
+</span><span class='line'>2015-11-03T19:37:05.384Z Opening Couchbase database sync_gateway on &lt;http://localhost:8091&gt;
+</span><span class='line'>2015/11/03 19:37:05  Trying with selected node 0
+</span><span class='line'>2015/11/03 19:37:05  Trying with selected node 0
+</span><span class='line'>2015-11-03T19:37:05.536Z Using default sync function 'channel(doc.channels)' for database "sync_gateway"
+</span><span class='line'>2015-11-03T19:37:05.536Z     Reset guest user to config
+</span><span class='line'>2015-11-03T19:37:05.536Z Starting profile server on
+</span><span class='line'>2015-11-03T19:37:05.536Z Starting admin server on 127.0.0.1:4985
+</span><span class='line'>2015-11-03T19:37:05.550Z Starting server on localhost:4984 ...</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Verify via curl</h2>
+
+<p>From your workstation:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl http://&lt;instance public ip&gt;:4984/sync_gateway/</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should get a response like:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{"committed_update_seq":1,"compact_running":false,"db_name":"sync_gateway","disk_format_version":0,"instance_start_time":1446579479331843,"purge_seq":0,"update_seq":1}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Customize configuration</h2>
+
+<p>For more advanced Sync Gateway configuration, you will want to create a JSON config file on the EC2 instance itself and pass that to Sync Gateway when you launch it, or host your config JSON on the internet somewhere and pass Sync Gateway the URL to the file.</p>
+
+<h2>View Couchbase Server UI</h2>
+
+<p>In order to login to the Couchbase Server UI, go to <instance public ip>:8091 and use:</p>
+
+<ul>
+<li><strong>Username:</strong> Administrator</li>
+<li><strong>Password:</strong> <code>&lt;aws instance id, eg: i-8a9f8335&gt;</code></li>
+</ul>
+
 </div>
 
 
@@ -141,12 +201,12 @@
   
 
 
-<time datetime="2014-09-10T15:57:00-07:00" pubdate data-updated="true">Sep 10<span>th</span>, 2014</time>
+<time datetime="2015-11-03T11:11:00-08:00" pubdate data-updated="true">Nov 3<span>rd</span>, 2015</time>
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/android/'>android,</a>, <a class='category' href='/blog/categories/androidstudio/'>androidstudio</a>
+    <a class='category' href='/blog/categories/aws/'>aws</a>, <a class='category' href='/blog/categories/couchbase/'>couchbase,</a>
   
 </span>
 
@@ -155,7 +215,7 @@
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2014/09/10/debugging-into-android-source/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2014/09/10/debugging-into-android-source/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2015/11/03/running-the-sync-gateway-amazon-ami/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2015/11/03/running-the-sync-gateway-amazon-ami/" >Tweet</a>
   
   
   
@@ -164,10 +224,8 @@
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2014/06/22/running-couchbase-sync-gateway-on-gce/" title="Previous Post: Running Couchbase Sync Gateway on Google Compute Engine">&laquo; Running Couchbase Sync Gateway on Google Compute Engine</a>
+        <a class="basic-alignment left" href="/blog/2015/05/05/running-couchbase-server-under-docker-on-joyent/" title="Previous Post: Running Couchbase Server under Joyent Triton">&laquo; Running Couchbase Server under Joyent Triton</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/" title="Next Post: CUDA 6.5 on AWS GPU instance running Ubuntu 14.04">CUDA 6.5 on AWS GPU instance running Ubuntu 14.04 &raquo;</a>
       
     </p>
   </footer>
@@ -270,8 +328,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://tleyden.github.io/blog/2014/09/10/debugging-into-android-source/';
-        var disqus_url = 'http://tleyden.github.io/blog/2014/09/10/debugging-into-android-source/';
+        var disqus_identifier = 'http://tleyden.github.io/blog/2015/11/03/running-the-sync-gateway-amazon-ami/';
+        var disqus_url = 'http://tleyden.github.io/blog/2015/11/03/running-the-sync-gateway-amazon-ami/';
         var disqus_script = 'embed.js';
       
     (function () {

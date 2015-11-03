@@ -4,7 +4,7 @@
   <title><![CDATA[Category: docker | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/docker/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-05-22T22:10:25+00:00</updated>
+  <updated>2015-11-03T12:15:17-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Running Couchbase Server under Joyent Triton]]></title>
     <link href="http://tleyden.github.io/blog/2015/05/05/running-couchbase-server-under-docker-on-joyent/"/>
-    <updated>2015-05-05T09:31:00+00:00</updated>
+    <updated>2015-05-05T09:31:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2015/05/05/running-couchbase-server-under-docker-on-joyent</id>
     <content type="html"><![CDATA[<p>Joyent has recently announced their new Triton Docker container hosting service.  There are several advantages of running Docker containers on Triton over a more traditional cloud hosting platform:</p>
 
@@ -36,6 +36,16 @@
 <p><a href="https://www.joyent.com/lp/preview">Follow the signup instructions on the Joyent website</a></p>
 
 <p>You will also need to add your SSH key to your account.</p>
+
+<h2>Install or Upgrade Docker</h2>
+
+<p>If you don&rsquo;t have Docker installed already and you are on Ubuntu, run:</p>
+
+<p><code>
+$ curl -sSL https://get.docker.com/ | sh
+</code></p>
+
+<p>See <a href="https://docs.docker.com/installation/ubuntulinux/">install Docker on Ubuntu</a> for more details.</p>
 
 <h2>Upgrade Docker client to 1.4.1 or later</h2>
 
@@ -452,7 +462,7 @@ $ sdc-getmachine &lt;machine_id&gt; | json -aH ips | json -aH | egrep "10\.|192\
   <entry>
     <title type="html"><![CDATA[Setting up Octopress under Docker]]></title>
     <link href="http://tleyden.github.io/blog/2015/04/25/setting-up-octopress-under-docker/"/>
-    <updated>2015-04-25T03:57:00+00:00</updated>
+    <updated>2015-04-25T03:57:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2015/04/25/setting-up-octopress-under-docker</id>
     <content type="html"><![CDATA[<p>I got a new computer last week.  It&rsquo;s the latest macbook retina, and I needed to refresh because I wanted a bigger SSD drive (and after having an SSD drive, I&rsquo;ll never go back)</p>
 
@@ -575,7 +585,7 @@ $ export LC_ALL=C.UTF-8
   <entry>
     <title type="html"><![CDATA[Nginx proxy for Sync Gateway using Confd]]></title>
     <link href="http://tleyden.github.io/blog/2015/03/21/nginx-proxy-for-sync-gateway-using-confd/"/>
-    <updated>2015-03-21T15:25:00+00:00</updated>
+    <updated>2015-03-21T15:25:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2015/03/21/nginx-proxy-for-sync-gateway-using-confd</id>
     <content type="html"><![CDATA[<p>This will walk you through setting up Sync Gateway behind nginx.  The nginx conf will be auto generated based on Sync Gateway status.</p>
 
@@ -710,7 +720,7 @@ X-Handler: 10.231.220.110:4984
   <entry>
     <title type="html"><![CDATA[Running a CBFS cluster on CoreOS]]></title>
     <link href="http://tleyden.github.io/blog/2014/11/14/running-cbfs/"/>
-    <updated>2014-11-14T06:43:00+00:00</updated>
+    <updated>2014-11-14T06:43:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2014/11/14/running-cbfs</id>
     <content type="html"><![CDATA[<p>This will walk you through getting a cbfs cluster up and running.</p>
 
@@ -892,7 +902,7 @@ $ sudo docker run -ti --net=host tleyden5iwx/cbfs /bin/bash
   <entry>
     <title type="html"><![CDATA[CoreOS with Nvidia CUDA GPU drivers]]></title>
     <link href="http://tleyden.github.io/blog/2014/11/04/coreos-with-nvidia-cuda-gpu-drivers/"/>
-    <updated>2014-11-04T07:08:00+00:00</updated>
+    <updated>2014-11-04T07:08:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2014/11/04/coreos-with-nvidia-cuda-gpu-drivers</id>
     <content type="html"><![CDATA[<p>This will walk you through installing the Nvidia GPU kernel module and CUDA drivers on a docker container running inside of CoreOS.</p>
 

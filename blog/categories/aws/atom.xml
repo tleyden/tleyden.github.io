@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: aws, | Seven Story Rabbit Hole]]></title>
+  <title><![CDATA[Category: aws | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/aws/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-05-22T22:10:25+00:00</updated>
+  <updated>2015-11-03T12:15:17-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -14,186 +14,226 @@
 
   
   <entry>
-    <title type="html"><![CDATA[CUDA 6.5 on AWS GPU instance running Ubuntu 14.04]]></title>
-    <link href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/"/>
-    <updated>2014-10-25T11:56:00+00:00</updated>
-    <id>http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04</id>
-    <content type="html"><![CDATA[<h2>Using a pre-built public AMI</h2>
+    <title type="html"><![CDATA[Running the Sync Gateway Amazon AMI]]></title>
+    <link href="http://tleyden.github.io/blog/2015/11/03/running-the-sync-gateway-amazon-ami/"/>
+    <updated>2015-11-03T11:11:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2015/11/03/running-the-sync-gateway-amazon-ami</id>
+    <content type="html"><![CDATA[<p>How to run the Couchbase Sync Gateway AWS AMI</p>
 
-<p>Based on the instructions in this blog post, I&rsquo;ve created an AMI and shared it publicly.  So the easiest thing to do is just use that pre-built AMI:</p>
+<h2>Kick off AWS instance</h2>
 
 <ul>
-<li>Image: <strong>ami-2cbf3e44</strong> for US-East or <strong>ami-c38babf3</strong> for US-West (Ubuntu Server 14.04 LTS (HVM) &ndash; CUDA 6.5)</li>
-<li>Instance type: <strong>g2.2xlarge</strong> (if you skip this step, you won&rsquo;t have an nvidia device)</li>
-<li>Storage: Use at least 8 GB, 20+ GB recommended</li>
+<li>Browse to the <a href="https://aws.amazon.com/marketplace/pp/B013XDO1B4">Sync Gateway AMI</a> in the AWS Marketplace</li>
+<li>Click Continue</li>
+<li>Change all ports to &ldquo;MY IP&rdquo; except for port 4984</li>
+<li>Make sure you choose a key that you have locally</li>
 </ul>
 
 
-<p>If you use the pre-built AMI, then you can skip down to the <strong>Verify CUDA is correctly installed</strong> section, since all of the rest of the steps are &ldquo;baked in&rdquo; to the AMI.</p>
-
-<p><em>Note regarding AMI regions: the AMI only currently works in the US-East and US-West regions.  If you need it added to another region, please post a comment below</em></p>
-
-<h2>Building from scratch</h2>
-
-<p>Or if you prefer to build your own instance from scratch, keep reading.</p>
-
-<p>Create a new EC2 instance:</p>
+<h2>SSH in and start Sync Gateway</h2>
 
 <ul>
-<li>Image: ami-9eaa1cf6 (Ubuntu Server 14.04 LTS (HVM), SSD Volume Type)</li>
-<li>Instance type: g2.2xlarge</li>
-<li>Storage: Use at least 8 GB, 20+ GB recommended</li>
+<li>Go to the AWS console, find the EC2 instance, and find the instance public ip address.  It should look like this: <code>ec2-54-161-201-224.compute-1.amazonaws.com</code>.  The rest of the instructions will refer to this as <instance public ip></li>
+<li><code>ssh ec2-user@&lt;instance public ip&gt;</code> (this should let you in without prompting you for a password.  if not, you chose a key when you launched that you don&rsquo;t have locally)</li>
+<li>Start the Sync Gateway with this command:</li>
 </ul>
 
 
-<p>Install build-essential:</p>
+<p><code>
+/opt/couchbase-sync-gateway/bin/sync_gateway -interface=0.0.0.0:4984 -url=http://localhost:8091 -bucket=sync_gateway -dbname=sync_gateway
+</code>
+* You should see output like this:</p>
 
 <p><code>
-$ apt-get update &amp;&amp; apt-get install build-essential
+2015-11-03T19:37:05.384Z ==== Couchbase Sync Gateway/1.1.0(28;86f028c) ====
+2015-11-03T19:37:05.384Z Opening db /sync_gateway as bucket "sync_gateway", pool "default", server &lt;http://localhost:8091&gt;
+2015-11-03T19:37:05.384Z Opening Couchbase database sync_gateway on &lt;http://localhost:8091&gt;
+2015/11/03 19:37:05  Trying with selected node 0
+2015/11/03 19:37:05  Trying with selected node 0
+2015-11-03T19:37:05.536Z Using default sync function 'channel(doc.channels)' for database "sync_gateway"
+2015-11-03T19:37:05.536Z     Reset guest user to config
+2015-11-03T19:37:05.536Z Starting profile server on
+2015-11-03T19:37:05.536Z Starting admin server on 127.0.0.1:4985
+2015-11-03T19:37:05.550Z Starting server on localhost:4984 ...
 </code></p>
 
-<p>Get CUDA installer:</p>
+<h2>Verify via curl</h2>
+
+<p>From your workstation:</p>
 
 <p><code>
-$ wget http://developer.download.nvidia.com/compute/cuda/6_5/rel/installers/cuda_6.5.14_linux_64.run
+$ curl http://&lt;instance public ip&gt;:4984/sync_gateway/
 </code></p>
 
-<p>Extract CUDA installer:</p>
+<p>You should get a response like:</p>
 
 <p><code>
-$ chmod +x cuda_6.5.14_linux_64.run
-$ mkdir nvidia_installers
-$ ./cuda_6.5.14_linux_64.run -extract=`pwd`/nvidia_installers
+{"committed_update_seq":1,"compact_running":false,"db_name":"sync_gateway","disk_format_version":0,"instance_start_time":1446579479331843,"purge_seq":0,"update_seq":1}
 </code></p>
 
-<p>Run Nvidia driver installer:</p>
+<h2>Customize configuration</h2>
 
-<p><code>
-$ cd nvidia_installers
-$ ./NVIDIA-Linux-x86_64-340.29.run
-</code></p>
+<p>For more advanced Sync Gateway configuration, you will want to create a JSON config file on the EC2 instance itself and pass that to Sync Gateway when you launch it, or host your config JSON on the internet somewhere and pass Sync Gateway the URL to the file.</p>
 
-<p>At this point it will popup an 8-bit UI that will ask you to accept a license agreement, and then start installing.</p>
+<h2>View Couchbase Server UI</h2>
 
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/install_cuda.png" alt="screenshot" /></p>
-
-<p>At this point, I got an error:</p>
-
-<p>```
-Unable to load the kernel module &lsquo;nvidia.ko&rsquo;.  This happens most frequently when this kernel module was built against the wrong or</p>
-
-<pre><code>     improperly configured kernel sources, with a version of gcc that differs from the one used to build the target kernel, or if a driver
-     such as rivafb, nvidiafb, or nouveau is present and prevents the NVIDIA kernel module from obtaining ownership of the NVIDIA graphics
-     device(s), or no NVIDIA GPU installed in this system is supported by this NVIDIA Linux graphics driver release.
-
-     Please see the log entries 'Kernel module load error' and 'Kernel messages' at the end of the file '/var/log/nvidia-installer.log'
-     for more information.
-</code></pre>
-
-<p>```</p>
-
-<p>After <a href="https://devtalk.nvidia.com/default/topic/547588/error-installing-nvidia-drivers-on-x86_64-amazon-ec2-gpu-cluster-t20-gpu-/">reading this forum post</a> I installed:</p>
-
-<p><code>
-$ sudo apt-get install linux-image-extra-virtual
-</code></p>
-
-<p>When it prompted me what do to about the grub changes, I chose &ldquo;choose package maintainers version&rdquo;.</p>
-
-<p>Reboot:</p>
-
-<p><code>
-$ reboot
-</code></p>
-
-<h2>Disable nouveau</h2>
-
-<p>At this point you need to disable nouveau, since it conflicts with the nvidia kernel module.</p>
-
-<p>Open a new file</p>
-
-<p><code>
-$ vi /etc/modprobe.d/blacklist-nouveau.conf
-</code></p>
-
-<p>and add these lines to it</p>
-
-<p><code>
-blacklist nouveau
-blacklist lbm-nouveau
-options nouveau modeset=0
-alias nouveau off
-alias lbm-nouveau off
-</code></p>
-
-<p>and then save the file.</p>
-
-<p>Disable the Kernel Nouveau:</p>
-
-<p><code>
-$ echo options nouveau modeset=0 | sudo tee -a /etc/modprobe.d/nouveau-kms.conf
-</code></p>
-
-<p>Reboot:</p>
-
-<p><code>
-$ update-initramfs -u
-$ reboot
-</code></p>
-
-<h2>One more try &mdash; this time it works</h2>
-
-<p>Get Kernel source:</p>
-
-<p>```
-$ apt-get install linux-source
-$ apt-get install linux-headers-3.13.0-37-generic</p>
-
-<p>```</p>
-
-<p>Rerun Nvidia driver installer:</p>
-
-<p><code>
-$ cd nvidia_installers
-$ ./NVIDIA-Linux-x86_64-340.29.run
-</code></p>
-
-<p>Load nvidia kernel module:</p>
-
-<p><code>
-$ modprobe nvidia
-</code></p>
-
-<p>Run CUDA + samples installer:</p>
-
-<p><code>
-$ ./cuda-linux64-rel-6.5.14-18749181.run
-$ ./cuda-samples-linux-6.5.14-18745345.run
-</code></p>
-
-<h2>Verify CUDA is correctly installed</h2>
-
-<p><code>
-$ cd /usr/local/cuda/samples/1_Utilities/deviceQuery
-$ make
-$ ./deviceQuery   
-</code></p>
-
-<p>You should see the following output:</p>
-
-<p><code>
-deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 6.5, CUDA Runtime Version = 6.5, NumDevs = 1, Device0 = GRID K520
-Result = PASS
-</code></p>
-
-<h2>References</h2>
+<p>In order to login to the Couchbase Server UI, go to <instance public ip>:8091 and use:</p>
 
 <ul>
-<li><a href="http://www.r-tutor.com/gpu-computing/cuda-installation/cuda6.5-ubuntu">http://www.r-tutor.com/gpu-computing/cuda-installation/cuda6.5-ubuntu</a></li>
-<li><a href="http://askubuntu.com/questions/451672/installing-and-testing-cuda-in-ubuntu-14-04">http://askubuntu.com/questions/451672/installing-and-testing-cuda-in-ubuntu-14-04</a></li>
-<li><a href="https://devtalk.nvidia.com/default/topic/547588/error-installing-nvidia-drivers-on-x86_64-amazon-ec2-gpu-cluster-t20-gpu-/">https://devtalk.nvidia.com/default/topic/547588/error-installing-nvidia-drivers-on-x86_64-amazon-ec2-gpu-cluster-t20-gpu-/</a></li>
-<li><a href="https://devtalk.nvidia.com/default/topic/769719/drm-ko-missing-on-ubuntu-14-04-1-lts-aws-ec2-g2-2xlarge-instance/">https://devtalk.nvidia.com/default/topic/769719/drm-ko-missing-on-ubuntu-14-04-1-lts-aws-ec2-g2-2xlarge-instance/</a></li>
-<li><a href="http://askubuntu.com/questions/451221/ubuntu-14-04-install-nvidia-driver">http://askubuntu.com/questions/451221/ubuntu-14-04-install-nvidia-driver</a></li>
+<li><strong>Username:</strong> Administrator</li>
+<li><strong>Password:</strong> <code>&lt;aws instance id, eg: i-8a9f8335&gt;</code></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Running a Sync Gateway Cluster Under CoreOS on AWS]]></title>
+    <link href="http://tleyden.github.io/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws/"/>
+    <updated>2014-12-15T19:22:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws</id>
+    <content type="html"><![CDATA[<p>The content in this blog post has <strong>moved</strong>.</p>
+
+<p>Please go <a href="https://github.com/couchbaselabs/couchbase-server-coreos">HERE</a> to view the updated content.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Running Couchbase Cluster Under CoreOS on AWS]]></title>
+    <link href="http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/"/>
+    <updated>2014-11-01T12:16:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws</id>
+    <content type="html"><![CDATA[<p>The content in this blog post has <strong>moved</strong>.</p>
+
+<p>Please go <a href="https://github.com/couchbaselabs/couchbase-server-coreos">HERE</a> to view the updated content.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Running Caffe on AWS GPU instance via Docker]]></title>
+    <link href="http://tleyden.github.io/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker/"/>
+    <updated>2014-10-25T20:42:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker</id>
+    <content type="html"><![CDATA[<p>This is a tutorial to help you get the <a href="http://caffe.berkeleyvision.org/">Caffe deep learning framework</a> up and running on a GPU-powered AWS instance running inside a Docker container.</p>
+
+<h2>Architecture</h2>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/caffe_docker_aws_onion.png" alt="architecture diagram" /></p>
+
+<h2>Setup host</h2>
+
+<p>Before you can start your docker container, you will need to go <strong>deeper down the rabbit hole</strong>.</p>
+
+<p>You&rsquo;ll first need to complete the steps here:</p>
+
+<p><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">Setting up an Ubuntu 14.04 box running on a GPU-enabled AWS instance</a></p>
+
+<p>After you&rsquo;re done, you&rsquo;ll end up with a host OS with the following properties:</p>
+
+<ul>
+<li>A GPU enabled AWS instance running Ubuntu 14.04</li>
+<li>Nvidia kernel module</li>
+<li>Nvidia device drivers</li>
+<li>CUDA 6.5 installed and verified</li>
+</ul>
+
+
+<h2>Install Docker</h2>
+
+<p>Once your host OS is setup, you&rsquo;re ready to install docker.  (version 1.3 at the time of this writing)</p>
+
+<p>Setup the key for the docker repo:</p>
+
+<p><code>
+$ sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9
+</code></p>
+
+<p>Add the docker repo:</p>
+
+<p><code>
+$ sudo sh -c "echo deb https://get.docker.com/ubuntu docker main &gt; /etc/apt/sources.list.d/docker.list"
+$ sudo apt-get update
+</code></p>
+
+<p>Install docker:</p>
+
+<p><code>
+$ sudo apt-get install lxc-docker
+</code></p>
+
+<h2>Run the docker container</h2>
+
+<p><strong>Find your nvidia devices</strong></p>
+
+<p><code>
+$ ls -la /dev | grep nvidia
+</code></p>
+
+<p>You should see:</p>
+
+<p><code>
+crw-rw-rw-  1 root root    195,   0 Oct 25 19:37 nvidia0
+crw-rw-rw-  1 root root    195, 255 Oct 25 19:37 nvidiactl
+crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm
+</code></p>
+
+<p>You&rsquo;ll have to adapt the <code>DOCKER_NVIDIA_DEVICES</code> variable below to match your particular devices.</p>
+
+<p>Here&rsquo;s how to start the docker container:</p>
+
+<p><code>
+$ DOCKER_NVIDIA_DEVICES="--device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm"
+$ sudo docker run -ti $DOCKER_NVIDIA_DEVICES tleyden5iwx/caffe-gpu-master /bin/bash
+</code></p>
+
+<p>It&rsquo;s a large docker image, so this might take a few minutes, depending on your network connection.</p>
+
+<h2>Run caffe test suite</h2>
+
+<p>After the above <code>docker run</code> command completes, your shell will now be inside a docker container that has Caffe installed.</p>
+
+<p>You&rsquo;ll want run the Caffe test suite and make sure it passes.  This will validate your environment, including your GPU drivers.</p>
+
+<p><code>
+$ cd /opt/caffe
+$ make test &amp;&amp; make runtest
+</code></p>
+
+<p><strong>Expected Result:</strong> <code>... [  PASSED  ] 838 tests.</code></p>
+
+<h2>Run the MNIST LeNet example</h2>
+
+<p>A more comprehensive way to verify your environment is to train the MNIST LeNet example:</p>
+
+<p><code>
+$ cd /opt/caffe/data/mnist
+$ ./get_mnist.sh
+$ cd /opt/caffe
+$ ./examples/mnist/create_mnist.sh
+$ ./examples/mnist/train_lenet.sh
+</code></p>
+
+<p>This will take a few minutes.</p>
+
+<p><strong>Expected output:</strong></p>
+
+<p><code>
+libdc1394 error: Failed to initialize libdc1394
+I1018 17:02:23.552733    66 caffe.cpp:90] Starting Optimization
+I1018 17:02:23.553583    66 solver.cpp:32] Initializing solver from parameters:
+... lots of output ...
+I1018 17:17:58.684598    66 caffe.cpp:102] Optimization Done.
+</code></p>
+
+<p>Congratulations, you&rsquo;ve got GPU-powered Caffe running in a docker container &mdash; celebrate with a cup of <a href="http://www.yelp.com/biz/philz-coffee-berkeley-2">Philz</a>!</p>
+
+<h1>References</h1>
+
+<ul>
+<li><a href="https://registry.hub.docker.com/u/tleyden5iwx/caffe-gpu-master">tleyden5iwx/caffe-gpu-master</a> Caffe Docker image (GPU)</li>
+<li><a href="https://registry.hub.docker.com/u/tleyden5iwx/caffe-cpu-master">tleyden5iwx/caffe-cpu-master</a> Caffe Docker image (CPU-only)</li>
+<li><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5</a></li>
+<li><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">CUDA 6.5 on AWS GPU Instance Running Ubuntu 14.04</a></li>
 </ul>
 
 ]]></content>

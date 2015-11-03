@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: couchbase | Seven Story Rabbit Hole]]></title>
+  <title><![CDATA[Category: couchbase, | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/couchbase/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-05-22T22:10:25+00:00</updated>
+  <updated>2015-11-03T12:15:17-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -14,949 +14,407 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Running Couchbase Server under Joyent Triton]]></title>
-    <link href="http://tleyden.github.io/blog/2015/05/05/running-couchbase-server-under-docker-on-joyent/"/>
-    <updated>2015-05-05T09:31:00+00:00</updated>
-    <id>http://tleyden.github.io/blog/2015/05/05/running-couchbase-server-under-docker-on-joyent</id>
-    <content type="html"><![CDATA[<p>Joyent has recently announced their new Triton Docker container hosting service.  There are several advantages of running Docker containers on Triton over a more traditional cloud hosting platform:</p>
+    <title type="html"><![CDATA[Running the Sync Gateway Amazon AMI]]></title>
+    <link href="http://tleyden.github.io/blog/2015/11/03/running-the-sync-gateway-amazon-ami/"/>
+    <updated>2015-11-03T11:11:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2015/11/03/running-the-sync-gateway-amazon-ami</id>
+    <content type="html"><![CDATA[<p>How to run the Couchbase Sync Gateway AWS AMI</p>
+
+<h2>Kick off AWS instance</h2>
 
 <ul>
-<li><p>Better performance since there is no hardware level virtualization overhead.  Your containers run on bare-metal.</p></li>
-<li><p>Simplified networking between containers.  Each container gets its own private (and optionally public) ip address.</p></li>
-<li><p>Hosts are abstracted away &mdash; you just deploy into the &ldquo;container cloud&rdquo;, and don&rsquo;t care which host your container is running on.</p></li>
+<li>Browse to the <a href="https://aws.amazon.com/marketplace/pp/B013XDO1B4">Sync Gateway AMI</a> in the AWS Marketplace</li>
+<li>Click Continue</li>
+<li>Change all ports to &ldquo;MY IP&rdquo; except for port 4984</li>
+<li>Make sure you choose a key that you have locally</li>
 </ul>
 
 
-<p>For more details, check out Bryan Cantrill&rsquo;s talk about <a href="https://www.joyent.com/developers/videos/docker-and-the-future-of-containers-in-production">Docker and the Future of Containers in Production</a>.</p>
-
-<p>Let&rsquo;s give it a spin with a &ldquo;hello world&rdquo; container, and then with a cluster of Couchbase servers.</p>
-
-<h2>Sign up for a Joyent account</h2>
-
-<p><a href="https://www.joyent.com/lp/preview">Follow the signup instructions on the Joyent website</a></p>
-
-<p>You will also need to add your SSH key to your account.</p>
-
-<h2>Upgrade Docker client to 1.4.1 or later</h2>
-
-<p>Check your version of Docker with:</p>
-
-<p><code>
-$ docker --version
-Docker version 1.0.1, build 990021a
-</code></p>
-
-<p>If you are on a version before 1.4.1 (like I was), you can upgrade Docker via the <a href="https://github.com/boot2docker/osx-installer/releases">boot2docker installers</a>.</p>
-
-<h2>Joyent + Docker setup</h2>
-
-<p>Get the sdc-docker repo (sdc == Smart Data Center):</p>
-
-<p><code>
-$ git clone https://github.com/joyent/sdc-docker.git
-</code></p>
-
-<p>Perform setup via:</p>
-
-<p><code>
-$ cd sdc-docker
-$  ./tools/sdc-docker-setup.sh -k 165.225.168.22 $ACCOUNT ~/.ssh/$PRIVATE_KEY_FILE
-</code></p>
-
-<p>Replace values as follows:</p>
+<h2>SSH in and start Sync Gateway</h2>
 
 <ul>
-<li><strong>$ACCOUNT</strong>: you can get this by logging into the Joyent web ui and going to the Account menu from the pulldown in the top-right corner.  Find the <strong>Username</strong> field, and use that</li>
-<li><strong>$PRIVATE_KEY_FILE</strong>: the name of the file where your private key is stored, typically this will be <code>id_rsa</code></li>
-</ul>
-
-
-<p>Run the command and you should see the following output:</p>
-
-<p>```
-Setting up Docker client for SDC using:</p>
-
-<pre><code>CloudAPI:        https://165.225.168.22
-Account:         &lt;your username&gt;
-Key:             /home/ubuntu/.ssh/id_rsa
-</code></pre>
-
-<p>[..snip..]</p>
-
-<p>Wrote certificate files to /home/ubuntu/.sdc/docker/<username></p>
-
-<p>Docker service endpoint is: tcp://<generated ip>:2376</p>
-
-<hr />
-
-<p>Success. Set your environment as follows:</p>
-
-<pre><code>export DOCKER_CERT_PATH=/home/ubuntu/.sdc/docker/&lt;username&gt;
-export DOCKER_HOST=tcp://&lt;generated-ip&gt;:2376
-alias docker="docker --tls"
-</code></pre>
-
-<p>Then you should be able to run &lsquo;docker info&rsquo; and see your account
-name &lsquo;SDCAccount: <username>&rsquo; in the output.
-```</p>
-
-<p><strong>Export environment variables</strong></p>
-
-<p>As the output above suggests, copy and paste the commands from the output.  Here&rsquo;s an example of what that will look like (but you should copy and paste from your command output, not the snippet below):</p>
-
-<p><code>
-$ export DOCKER_CERT_PATH=/home/ubuntu/.sdc/docker/&lt;username&gt;
-$ export DOCKER_HOST=tcp://&lt;generated-ip&gt;:2376
-$ alias docker="docker --tls"
-</code></p>
-
-<h2>Docker Hello World</h2>
-
-<p>Let&rsquo;s spin up an Ubuntu docker image that says hello world.</p>
-
-<p>Remember you&rsquo;re running the Docker client on your workstation, not in the cloud.  Here&rsquo;s an overview on what&rsquo;s going to be happening:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/joyent_container_hello_world.png" alt="diagram" /></p>
-
-<p>To start the docker container::</p>
-
-<p><code>
-$ docker run --rm ubuntu:14.04 echo "Hello Docker World, from Joyent"
-</code></p>
-
-<p>You should see the following output:</p>
-
-<p><code>
-Unable to find image 'ubuntu:14.04' locally
-Pulling repository library/ubuntu
-...
-Hello Docker World, from Joyent
-</code></p>
-
-<p>Also, since the <code>--rm</code> flag was passed, the container will have been removed after exiting.  You can verify this by running <code>docker ps -a</code>.  This is important because <strong>stopped containers incur charges on Joyent</strong>.</p>
-
-<p>Congratulations!  You&rsquo;ve gotten a &ldquo;hello world&rdquo; Docker container running on Joyent.</p>
-
-<h2>Run Couchbase Server containers</h2>
-
-<p>Now it&rsquo;s time to run Couchbase Server.</p>
-
-<p>To kick off three Couchbase Server containers, run:</p>
-
-<p><code>``
-$ for i in</code>seq 1 3`; do \</p>
-
-<pre><code>  echo "Starting container $i"; \
-  export container_$i=$(docker run --name couchbase-server-$i -d -P couchbase/server); \
-</code></pre>
-
-<p>  done
-```</p>
-
-<p>To confirm the containers are up, run:</p>
-
-<p><code>
-$ docker ps
-</code></p>
-
-<p>and you should see:</p>
-
-<p><code>
-CONTAINER ID        IMAGE                                       COMMAND             CREATED             STATUS              PORTS               NAMES
-5bea8901814c        couchbase/server   "couchbase-start"   3 minutes ago       Up 2 minutes                            couchbase-server-1
-bef1f2f32726        couchbase/server   "couchbase-start"   2 minutes ago       Up 2 minutes                            couchbase-server-2
-6f4e2a1e8e63        couchbase/server   "couchbase-start"   2 minutes ago       Up About a minute                       couchbase-server-3
-</code></p>
-
-<p>At this point you will have environment variables defined with the container ids of each container.  You can check this by running:</p>
-
-<p><code>
-$ echo $container_1 &amp;&amp; echo $container_2 &amp;&amp; echo $container_3
-21264e44d66b4004b4828b7ae408979e7f71924aadab435aa9de662024a37b0e
-ff9fb4db7b304e769f694802e6a072656825aa2059604ba4ab4d579bd2e5d18d
-0c6f8ca2951448e497d7e12026dcae4aeaf990ec51e047cf9d8b2cbdd9bd7668
-</code></p>
-
-<h3>Get public ip addresses of the containers</h3>
-
-<p>Each container will have two IP addresses assigned:</p>
-
-<ul>
-<li>A public IP, accessible from anywhere</li>
-<li>A private IP, only accessible from containers/machines in your Joyent account</li>
-</ul>
-
-
-<p>To get the public IP, we can use the Docker client.  (to get the private IP, you need to use the Joyent SmartDataCenter tools, which is described below)</p>
-
-<p><code>``
-$ container_1_ip=</code>docker inspect $container_1 | grep -i IPAddress | awk -F: &lsquo;{print $2}&rsquo; |  grep -oE &ldquo;\b([0-9]{1,3}.){3}[0-9]{1,3}\b&rdquo;<code>
-$ container_2_ip=</code>docker inspect $container_2 | grep -i IPAddress | awk -F: &lsquo;{print $2}&rsquo; |  grep -oE &ldquo;\b([0-9]{1,3}.){3}[0-9]{1,3}\b&rdquo;<code>
-$ container_3_ip=</code>docker inspect $container_3 | grep -i IPAddress | awk -F: &lsquo;{print $2}&rsquo; |  grep -oE &ldquo;\b([0-9]{1,3}.){3}[0-9]{1,3}\b&rdquo;`</p>
-
-<p>```</p>
-
-<p>You will now have the public IP addresses of each container defined in environment variables.  You can check that it worked via:</p>
-
-<p><code>
-$ echo $container_1_ip &amp;&amp; echo $container_2_ip &amp;&amp; echo $container_3_ip
-165.225.185.11
-165.225.185.12
-165.225.185.13
-</code></p>
-
-<h3>Connect to Couchbase Web UI</h3>
-
-<p>Open your browser to $container_1_ip:8091 and you should see:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_cluster_setup.png" alt="Couchbase Welcome Screen" /></p>
-
-<p>At this point, it&rsquo;s possible to setup the cluster by going to each Couchbase node&rsquo;s Web UI and following the Setup Wizard.  However, in case you want to automate this in the future, let&rsquo;s do this over the command line instead.</p>
-
-<h3>Setup first Couchbase node</h3>
-
-<p>Let&rsquo;s arbitrarily pick <strong>container_1</strong> as the first node in the cluster.  This node is special in the sense that other nodes will join it.</p>
-
-<p>The following command will do the following:</p>
-
-<ul>
-<li>Set the Administrator&rsquo;s username and password to Administrator / password (you should change this)</li>
-<li>Set the cluster RAM size to 600 MB</li>
-</ul>
-
-
-<p>Note: the <code>-u admin -p password</code> should be left as-is, since that is just passing in the default admin name and password for auth purposes.</p>
-
-<p><code>
-$ docker run --rm --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
-cluster-init -c $container_1_ip \
---cluster-init-username=Administrator \
---cluster-init-password=password \
---cluster-init-ramsize=600 \
--u admin -p password
-</code></p>
-
-<p>You should see a response like:</p>
-
-<p><code>
-SUCCESS: init 165.225.185.11
-</code></p>
-
-<h3>Create a default bucket</h3>
-
-<p>A bucket is equivalent to a database in typical RDMS systems.</p>
-
-<p><code>
-$ docker run --rm --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
-bucket-create -c $container_1_ip:8091 \
---bucket=default \
---bucket-type=couchbase \
---bucket-port=11211 \
---bucket-ramsize=600 \
---bucket-replica=1 \
--u Administrator -p password
-</code></p>
-
-<p>You should see:</p>
-
-<p><code>
-SUCCESS: bucket-create
-</code></p>
-
-<h3>Add 2nd Couchbase node</h3>
-
-<p>Add in the second Couchbase node with this command</p>
-
-<p><code>
-$ docker run --rm --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
-server-add -c $container_1_ip \
--u Administrator -p password \
---server-add $container_2_ip \
---server-add-username Administrator \
---server-add-password password
-</code></p>
-
-<p>You should see:</p>
-
-<p><code>
-SUCCESS: server-add 165.225.185.12:8091
-</code></p>
-
-<p>To verify it was added, run:</p>
-
-<p><code>
-$ docker run --rm --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
-server-list -c $container_1_ip \
--u Administrator -p password
-</code></p>
-
-<p>which should return the list of Couchbase Server nodes that are now part of the cluster:</p>
-
-<p><code>
-ns_1@165.225.185.11 165.225.185.11:8091 healthy active
-ns_1@165.225.185.12 165.225.185.12:8091 healthy inactiveAdded
-</code></p>
-
-<h3>Add 3rd Couchbase node and rebalance</h3>
-
-<p>In this step we will:</p>
-
-<ul>
-<li>Add the 3rd Couchbase node</li>
-<li>Trigger a &ldquo;rebalance&rdquo;, which distributes the (empty) bucket&rsquo;s data across the cluster</li>
+<li>Go to the AWS console, find the EC2 instance, and find the instance public ip address.  It should look like this: <code>ec2-54-161-201-224.compute-1.amazonaws.com</code>.  The rest of the instructions will refer to this as <instance public ip></li>
+<li><code>ssh ec2-user@&lt;instance public ip&gt;</code> (this should let you in without prompting you for a password.  if not, you chose a key when you launched that you don&rsquo;t have locally)</li>
+<li>Start the Sync Gateway with this command:</li>
 </ul>
 
 
 <p><code>
-$ docker run --rm --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
-rebalance -c $container_1_ip \
--u Administrator -p password \
---server-add $container_3_ip \
---server-add-username Administrator \
---server-add-password password
-</code></p>
-
-<p>You should see:</p>
-
-<p>```
-INFO: rebalancing &hellip; &hellip; &hellip; &hellip; &hellip; &hellip; &hellip; &hellip; &hellip; &hellip; &hellip; &hellip; &hellip; &hellip; &hellip; &hellip; &hellip; &hellip; &hellip;
-SUCCESS: rebalanced cluster
-close failed in file object destructor:
-Error in sys.excepthook:</p>
-
-<p>Original exception was:
-```</p>
-
-<p>If you see <strong>SUCCESS</strong>, then it worked.  <em>(I&rsquo;m not sure why the &ldquo;close failed in file ..&rdquo; error is happening, but so far it appears that it can be safely ignored.)</em></p>
-
-<h3>Login to Web UI</h3>
-
-<p>Open your browser to $container_1_ip:8091 and you should see:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_cluster_login.png" alt="Couchbase Login Screen" /></p>
-
-<p>Login with:</p>
-
-<ul>
-<li>Username: <strong>Administrator</strong></li>
-<li>Password: <strong>password</strong></li>
-</ul>
-
-
-<p>And you should see:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_cluster_nodes.png" alt="Couchbase Nodes" /></p>
-
-<p>Congratulations!  You have a Couchbase Server cluster up and running on Joyent Triton.</p>
-
-<h2>Teardown</h2>
-
-<p>To stop and remove your Couchbase server containers, run:</p>
-
-<p><code>
-$ docker stop $container_1 $container_2 $container_3
-$ docker rm $container_1 $container_2 $container_3
-</code></p>
-
-<p>To double check that you no longer have any containers running or in the stopped state, run <code>docker ps -a</code> and you should see an empty list.</p>
-
-<h2>Installing the SDC tools (optional)</h2>
-
-<p>Installing the Joyent Smart Data Center (SDC) tools will allow you to gain more visibility into your container cluster &mdash; for example being able to view the internal IP of each continer.</p>
-
-<p>Here&rsquo;s how to install the sdc-tools suite.</p>
-
-<h3>Install smartdc</h3>
-
-<p>First <a href="http://coolestguidesontheplanet.com/installing-node-js-on-osx-10-10-yosemite/">install NodeJS + NPM</a></p>
-
-<p>Install smartdc:</p>
-
-<p><code>
-npm install -g smartdc
-</code></p>
-
-<h3>Configure environment variables</h3>
-
-<p><code>
-$ export SDC_URL=https://us-east-3b.api.joyent.com
-$ export SDC_ACCOUNT=&lt;ACCOUNT&gt;
-$ export SDC_KEY_ID=$(ssh-keygen -l -f $HOME/.ssh/id_rsa.pub | awk '{print $2}')
-</code></p>
-
-<p>Replace values as follows:</p>
-
-<ul>
-<li><strong>ACCOUNT</strong>: you can get this by logging into the Joyent web ui and going to the Account menu from the pulldown in the top-right corner.  Find the <strong>Username</strong> field, and use that</li>
-</ul>
-
-
-<h3>List machines</h3>
-
-<p>Run <code>sdc-listmachines</code> to list all the containers running under your Joyent account.  Your output should look something like this:</p>
-
-<p>```
-$ sdc-listmachines
-[
-{</p>
-
-<pre><code>"id": "0c6f8ca2-9514-48e4-97d7-e12026dcae4a",
-"name": "couchbase-server-3",
-"type": "smartmachine",
-"state": "running",
-"image": "335a8046-0749-1174-5666-6f084472b5ef",
-"ips": [
-  "192.168.128.32",
-  "165.225.185.13"
-],
-"memory": 1024,
-"disk": 25600,
-"metadata": {},
-"tags": {},
-"created": "2015-03-26T14:50:31.196Z",
-"updated": "2015-03-26T14:50:45.000Z",
-"networks": [
-  "7cfe29d4-e313-4c3b-a967-a28ea34342e9",
-  "178967cb-8d11-4f53-8434-9c91ff819a0d"
-],
-"dataset": "335a8046-0749-1174-5666-6f084472b5ef",
-"primaryIp": "165.225.185.13",
-"firewall_enabled": false,
-"compute_node": "44454c4c-4400-1046-8050-b5c04f383432",
-"package": "t4-standard-1G"
-</code></pre>
-
-<p>  },
-]
-```</p>
-
-<h3>Find private IP of an individual machine</h3>
-
-<p><code>
-$ sdc-getmachine &lt;machine_id&gt; | json -aH ips | json -aH | egrep "10\.|192\.”
-</code></p>
-
-<h2>References</h2>
-
-<ul>
-<li><p><a href="https://github.com/joyent/sdc-docker/blob/master/docs/divergence.md">Native Docker API vs Joyent Triton API</a></p></li>
-<li><p><a href="https://www.joyent.com/blog/container-service-preview">https://www.joyent.com/blog/container-service-preview</a></p></li>
-<li><p><a href="https://www.joyent.com/blog/docker-bake-off-aws-vs-joyent">https://www.joyent.com/blog/docker-bake-off-aws-vs-joyent</a></p></li>
-<li><p><a href="https://github.com/joyent/sdc-docker">https://github.com/joyent/sdc-docker</a></p></li>
-<li><p><a href="https://github.com/joyent/sdc-docker/blob/master/docs/divergence.md">https://github.com/joyent/sdc-docker/blob/master/docs/divergence.md</a></p></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Running a Walrus-backed Sync Gateway on AWS]]></title>
-    <link href="http://tleyden.github.io/blog/2015/01/23/running-a-walrus-backed-sync-gateway-on-aws/"/>
-    <updated>2015-01-23T09:30:00+00:00</updated>
-    <id>http://tleyden.github.io/blog/2015/01/23/running-a-walrus-backed-sync-gateway-on-aws</id>
-    <content type="html"><![CDATA[<p>Follow the steps below to create a Sync Gateway instance running under AWS with the following architecture:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/sync_gw_walrus_aws.png" alt="architecture diagram" /></p>
-
-<p>It will be using the <a href="https://github.com/couchbaselabs/walrus">Walrus</a> in-memory database, and so it is only useful for light testing.  Walrus does have the abiity to snapshot its memory contents to a file, so your data can persist across restarts.</p>
-
-<p><strong>Warning: don&rsquo;t run this in production!</strong>  If you want something that is closer to production ready, check out <a href="http://tleyden.github.io/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws/">Running a Sync Gateway Cluster Under CoreOS on AWS</a> instead.</p>
-
-<h2>Launch EC2 instance</h2>
-
-<p>Go to the <a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#cstack=sn%7ECouchbase-CoreOS%7Cturl%7Ehttp://tleyden-misc.s3.amazonaws.com/couchbase-coreos/sync_gateway.template">Cloudformation Wizard</a></p>
-
-<p>Recommended values:</p>
-
-<ul>
-<li><strong>ClusterSize</strong>: 1 node</li>
-<li><strong>Discovery URL</strong>:  as it says, you need to grab a new token from <a href="https://discovery.etcd.io/new">https://discovery.etcd.io/new</a> and paste it in the box.</li>
-<li><strong>KeyPair</strong>: the name of the AWS keypair you want to use.</li>
-</ul>
-
-
-<p>For the keypair that you use, your local ssh client will need to have the private key side of that keypair.</p>
-
-<h3>Wait until instances are up</h3>
-
-<p>Hit the &ldquo;reload&rdquo; button until it goes to the CREATE_COMPLETE state.</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/cloud-formation-create-complete.png" alt="screenshot" /></p>
-
-<h2>Find ip of instance</h2>
-
-<p>Go to the AWS console under the &ldquo;EC2 instances&rdquo; section and find the public ip of one of your newly launched CoreOS instances.</p>
-
-<p>Choose any one of them (it doesn&rsquo;t matter which), and look for the <strong>Public IP</strong>.  Copy that value onto your clipboard.</p>
-
-<h3>SSH into instance</h3>
-
-<p>ssh into it as the <strong>core</strong> user with the cert provided in the previous step:</p>
-
-<p><code>
-$ ssh -A core@ec2-54-83-80-161.compute-1.amazonaws.com
-</code></p>
-
-<h2>Create a volume directory</h2>
-
-<p>After you ssh into your instance, create a volume directory so that the data persists across different container instances.</p>
-
-<p><code>
-$ sudo mkdir -p /opt/sync_gateway/data
-$ sudo chown -R core:core /opt/sync_gateway/data
-</code></p>
-
-<h2>Launch Sync Gateway</h2>
-
-<p><code>
-$ SYNC_GW_CONFIG=https://gist.githubusercontent.com/tleyden/368f01218baf4e760267/raw/a65be036bc3855d5ab4e73b849f4caa1dc7d390f/config.json
-$ sudo docker run -d --name sync_gw --net=host -v /opt/sync_gateway/data:/opt/sync_gateway/data tleyden5iwx/sync-gateway-coreos sync-gw-start -c master -g $SYNC_GW_CONFIG
-</code></p>
-
-<p>You should see the following output:</p>
-
-<p><code>
-Unable to find image 'tleyden5iwx/sync-gateway-coreos' locally
-Pulling repository tleyden5iwx/sync-gateway-coreos
-daa0c81d9745: Download complete
-......
-Status: Downloaded newer image for tleyden5iwx/sync-gateway-coreos:latest
-d22035060882a2071c3e0a556ae5db5041f84e3004d67fb11355b6d8a7bf40b8
-$
-</code></p>
-
-<p>Congratulations!  You now have a Sync Gateway running.</p>
-
-<p>It might feel underwhelming, because nothing appears to be happening, but sync gateway is actually running in the background.  To verify that, run:</p>
-
-<p><code>
-$ sudo docker ps
-CONTAINER ID        IMAGE                                    COMMAND                CREATED              STATUS              PORTS               NAMES
-d22035060882        tleyden5iwx/sync-gateway-coreos:latest   "sync-gw-start -c ma   About a minute ago   Up About a minute                       sync_gw
-</code></p>
-
-<h2>View logs</h2>
-
-<p><code>
-$ CONTAINER_ID=$(sudo docker ps | grep -iv container | awk '{ print $1 }')
-$ sudo docker logs --follow ${CONTAINER_ID}
-</code></p>
-
-<h2>Verify Sync Gateway</h2>
-
-<p>Assuming your public ip is <code>54.81.228.221</code>, paste <code>http://54.81.228.221:4984</code> into your web browser and you should see:</p>
-
-<p>```
-{</p>
-
-<pre><code>"couchdb":"Welcome",
-"vendor":{
-    "name":"Couchbase Sync Gateway",
-    "version":1
-},
-"version":"Couchbase Sync Gateway/master(6356065)"
-</code></pre>
-
-<p>}
-```</p>
-
-<p>To make sure the database was configured correctly, change the url to <code>http://54.81.228.221:4984/db</code>, and you should see:</p>
-
-<p>```
-{</p>
-
-<pre><code>"db_name":"db",
-.. etc ..
-</code></pre>
-
-<p>}
-```</p>
-
-<h2>Try out document API via curl</h2>
-
-<p><strong>Create a new document</strong></p>
-
-<p><code>
-$ curl -H 'Content-Type: application/json' -X POST -d '{"hello":"sync gateway"}' http://54.81.228.221:4984/db/
-</code></p>
-
-<p>This will return the following JSON:</p>
-
-<p>```
-{</p>
-
-<pre><code>"id":"f1c8c5f8de22a09544b97fcc20fce316",
-"ok":true,
-"rev":"1-016b8855d6faf2d703a8b35a44cd4a40"
-</code></pre>
-
-<p>}
-```</p>
-
-<p><strong>View the document</strong></p>
-
-<p>Using the doc id returned above:</p>
-
-<p><code>
-$ curl http://54.81.228.221:4984/db/f1c8c5f8de22a09544b97fcc20fce316
-</code></p>
-
-<p>You should see:</p>
-
-<p>```
-{</p>
-
-<pre><code>"_id":"f1c8c5f8de22a09544b97fcc20fce316",
-"_rev":"1-016b8855d6faf2d703a8b35a44cd4a40",
-"hello":"sync gateway"
-</code></pre>
-
-<p>}
-```</p>
-
-<p>Check out the <a href="http://developer.couchbase.com/mobile/develop/references/sync-gateway/rest-api/index.html">Sync Gateway REST API docs</a> for full documentation on the available REST calls you can make.</p>
-
-<h2>Restart Sync Gateway with new config</h2>
-
-<p>If you need to change your sync gateway config, follow the instructions below.</p>
-
-<p><strong>Stop and remove existing container</strong></p>
-
-<p>Find the container id via <code>sudo docker ps</code> as shown above, and run this command with your own container id:</p>
-
-<p><code>
-$ CONTAINER_ID=$(sudo docker ps | grep -iv container | awk '{ print $1 }')
-$ sudo docker stop ${CONTAINER_ID} &amp;&amp; sudo docker rm ${CONTAINER_ID}
-</code></p>
-
-<p><strong>Update sync gateway config</strong></p>
-
-<p>You can take this <a href="https://gist.githubusercontent.com/tleyden/368f01218baf4e760267/raw/a65be036bc3855d5ab4e73b849f4caa1dc7d390f/config.json">sample config</a> and customize it to your needs, and then upload it somewhere on the web.</p>
-
-<p>Make sure you keep the <code>server</code> field as <code>"walrus:data"</code>, since that tells Sync Gateway to use walrus and to store the data in the <code>/opt/sync_gateway/data</code> directory.</p>
-
-<p><strong>Start container with new config</strong></p>
-
-<p><code>
-$ SYNC_GW_CONFIG=https://yourserver.com/yourconfig.json
-$ sudo docker run --name sync_gw --net=host -v /opt/sync_gateway/data:/opt/sync_gateway/data tleyden5iwx/sync-gateway-coreos sync-gw-start -c master -g $SYNC_GW_CONFIG
-</code></p>
-
-<p>After it starts up, your sync gateway will be running with the new config.</p>
-
-<h2>Next step: try out the GrocerySync app</h2>
-
-<p>Choose the GrocerySync app for your platform:</p>
-
-<ul>
-<li><a href="https://github.com/couchbaselabs/GrocerySync-Android">GrocerySync-Android</a></li>
-<li><a href="https://github.com/couchbaselabs/Grocery-Sync-iOS">GrocerySync-iOS</a></li>
-<li><a href="https://github.com/couchbase/couchbase-lite-net/tree/master/samples">GrocerySync-DotNet</a></li>
-</ul>
-
-
-<p>and point the sync url at your server instead of the default.  Now should be able to sync data through your own Sync Gateway.</p>
-
-<p>If you are on Phonegap, check our <a href="http://developer.couchbase.com/mobile/develop/samples/samples/index.html">sample apps</a> listing which has a link to the TodoLite-Phonegap app.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Running a CBFS cluster on CoreOS]]></title>
-    <link href="http://tleyden.github.io/blog/2014/11/14/running-cbfs/"/>
-    <updated>2014-11-14T06:43:00+00:00</updated>
-    <id>http://tleyden.github.io/blog/2014/11/14/running-cbfs</id>
-    <content type="html"><![CDATA[<p>This will walk you through getting a cbfs cluster up and running.</p>
-
-<h2>What is CBFS?</h2>
-
-<p>cbfs is a distributed filesystem on top of Couchbase Server, not unlike Mongo&rsquo;s GridFS or Riak&rsquo;s CS.</p>
-
-<p>Here&rsquo;s a typical deployment architecture:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/cbfs-overview.png" alt="cbfs overview" /></p>
-
-<p>Although not shown, all cbfs daemons can communicate with all Couchbase Server instances.</p>
-
-<p>It is not required to run cbfs on the same machine as Couchbase Server, but it <em>is</em> meant to be run in the same data center as Couchbase Server.</p>
-
-<p>If you want a deeper understanding of how cbfs works, check the <a href="http://labs.couchbase.com/cbfs/">cbfs presentation</a> or this <a href="http://dustin.sallings.org/2012/09/27/cbfs.html">blog post</a>.</p>
-
-<h2>Kick off a Couchbase Cluster</h2>
-
-<p>cbfs depends on having a Couchbase cluster running.</p>
-
-<p>Follow all of the steps in <a href="http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/">Running Couchbase Cluster Under CoreOS on AWS</a> to kick off a 3 node Couchbase cluster.</p>
-
-<h2>Add security groups</h2>
-
-<p>A few ports will need to be opened up for cbfs.</p>
-
-<p>Go to the AWS console and edit the Couchbase-CoreOS-CoreOSSecurityGroup-xxxx security group and add the following rules:</p>
-
-<p>```
-Type             Protocol  Port Range Source</p>
-
-<hr />
-
-<p>Custom TCP Rule  TCP       8484       Custom IP: sg-6e5a0d04 (copy and paste from port 4001 rule)
-Custom TCP Rule  TCP       8423       Custom IP: sg-6e5a0d04
-```</p>
-
-<p>At this point your security group should look like this:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/security_group_cbfs.png" alt="security group" /></p>
-
-<h1>Create a new bucket for cbfs</h1>
-
-<p><strong>Open Couchbase Server Admin UI</strong></p>
-
-<p>In the AWS EC2 console, find the public IP of one of the instances (it doesn&rsquo;t matter which)</p>
-
-<p>In your browser, go to <code>http://&lt;public_ip&gt;:8091/</code></p>
-
-<p><strong>Create Bucket</strong></p>
-
-<p>Go to Data Buckets / Create New Bucket</p>
-
-<p>Enter <strong>cbfs</strong> for the name of the bucket.</p>
-
-<p>Leave all other settings as default.</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/cbfs_create_bucket.png" alt="create bucket" /></p>
-
-<h2>ssh in</h2>
-
-<p>In the AWS EC2 console, find the public IP of one of the instances (it doesn&rsquo;t matter which)</p>
-
-<p>ssh into one of the machines:</p>
-
-<p><code>
-$ ssh -A core@&lt;public_ip&gt;
-</code></p>
-
-<h2>Run cbfs</h2>
-
-<p><strong>Create a volume dir</strong></p>
-
-<p>Since the fileystem of a docker container is not meant for high throughput io, a volume should be used for cbfs.</p>
-
-<p>Create a directory on the host OS (i.e., on the Core OS instance)</p>
-
-<p><code>
-$ sudo mkdir -p /var/lib/cbfs/data
-$ sudo chown -R core:core /var/lib/cbfs
-</code></p>
-
-<p>This will be mounted by the docker container in the next step.</p>
-
-<p><strong>Generate fleet unit files</strong></p>
-
-<p><code>
-$ wget https://gist.githubusercontent.com/tleyden/d70161c3827cb8b788a8/raw/8f6c81f0095b0007565e9b205e90afb132552060/cbfs_node.service.template
-$ for i in `seq 1 3`; do cp cbfs_node.service.template cbfs_node.$i.service; done
-</code></p>
-
-<p><strong>Start cbfs on all cluster nodes</strong></p>
-
-<p><code>
-$ fleetctl start cbfs_node.*.service
-</code></p>
-
-<p>Run <code>fleetctl list-units</code> to list the  units running in your cluster.  You should have the following:</p>
-
-<p><code>
-$ fleetctl list-units
-UNIT                                            MACHINE                         ACTIVE  SUB
-cbfs_node.1.service                             6ecff20c.../10.51.177.81        active  running
-cbfs_node.2.service                             b8eb6653.../10.79.155.153       active  running
-cbfs_node.3.service                             02d48afd.../10.186.172.24       active  running
-couchbase_bootstrap_node.service                02d48afd.../10.186.172.24       active  running
-couchbase_bootstrap_node_announce.service       02d48afd.../10.186.172.24       active  running
-couchbase_node.1.service                        6ecff20c.../10.51.177.81        active  running
-couchbase_node.2.service                        b8eb6653.../10.79.155.153       active  running
-</code></p>
-
-<p><strong>View cbfs output</strong></p>
-
-<p><code>
-$ fleetctl journal cbfs_node.1.service
-2014/11/14 23:18:58 Connecting to couchbase bucket cbfs at http://10.51.177.81:8091/
-2014/11/14 23:18:58 Error checking view version: MCResponse status=KEY_ENOENT, opcode=GET, opaque=0, msg: Not found
-2014/11/14 23:18:58 Installing new version of views (old version=0)
-2014/11/14 23:18:58 Listening to web requests on :8484 as server 10.51.177.81
-2014/11/14 23:18:58 Error removing 10.51.177.81's task list: MCResponse status=KEY_ENOENT, opcode=DELETE, opaque=0, msg: Not found
-2014/11/14 23:19:05 Error updating space used: Expected 1 result, got []
-</code></p>
-
-<h2>Run cbfs client</h2>
-
-<p>Run a bash shell in a docker container that has <code>cbfsclient</code> pre-installed:</p>
-
-<p><code>
-$ sudo docker run -ti --net=host tleyden5iwx/cbfs /bin/bash
-</code></p>
-
-<p><strong>Upload a file</strong></p>
-
-<p>From within the docker container launched in the previous step:</p>
-
-<p>```</p>
-
-<h1>echo &ldquo;foo&rdquo; > foo</h1>
-
-<h1>ip=$(hostname -i | tr -d &lsquo; &rsquo;)</h1>
-
-<h1>cbfsclient <a href="http://$ip:8484/">http://$ip:8484/</a> upload foo /foo</h1>
-
-<p>```</p>
-
-<p>There should be no errors.  If you run <code>fleetctl journal cbfs_node.1.service</code> again on the CoreOS instance, you should see log messages like:</p>
-
-<p><code>
-2014/11/14 21:51:43 Recorded myself as an owner of e242ed3bffccdf271b7fbaf34ed72d089537b42f: result=success
-</code></p>
-
-<p><strong>List directory</strong></p>
-
-<p>```</p>
-
-<h1>cbfsclient <a href="http://$ip:8484/">http://$ip:8484/</a> ls /</h1>
-
-<p>foo
-```</p>
-
-<p>It should list the foo file we uploaded earlier.</p>
-
-<p>Congratulations!  You now have cbfs up and running.</p>
-
-<h2>References</h2>
-
-<ul>
-<li><a href="http://dustin.sallings.org/2012/09/27/cbfs.html">cbfs &ndash; a couchbase large object store</a></li>
-<li><a href="http://labs.couchbase.com/cbfs/">cbfs presentation</a></li>
-<li><a href="http://cbfs-ext.hq.couchbase.com/dist/">cbfs binary downloads</a></li>
-<li><a href="http://github.com/couchbaselabs/cbfs">cbfs github repo</a></li>
-<li><a href="https://github.com/couchbaselabs/cbfs/issues/132">cbfs question</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Running Couchbase Cluster Under CoreOS on AWS]]></title>
-    <link href="http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/"/>
-    <updated>2014-11-01T12:16:00+00:00</updated>
-    <id>http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws</id>
-    <content type="html"><![CDATA[<p>The content in this blog post has <strong>moved</strong>.</p>
-
-<p>Please go <a href="https://github.com/couchbaselabs/couchbase-server-coreos">HERE</a> to view the updated content.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Running couchbase cluster under docker]]></title>
-    <link href="http://tleyden.github.io/blog/2013/11/14/running-couchbase-cluster-under-docker/"/>
-    <updated>2013-11-14T15:45:00+00:00</updated>
-    <id>http://tleyden.github.io/blog/2013/11/14/running-couchbase-cluster-under-docker</id>
-    <content type="html"><![CDATA[<p><strong>This blog post is pretty out of date, you should check out <a href="http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/">Running Couchbase Cluster Under CoreOS on AWS</a> instead</strong></p>
-
-<p>This tutorial will show you how to run a cluster of Couchbase Servers, where each node is running inside of a docker image.</p>
-
-<p><img src="http://cl.ly/image/2G0h381N3o42/docker%20couchbase%20cluster.png" alt="Diagram" /></p>
-
-<p>This probably looks like <em>a lot</em> of layers, and you might be wondering if this will make your system crawl &mdash; but bear in mind that the Docker virtualization model is very lightweight, and so basically everything under CoreOS has very little resource overhead.</p>
-
-<h2>Install Docker and dependencies</h2>
-
-<p>If you are on OSX and don&rsquo;t have Docker installed, check out <a href="http://tleyden.github.io/blog/2013/11/12/docker-on-osx/">Install Docker on OSX</a> before proceeding.</p>
-
-<h2>Edit vagrant file to add port mappings</h2>
-
-<p>In order to access all the Couchbase Server nodes from the host, <em>which doesn&rsquo;t currently work</em>, you would need to add the following entries to your Vagrantfile:</p>
-
-<p><code>
-config.vm.network "forwarded_port", guest: 8091, host: 8091
-config.vm.network "forwarded_port", guest: 8092, host: 8092
-config.vm.network "forwarded_port", guest: 11210, host: 11210
-</code></p>
-
-<p>As mentioned, accessing all of the Couchbase Server nodes from the host does not currently work.  However, I think at least some of these entries are needed, so to be on the safe side just add all of them.</p>
-
-<h2>Start CoreOS and ssh in</h2>
-
-<p>Execute the following commands in the directory where you have your CoreOS Vagrantfile.  In my case, I have it under <code>~/Tools/coreos-vagrant</code> and it contains a Vagrantfile, a README.md file, and a few others.</p>
-
-<p>Start CoreOS</p>
-
-<p><code>
-$ vagrant up
-</code></p>
-
-<p>SSH into CoreOS</p>
-
-<p><code>
-$ vagrant ssh
-</code></p>
-
-<h2>Start docker image for a single node</h2>
-
-<p>Here&rsquo;s how to fire up the first docker image</p>
-
-<p><code>
-docker run -i -t -d -p 11210:11210 -p 8091:7081 -p 8092:8092 dustin/couchbase:latest
+/opt/couchbase-sync-gateway/bin/sync_gateway -interface=0.0.0.0:4984 -url=http://localhost:8091 -bucket=sync_gateway -dbname=sync_gateway
 </code>
-and you should see:</p>
+* You should see output like this:</p>
 
 <p><code>
-Unable to find image 'dustin/couchbase:latest' (tag: latest) locally
-Pulling repository dustin/couchbase
-9e0279ab340d: Download complete
+2015-11-03T19:37:05.384Z ==== Couchbase Sync Gateway/1.1.0(28;86f028c) ====
+2015-11-03T19:37:05.384Z Opening db /sync_gateway as bucket "sync_gateway", pool "default", server &lt;http://localhost:8091&gt;
+2015-11-03T19:37:05.384Z Opening Couchbase database sync_gateway on &lt;http://localhost:8091&gt;
+2015/11/03 19:37:05  Trying with selected node 0
+2015/11/03 19:37:05  Trying with selected node 0
+2015-11-03T19:37:05.536Z Using default sync function 'channel(doc.channels)' for database "sync_gateway"
+2015-11-03T19:37:05.536Z     Reset guest user to config
+2015-11-03T19:37:05.536Z Starting profile server on
+2015-11-03T19:37:05.536Z Starting admin server on 127.0.0.1:4985
+2015-11-03T19:37:05.550Z Starting server on localhost:4984 ...
+</code></p>
+
+<h2>Verify via curl</h2>
+
+<p>From your workstation:</p>
+
+<p><code>
+$ curl http://&lt;instance public ip&gt;:4984/sync_gateway/
+</code></p>
+
+<p>You should get a response like:</p>
+
+<p><code>
+{"committed_update_seq":1,"compact_running":false,"db_name":"sync_gateway","disk_format_version":0,"instance_start_time":1446579479331843,"purge_seq":0,"update_seq":1}
+</code></p>
+
+<h2>Customize configuration</h2>
+
+<p>For more advanced Sync Gateway configuration, you will want to create a JSON config file on the EC2 instance itself and pass that to Sync Gateway when you launch it, or host your config JSON on the internet somewhere and pass Sync Gateway the URL to the file.</p>
+
+<h2>View Couchbase Server UI</h2>
+
+<p>In order to login to the Couchbase Server UI, go to <instance public ip>:8091 and use:</p>
+
+<ul>
+<li><strong>Username:</strong> Administrator</li>
+<li><strong>Password:</strong> <code>&lt;aws instance id, eg: i-8a9f8335&gt;</code></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Running Couchbase Sync Gateway on Google Compute Engine]]></title>
+    <link href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-sync-gateway-on-gce/"/>
+    <updated>2014-06-22T19:10:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2014/06/22/running-couchbase-sync-gateway-on-gce</id>
+    <content type="html"><![CDATA[<p>First, a quick refresh of what Couchbase Sync Gateway actually <em>is</em>.</p>
+
+<p>So here&rsquo;s a birds-eye-view of the <a href="http://developer.couchbase.com/mobile">Couchbase Mobile</a> architecture:</p>
+
+<p><img src="https://camo.githubusercontent.com/c1aa705fde3eb12245c06730d850c23e5a84ad8d/687474703a2f2f746c657964656e2d6d6973632e73332e616d617a6f6e6177732e636f6d2f636f756368626173652d6c6974652f636f756368626173652d6c6974652d6172636869746563747572652e706e67" alt="diagram" /></p>
+
+<p>Sync Gateway allows Couchbase Lite mobile apps to sync data between each other and the Couchbase Server running on the backend.</p>
+
+<p>This blog post will walk you through how to run Sync Gateway in a Docker container on Google Compute Engine.</p>
+
+<h2>Create GCE instance and ssh in</h2>
+
+<p>Follow the instructions on <a href="http://docs.docker.com/installation/google/">Running Docker on Google Compute Engine</a>.</p>
+
+<p>At this point you should be ssh&rsquo;d into your GCE instance</p>
+
+<h2>Create a configuration JSON</h2>
+
+<p>Here&rsquo;s a sample <a href="https://gist.github.com/tleyden/d97d985eb1e0725e858e">example JSON configuration</a> for Sync Gateway which uses <a href="https://github.com/couchbaselabs/walrus">walrus</a> as it&rsquo;s backing store, rather than Couchbase Server.  Later we will swap in Couchbase Server as a backing store.</p>
+
+<h2>Run Sync Gateway docker container</h2>
+
+<p><code>
+gce:~$ sudo docker run -d -name sg -p 4984:4984 -p 4985:4985 tleyden5iwx/couchbase-sync-gateway sync_gateway "https://gist.githubusercontent.com/tleyden/d97d985eb1e0725e858e/raw"
+</code></p>
+
+<p>This will return a container id, eg <code>8ffb83fd1f</code>.</p>
+
+<p>Check the logs to make sure there are no serious errors in the logs:</p>
+
+<p><code>
+gce:~$ sudo docker logs 8ffb83fd1f
+</code></p>
+
+<p>You should see something along the lines of:</p>
+
+<p><code>
+02:23:58.905587 Enabling logging: [REST]
+02:23:58.905818 ==== Couchbase Sync Gateway/1.00 (unofficial) ====
+02:23:58.905863 Opening db /sync_gateway as bucket "sync_gateway", pool "default", server &lt;walrus:/opt/sync_gateway/data&gt;
+02:23:58.905964 Opening Walrus database sync_gateway on &lt;walrus:/opt/sync_gateway/data&gt;
+02:23:58.909659 Starting admin server on :4985
+02:23:58.913260 Starting server on :4984 ...
+</code></p>
+
+<h2>Expose API port 4984 via Firewall rule</h2>
+
+<p>On your workstation with the <code>gcloud</code> tool installed, run:</p>
+
+<p><code>
+$ gcloud compute firewalls create sg-4984 --allow tcp:4984
+</code></p>
+
+<h2>Verify that it&rsquo;s running</h2>
+
+<h3>Find out external ip address of instance</h3>
+
+<p>On your workstation with the <code>gcloud</code> tool installed, run:</p>
+
+<p><code>
+$ gcloud compute instances list
+name     status  zone          machineType internalIP   externalIP
+couchbse RUNNING us-central1-a f1-micro    10.240.74.44 142.222.178.49
+</code>
+Your external ip is listed under the externalIP column, eg <code>142.222.178.49</code> in this example.</p>
+
+<h3>Run curl request</h3>
+
+<p>On your workstation, replace the ip below with your own ip, and run:</p>
+
+<p><code>
+$ curl http://142.222.178.49:4984
+</code></p>
+
+<p>You should get a response like:</p>
+
+<p><code>
+{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/1.00 (unofficial)"}
+</code></p>
+
+<h2>Re-run it with Couchbase Server backing store</h2>
+
+<p><em>OK, so we&rsquo;ve gotten it working with walrus.  But have you looked at the walrus website lately?  One <a href="https://camo.githubusercontent.com/1bd1955b96628260b27320f099aeac0585229c2f/687474703a2f2f7777772e69686173616275636b65742e636f6d2f696d616765732f77616c7275735f6275636b65742e6a7067">click</a> and it&rsquo;s pretty obvious that this thing is not exactly meant to be a scalable production ready backend, nor has it ever claimed to be.</em></p>
+
+<p>Let&rsquo;s dump walrus for now and use Couchbase Server from this point onwards.</p>
+
+<h3>Start Couchbase Server</h3>
+
+<p>Before moving on, you will need to go through the instructions in <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">Running Couchbase Server on GCE</a> in order to get a Couchbase Server instance running.</p>
+
+<h3>Stop Sync Gateway</h3>
+
+<p>Run this command to stop the Sync Gateway container and completely remove it, using the same container id you used earlier:</p>
+
+<p><code>
+gce:~$ sudo docker stop 8ffb83fd1f &amp;&amp; sudo docker rm 8ffb83fd1f
+</code></p>
+
+<h3>Update config</h3>
+
+<p>Copy this <a href="https://gist.github.com/tleyden/c9e6396f7183c0f3e28c">example JSON configuration</a>, which expects a Couchbase Server running on <code>http://172.17.0.2:8091</code>, and update it with the ip address of the docker instance where your Couchbase Server is running.  To get this ip address, follow the <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">these instructions</a> in the &ldquo;Find the Docker instance IP address&rdquo; section.</p>
+
+<p>Now upload your modified JSON configuration to a website that is publicly accessible, for example in a <a href="http://gist.github.com">Github Gist</a>.</p>
+
+<h3>Run Sync Gateway</h3>
+
+<p>Run Sync Gateway again, this time using Couchbase Server as a backing store this time.</p>
+
+<p>Replace <code>http://yourserver.co/yourconfig.json</code> with the URL where you&rsquo;ve uploaded your JSON configuration from the previous step.</p>
+
+<p><code>
+gce:~$ sudo docker run -d -name sg -p 4984:4984 -p 4985:4985 tleyden5iwx/couchbase-sync-gateway sync_gateway "http://yourserver.co/yourconfig.json"
+</code></p>
+
+<p>This will return a container id, eg <code>9ffb83fd1f</code>.  Again, check the logs to make sure there are no serious errors in the logs:</p>
+
+<p><code>
+gce:~$ sudo docker logs 9ffb83fd1f
+</code></p>
+
+<p>You should see something along the lines of:</p>
+
+<p><code>
 ...
-845987ce946b
+02:23:58.913260 Starting server on :4984 ...
 </code></p>
 
-<p>Find the name of the docker instance by running <code>$ docker ps</code></p>
+<p>with no errors.</p>
+
+<h2>Verify it&rsquo;s working</h2>
+
+<h3>Save a document via curl</h3>
+
+<p>The easiest way to add a document is via the Admin port, since there is no authentication to worry about.  Since we haven&rsquo;t added a firewall rule to expose the admin port (4985), (and doing so without tight filtering would be a major security hole), the following command to create a new document must be run on the GCE instance.</p>
 
 <p><code>
-core@localhost ~ $ docker ps
-CONTAINER ID        IMAGE                     COMMAND                CREATED              STATUS              PORTS                                                                      NAMES
-845987ce946b        dustin/couchbase:latest   /bin/sh -c /usr/loca   About a minute ago   Up About a minute   0.0.0.0:11210-&gt;11210/tcp, 0.0.0.0:8091-&gt;7081/tcp, 0.0.0.0:8092-&gt;8092/tcp   purple_kangaroo
+gce:~$ curl -H "Content-Type: application/json" -d '{"such":"json"}' http://localhost:4985/sync_gateway/
 </code></p>
 
-<p>In this case it&rsquo;s <em>purple_kangaroo</em>.</p>
-
-<p>Now take a look at the logs for that docker instance:</p>
+<p>If it worked, you should see a response like:</p>
 
 <p><code>
-core@localhost ~ $ docker logs purple_kangaroo
-/opt/couchbase/etc/couchbase_init.d: 45: ulimit: error setting limit (Operation not permitted)
-/opt/couchbase/etc/couchbase_init.d: 47: ulimit: error setting limit (Operation not permitted)
- * Started couchbase-server
-Starting cluster
-SUCCESS: init 127.0.0.1
-SUCCESS: bucket-create
+{"id":"3cbfbe43e76b7eb5c4c221a78b2cf0cc","ok":true,"rev":"1-cd809becc169215072fd567eebd8b8de"}
 </code></p>
 
-<p>If you only want to run one Couchbase Server node, you are pretty much done and you can skip to the section below to login to the Couchbase Server admin</p>
+<h3>View document on Couchbase Server</h3>
 
-<p>If you want to run a cluster of Couchbase Server nodes, read on.</p>
+<p>To verify the document was successfully stored on Couchbase Server, you&rsquo;ll need to login to the Couchbase Server Web Admin UI.  There are instructions <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">here</a> on how to do that.</p>
 
-<h2>Start docker images for other nodes</h2>
+<p>From there, navigate to Data Buckets / default / Documents, and you should see:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_server_docs.png" alt="screenshot" /></p>
+
+<p>Click on the document that has a UUID (eg, &ldquo;29f8d7..&rdquo; in the screenshot above), and you should see the document&rsquo;s contents:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_server_doc.png" alt="screenshot" /></p>
+
+<p>The <code>_sync</code> metadata field is used internally by the Sync Gateway and can be ignored.  The actual doc contents are towards the end of the file: <code>.."such":"json"}</code></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Running a Couchbase Cluster on Google Compute Engine]]></title>
+    <link href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/"/>
+    <updated>2014-06-22T15:52:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce</id>
+    <content type="html"><![CDATA[<p>The easiest way to run Couchbase cluster on Google Compute Engine is to run all of the nodes in Docker containers.</p>
+
+<h2>Create GCE instance and ssh in</h2>
+
+<p>Follow the instructions on <a href="http://docs.docker.com/installation/google/">Running Docker on Google Compute Engine</a>.</p>
+
+<p>At this point you should be ssh&rsquo;d into your GCE instance</p>
+
+<h2>Increase max number of files limit</h2>
+
+<p>If you try to run Couchbase Server at this point, you will get <a href="http://stackoverflow.com/questions/24356815/running-couchbase-under-gce-docker-and-getting-error-about-max-number-of-files">this warning</a> because the file ulimit is too low.</p>
+
+<p>Here&rsquo;s how to fix it:</p>
+
+<ul>
+<li>Edit <code>/etc/default/docker</code></li>
+<li>Add a new line in the file with:</li>
+</ul>
+
 
 <p><code>
-$ docker run -i -t -d -link purple_kangaroo:alpha dustin/couchbase:latest
+ulimit -n 262144
+</code>
+* Restart the GCE instance in the GCE web admin by going to Compute Engine / VM Instances / <your instance> and hitting the &ldquo;Reboot&rdquo; button.</p>
+
+<p><em>Note: in theory it should be possible to just restart docker via <code>sudo service docker restart</code>, however this didn&rsquo;t work for me when I tried it, so I ended up restarting the whole GCE instance</em></p>
+
+<h2>Start Couchbase Server</h2>
+
+<p><code>
+gce:~$ sudo docker run -d -name cb1 -p 8091:8091 -p 8092:8092 -p 11210:11210 -p 11211:11211 ncolomer/couchbase
 </code></p>
 
-<p>This will start another node that is linked to the initial node, and will be in the same cluster.  There is some Weird Magic behind the scenes that makes that all work.</p>
+<h2>Verify it&rsquo;s running</h2>
 
-<h1>Go to Couchbase Server admin</h1>
+<h3>Find the Docker instance IP address</h3>
 
-<p>Open <a href="http://localhost:8091/">http://localhost:8091/</a> in your browser, and you should see a login screen, where the default credentials are Administrator/password.</p>
+<p>On the GCE instance, run:</p>
 
-<p>After you login, you should see the Admin UI with three nodes in your cluster:</p>
+<p><code>
+gce:~$ sudo docker inspect -format '{{ .NetworkSettings.IPAddress }}' cb1
+</code></p>
 
-<p><img src="http://cl.ly/image/2K3i1v2w3H0E/Screen%20Shot%202013-11-14%20at%204.47.18%20PM.png" alt="Screenshot" /></p>
+<p>This should return an ip address, eg <code>172.17.0.2</code></p>
+
+<p>Set it as an environment variable so we can use it in later steps:</p>
+
+<p><code>
+gce:~$ export CB1_IP=172.17.0.2
+</code></p>
+
+<h3>Run couchbase-cli</h3>
+
+<p>To verify that couchbase server is running, use the <code>couchbase-cli</code> to ask for server info:</p>
+
+<p><code>
+gce:~$ sudo docker run -rm ncolomer/couchbase couchbase-cli server-info -c ${CB1_IP} -u Administrator -p couchbase
+</code></p>
+
+<p>If everything is working correctly, this should return a json response, eg:</p>
+
+<p>```
+{
+  &ldquo;availableStorage&rdquo;: {</p>
+
+<pre><code>"hdd": [
+  {
+    "path": "/",
+</code></pre>
+
+<p>  &hellip;
+}
+```</p>
+
+<h2>Start a 3-node cluster</h2>
+
+<p>On the GCE instance, run the following commands:</p>
+
+<p><code>
+gce:~$ sudo docker run -d -name cb2 ncolomer/couchbase couchbase-start ${CB1_IP}
+gce:~$ sudo docker run -d -name cb3 ncolomer/couchbase couchbase-start ${CB1_IP}
+</code></p>
+
+<p>The nodes <code>cb2</code> and <code>cb3</code> will automatically join the cluster via <code>cb1</code>. The cluster needs a rebalance to be fully operational. To do so, run the following command:</p>
+
+<p><code>
+gce:~$ sudo docker run -rm ncolomer/couchbase couchbase-cli rebalance -c ${CB1_IP} -u Administrator -p couchbase
+</code></p>
+
+<h2>Connect to admin web UI</h2>
+
+<p>The easiest way to manage a Couchbase Server cluster is via the built-in Web Admin UI.</p>
+
+<p>In order to access it, we will need to make some network changes.</p>
+
+<h3>Expose port 8091 via firewall rule for your machine</h3>
+
+<p>Go to <a href="http://www.whatismyip.com/">whatismyip.com</a> or equivalent, and find your ip address.  Eg, <code>67.161.66.7</code></p>
+
+<p>On your workstation with the <code>gcloud</code> tool installed, run:</p>
+
+<p><code>
+$ gcloud compute firewalls create cb-8091 --allow tcp:8091 --source-ranges 67.161.66.7/32
+</code></p>
+
+<p>This will allow your machine, as well any other machine behind your internet router, to connect to the Couchbase Web UI running on GCE.</p>
+
+<p>To increase security, you should use ipv6 and pass your workstation&rsquo;s ipv6 hostname in the <code>--source-ranges</code> parameter.</p>
+
+<h3>Find out external ip address of instance</h3>
+
+<p>On your workstation with the <code>gcloud</code> tool installed, run:</p>
+
+<p><code>
+$ gcloud compute instances list
+name     status  zone          machineType internalIP   externalIP
+couchbse RUNNING us-central1-a f1-micro    10.240.74.44 142.222.178.49
+</code>
+Your external ip is listed under the externalIP column, eg <code>142.222.178.49</code> in this example.</p>
+
+<h3>Go to admin in web browser</h3>
+
+<p>Go to <a href="http://142.222.178.49:8091">http://142.222.178.49:8091</a> into your web browser (replacing w/ your external ip)</p>
+
+<p>You should see a screen like this:</p>
+
+<p><img src="http://cl.ly/image/2m1i01192U0G/Screen%20Shot%202014-06-22%20at%207.07.36%20PM.png" alt="screenshot" /></p>
+
+<p>Login with the default credentials:</p>
+
+<ul>
+<li>Username: Administrator</li>
+<li>Password: couchbase</li>
+</ul>
+
+
+<p>And you should see the Web Admin dashboard:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_dashboard.png" alt="screenshot" /></p>
+
+<h2>Increase default bucket size</h2>
+
+<p>The default bucket size is set to a very low number by default (128M in my case).  To increase this:</p>
+
+<ul>
+<li>In Web Admin UI, go to Data Buckets / Default / Edit</li>
+<li>Change Per Node RAM Quota to 1024 MB</li>
+<li>Hit &ldquo;Save&rdquo; button</li>
+</ul>
+
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://registry.hub.docker.com/u/ncolomer/couchbase/">ncolomer/couchbase Docker instructions</a></li>
+</ul>
+
 ]]></content>
   </entry>
   

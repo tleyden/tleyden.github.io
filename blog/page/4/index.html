@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="A channel describes a transport of sorts. You can send a thing down that transport. When using a chan chan, the thing you want to send down the &hellip;">
+  <meta name="description" content="I just tried to update to Android Studio 0.4, however was stung by Issue 61573: Gradle duplicate file exception when package apk file with jar &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,6 +78,63 @@
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2013/12/19/how-to-downgrade-android-studio/">How to Downgrade Android Studio</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-12-19T17:01:00-08:00" pubdate data-updated="true">Dec 19<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I just tried to update to Android Studio 0.4, however was stung by <a href="https://code.google.com/p/android/issues/detail?id=61573#c14">Issue 61573: Gradle duplicate file exception when package apk file with jar dependencies that contains resources.</a></p>
+
+<p>The good news is that it&rsquo;s very easy to downgrade!  Thank Google, because there is nothing more annoying than not being able to back out of an upgrade gone bad.</p>
+
+<p>Here&rsquo;s how I did it on OSX Mavericks:</p>
+
+<ul>
+<li><p>Download 0.3.7 from <a href="http://tools.android.com/download/studio/canary/0-3-7">http://tools.android.com/download/studio/canary/0-3-7</a></p></li>
+<li><p>Unzip it by double clicking it.</p></li>
+<li><p>In a command line, run the following:</p></li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ mv /Applications/Android\ Studio.app /tmp/
+</span><span class='line'>$ mv ~/Downloads/Android\ Studio.app /Applications/
+</span><span class='line'>$ cp -R /tmp/Android\ Studio.app/sdk /Applications/Android\ Studio.app/</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The last step is necessary because the dowloaded 0.3.7 Android Studio will not have an SDK directory.  (Note: at this point you can also use <code>mv</code> instead of <code>cp</code> if you don&rsquo;t want to use the extra disk space)</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2013/11/23/understanding-chan-chans-in-go/">Understanding Chan Chan&#8217;s in Go</a></h1>
     
     
@@ -94,7 +151,7 @@
   
 
 
-<time datetime="2013-11-23T07:58:00+00:00" pubdate data-updated="true">Nov 23<span>rd</span>, 2013</time>
+<time datetime="2013-11-23T07:58:00-08:00" pubdate data-updated="true">Nov 23<span>rd</span>, 2013</time>
         
       </p>
     
@@ -257,7 +314,7 @@
   
 
 
-<time datetime="2013-11-22T15:51:00+00:00" pubdate data-updated="true">Nov 22<span>nd</span>, 2013</time>
+<time datetime="2013-11-22T15:51:00-08:00" pubdate data-updated="true">Nov 22<span>nd</span>, 2013</time>
         
       </p>
     
@@ -380,7 +437,7 @@
   
 
 
-<time datetime="2013-11-21T08:16:00+00:00" pubdate data-updated="true">Nov 21<span>st</span>, 2013</time>
+<time datetime="2013-11-21T08:16:00-08:00" pubdate data-updated="true">Nov 21<span>st</span>, 2013</time>
         
       </p>
     
@@ -714,7 +771,7 @@
   
 
 
-<time datetime="2013-11-20T14:35:00+00:00" pubdate data-updated="true">Nov 20<span>th</span>, 2013</time>
+<time datetime="2013-11-20T14:35:00-08:00" pubdate data-updated="true">Nov 20<span>th</span>, 2013</time>
         
       </p>
     
@@ -810,7 +867,7 @@
   
 
 
-<time datetime="2013-11-14T15:45:00+00:00" pubdate data-updated="true">Nov 14<span>th</span>, 2013</time>
+<time datetime="2013-11-14T15:45:00-08:00" pubdate data-updated="true">Nov 14<span>th</span>, 2013</time>
         
       </p>
     
@@ -958,7 +1015,7 @@
   
 
 
-<time datetime="2013-11-14T11:24:00+00:00" pubdate data-updated="true">Nov 14<span>th</span>, 2013</time>
+<time datetime="2013-11-14T11:24:00-08:00" pubdate data-updated="true">Nov 14<span>th</span>, 2013</time>
         
       </p>
     
@@ -1053,7 +1110,7 @@
   
 
 
-<time datetime="2013-11-12T21:01:00+00:00" pubdate data-updated="true">Nov 12<span>th</span>, 2013</time>
+<time datetime="2013-11-12T21:01:00-08:00" pubdate data-updated="true">Nov 12<span>th</span>, 2013</time>
         
       </p>
     
@@ -1156,7 +1213,7 @@
   
 
 
-<time datetime="2013-09-20T11:11:00+00:00" pubdate data-updated="true">Sep 20<span>th</span>, 2013</time>
+<time datetime="2013-09-20T11:11:00-07:00" pubdate data-updated="true">Sep 20<span>th</span>, 2013</time>
         
       </p>
     
@@ -1402,7 +1459,7 @@
   
 
 
-<time datetime="2013-09-19T13:42:00+00:00" pubdate data-updated="true">Sep 19<span>th</span>, 2013</time>
+<time datetime="2013-09-19T13:42:00-07:00" pubdate data-updated="true">Sep 19<span>th</span>, 2013</time>
         
       </p>
     
@@ -1500,112 +1557,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/09/07/octopress-setup-part-ii/">Octopress Setup Part II</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-09-07T11:46:00+00:00" pubdate data-updated="true">Sep 7<span>th</span>, 2013</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h1>Showing my tweets on my blog</h1>
-
-<p>What&rsquo;s a blog without a few tweets to spice it up?</p>
-
-<p>Here&rsquo;s my first attempt, which didn&rsquo;t work.  I modified my _config.yml file to have:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>twitter_user: tleydn</span></code></pre></td></tr></table></div></figure>
-
-
-<p>After some desperate googling, I came across <a href="http://blog.jmac.org/blog/2013/03/30/putting-twitter-back-into-octopress/">this blog post</a> which seems to suggest that twitter support has been remoted from Octopress, with instructions on how to embed a twitter widget.</p>
-
-<p>Here&rsquo;s a few tricks to make it looks slightly less butt-ugly:</p>
-
-<ul>
-<li>In the twitter widget generator, choose the &ldquo;dark&rdquo; theme.</li>
-<li>Modify the widget class to have dimensions <code>width="300" height="350"</code> so that it is slightly less distracting when viewing content.</li>
-</ul>
-
-
-<h1>Adding an &ldquo;About&rdquo; page</h1>
-
-<p>I followed the instructions on <a href="http://octopress.org/docs/theme/template/">Theming &amp; Customization</a>, which added an About section on the top of the sidebar on the right side.</p>
-
-<h1>Enabling Disqus comments</h1>
-
-<p>This was trivial:</p>
-
-<ul>
-<li>Go to <a href="http://disqus.com">Disqus</a> and register a new site</li>
-<li>Add the &ldquo;shortname&rdquo; to the _config.yml file</li>
-</ul>
-
-
-<h1>Let&rsquo;s pimp this thing &mdash; Adding an image in the header</h1>
-
-<ul>
-<li>Open octopress/source/_includes/custom/header.html</li>
-<li>Find an image graphic and save it into octopress/source/images (in my case, it was /images/rabbit_hole_graphic.png)</li>
-<li>Add a new html table element, and in one cell add a link to the image with the appropriate size dimensions.</li>
-</ul>
-
-
-<p>Example header.html file:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>  &lt;table&gt;&lt;tr&gt;&lt;td&gt;
-</span><span class='line'>  &lt;h1&gt;&lt;a href="{{ root_url }}/"&gt;{{ site.title }}&lt;/a&gt;&lt;/h1&gt;
-</span><span class='line'>  {% if site.subtitle %}
-</span><span class='line'>    &lt;h2&gt;{{ site.subtitle }}&lt;/h2&gt;
-</span><span class='line'>  {% endif %}
-</span><span class='line'>  &lt;/td&gt;&lt;td&gt;&nbsp;&nbsp;
-</span><span class='line'>  {% img left /images/rabbit_hole_graphic.png 295 105 'image' 'images' %}
-</span><span class='line'>  &lt;/td&gt;&lt;/tr&gt;
-</span><span class='line'>  &lt;/table&gt;
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>I&rsquo;m not a hipster, it&rsquo;s just that my HTML coding skillz are stuck at about 1995.  If you are seething with the overwhelming urge to tell me how to do this in 2013 CSS style, go right ahead and add a comment.</p>
-
-<p>Anyway, the end justifies the means:</p>
-
-<p><img class="center" src="/images/ScreenShotBlogIIa.png" title="image" alt="images"></p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/5/">&larr; Older</a>
@@ -1634,6 +1585,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2015/11/03/running-the-sync-gateway-amazon-ami/">Running the Sync Gateway Amazon AMI</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/05/05/running-couchbase-server-under-docker-on-joyent/">Running Couchbase Server Under Joyent Triton</a>
       </li>
     
@@ -1647,10 +1602,6 @@
     
       <li class="post">
         <a href="/blog/2015/03/21/nginx-proxy-for-sync-gateway-using-confd/">Nginx Proxy for Sync Gateway Using Confd</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2015/03/03/graphing-time-series-data-with-seriesly-and-cubism/">Graphing Time Series Data With Seriesly and Cubism</a>
       </li>
     
   </ul>
