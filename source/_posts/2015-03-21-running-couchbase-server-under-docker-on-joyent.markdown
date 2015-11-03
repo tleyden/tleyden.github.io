@@ -24,6 +24,16 @@ Let's give it a spin with a "hello world" container, and then with a cluster of 
 
 You will also need to add your SSH key to your account.
 
+## Install or Upgrade Docker
+
+If you don't have Docker installed already and you are on Ubuntu, run:
+
+```
+$ curl -sSL https://get.docker.com/ | sh
+```
+
+See [install Docker on Ubuntu](https://docs.docker.com/installation/ubuntulinux/) for more details.
+
 ## Upgrade Docker client to 1.4.1 or later
 
 Check your version of Docker with:
