@@ -29,31 +29,52 @@ After you're done, you'll end up with a host OS with the following properties:
 
 ## Install Docker 
 
-Once your host OS is setup, you're ready to install docker.  (version 1.3 at the time of this writing)
-
-Setup the key for the docker repo:
+Once your host OS is setup, you're ready to install docker.  The latest instructions are avaialable on the [Docker website](https://docs.docker.com/v1.8/installation/ubuntulinux/).  Currently for Ubuntu 14.0.4 you need to:
 
 ```
-$ sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9
+$ sudo apt-get update && sudo apt-get install curl
+$ curl -sSL https://get.docker.com/ | sh
 ```
 
-Add the docker repo:
+As the post-install message suggests, enable docker for non-root users:
 
 ```
-$ sudo sh -c "echo deb https://get.docker.com/ubuntu docker main > /etc/apt/sources.list.d/docker.list"
-$ sudo apt-get update
+$ sudo usermod -aG docker ubuntu
 ```
 
-Install docker:
+Verify correct install via:
 
 ```
-$ sudo apt-get install lxc-docker
+$ sudo docker run hello-world
 ```
 
+## Mount GPU devices
 
-## Run GPU enabled docker image
+**Mount**
 
-**Find all your nvidia devices**
+```
+$ cd /usr/local/cuda/samples/1_Utilities/deviceQuery
+$ ./deviceQuery
+```
+
+You should see something [like this](https://gist.github.com/tleyden/58ab2eedebc9529edb76):
+
+```
+./deviceQuery Starting...
+
+ CUDA Device Query (Runtime API) version (CUDART static linking)
+
+Detected 1 CUDA Capable device(s)
+
+Device 0: "GRID K520"
+  CUDA Driver Version / Runtime Version          6.5 / 6.5
+  ... snip ...
+
+deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 6.5, CUDA Runtime Version = 6.5, NumDevs = 1, Device0 = GRID K520
+Result = PASS
+```
+
+**Verify: Find all your nvidia devices**
 
 ```
 $ ls -la /dev | grep nvidia
@@ -67,9 +88,11 @@ crw-rw-rw-  1 root root    195, 255 Oct 25 19:37 nvidiactl
 crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm
 ```
 
+## Run GPU enabled docker image
+
 **Launch docker container**
 
-The easiest way to get going is to use this pre-built [docker image](https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/) that has the cuda drivers pre-installed.  Or if you want to build your own, [the accompanying dockerfile](https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/dockerfile/) will be a useful starting point.
+The easiest way to get going is to use this pre-built [docker image](https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/) that has the cuda drivers pre-installed.  Or if you want to build your own, [the accompanying dockerfile](https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/dockerfile/) will be a useful starting point.  (Update: Nvidia has released [an official docker container](https://github.com/nvidia/nvidia-docker) which you should probably use, but I haven't tried yet as of the time of this writing.  Please post a comment if you get this to work)
 
 You'll have to adapt the `DOCKER_NVIDIA_DEVICES` variable below to match your particular devices.
 
