@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: cuda | Seven Story Rabbit Hole]]></title>
+  <link href="http://tleyden.github.io/blog/categories/cuda/atom.xml" rel="self"/>
+  <link href="http://tleyden.github.io/"/>
+  <updated>2015-11-23T11:55:46-08:00</updated>
+  <id>http://tleyden.github.io/</id>
+  <author>
+    <name><![CDATA[Traun Leyden]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[CUDA 7.5 on AWS GPU Instance Running Ubuntu 14.04]]></title>
+    <link href="http://tleyden.github.io/blog/2015/11/22/cuda-7-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/"/>
+    <updated>2015-11-22T17:32:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2015/11/22/cuda-7-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04</id>
+    <content type="html"><![CDATA[<h2>Launch stock Ubuntu AMI</h2>
+
+<ul>
+<li>Launch <strong>ami-d05e75b8</strong></li>
+<li>Choose a GPU instance type: <strong>g2.2xlarge</strong> or <strong>g2.8xlarge</strong></li>
+<li>Increase the size of the storage (this depends on what else you plan to install, I&rsquo;d suggest at least 20 GB)</li>
+</ul>
+
+
+<h2>SSH in</h2>
+
+<p><code>
+$ ssh ubuntu@&lt;instance ip&gt;
+</code></p>
+
+<h2>Install CUDA repository</h2>
+
+<p><code>
+$ wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1404/x86_64/cuda-repo-ubuntu1404_7.5-18_amd64.deb
+$ sudo dpkg -i cuda-repo-ubuntu1404_7.5-18_amd64.deb
+</code></p>
+
+<h2>Update APT</h2>
+
+<p>```
+$ sudo apt-get update
+$ sudo apt-get upgrade -y
+$ sudo apt-get install -y opencl-headers build-essential protobuf-compiler \</p>
+
+<pre><code>libprotoc-dev libboost-all-dev libleveldb-dev hdf5-tools libhdf5-serial-dev \
+libopencv-core-dev  libopencv-highgui-dev libsnappy-dev libsnappy1 \
+libatlas-base-dev cmake libstdc++6-4.8-dbg libgoogle-glog0 libgoogle-glog-dev \
+libgflags-dev liblmdb-dev git python-pip gfortran
+</code></pre>
+
+<p>```</p>
+
+<p>You will get a dialog regarding the <code>menu.lst</code> file, just choose the default option it gives you.</p>
+
+<p>Do some cleanup:</p>
+
+<p><code>
+$ sudo apt-get clean
+</code></p>
+
+<h2>DRM module workaround</h2>
+
+<p><code>
+$ sudo apt-get install -y linux-image-extra-`uname -r` linux-headers-`uname -r` linux-image-`uname -r`
+</code></p>
+
+<p>For an explanation of why this is needed, see <a href="https://github.com/BVLC/caffe/wiki/Caffe-on-EC2-Ubuntu-14.04-Cuda-7">Caffe on EC2 Ubuntu 14.04 Cuda 7</a> and search for this command.</p>
+
+<h2>Install CUDA</h2>
+
+<p><code>
+$ sudo apt-get install -y cuda
+$ sudo apt-get clean
+</code></p>
+
+<h2>Verify CUDA</h2>
+
+<p><code>
+$ nvidia-smi
+</code></p>
+
+<p>You should see:</p>
+
+<p>```
++&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;+
+| NVIDIA-SMI 352.63     Driver Version: 352.63         |
+|&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;+&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;+&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|===============================+======================+======================|
+|   0  GRID K520           Off  | 0000:00:03.0     Off |                  N/A |
+| N/A   30C    P0    36W / 125W |     11MiB /  4095MiB |      0%      Default |
++&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;+&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;+&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;+</p>
+
+<p>+&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;+
+| Processes:                                                       GPU Memory |
+|  GPU       PID  Type  Process name                               Usage      |
+|=============================================================================|
+|  No running processes found                                                 |
++&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;+
+```</p>
+
+<p>Make sure kernel module and devices are present:</p>
+
+<p><code>
+ubuntu@ip-10-33-135-228:~$ lsmod | grep -i nvidia
+nvidia               8642880  0
+drm                   303102  1 nvidia
+ubuntu@ip-10-33-135-228:~$ ls -alh /dev | grep -i nvidia
+crw-rw-rw-  1 root root    195,   0 Nov 23 01:59 nvidia0
+crw-rw-rw-  1 root root    195, 255 Nov 23 01:58 nvidiactl
+</code></p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://github.com/BVLC/caffe/wiki/Caffe-on-EC2-Ubuntu-14.04-Cuda-7">Caffe on EC2 Ubuntu 14.04 Cuda 7</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>

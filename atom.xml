@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-11-03T12:15:17-08:00</updated>
+  <updated>2015-11-23T11:55:46-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,334 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[CUDA 7.5 on AWS GPU Instance Running Ubuntu 14.04]]></title>
+    <link href="http://tleyden.github.io/blog/2015/11/22/cuda-7-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/"/>
+    <updated>2015-11-22T17:32:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2015/11/22/cuda-7-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04</id>
+    <content type="html"><![CDATA[<h2>Launch stock Ubuntu AMI</h2>
+
+<ul>
+<li>Launch <strong>ami-d05e75b8</strong></li>
+<li>Choose a GPU instance type: <strong>g2.2xlarge</strong> or <strong>g2.8xlarge</strong></li>
+<li>Increase the size of the storage (this depends on what else you plan to install, I&rsquo;d suggest at least 20 GB)</li>
+</ul>
+
+
+<h2>SSH in</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ssh ubuntu@&lt;instance ip&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Install CUDA repository</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1404/x86_64/cuda-repo-ubuntu1404_7.5-18_amd64.deb
+</span><span class='line'>$ sudo dpkg -i cuda-repo-ubuntu1404_7.5-18_amd64.deb</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Update APT</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get update
+</span><span class='line'>$ sudo apt-get upgrade -y
+</span><span class='line'>$ sudo apt-get install -y opencl-headers build-essential protobuf-compiler \
+</span><span class='line'>    libprotoc-dev libboost-all-dev libleveldb-dev hdf5-tools libhdf5-serial-dev \
+</span><span class='line'>    libopencv-core-dev  libopencv-highgui-dev libsnappy-dev libsnappy1 \
+</span><span class='line'>    libatlas-base-dev cmake libstdc++6-4.8-dbg libgoogle-glog0 libgoogle-glog-dev \
+</span><span class='line'>    libgflags-dev liblmdb-dev git python-pip gfortran</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You will get a dialog regarding the <code>menu.lst</code> file, just choose the default option it gives you.</p>
+
+<p>Do some cleanup:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get clean</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>DRM module workaround</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get install -y linux-image-extra-`uname -r` linux-headers-`uname -r` linux-image-`uname -r`</span></code></pre></td></tr></table></div></figure>
+
+
+<p>For an explanation of why this is needed, see <a href="https://github.com/BVLC/caffe/wiki/Caffe-on-EC2-Ubuntu-14.04-Cuda-7">Caffe on EC2 Ubuntu 14.04 Cuda 7</a> and search for this command.</p>
+
+<h2>Install CUDA</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get install -y cuda
+</span><span class='line'>$ sudo apt-get clean</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Verify CUDA</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ nvidia-smi</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>+------------------------------------------------------+
+</span><span class='line'>| NVIDIA-SMI 352.63     Driver Version: 352.63         |
+</span><span class='line'>|-------------------------------+----------------------+----------------------+
+</span><span class='line'>| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+</span><span class='line'>| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+</span><span class='line'>|===============================+======================+======================|
+</span><span class='line'>|   0  GRID K520           Off  | 0000:00:03.0     Off |                  N/A |
+</span><span class='line'>| N/A   30C    P0    36W / 125W |     11MiB /  4095MiB |      0%      Default |
+</span><span class='line'>+-------------------------------+----------------------+----------------------+
+</span><span class='line'>
+</span><span class='line'>+-----------------------------------------------------------------------------+
+</span><span class='line'>| Processes:                                                       GPU Memory |
+</span><span class='line'>|  GPU       PID  Type  Process name                               Usage      |
+</span><span class='line'>|=============================================================================|
+</span><span class='line'>|  No running processes found                                                 |
+</span><span class='line'>+-----------------------------------------------------------------------------+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Make sure kernel module and devices are present:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ubuntu@ip-10-33-135-228:~$ lsmod | grep -i nvidia
+</span><span class='line'>nvidia               8642880  0
+</span><span class='line'>drm                   303102  1 nvidia
+</span><span class='line'>ubuntu@ip-10-33-135-228:~$ ls -alh /dev | grep -i nvidia
+</span><span class='line'>crw-rw-rw-  1 root root    195,   0 Nov 23 01:59 nvidia0
+</span><span class='line'>crw-rw-rw-  1 root root    195, 255 Nov 23 01:58 nvidiactl</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://github.com/BVLC/caffe/wiki/Caffe-on-EC2-Ubuntu-14.04-Cuda-7">Caffe on EC2 Ubuntu 14.04 Cuda 7</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Running Neural Style on an AWS GPU instance]]></title>
+    <link href="http://tleyden.github.io/blog/2015/11/22/running-neural-style-on-an-aws-gpu-instance/"/>
+    <updated>2015-11-22T11:02:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2015/11/22/running-neural-style-on-an-aws-gpu-instance</id>
+    <content type="html"><![CDATA[<p>These instructions will walk you through getting <a href="https://github.com/jcjohnson/neural-style">neural-style</a> up and running on an AWS GPU instance.</p>
+
+<h2>Spin up AWS instance</h2>
+
+<p>Follow <a href="http://tleyden.github.io/blog/2015-11-22-cuda-7-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04">these steps</a> to launch an AMI with CUDA pre-installed.</p>
+
+<h2>SSH into AWS instance</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ssh ubuntu@&lt;instance-ip&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Install Docker</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get update && sudo apt-get install curl
+</span><span class='line'>$ curl -sSL https://get.docker.com/ | sh</span></code></pre></td></tr></table></div></figure>
+
+
+<p>As the post-install message suggests, enable docker for non-root users:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo usermod -aG docker ubuntu</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Verify correct install via:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run hello-world</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Mount GPU devices</h2>
+
+<p><strong>Mount</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /usr/local/cuda/samples/1_Utilities/deviceQuery
+</span><span class='line'>$ sudo make
+</span><span class='line'>$ sudo ./deviceQuery</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see something <a href="https://gist.github.com/tleyden/58ab2eedebc9529edb76">like this</a>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>./deviceQuery Starting...
+</span><span class='line'>
+</span><span class='line'> CUDA Device Query (Runtime API) version (CUDART static linking)
+</span><span class='line'>
+</span><span class='line'>Detected 1 CUDA Capable device(s)
+</span><span class='line'>
+</span><span class='line'>Device 0: "GRID K520"
+</span><span class='line'>  CUDA Driver Version / Runtime Version          6.5 / 6.5
+</span><span class='line'>  ... snip ...
+</span><span class='line'>
+</span><span class='line'>deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 6.5, CUDA Runtime Version = 6.5, NumDevs = 1, Device0 = GRID K520
+</span><span class='line'>Result = PASS</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Verify: Find all your nvidia devices</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ls -la /dev | grep nvidia</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>crw-rw-rw-  1 root root    195,   0 Oct 25 19:37 nvidia0
+</span><span class='line'>crw-rw-rw-  1 root root    195, 255 Oct 25 19:37 nvidiactl
+</span><span class='line'>crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Start Docker container</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ export DOCKER_NVIDIA_DEVICES="--device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm"
+</span><span class='line'>$ sudo docker run -ti $DOCKER_NVIDIA_DEVICES kaixhin/cuda-torch /bin/bash</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Verify nvidia devices mounted inside container</strong></p>
+
+<p>From within the container:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ls -la /dev | grep nvidia</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>crw-rw-rw-  1 root root    195,   0 Oct 25 19:37 nvidia0
+</span><span class='line'>crw-rw-rw-  1 root root    195, 255 Oct 25 19:37 nvidiactl
+</span><span class='line'>crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Install neural-style</h2>
+
+<p>The following should be run <strong>inside</strong> the docker container:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ apt-get install -y wget libpng-dev libprotobuf-dev protobuf-compiler
+</span><span class='line'>$ git clone --depth 1 https://github.com/jcjohnson/neural-style.git
+</span><span class='line'>$ /root/torch/install/bin/luarocks install loadcaffe</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Download models</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd neural-style
+</span><span class='line'>$ sh models/download_models.sh</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Install CUDA backend for Torch</h2>
+
+<p>NOTE: Not sure this step is actually needed, tried it out of desperation to get around the error mentioned below.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ luarocks install cutorch
+</span><span class='line'>$ luarocks install cunn</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Verify</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ th -e "require 'cutorch'; require 'cunn'; print(cutorch)"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Expected output:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>  getStream : function: 0x40d40ce8
+</span><span class='line'>  getDeviceCount : function: 0x40d413d8
+</span><span class='line'>  ... etc
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>ERROR: this isn&rsquo;t working!</strong>  I&rsquo;ve posted a <a href="https://groups.google.com/d/msg/torch7/yCSNIzW590M/Af7CHXEdDQAJ">question</a> to the Torch Google Group.  For some reason</p>
+
+<h2>Run neural style</h2>
+
+<p>First, grab a few images to test with</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ mkdir images
+</span><span class='line'>$ wget https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/1280px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg -O images/vangogh.jpg
+</span><span class='line'>$ wget http://exp.cdn-hotels.com/hotels/1000000/10000/7500/7496/7496_42_z.jpg -O images/hotel_del_coronado.jpg</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Run it:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ th neural_style.lua -style_image images/vangogh.jpg -content_image images/hotel_del_coronado.jpg</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Running the Sync Gateway Amazon AMI]]></title>
@@ -2737,31 +3065,65 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
 
 <h2>Install Docker</h2>
 
-<p>Once your host OS is setup, you&rsquo;re ready to install docker.  (version 1.3 at the time of this writing)</p>
-
-<p>Setup the key for the docker repo:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Add the docker repo:</p>
+<p>Once your host OS is setup, you&rsquo;re ready to install docker.  The latest instructions are avaialable on the <a href="https://docs.docker.com/v1.8/installation/ubuntulinux/">Docker website</a>.  Currently for Ubuntu 14.0.4 you need to:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo sh -c "echo deb https://get.docker.com/ubuntu docker main &gt; /etc/apt/sources.list.d/docker.list"
-</span><span class='line'>$ sudo apt-get update</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get update && sudo apt-get install curl
+</span><span class='line'>$ curl -sSL https://get.docker.com/ | sh</span></code></pre></td></tr></table></div></figure>
 
 
-<p>Install docker:</p>
+<p>As the post-install message suggests, enable docker for non-root users:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get install lxc-docker</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo usermod -aG docker ubuntu</span></code></pre></td></tr></table></div></figure>
 
 
-<h2>Run GPU enabled docker image</h2>
+<p>Verify correct install via:</p>
 
-<p><strong>Find all your nvidia devices</strong></p>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run hello-world</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Mount GPU devices</h2>
+
+<p><strong>Mount</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /usr/local/cuda/samples/1_Utilities/deviceQuery
+</span><span class='line'>$ ./deviceQuery</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see something <a href="https://gist.github.com/tleyden/58ab2eedebc9529edb76">like this</a>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>./deviceQuery Starting...
+</span><span class='line'>
+</span><span class='line'> CUDA Device Query (Runtime API) version (CUDART static linking)
+</span><span class='line'>
+</span><span class='line'>Detected 1 CUDA Capable device(s)
+</span><span class='line'>
+</span><span class='line'>Device 0: "GRID K520"
+</span><span class='line'>  CUDA Driver Version / Runtime Version          6.5 / 6.5
+</span><span class='line'>  ... snip ...
+</span><span class='line'>
+</span><span class='line'>deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 6.5, CUDA Runtime Version = 6.5, NumDevs = 1, Device0 = GRID K520
+</span><span class='line'>Result = PASS</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Verify: Find all your nvidia devices</strong></p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ ls -la /dev | grep nvidia</span></code></pre></td></tr></table></div></figure>
@@ -2777,9 +3139,11 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
 </span><span class='line'>crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm</span></code></pre></td></tr></table></div></figure>
 
 
+<h2>Run GPU enabled docker image</h2>
+
 <p><strong>Launch docker container</strong></p>
 
-<p>The easiest way to get going is to use this pre-built <a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/">docker image</a> that has the cuda drivers pre-installed.  Or if you want to build your own, <a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/dockerfile/">the accompanying dockerfile</a> will be a useful starting point.</p>
+<p>The easiest way to get going is to use this pre-built <a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/">docker image</a> that has the cuda drivers pre-installed.  Or if you want to build your own, <a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/dockerfile/">the accompanying dockerfile</a> will be a useful starting point.  (Update: Nvidia has released <a href="https://github.com/nvidia/nvidia-docker">an official docker container</a> which you should probably use, but I haven&rsquo;t tried yet as of the time of this writing.  Please post a comment if you get this to work)</p>
 
 <p>You&rsquo;ll have to adapt the <code>DOCKER_NVIDIA_DEVICES</code> variable below to match your particular devices.</p>
 
@@ -3036,210 +3400,6 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
 <li><a href="http://askubuntu.com/questions/451221/ubuntu-14-04-install-nvidia-driver">http://askubuntu.com/questions/451221/ubuntu-14-04-install-nvidia-driver</a></li>
 </ul>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Debugging into Android source]]></title>
-    <link href="http://tleyden.github.io/blog/2014/09/10/debugging-into-android-source/"/>
-    <updated>2014-09-10T15:57:00-07:00</updated>
-    <id>http://tleyden.github.io/blog/2014/09/10/debugging-into-android-source</id>
-    <content type="html"><![CDATA[<p>Debugging into the core Android source code can be useful.  Here&rsquo;s how to do it in Android Studio 0.8.2.</p>
-
-<p>Starting out, if we hit a breakpoint where we have a sqlite database object:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/outside_db_breakpoint.png" alt="screenshot" /></p>
-
-<p>And if you step in, you get this, which isn&rsquo;t very useful:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/inside_db_breakpoint.png" alt="screenshot" /></p>
-
-<p>To fix that, go to Android SDK, find the API level you are using, and check the Sources for Android SDK box.</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/android_sdk.png" alt="screenshot" /></p>
-
-<p><strong>You must restart Android Studio at this point</strong></p>
-
-<p>Did you restart Android Studio?  Now re-run your app in the debugger, and when you try to step into the <code>database.execSQL()</code> method, you should see this:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/db_source_breakpoint.png" alt="screenshot" /></p>
-
-<p>It worked!  Now you can debug into any Android code.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Running Couchbase Sync Gateway on Google Compute Engine]]></title>
-    <link href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-sync-gateway-on-gce/"/>
-    <updated>2014-06-22T19:10:00-07:00</updated>
-    <id>http://tleyden.github.io/blog/2014/06/22/running-couchbase-sync-gateway-on-gce</id>
-    <content type="html"><![CDATA[<p>First, a quick refresh of what Couchbase Sync Gateway actually <em>is</em>.</p>
-
-<p>So here&rsquo;s a birds-eye-view of the <a href="http://developer.couchbase.com/mobile">Couchbase Mobile</a> architecture:</p>
-
-<p><img src="https://camo.githubusercontent.com/c1aa705fde3eb12245c06730d850c23e5a84ad8d/687474703a2f2f746c657964656e2d6d6973632e73332e616d617a6f6e6177732e636f6d2f636f756368626173652d6c6974652f636f756368626173652d6c6974652d6172636869746563747572652e706e67" alt="diagram" /></p>
-
-<p>Sync Gateway allows Couchbase Lite mobile apps to sync data between each other and the Couchbase Server running on the backend.</p>
-
-<p>This blog post will walk you through how to run Sync Gateway in a Docker container on Google Compute Engine.</p>
-
-<h2>Create GCE instance and ssh in</h2>
-
-<p>Follow the instructions on <a href="http://docs.docker.com/installation/google/">Running Docker on Google Compute Engine</a>.</p>
-
-<p>At this point you should be ssh&rsquo;d into your GCE instance</p>
-
-<h2>Create a configuration JSON</h2>
-
-<p>Here&rsquo;s a sample <a href="https://gist.github.com/tleyden/d97d985eb1e0725e858e">example JSON configuration</a> for Sync Gateway which uses <a href="https://github.com/couchbaselabs/walrus">walrus</a> as it&rsquo;s backing store, rather than Couchbase Server.  Later we will swap in Couchbase Server as a backing store.</p>
-
-<h2>Run Sync Gateway docker container</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -d -name sg -p 4984:4984 -p 4985:4985 tleyden5iwx/couchbase-sync-gateway sync_gateway "https://gist.githubusercontent.com/tleyden/d97d985eb1e0725e858e/raw"</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This will return a container id, eg <code>8ffb83fd1f</code>.</p>
-
-<p>Check the logs to make sure there are no serious errors in the logs:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker logs 8ffb83fd1f</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should see something along the lines of:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>02:23:58.905587 Enabling logging: [REST]
-</span><span class='line'>02:23:58.905818 ==== Couchbase Sync Gateway/1.00 (unofficial) ====
-</span><span class='line'>02:23:58.905863 Opening db /sync_gateway as bucket "sync_gateway", pool "default", server &lt;walrus:/opt/sync_gateway/data&gt;
-</span><span class='line'>02:23:58.905964 Opening Walrus database sync_gateway on &lt;walrus:/opt/sync_gateway/data&gt;
-</span><span class='line'>02:23:58.909659 Starting admin server on :4985
-</span><span class='line'>02:23:58.913260 Starting server on :4984 ...</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Expose API port 4984 via Firewall rule</h2>
-
-<p>On your workstation with the <code>gcloud</code> tool installed, run:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ gcloud compute firewalls create sg-4984 --allow tcp:4984</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Verify that it&rsquo;s running</h2>
-
-<h3>Find out external ip address of instance</h3>
-
-<p>On your workstation with the <code>gcloud</code> tool installed, run:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ gcloud compute instances list
-</span><span class='line'>name     status  zone          machineType internalIP   externalIP
-</span><span class='line'>couchbse RUNNING us-central1-a f1-micro    10.240.74.44 142.222.178.49</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Your external ip is listed under the externalIP column, eg <code>142.222.178.49</code> in this example.</p>
-
-<h3>Run curl request</h3>
-
-<p>On your workstation, replace the ip below with your own ip, and run:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl http://142.222.178.49:4984</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should get a response like:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/1.00 (unofficial)"}</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Re-run it with Couchbase Server backing store</h2>
-
-<p><em>OK, so we&rsquo;ve gotten it working with walrus.  But have you looked at the walrus website lately?  One <a href="https://camo.githubusercontent.com/1bd1955b96628260b27320f099aeac0585229c2f/687474703a2f2f7777772e69686173616275636b65742e636f6d2f696d616765732f77616c7275735f6275636b65742e6a7067">click</a> and it&rsquo;s pretty obvious that this thing is not exactly meant to be a scalable production ready backend, nor has it ever claimed to be.</em></p>
-
-<p>Let&rsquo;s dump walrus for now and use Couchbase Server from this point onwards.</p>
-
-<h3>Start Couchbase Server</h3>
-
-<p>Before moving on, you will need to go through the instructions in <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">Running Couchbase Server on GCE</a> in order to get a Couchbase Server instance running.</p>
-
-<h3>Stop Sync Gateway</h3>
-
-<p>Run this command to stop the Sync Gateway container and completely remove it, using the same container id you used earlier:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker stop 8ffb83fd1f && sudo docker rm 8ffb83fd1f</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Update config</h3>
-
-<p>Copy this <a href="https://gist.github.com/tleyden/c9e6396f7183c0f3e28c">example JSON configuration</a>, which expects a Couchbase Server running on <code>http://172.17.0.2:8091</code>, and update it with the ip address of the docker instance where your Couchbase Server is running.  To get this ip address, follow the <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">these instructions</a> in the &ldquo;Find the Docker instance IP address&rdquo; section.</p>
-
-<p>Now upload your modified JSON configuration to a website that is publicly accessible, for example in a <a href="http://gist.github.com">Github Gist</a>.</p>
-
-<h3>Run Sync Gateway</h3>
-
-<p>Run Sync Gateway again, this time using Couchbase Server as a backing store this time.</p>
-
-<p>Replace <code>http://yourserver.co/yourconfig.json</code> with the URL where you&rsquo;ve uploaded your JSON configuration from the previous step.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -d -name sg -p 4984:4984 -p 4985:4985 tleyden5iwx/couchbase-sync-gateway sync_gateway "http://yourserver.co/yourconfig.json"</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This will return a container id, eg <code>9ffb83fd1f</code>.  Again, check the logs to make sure there are no serious errors in the logs:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker logs 9ffb83fd1f</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should see something along the lines of:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>... 
-</span><span class='line'>02:23:58.913260 Starting server on :4984 ...</span></code></pre></td></tr></table></div></figure>
-
-
-<p>with no errors.</p>
-
-<h2>Verify it&rsquo;s working</h2>
-
-<h3>Save a document via curl</h3>
-
-<p>The easiest way to add a document is via the Admin port, since there is no authentication to worry about.  Since we haven&rsquo;t added a firewall rule to expose the admin port (4985), (and doing so without tight filtering would be a major security hole), the following command to create a new document must be run on the GCE instance.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ curl -H "Content-Type: application/json" -d '{"such":"json"}' http://localhost:4985/sync_gateway/</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If it worked, you should see a response like:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>{"id":"3cbfbe43e76b7eb5c4c221a78b2cf0cc","ok":true,"rev":"1-cd809becc169215072fd567eebd8b8de"}</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>View document on Couchbase Server</h3>
-
-<p>To verify the document was successfully stored on Couchbase Server, you&rsquo;ll need to login to the Couchbase Server Web Admin UI.  There are instructions <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">here</a> on how to do that.</p>
-
-<p>From there, navigate to Data Buckets / default / Documents, and you should see:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_server_docs.png" alt="screenshot" /></p>
-
-<p>Click on the document that has a UUID (eg, &ldquo;29f8d7..&rdquo; in the screenshot above), and you should see the document&rsquo;s contents:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_server_doc.png" alt="screenshot" /></p>
-
-<p>The <code>_sync</code> metadata field is used internally by the Sync Gateway and can be ignored.  The actual doc contents are towards the end of the file: <code>.."such":"json"}</code></p>
 ]]></content>
   </entry>
   

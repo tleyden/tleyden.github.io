@@ -124,31 +124,65 @@
 
 <h2>Install Docker</h2>
 
-<p>Once your host OS is setup, you&rsquo;re ready to install docker.  (version 1.3 at the time of this writing)</p>
-
-<p>Setup the key for the docker repo:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Add the docker repo:</p>
+<p>Once your host OS is setup, you&rsquo;re ready to install docker.  The latest instructions are avaialable on the <a href="https://docs.docker.com/v1.8/installation/ubuntulinux/">Docker website</a>.  Currently for Ubuntu 14.0.4 you need to:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo sh -c "echo deb https://get.docker.com/ubuntu docker main &gt; /etc/apt/sources.list.d/docker.list"
-</span><span class='line'>$ sudo apt-get update</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get update && sudo apt-get install curl
+</span><span class='line'>$ curl -sSL https://get.docker.com/ | sh</span></code></pre></td></tr></table></div></figure>
 
 
-<p>Install docker:</p>
+<p>As the post-install message suggests, enable docker for non-root users:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get install lxc-docker</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo usermod -aG docker ubuntu</span></code></pre></td></tr></table></div></figure>
 
 
-<h2>Run GPU enabled docker image</h2>
+<p>Verify correct install via:</p>
 
-<p><strong>Find all your nvidia devices</strong></p>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run hello-world</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Mount GPU devices</h2>
+
+<p><strong>Mount</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /usr/local/cuda/samples/1_Utilities/deviceQuery
+</span><span class='line'>$ ./deviceQuery</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see something <a href="https://gist.github.com/tleyden/58ab2eedebc9529edb76">like this</a>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>./deviceQuery Starting...
+</span><span class='line'>
+</span><span class='line'> CUDA Device Query (Runtime API) version (CUDART static linking)
+</span><span class='line'>
+</span><span class='line'>Detected 1 CUDA Capable device(s)
+</span><span class='line'>
+</span><span class='line'>Device 0: "GRID K520"
+</span><span class='line'>  CUDA Driver Version / Runtime Version          6.5 / 6.5
+</span><span class='line'>  ... snip ...
+</span><span class='line'>
+</span><span class='line'>deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 6.5, CUDA Runtime Version = 6.5, NumDevs = 1, Device0 = GRID K520
+</span><span class='line'>Result = PASS</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Verify: Find all your nvidia devices</strong></p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ ls -la /dev | grep nvidia</span></code></pre></td></tr></table></div></figure>
@@ -164,9 +198,11 @@
 </span><span class='line'>crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm</span></code></pre></td></tr></table></div></figure>
 
 
+<h2>Run GPU enabled docker image</h2>
+
 <p><strong>Launch docker container</strong></p>
 
-<p>The easiest way to get going is to use this pre-built <a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/">docker image</a> that has the cuda drivers pre-installed.  Or if you want to build your own, <a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/dockerfile/">the accompanying dockerfile</a> will be a useful starting point.</p>
+<p>The easiest way to get going is to use this pre-built <a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/">docker image</a> that has the cuda drivers pre-installed.  Or if you want to build your own, <a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/dockerfile/">the accompanying dockerfile</a> will be a useful starting point.  (Update: Nvidia has released <a href="https://github.com/nvidia/nvidia-docker">an official docker container</a> which you should probably use, but I haven&rsquo;t tried yet as of the time of this writing.  Please post a comment if you get this to work)</p>
 
 <p>You&rsquo;ll have to adapt the <code>DOCKER_NVIDIA_DEVICES</code> variable below to match your particular devices.</p>
 
@@ -294,6 +330,14 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2015/11/22/cuda-7-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">CUDA 7.5 on AWS GPU Instance Running Ubuntu 14.04</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/11/22/running-neural-style-on-an-aws-gpu-instance/">Running Neural Style on an AWS GPU Instance</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/11/03/running-the-sync-gateway-amazon-ami/">Running the Sync Gateway Amazon AMI</a>
       </li>
     
@@ -303,14 +347,6 @@
     
       <li class="post">
         <a href="/blog/2015/04/25/setting-up-octopress-under-docker/">Setting Up Octopress Under Docker</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io/">Test Coverage for Go With drone.io and coveralls.io</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2015/03/21/nginx-proxy-for-sync-gateway-using-confd/">Nginx Proxy for Sync Gateway Using Confd</a>
       </li>
     
   </ul>

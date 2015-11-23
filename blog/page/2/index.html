@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="This will walk you through getting a cbfs cluster up and running. What is CBFS? cbfs is a distributed filesystem on top of Couchbase Server, not &hellip;">
+  <meta name="description" content="This will walk you through the steps to install the TodoLite-Phonegap sample app that uses Couchbase Lite Android. After you&rsquo;re finished, you& &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +72,485 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/12/11/up-and-running-with-couchbase-lite-phonegap/">Up and Running With Couchbase Lite Phonegap Android on OSX</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-12-11T12:48:00-08:00" pubdate data-updated="true">Dec 11<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>This will walk you through the steps to install the TodoLite-Phonegap sample app that uses Couchbase Lite Android.  After you&rsquo;re finished, you&rsquo;ll end up with <a href="http://tleyden-misc.s3.amazonaws.com/blog_images/TodoLitePhonegap.png">this app</a>.</p>
+
+<h1>Install Homebrew</h1>
+
+<ul>
+<li>Install <a href="http://brew.sh/">homebrew</a></li>
+</ul>
+
+
+<h2>Install Android Studio</h2>
+
+<ul>
+<li><p>Install <a href="https://developer.android.com/sdk/index.html">Android Studio 1.0</a></p></li>
+<li><p>Setup an AVD + emulator &mdash; in my case I&rsquo;m using the <a href="https://www.genymotion.com/">Genymotion emulator</a>, with a Google Nexus 4 &ndash; 4.4.4 API 19</p></li>
+<li><p>At this point you should verify your setup by deploying <a href="https://github.com/couchbaselabs/ToDoLite-Android">TodoLite-Android</a> to your emulator</p></li>
+</ul>
+
+
+<h1>Install Phonegap</h1>
+
+<h2>Install Node.js</h2>
+
+<p>Phonegap is installed with the Node Package Manager (npm), so we need to get Node.js first.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>brew install node</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Install Phonegap</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo npm install -g phonegap</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see <a href="https://gist.github.com/tleyden/94bf77d084fa9a6cca0c">this output</a></p>
+
+<p>Check your version with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ phonegap -v
+</span><span class='line'>4.1.2-0.22.9</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Install Ant</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ brew install ant</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Check your Ant version with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ant -version
+</span><span class='line'>Apache Ant(TM) version 1.9.4 compiled on April 29 2014</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>Note: according to <a href="http://superuser.com/questions/610157/how-do-i-install-ant-on-os-x-mavericks">Stack Overflow</a> you may have to install XCode and the Command Line Tools for this to work</em></p>
+
+<h2>Create new Phonegap App</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ phonegap create todo-lite com.couchbase.TodoLite TodoLite
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see the following output:</p>
+
+<pre><code>Creating a new cordova project with name "TodoLite" and id "com.couchbase.TodoLite" at location "/Users/tleyden/Development/todo-lite"
+Using custom www assets from https://github.com/phonegap/phonegap-app-hello-world/archive/master.tar.gz
+Downloading com.phonegap.hello-world library for www...
+Download complete
+</code></pre>
+
+<p>cd into the newly created directory:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd todo-lite</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Add the Couchbase Lite plugin</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ phonegap local plugin add https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin.git</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see the following output:</p>
+
+<pre><code>[warning] The command `phonegap local &lt;command&gt;` has been DEPRECATED.
+[warning] The command has been delegated to `phonegap &lt;command&gt;`.
+[warning] The command `phonegap local &lt;command&gt;` will soon be removed.
+Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin.git" via git clone
+</code></pre>
+
+<h2>Add additional plugins required by TodoLite-Phonegap</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ phonegap local plugin add https://git-wip-us.apache.org/repos/asf/cordova-plugin-camera.git
+</span><span class='line'>$ phonegap local plugin add https://github.com/apache/cordova-plugin-inappbrowser.git 
+</span><span class='line'>$ phonegap local plugin add https://git-wip-us.apache.org/repos/asf/cordova-plugin-network-information.git</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Clone the example app source code</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ rm -rf www
+</span><span class='line'>$ git clone https://github.com/couchbaselabs/TodoLite-PhoneGap.git www</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>Verify ANDROID_HOME environment variable</h1>
+
+<p>If you don&rsquo;t already have it set, you will need to set your ANDROID_HOME environment variable:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ export ANDROID_HOME="/Applications/Android Studio.app/sdk"
+</span><span class='line'>$ export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Run app</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ phonegap run android</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see the following output:</p>
+
+<pre><code>[phonegap] executing 'cordova platform add android'...
+[phonegap] completed 'cordova platform add android'
+[phonegap] executing 'cordova run android'...
+[phonegap] completed 'cordova run android'
+</code></pre>
+
+<h2>Verify app</h2>
+
+<p>TodoLite-Phonegap should launch on the emulator and look like this:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/TodoLitePhonegap.png" alt="screenshot" /></p>
+
+<h2>Facebook login</h2>
+
+<p>Hit the happy face in the top right, and it will prompt you to login via Facebook.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/TodoLitePhoneGapFacebook.png" alt="Screenshot" /></p>
+
+<h2>View data</h2>
+
+<p>After logging in, it will sync any data for your user stored on the Couchbase Mobile <a href="https://github.com/couchbaselabs/TodoLite-PhoneGap/blob/aa8bc5a6b35ce8d49ec089ec79952f1a50e207a2/js/index.js#L30">demo cluster</a>.</p>
+
+<p>For example, if you&rsquo;ve previously used <a href="https://github.com/couchbaselabs/ToDoLite-iOS">TodoLite-iOS</a> or <a href="https://github.com/couchbaselabs/ToDoLite-Android">TodoLite-Android</a>, your data should appear here.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/TodoLitePhoneGapData.png" alt="screenshot" /></p>
+
+<h2>Test Sync via single device</h2>
+
+<ul>
+<li>Login with Facebook as described above</li>
+<li>Add a new Todo List</li>
+<li>Add an item to your Todo List</li>
+<li>Uninstall the app</li>
+<li>Re-install the app by running <code>phonegap run android</code> again</li>
+<li>Login with Facebook</li>
+<li>Your Todo List and item added above should now appear</li>
+</ul>
+
+
+<h2>Test Sync via 2 apps</h2>
+
+<ul>
+<li>Install <a href="https://github.com/couchbaselabs/ToDoLite-Android">TodoLite-Android</a></li>
+<li>Login with Facebook</li>
+<li>Add / edit / delete items on <a href="https://github.com/couchbaselabs/ToDoLite-Android">TodoLite-Android</a></li>
+<li>Verify the changes appear in TodoLite-Phonegap</li>
+</ul>
+
+
+<p><em>Note: you could also setup two emulators and run the apps separately</em></p>
+
+<h2>Appendix A: using a more recent build of the Phonegap Plugin</h2>
+
+<h2>Reset state</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd .. 
+</span><span class='line'>$ rm -rf todo-lite</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Create another phonegap app</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ phonegap create todo-lite com.couchbase.TodoLite TodoLite
+</span><span class='line'>$ cd todo-lite</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Download zip file</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ mkdir Couchbase-Lite-PhoneGap-Plugin && cd Couchbase-Lite-PhoneGap-Plugin
+</span><span class='line'>$ wget http://cbfs-ext.hq.couchbase.com/builds/Couchbase-Lite-PhoneGap-Plugin_1.0.4-41.zip
+</span><span class='line'>$ unzip Couchbase-Lite-PhoneGap-Plugin_1.0.4-41.zip</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Add local plugin</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ phonegap local plugin add Couchbase-Lite-PhoneGap-Plugin</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see output:</p>
+
+<p> [warning] The command <code>phonegap local &lt;command&gt;</code> has been DEPRECATED.
+ [warning] The command has been delegated to <code>phonegap &lt;command&gt;</code>.
+ [warning] The command <code>phonegap local &lt;command&gt;</code> will soon be removed.</p>
+
+<p>Now just follow the rest of the steps above ..</p>
+
+<h1>References</h1>
+
+<ul>
+<li><a href="http://developer.couchbase.com/mobile/get-started/get-started-mobile/phonegap/prepare/index.html">http://developer.couchbase.com/mobile/get-started/get-started-mobile/phonegap/prepare/index.html</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/12/02/getting-started-with-go-and-protocol-buffers/">Getting Started With Go and Protocol Buffers</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-12-02T06:32:00-08:00" pubdate data-updated="true">Dec 2<span>nd</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I found the <a href="https://github.com/golang/protobuf">official docs</a> on using Google Protocol Buffers from Go a bit confusing, and couldn&rsquo;t find any other clearly written blog posts on the subject, so I figured I&rsquo;d write my own.</p>
+
+<p>This will walk you through the following:</p>
+
+<ul>
+<li>Install golang/protobuf and required dependencies</li>
+<li>Generating Go wrappers for a test protocol buffer definition</li>
+<li>Using those Go wrappers to marshal and unmarshal an object</li>
+</ul>
+
+
+<h2>Install protoc binary</h2>
+
+<p>Since the protocol buffer compiler <code>protoc</code> is required later, we must install it.</p>
+
+<p><strong>Ubuntu 14.04</strong></p>
+
+<p>If you want to use an older version (v2.5), simply do:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ apt-get install protobuf-compiler</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Otherwise if you want the latest version (v2.6):</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ apt-get install build-essential
+</span><span class='line'>$ wget https://protobuf.googlecode.com/svn/rc/protobuf-2.6.0.tar.gz
+</span><span class='line'>$ tar xvfz protobuf-2.6.0.tar.gz
+</span><span class='line'>$ cd protobuf-2.6.0
+</span><span class='line'>$ ./configure && make install</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>OSX</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ brew install protobuf</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Install Go Protobuf library</h2>
+
+<p>This assumes you have Go 1.2+ or later already installed, and your <code>$GOPATH</code> variable set.</p>
+
+<p>In order to generate Go wrappers, we need to install the following:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go get -u -v github.com/golang/protobuf/proto
+</span><span class='line'>$ go get -u -v github.com/golang/protobuf/protoc-gen-go</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Download a test .proto file</h2>
+
+<p>In order to generate wrappers, we need a <code>.proto</code> file with object definitions.</p>
+
+<p>This one is a slightly modified version of the one from the <a href="https://github.com/golang/protobuf">official docs</a>.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://gist.githubusercontent.com/tleyden/95de4bfe34321c79e91b/raw/f8696fe0f1462f377d6bd13c5f20cccfa182578a/test.proto</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Generate Go wrappers</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ protoc --go_out=. *.proto</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should end up with a new file generated: <code>test.pb.go</code></p>
+
+<h2>Marshalling and unmarshalling an object</h2>
+
+<p>Open a new file <code>main.go</code> in <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">emacs</a> or your favorite editor, and paste the following:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>package main
+</span><span class='line'>
+</span><span class='line'>import (
+</span><span class='line'>  "log"
+</span><span class='line'>
+</span><span class='line'>  "github.com/golang/protobuf/proto"
+</span><span class='line'>)
+</span><span class='line'>
+</span><span class='line'>func main() {
+</span><span class='line'>
+</span><span class='line'>  test := &Test{
+</span><span class='line'>      Label: proto.String("hello"),
+</span><span class='line'>      Type:  proto.Int32(17),
+</span><span class='line'>      Optionalgroup: &Test_OptionalGroup{
+</span><span class='line'>          RequiredField: proto.String("good bye"),
+</span><span class='line'>      },
+</span><span class='line'>  }
+</span><span class='line'>  data, err := proto.Marshal(test)
+</span><span class='line'>  if err != nil {
+</span><span class='line'>      log.Fatal("marshaling error: ", err)
+</span><span class='line'>  }
+</span><span class='line'>  newTest := &Test{}
+</span><span class='line'>  err = proto.Unmarshal(data, newTest)
+</span><span class='line'>  if err != nil {
+</span><span class='line'>      log.Fatal("unmarshaling error: ", err)
+</span><span class='line'>  }
+</span><span class='line'>  // Now test and newTest contain the same data.
+</span><span class='line'>  if test.GetLabel() != newTest.GetLabel() {
+</span><span class='line'>      log.Fatalf("data mismatch %q != %q", test.GetLabel(), newTest.GetLabel())
+</span><span class='line'>  }
+</span><span class='line'>
+</span><span class='line'>  log.Printf("Unmarshalled to: %+v", newTest)
+</span><span class='line'>
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Explanation:</p>
+
+<ul>
+<li>Lines 11-14: Create a new object suitable for protobuf marshalling and populate it&rsquo;s fields.  <em>Note that using <code>proto.String(..)</code> / <code>proto.Int32(..)</code> isn&rsquo;t strictly required, they are just convencience wrappers to get string / int pointers</em>.</li>
+<li>Line 18: Marshal to a byte array.</li>
+<li>Line 22: Create a new empty object.</li>
+<li>Line 23: Unmarshal previously marshalled byte array into new object</li>
+<li>Line 28: Verify that the &ldquo;label&rdquo; field made the marshal/unmarshall round trip safely</li>
+</ul>
+
+
+<p><strong>Run it via:</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go run main.go test.pb.go</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and you should see the output:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Unmarshalled to: label:"hello" type:17 OptionalGroup{RequiredField:"good bye" }  </span></code></pre></td></tr></table></div></figure>
+
+
+<p>Congratulations!  You are now using protocol buffers from Go.</p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://github.com/golang/protobuf">Official golang/protobuf repo</a></li>
+<li><a href="https://code.google.com/p/gogoprotobuf/">gogoprotobuf fork</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1128,31 +1607,65 @@
 
 <h2>Install Docker</h2>
 
-<p>Once your host OS is setup, you&rsquo;re ready to install docker.  (version 1.3 at the time of this writing)</p>
-
-<p>Setup the key for the docker repo:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Add the docker repo:</p>
+<p>Once your host OS is setup, you&rsquo;re ready to install docker.  The latest instructions are avaialable on the <a href="https://docs.docker.com/v1.8/installation/ubuntulinux/">Docker website</a>.  Currently for Ubuntu 14.0.4 you need to:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo sh -c "echo deb https://get.docker.com/ubuntu docker main &gt; /etc/apt/sources.list.d/docker.list"
-</span><span class='line'>$ sudo apt-get update</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get update && sudo apt-get install curl
+</span><span class='line'>$ curl -sSL https://get.docker.com/ | sh</span></code></pre></td></tr></table></div></figure>
 
 
-<p>Install docker:</p>
+<p>As the post-install message suggests, enable docker for non-root users:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get install lxc-docker</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo usermod -aG docker ubuntu</span></code></pre></td></tr></table></div></figure>
 
 
-<h2>Run GPU enabled docker image</h2>
+<p>Verify correct install via:</p>
 
-<p><strong>Find all your nvidia devices</strong></p>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run hello-world</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Mount GPU devices</h2>
+
+<p><strong>Mount</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /usr/local/cuda/samples/1_Utilities/deviceQuery
+</span><span class='line'>$ ./deviceQuery</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see something <a href="https://gist.github.com/tleyden/58ab2eedebc9529edb76">like this</a>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>./deviceQuery Starting...
+</span><span class='line'>
+</span><span class='line'> CUDA Device Query (Runtime API) version (CUDART static linking)
+</span><span class='line'>
+</span><span class='line'>Detected 1 CUDA Capable device(s)
+</span><span class='line'>
+</span><span class='line'>Device 0: "GRID K520"
+</span><span class='line'>  CUDA Driver Version / Runtime Version          6.5 / 6.5
+</span><span class='line'>  ... snip ...
+</span><span class='line'>
+</span><span class='line'>deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 6.5, CUDA Runtime Version = 6.5, NumDevs = 1, Device0 = GRID K520
+</span><span class='line'>Result = PASS</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Verify: Find all your nvidia devices</strong></p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ ls -la /dev | grep nvidia</span></code></pre></td></tr></table></div></figure>
@@ -1168,9 +1681,11 @@
 </span><span class='line'>crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm</span></code></pre></td></tr></table></div></figure>
 
 
+<h2>Run GPU enabled docker image</h2>
+
 <p><strong>Launch docker container</strong></p>
 
-<p>The easiest way to get going is to use this pre-built <a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/">docker image</a> that has the cuda drivers pre-installed.  Or if you want to build your own, <a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/dockerfile/">the accompanying dockerfile</a> will be a useful starting point.</p>
+<p>The easiest way to get going is to use this pre-built <a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/">docker image</a> that has the cuda drivers pre-installed.  Or if you want to build your own, <a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/dockerfile/">the accompanying dockerfile</a> will be a useful starting point.  (Update: Nvidia has released <a href="https://github.com/nvidia/nvidia-docker">an official docker container</a> which you should probably use, but I haven&rsquo;t tried yet as of the time of this writing.  Please post a comment if you get this to work)</p>
 
 <p>You&rsquo;ll have to adapt the <code>DOCKER_NVIDIA_DEVICES</code> variable below to match your particular devices.</p>
 
@@ -1461,264 +1976,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/09/10/debugging-into-android-source/">Debugging Into Android Source</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-09-10T15:57:00-07:00" pubdate data-updated="true">Sep 10<span>th</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Debugging into the core Android source code can be useful.  Here&rsquo;s how to do it in Android Studio 0.8.2.</p>
-
-<p>Starting out, if we hit a breakpoint where we have a sqlite database object:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/outside_db_breakpoint.png" alt="screenshot" /></p>
-
-<p>And if you step in, you get this, which isn&rsquo;t very useful:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/inside_db_breakpoint.png" alt="screenshot" /></p>
-
-<p>To fix that, go to Android SDK, find the API level you are using, and check the Sources for Android SDK box.</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/android_sdk.png" alt="screenshot" /></p>
-
-<p><strong>You must restart Android Studio at this point</strong></p>
-
-<p>Did you restart Android Studio?  Now re-run your app in the debugger, and when you try to step into the <code>database.execSQL()</code> method, you should see this:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/db_source_breakpoint.png" alt="screenshot" /></p>
-
-<p>It worked!  Now you can debug into any Android code.</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/06/22/running-couchbase-sync-gateway-on-gce/">Running Couchbase Sync Gateway on Google Compute Engine</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-06-22T19:10:00-07:00" pubdate data-updated="true">Jun 22<span>nd</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>First, a quick refresh of what Couchbase Sync Gateway actually <em>is</em>.</p>
-
-<p>So here&rsquo;s a birds-eye-view of the <a href="http://developer.couchbase.com/mobile">Couchbase Mobile</a> architecture:</p>
-
-<p><img src="https://camo.githubusercontent.com/c1aa705fde3eb12245c06730d850c23e5a84ad8d/687474703a2f2f746c657964656e2d6d6973632e73332e616d617a6f6e6177732e636f6d2f636f756368626173652d6c6974652f636f756368626173652d6c6974652d6172636869746563747572652e706e67" alt="diagram" /></p>
-
-<p>Sync Gateway allows Couchbase Lite mobile apps to sync data between each other and the Couchbase Server running on the backend.</p>
-
-<p>This blog post will walk you through how to run Sync Gateway in a Docker container on Google Compute Engine.</p>
-
-<h2>Create GCE instance and ssh in</h2>
-
-<p>Follow the instructions on <a href="http://docs.docker.com/installation/google/">Running Docker on Google Compute Engine</a>.</p>
-
-<p>At this point you should be ssh&rsquo;d into your GCE instance</p>
-
-<h2>Create a configuration JSON</h2>
-
-<p>Here&rsquo;s a sample <a href="https://gist.github.com/tleyden/d97d985eb1e0725e858e">example JSON configuration</a> for Sync Gateway which uses <a href="https://github.com/couchbaselabs/walrus">walrus</a> as it&rsquo;s backing store, rather than Couchbase Server.  Later we will swap in Couchbase Server as a backing store.</p>
-
-<h2>Run Sync Gateway docker container</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -d -name sg -p 4984:4984 -p 4985:4985 tleyden5iwx/couchbase-sync-gateway sync_gateway "https://gist.githubusercontent.com/tleyden/d97d985eb1e0725e858e/raw"</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This will return a container id, eg <code>8ffb83fd1f</code>.</p>
-
-<p>Check the logs to make sure there are no serious errors in the logs:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker logs 8ffb83fd1f</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should see something along the lines of:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>02:23:58.905587 Enabling logging: [REST]
-</span><span class='line'>02:23:58.905818 ==== Couchbase Sync Gateway/1.00 (unofficial) ====
-</span><span class='line'>02:23:58.905863 Opening db /sync_gateway as bucket "sync_gateway", pool "default", server &lt;walrus:/opt/sync_gateway/data&gt;
-</span><span class='line'>02:23:58.905964 Opening Walrus database sync_gateway on &lt;walrus:/opt/sync_gateway/data&gt;
-</span><span class='line'>02:23:58.909659 Starting admin server on :4985
-</span><span class='line'>02:23:58.913260 Starting server on :4984 ...</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Expose API port 4984 via Firewall rule</h2>
-
-<p>On your workstation with the <code>gcloud</code> tool installed, run:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ gcloud compute firewalls create sg-4984 --allow tcp:4984</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Verify that it&rsquo;s running</h2>
-
-<h3>Find out external ip address of instance</h3>
-
-<p>On your workstation with the <code>gcloud</code> tool installed, run:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ gcloud compute instances list
-</span><span class='line'>name     status  zone          machineType internalIP   externalIP
-</span><span class='line'>couchbse RUNNING us-central1-a f1-micro    10.240.74.44 142.222.178.49</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Your external ip is listed under the externalIP column, eg <code>142.222.178.49</code> in this example.</p>
-
-<h3>Run curl request</h3>
-
-<p>On your workstation, replace the ip below with your own ip, and run:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl http://142.222.178.49:4984</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should get a response like:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/1.00 (unofficial)"}</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Re-run it with Couchbase Server backing store</h2>
-
-<p><em>OK, so we&rsquo;ve gotten it working with walrus.  But have you looked at the walrus website lately?  One <a href="https://camo.githubusercontent.com/1bd1955b96628260b27320f099aeac0585229c2f/687474703a2f2f7777772e69686173616275636b65742e636f6d2f696d616765732f77616c7275735f6275636b65742e6a7067">click</a> and it&rsquo;s pretty obvious that this thing is not exactly meant to be a scalable production ready backend, nor has it ever claimed to be.</em></p>
-
-<p>Let&rsquo;s dump walrus for now and use Couchbase Server from this point onwards.</p>
-
-<h3>Start Couchbase Server</h3>
-
-<p>Before moving on, you will need to go through the instructions in <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">Running Couchbase Server on GCE</a> in order to get a Couchbase Server instance running.</p>
-
-<h3>Stop Sync Gateway</h3>
-
-<p>Run this command to stop the Sync Gateway container and completely remove it, using the same container id you used earlier:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker stop 8ffb83fd1f && sudo docker rm 8ffb83fd1f</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Update config</h3>
-
-<p>Copy this <a href="https://gist.github.com/tleyden/c9e6396f7183c0f3e28c">example JSON configuration</a>, which expects a Couchbase Server running on <code>http://172.17.0.2:8091</code>, and update it with the ip address of the docker instance where your Couchbase Server is running.  To get this ip address, follow the <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">these instructions</a> in the &ldquo;Find the Docker instance IP address&rdquo; section.</p>
-
-<p>Now upload your modified JSON configuration to a website that is publicly accessible, for example in a <a href="http://gist.github.com">Github Gist</a>.</p>
-
-<h3>Run Sync Gateway</h3>
-
-<p>Run Sync Gateway again, this time using Couchbase Server as a backing store this time.</p>
-
-<p>Replace <code>http://yourserver.co/yourconfig.json</code> with the URL where you&rsquo;ve uploaded your JSON configuration from the previous step.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker run -d -name sg -p 4984:4984 -p 4985:4985 tleyden5iwx/couchbase-sync-gateway sync_gateway "http://yourserver.co/yourconfig.json"</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This will return a container id, eg <code>9ffb83fd1f</code>.  Again, check the logs to make sure there are no serious errors in the logs:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ sudo docker logs 9ffb83fd1f</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should see something along the lines of:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>... 
-</span><span class='line'>02:23:58.913260 Starting server on :4984 ...</span></code></pre></td></tr></table></div></figure>
-
-
-<p>with no errors.</p>
-
-<h2>Verify it&rsquo;s working</h2>
-
-<h3>Save a document via curl</h3>
-
-<p>The easiest way to add a document is via the Admin port, since there is no authentication to worry about.  Since we haven&rsquo;t added a firewall rule to expose the admin port (4985), (and doing so without tight filtering would be a major security hole), the following command to create a new document must be run on the GCE instance.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>gce:~$ curl -H "Content-Type: application/json" -d '{"such":"json"}' http://localhost:4985/sync_gateway/</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If it worked, you should see a response like:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>{"id":"3cbfbe43e76b7eb5c4c221a78b2cf0cc","ok":true,"rev":"1-cd809becc169215072fd567eebd8b8de"}</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>View document on Couchbase Server</h3>
-
-<p>To verify the document was successfully stored on Couchbase Server, you&rsquo;ll need to login to the Couchbase Server Web Admin UI.  There are instructions <a href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/">here</a> on how to do that.</p>
-
-<p>From there, navigate to Data Buckets / default / Documents, and you should see:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_server_docs.png" alt="screenshot" /></p>
-
-<p>Click on the document that has a UUID (eg, &ldquo;29f8d7..&rdquo; in the screenshot above), and you should see the document&rsquo;s contents:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_server_doc.png" alt="screenshot" /></p>
-
-<p>The <code>_sync</code> metadata field is used internally by the Sync Gateway and can be ignored.  The actual doc contents are towards the end of the file: <code>.."such":"json"}</code></p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/3/">&larr; Older</a>
@@ -1747,6 +2004,14 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2015/11/22/cuda-7-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">CUDA 7.5 on AWS GPU Instance Running Ubuntu 14.04</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/11/22/running-neural-style-on-an-aws-gpu-instance/">Running Neural Style on an AWS GPU Instance</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/11/03/running-the-sync-gateway-amazon-ami/">Running the Sync Gateway Amazon AMI</a>
       </li>
     
@@ -1756,14 +2021,6 @@
     
       <li class="post">
         <a href="/blog/2015/04/25/setting-up-octopress-under-docker/">Setting Up Octopress Under Docker</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io/">Test Coverage for Go With drone.io and coveralls.io</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2015/03/21/nginx-proxy-for-sync-gateway-using-confd/">Nginx Proxy for Sync Gateway Using Confd</a>
       </li>
     
   </ul>

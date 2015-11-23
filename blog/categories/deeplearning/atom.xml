@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: deeplearning, | Seven Story Rabbit Hole]]></title>
+  <link href="http://tleyden.github.io/blog/categories/deeplearning/atom.xml" rel="self"/>
+  <link href="http://tleyden.github.io/"/>
+  <updated>2015-11-23T11:55:46-08:00</updated>
+  <id>http://tleyden.github.io/</id>
+  <author>
+    <name><![CDATA[Traun Leyden]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Running Neural Style on an AWS GPU instance]]></title>
+    <link href="http://tleyden.github.io/blog/2015/11/22/running-neural-style-on-an-aws-gpu-instance/"/>
+    <updated>2015-11-22T11:02:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2015/11/22/running-neural-style-on-an-aws-gpu-instance</id>
+    <content type="html"><![CDATA[<p>These instructions will walk you through getting <a href="https://github.com/jcjohnson/neural-style">neural-style</a> up and running on an AWS GPU instance.</p>
+
+<h2>Spin up AWS instance</h2>
+
+<p>Follow <a href="http://tleyden.github.io/blog/2015-11-22-cuda-7-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04">these steps</a> to launch an AMI with CUDA pre-installed.</p>
+
+<h2>SSH into AWS instance</h2>
+
+<p><code>
+$ ssh ubuntu@&lt;instance-ip&gt;
+</code></p>
+
+<h2>Install Docker</h2>
+
+<p><code>
+$ sudo apt-get update &amp;&amp; sudo apt-get install curl
+$ curl -sSL https://get.docker.com/ | sh
+</code></p>
+
+<p>As the post-install message suggests, enable docker for non-root users:</p>
+
+<p><code>
+$ sudo usermod -aG docker ubuntu
+</code></p>
+
+<p>Verify correct install via:</p>
+
+<p><code>
+$ sudo docker run hello-world
+</code></p>
+
+<h2>Mount GPU devices</h2>
+
+<p><strong>Mount</strong></p>
+
+<p><code>
+$ cd /usr/local/cuda/samples/1_Utilities/deviceQuery
+$ sudo make
+$ sudo ./deviceQuery
+</code></p>
+
+<p>You should see something <a href="https://gist.github.com/tleyden/58ab2eedebc9529edb76">like this</a>:</p>
+
+<p>```
+./deviceQuery Starting&hellip;</p>
+
+<p> CUDA Device Query (Runtime API) version (CUDART static linking)</p>
+
+<p>Detected 1 CUDA Capable device(s)</p>
+
+<p>Device 0: &ldquo;GRID K520&rdquo;
+  CUDA Driver Version / Runtime Version          6.5 / 6.5
+  &hellip; snip &hellip;</p>
+
+<p>deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 6.5, CUDA Runtime Version = 6.5, NumDevs = 1, Device0 = GRID K520
+Result = PASS
+```</p>
+
+<p><strong>Verify: Find all your nvidia devices</strong></p>
+
+<p><code>
+$ ls -la /dev | grep nvidia
+</code></p>
+
+<p>You should see:</p>
+
+<p><code>
+crw-rw-rw-  1 root root    195,   0 Oct 25 19:37 nvidia0
+crw-rw-rw-  1 root root    195, 255 Oct 25 19:37 nvidiactl
+crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm
+</code></p>
+
+<h2>Start Docker container</h2>
+
+<p><code>
+$ export DOCKER_NVIDIA_DEVICES="--device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm"
+$ sudo docker run -ti $DOCKER_NVIDIA_DEVICES kaixhin/cuda-torch /bin/bash
+</code></p>
+
+<p><strong>Verify nvidia devices mounted inside container</strong></p>
+
+<p>From within the container:</p>
+
+<p><code>
+$ ls -la /dev | grep nvidia
+</code></p>
+
+<p>You should see:</p>
+
+<p><code>
+crw-rw-rw-  1 root root    195,   0 Oct 25 19:37 nvidia0
+crw-rw-rw-  1 root root    195, 255 Oct 25 19:37 nvidiactl
+crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm
+</code></p>
+
+<h2>Install neural-style</h2>
+
+<p>The following should be run <strong>inside</strong> the docker container:</p>
+
+<p><code>
+$ apt-get install -y wget libpng-dev libprotobuf-dev protobuf-compiler
+$ git clone --depth 1 https://github.com/jcjohnson/neural-style.git
+$ /root/torch/install/bin/luarocks install loadcaffe
+</code></p>
+
+<p><strong>Download models</strong></p>
+
+<p><code>
+$ cd neural-style
+$ sh models/download_models.sh
+</code></p>
+
+<h2>Install CUDA backend for Torch</h2>
+
+<p>NOTE: Not sure this step is actually needed, tried it out of desperation to get around the error mentioned below.</p>
+
+<p><code>
+$ luarocks install cutorch
+$ luarocks install cunn
+</code></p>
+
+<p><strong>Verify</strong></p>
+
+<p><code>
+$ th -e "require 'cutorch'; require 'cunn'; print(cutorch)"
+</code></p>
+
+<p>Expected output:</p>
+
+<p><code>
+{
+  getStream : function: 0x40d40ce8
+  getDeviceCount : function: 0x40d413d8
+  ... etc
+}
+</code></p>
+
+<p><strong>ERROR: this isn&rsquo;t working!</strong>  I&rsquo;ve posted a <a href="https://groups.google.com/d/msg/torch7/yCSNIzW590M/Af7CHXEdDQAJ">question</a> to the Torch Google Group.  For some reason</p>
+
+<h2>Run neural style</h2>
+
+<p>First, grab a few images to test with</p>
+
+<p><code>
+$ mkdir images
+$ wget https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/1280px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg -O images/vangogh.jpg
+$ wget http://exp.cdn-hotels.com/hotels/1000000/10000/7500/7496/7496_42_z.jpg -O images/hotel_del_coronado.jpg
+</code></p>
+
+<p>Run it:</p>
+
+<p><code>
+$ th neural_style.lua -style_image images/vangogh.jpg -content_image images/hotel_del_coronado.jpg
+</code></p>
+]]></content>
+  </entry>
+  
+</feed>

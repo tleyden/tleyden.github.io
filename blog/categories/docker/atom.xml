@@ -4,7 +4,7 @@
   <title><![CDATA[Category: docker | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/docker/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-11-03T12:15:17-08:00</updated>
+  <updated>2015-11-23T11:55:46-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,168 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Running Neural Style on an AWS GPU instance]]></title>
+    <link href="http://tleyden.github.io/blog/2015/11/22/running-neural-style-on-an-aws-gpu-instance/"/>
+    <updated>2015-11-22T11:02:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2015/11/22/running-neural-style-on-an-aws-gpu-instance</id>
+    <content type="html"><![CDATA[<p>These instructions will walk you through getting <a href="https://github.com/jcjohnson/neural-style">neural-style</a> up and running on an AWS GPU instance.</p>
+
+<h2>Spin up AWS instance</h2>
+
+<p>Follow <a href="http://tleyden.github.io/blog/2015-11-22-cuda-7-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04">these steps</a> to launch an AMI with CUDA pre-installed.</p>
+
+<h2>SSH into AWS instance</h2>
+
+<p><code>
+$ ssh ubuntu@&lt;instance-ip&gt;
+</code></p>
+
+<h2>Install Docker</h2>
+
+<p><code>
+$ sudo apt-get update &amp;&amp; sudo apt-get install curl
+$ curl -sSL https://get.docker.com/ | sh
+</code></p>
+
+<p>As the post-install message suggests, enable docker for non-root users:</p>
+
+<p><code>
+$ sudo usermod -aG docker ubuntu
+</code></p>
+
+<p>Verify correct install via:</p>
+
+<p><code>
+$ sudo docker run hello-world
+</code></p>
+
+<h2>Mount GPU devices</h2>
+
+<p><strong>Mount</strong></p>
+
+<p><code>
+$ cd /usr/local/cuda/samples/1_Utilities/deviceQuery
+$ sudo make
+$ sudo ./deviceQuery
+</code></p>
+
+<p>You should see something <a href="https://gist.github.com/tleyden/58ab2eedebc9529edb76">like this</a>:</p>
+
+<p>```
+./deviceQuery Starting&hellip;</p>
+
+<p> CUDA Device Query (Runtime API) version (CUDART static linking)</p>
+
+<p>Detected 1 CUDA Capable device(s)</p>
+
+<p>Device 0: &ldquo;GRID K520&rdquo;
+  CUDA Driver Version / Runtime Version          6.5 / 6.5
+  &hellip; snip &hellip;</p>
+
+<p>deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 6.5, CUDA Runtime Version = 6.5, NumDevs = 1, Device0 = GRID K520
+Result = PASS
+```</p>
+
+<p><strong>Verify: Find all your nvidia devices</strong></p>
+
+<p><code>
+$ ls -la /dev | grep nvidia
+</code></p>
+
+<p>You should see:</p>
+
+<p><code>
+crw-rw-rw-  1 root root    195,   0 Oct 25 19:37 nvidia0
+crw-rw-rw-  1 root root    195, 255 Oct 25 19:37 nvidiactl
+crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm
+</code></p>
+
+<h2>Start Docker container</h2>
+
+<p><code>
+$ export DOCKER_NVIDIA_DEVICES="--device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm"
+$ sudo docker run -ti $DOCKER_NVIDIA_DEVICES kaixhin/cuda-torch /bin/bash
+</code></p>
+
+<p><strong>Verify nvidia devices mounted inside container</strong></p>
+
+<p>From within the container:</p>
+
+<p><code>
+$ ls -la /dev | grep nvidia
+</code></p>
+
+<p>You should see:</p>
+
+<p><code>
+crw-rw-rw-  1 root root    195,   0 Oct 25 19:37 nvidia0
+crw-rw-rw-  1 root root    195, 255 Oct 25 19:37 nvidiactl
+crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm
+</code></p>
+
+<h2>Install neural-style</h2>
+
+<p>The following should be run <strong>inside</strong> the docker container:</p>
+
+<p><code>
+$ apt-get install -y wget libpng-dev libprotobuf-dev protobuf-compiler
+$ git clone --depth 1 https://github.com/jcjohnson/neural-style.git
+$ /root/torch/install/bin/luarocks install loadcaffe
+</code></p>
+
+<p><strong>Download models</strong></p>
+
+<p><code>
+$ cd neural-style
+$ sh models/download_models.sh
+</code></p>
+
+<h2>Install CUDA backend for Torch</h2>
+
+<p>NOTE: Not sure this step is actually needed, tried it out of desperation to get around the error mentioned below.</p>
+
+<p><code>
+$ luarocks install cutorch
+$ luarocks install cunn
+</code></p>
+
+<p><strong>Verify</strong></p>
+
+<p><code>
+$ th -e "require 'cutorch'; require 'cunn'; print(cutorch)"
+</code></p>
+
+<p>Expected output:</p>
+
+<p><code>
+{
+  getStream : function: 0x40d40ce8
+  getDeviceCount : function: 0x40d413d8
+  ... etc
+}
+</code></p>
+
+<p><strong>ERROR: this isn&rsquo;t working!</strong>  I&rsquo;ve posted a <a href="https://groups.google.com/d/msg/torch7/yCSNIzW590M/Af7CHXEdDQAJ">question</a> to the Torch Google Group.  For some reason</p>
+
+<h2>Run neural style</h2>
+
+<p>First, grab a few images to test with</p>
+
+<p><code>
+$ mkdir images
+$ wget https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/1280px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg -O images/vangogh.jpg
+$ wget http://exp.cdn-hotels.com/hotels/1000000/10000/7500/7496/7496_42_z.jpg -O images/hotel_del_coronado.jpg
+</code></p>
+
+<p>Run it:</p>
+
+<p><code>
+$ th neural_style.lua -style_image images/vangogh.jpg -content_image images/hotel_del_coronado.jpg
+</code></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Running Couchbase Server under Joyent Triton]]></title>
@@ -894,298 +1056,6 @@ $ sudo docker run -ti --net=host tleyden5iwx/cbfs /bin/bash
 <li><a href="http://cbfs-ext.hq.couchbase.com/dist/">cbfs binary downloads</a></li>
 <li><a href="http://github.com/couchbaselabs/cbfs">cbfs github repo</a></li>
 <li><a href="https://github.com/couchbaselabs/cbfs/issues/132">cbfs question</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[CoreOS with Nvidia CUDA GPU drivers]]></title>
-    <link href="http://tleyden.github.io/blog/2014/11/04/coreos-with-nvidia-cuda-gpu-drivers/"/>
-    <updated>2014-11-04T07:08:00-08:00</updated>
-    <id>http://tleyden.github.io/blog/2014/11/04/coreos-with-nvidia-cuda-gpu-drivers</id>
-    <content type="html"><![CDATA[<p>This will walk you through installing the Nvidia GPU kernel module and CUDA drivers on a docker container running inside of CoreOS.</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/coreos-nvidia-gpu.png" alt="architecture diagram" /></p>
-
-<h2>Launch CoreOS on an AWS GPU instance</h2>
-
-<ul>
-<li><p>Launch a new EC2 instance</p></li>
-<li><p>Under &ldquo;Community AMIs&rdquo;, search for <strong>ami-f669f29e</strong> (CoreOS stable 494.4.0 (HVM))</p></li>
-<li><p>Select the GPU instances: <strong>g2.2xlarge</strong></p></li>
-<li><p>Increase root EBS store from 8 GB &ndash;> 20 GB to give yourself some breathing room</p></li>
-</ul>
-
-
-<h2>ssh into CoreOS instance</h2>
-
-<p>Find the public ip of the EC2 instance launched above, and ssh into it:</p>
-
-<p><code>
-$ ssh -A core@ec2-54-80-24-46.compute-1.amazonaws.com
-</code></p>
-
-<h2>Run Ubuntu 14 docker container in privileged mode</h2>
-
-<p><code>
-$ sudo docker run --privileged=true -i -t ubuntu:14.04 /bin/bash
-</code></p>
-
-<p>After the above command, you should be inside a root shell in your docker container.  The rest of the steps will assume this.</p>
-
-<h2>Install build tools + other required packages</h2>
-
-<p>In order to match the version of gcc that was used to build the CoreOS kernel.  (gcc 4.7)</p>
-
-<p>```</p>
-
-<h1>apt-get update</h1>
-
-<h1>apt-get install gcc-4.7 g++-4.7 wget git make dpkg-dev</h1>
-
-<p>```</p>
-
-<p><strong>Set gcc 4.7 as default</strong></p>
-
-<p>```</p>
-
-<h1>update-alternatives &mdash;remove gcc /usr/bin/gcc-4.8</h1>
-
-<h1>update-alternatives &mdash;install /usr/bin/gcc gcc /usr/bin/gcc-4.7 60 &mdash;slave /usr/bin/g++ g++ /usr/bin/g++-4.7</h1>
-
-<h1>update-alternatives &mdash;install /usr/bin/gcc gcc /usr/bin/gcc-4.8 40 &mdash;slave /usr/bin/g++ g++ /usr/bin/g++-4.8</h1>
-
-<p>```</p>
-
-<p><strong>Verify</strong></p>
-
-<p>```</p>
-
-<h1>update-alternatives &mdash;config gcc</h1>
-
-<p>```</p>
-
-<p>It should list gcc 4.7 with an asterisk next to it:</p>
-
-<p><code>
-* 0            /usr/bin/gcc-4.7   60        auto mode
-</code></p>
-
-<h2>Prepare CoreOS kernel source</h2>
-
-<p><strong>Clone CoreOS kernel repository</strong></p>
-
-<p><code>
-$ mkdir -p /usr/src/kernels
-$ cd /usr/src/kernels
-$ git clone https://github.com/coreos/linux.git
-</code></p>
-
-<p><strong>Find CoreOS kernel version</strong></p>
-
-<p>```</p>
-
-<h1>uname -a</h1>
-
-<p>Linux ip-10-11-167-200.ec2.internal 3.17.2+ #2 SMP Tue Nov 4 04:15:48 UTC 2014 x86_64 Intel&reg; Xeon&reg; CPU E5-2670 0 @ 2.60GHz GenuineIntel GNU/Linux
-```</p>
-
-<p>The CoreOS kernel version is <strong>3.17.2</strong></p>
-
-<p><strong>Switch correct branch for this kernel version </strong></p>
-
-<p>```</p>
-
-<h1>cd linux</h1>
-
-<h1>git checkout remotes/origin/coreos/v3.17.2</h1>
-
-<p>```</p>
-
-<p><strong>Create kernel configuration file</strong></p>
-
-<p>```</p>
-
-<h1>zcat /proc/config.gz > /usr/src/kernels/linux/.config</h1>
-
-<p>```</p>
-
-<p><strong>Prepare kernel source for building modules</strong></p>
-
-<p>```</p>
-
-<h1>make modules_prepare</h1>
-
-<p>```</p>
-
-<p>Now you should be ready to install the nvidia driver.</p>
-
-<p><strong>Hack the kernel version</strong></p>
-
-<p>In order to avoid <a href="https://gist.github.com/tleyden/2a46a86056e476976a8e#file-gistfile1-txt-L956">nvidia: version magic errors</a>, the following hack is required:</p>
-
-<p>```</p>
-
-<h1>sed -i -e &rsquo;s/3.17.2/3.17.2+/&lsquo; include/generated/utsrelease.h</h1>
-
-<p>```</p>
-
-<p>I&rsquo;ve <a href="https://groups.google.com/d/msg/coreos-user/CSp_wSywmI4/CBHwocj8v9oJ">posted to the CoreOS Group</a> to ask why this hack is needed.</p>
-
-<h2>Install nvidia driver</h2>
-
-<p><strong>Download</strong></p>
-
-<p>```</p>
-
-<h1>mkdir -p /opt/nvidia</h1>
-
-<h1>cd /opt/nvidia</h1>
-
-<h1>wget <a href="http://developer.download.nvidia.com/compute/cuda/6_5/rel/installers/cuda_6.5.14_linux_64.run">http://developer.download.nvidia.com/compute/cuda/6_5/rel/installers/cuda_6.5.14_linux_64.run</a></h1>
-
-<p>```</p>
-
-<p><strong>Unpack</strong></p>
-
-<p>```</p>
-
-<h1>chmod +x cuda_6.5.14_linux_64.run</h1>
-
-<h1>mkdir nvidia_installers</h1>
-
-<h1>./cuda_6.5.14_linux_64.run -extract=<code>pwd</code>/nvidia_installers</h1>
-
-<p>```</p>
-
-<p><strong>Install</strong></p>
-
-<p>```</p>
-
-<h1>cd nvidia_installers</h1>
-
-<h1>./NVIDIA-Linux-x86_64-340.29.run &mdash;kernel-source-path=/usr/src/kernels/linux/</h1>
-
-<p>```</p>
-
-<p><strong>Installer Questions</strong></p>
-
-<ul>
-<li>Install NVidia&rsquo;s 32-bit compatibility libraries? <strong>YES</strong></li>
-<li>Would you like to run nvidia-xconfig? <strong>NO</strong></li>
-</ul>
-
-
-<p>If everything worked, you should see:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/nvidia_driver_installed.png" alt="nvidia drivers installed" /></p>
-
-<p>your <code>/var/log/nvidia-installer.log</code> should look something like <a href="https://gist.github.com/tleyden/6d585fb8ab08154949c8">this</a></p>
-
-<h2>Load nvidia kernel module</h2>
-
-<p>```</p>
-
-<h1>modprobe nvidia</h1>
-
-<p>```</p>
-
-<p>No errors should be returned.  Verify it&rsquo;s loaded by running:</p>
-
-<p>```</p>
-
-<h1>lsmod | grep -i nvidia</h1>
-
-<p>```</p>
-
-<p>and you should see:</p>
-
-<p><code>
-nvidia              10533711  0
-i2c_core               41189  2 nvidia,i2c_piix4
-</code></p>
-
-<h2>Install CUDA</h2>
-
-<p>In order to fully verify that the kernel module is working correctly, install the CUDA drivers + library and run a device query.</p>
-
-<p>To install CUDA:</p>
-
-<p>```</p>
-
-<h1>./cuda-linux64-rel-6.5.14-18749181.run</h1>
-
-<h1>./cuda-samples-linux-6.5.14-18745345.run</h1>
-
-<p>```</p>
-
-<h2>Verify CUDA</h2>
-
-<p>```</p>
-
-<h1>cd /usr/local/cuda/samples/1_Utilities/deviceQuery</h1>
-
-<h1>make</h1>
-
-<h1>./deviceQuery</h1>
-
-<p>```</p>
-
-<p>You should see the following output:</p>
-
-<p><code>
-deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 6.5, CUDA Runtime Version = 6.5, NumDevs = 1, Device0 = GRID K520
-Result = PASS
-</code></p>
-
-<p>Congratulations!  You now have a docker container running under CoreOS that can access the GPU.</p>
-
-<h1>Appendix: Expose GPU to other docker containers</h1>
-
-<p>If you need <em>other</em> docker containers on this CoreOS instance to be able to access the GPU, you can do the following steps.</p>
-
-<p><strong>Exit docker container</strong></p>
-
-<p>```</p>
-
-<h1>exit</h1>
-
-<p>```</p>
-
-<p>You should be back to your CoreOS shell.</p>
-
-<p><strong>Add nvidia device nodes</strong></p>
-
-<p><code>
-$ wget https://gist.githubusercontent.com/tleyden/74f593a0beea300de08c/raw/95ed93c5751a989e58153db6f88c35515b7af120/nvidia_devices.sh
-$ chmod +x nvidia_devices.sh
-$ sudo ./nvidia_devices.sh
-</code></p>
-
-<p><strong>Verify device nodes</strong></p>
-
-<p><code>
-$ ls -alh /dev | grep -i nvidia
-crw-rw-rw-  1 root root  251,   0 Nov  5 16:37 nvidia-uvm
-crw-rw-rw-  1 root root  195,   0 Nov  5 16:37 nvidia0
-crw-rw-rw-  1 root root  195, 255 Nov  5 16:37 nvidiactl
-</code></p>
-
-<p><strong>Launch docker containers</strong></p>
-
-<p>When you launch other docker containers on the same CoreOS instance, to allow them to access the GPU device you will need to add the following arguments:</p>
-
-<p><code>
-$ sudo docker run -ti --device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm tleyden5iwx/ubuntu-cuda /bin/bash
-</code></p>
-
-<h2>References</h2>
-
-<ul>
-<li><a href="https://github.com/tleyden/tleyden.github.io/blob/6d71759cc5e530efcae10d9c6012dd217f76795c/source/_posts/2014-11-04-coreos-with-nvidia-cuda-gpu-drivers.markdown">Previous version of this blog post</a></li>
-<li><a href="https://groups.google.com/forum/#!topic/coreos-user/CSp_wSywmI4">CoreOS Google Group thread</a> &ndash; Thanks Сергей!</li>
-<li><a href="http://tleyden.github.io/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5/">Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5</a></li>
 </ul>
 
 ]]></content>
