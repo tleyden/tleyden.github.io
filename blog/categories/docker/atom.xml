@@ -4,7 +4,7 @@
   <title><![CDATA[Category: docker | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/docker/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-11-23T11:55:46-08:00</updated>
+  <updated>2015-11-23T12:06:50-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -20,9 +20,9 @@
     <id>http://tleyden.github.io/blog/2015/11/22/running-neural-style-on-an-aws-gpu-instance</id>
     <content type="html"><![CDATA[<p>These instructions will walk you through getting <a href="https://github.com/jcjohnson/neural-style">neural-style</a> up and running on an AWS GPU instance.</p>
 
-<h2>Spin up AWS instance</h2>
+<h2>Spin up CUDA-enabled AWS instance</h2>
 
-<p>Follow <a href="http://tleyden.github.io/blog/2015-11-22-cuda-7-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04">these steps</a> to launch an AMI with CUDA pre-installed.</p>
+<p>Follow these instructions to <a href="http://tleyden.github.io/blog/2015/11/22/cuda-7-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">install CUDA 7.5 on AWS GPU Instance Running Ubuntu 14.04</a>.</p>
 
 <h2>SSH into AWS instance</h2>
 
@@ -97,20 +97,55 @@ $ export DOCKER_NVIDIA_DEVICES="--device /dev/nvidia0:/dev/nvidia0 --device /dev
 $ sudo docker run -ti $DOCKER_NVIDIA_DEVICES kaixhin/cuda-torch /bin/bash
 </code></p>
 
-<p><strong>Verify nvidia devices mounted inside container</strong></p>
+<h2>Re-install CUDA 7.5 in the Docker container</h2>
 
-<p>From within the container:</p>
+<p>As <a href="https://groups.google.com/d/msg/torch7/yCSNIzW590M/Af7CHXEdDQAJ">reported in the Torch7 Google Group</a> and in <a href="https://github.com/Kaixhin/dockerfiles/issues/6">Kaixhin/dockerfiles</a>, there is an API version mismatch with the docker container and the host&rsquo;s version of CUDA.</p>
+
+<p>The workaround is to re-install CUDA 7.5 via:</p>
+
+<p>```
+$ wget <a href="http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1404/x86_64/cuda-repo-ubuntu1404_7.5-18_amd64.deb">http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1404/x86_64/cuda-repo-ubuntu1404_7.5-18_amd64.deb</a>
+$ sudo dpkg -i cuda-repo-ubuntu1404_7.5-18_amd64.
+deb
+$ sudo apt-get update
+$ sudo apt-get upgrade -y
+$ sudo apt-get install -y opencl-headers build-essential protobuf-compiler \</p>
+
+<pre><code>libprotoc-dev libboost-all-dev libleveldb-dev hdf5-tools libhdf5-serial-dev \
+libopencv-core-dev  libopencv-highgui-dev libsnappy-dev libsnappy1 \
+libatlas-base-dev cmake libstdc++6-4.8-dbg libgoogle-glog0 libgoogle-glog-dev \
+libgflags-dev liblmdb-dev git python-pip gfortran
+</code></pre>
+
+<p>$ sudo apt-get clean
+$ sudo apt-get install -y linux-image-extra-<code>uname -r</code> linux-headers-<code>uname -r</code> linux-image-<code>uname -r</code>
+$ sudo apt-get install -y cuda
+```</p>
+
+<h2>Verify CUDA inside docker container</h2>
+
+<p>Running:</p>
 
 <p><code>
-$ ls -la /dev | grep nvidia
+$ nvidia-smi
 </code></p>
 
-<p>You should see:</p>
+<p>Should show info about the GPU driver and not return any errors.</p>
+
+<p>Running this torch command:</p>
 
 <p><code>
-crw-rw-rw-  1 root root    195,   0 Oct 25 19:37 nvidia0
-crw-rw-rw-  1 root root    195, 255 Oct 25 19:37 nvidiactl
-crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm
+$ th -e "require 'cutorch'; require 'cunn'; print(cutorch)"
+</code></p>
+
+<p>Should produce this output:</p>
+
+<p><code>
+{
+  getStream : function: 0x4054b760
+  getDeviceCount : function: 0x408bca58
+  .. etc
+}
 </code></p>
 
 <h2>Install neural-style</h2>
@@ -129,33 +164,6 @@ $ /root/torch/install/bin/luarocks install loadcaffe
 $ cd neural-style
 $ sh models/download_models.sh
 </code></p>
-
-<h2>Install CUDA backend for Torch</h2>
-
-<p>NOTE: Not sure this step is actually needed, tried it out of desperation to get around the error mentioned below.</p>
-
-<p><code>
-$ luarocks install cutorch
-$ luarocks install cunn
-</code></p>
-
-<p><strong>Verify</strong></p>
-
-<p><code>
-$ th -e "require 'cutorch'; require 'cunn'; print(cutorch)"
-</code></p>
-
-<p>Expected output:</p>
-
-<p><code>
-{
-  getStream : function: 0x40d40ce8
-  getDeviceCount : function: 0x40d413d8
-  ... etc
-}
-</code></p>
-
-<p><strong>ERROR: this isn&rsquo;t working!</strong>  I&rsquo;ve posted a <a href="https://groups.google.com/d/msg/torch7/yCSNIzW590M/Af7CHXEdDQAJ">question</a> to the Torch Google Group.  For some reason</p>
 
 <h2>Run neural style</h2>
 

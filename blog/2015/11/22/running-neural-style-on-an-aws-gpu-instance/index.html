@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="These instructions will walk you through getting neural-style up and running on an AWS GPU instance. Spin up AWS instance Follow these steps to &hellip;">
+  <meta name="description" content="These instructions will walk you through getting neural-style up and running on an AWS GPU instance. Spin up CUDA-enabled AWS instance Follow these &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -100,9 +100,9 @@
 
 <div class="entry-content"><p>These instructions will walk you through getting <a href="https://github.com/jcjohnson/neural-style">neural-style</a> up and running on an AWS GPU instance.</p>
 
-<h2>Spin up AWS instance</h2>
+<h2>Spin up CUDA-enabled AWS instance</h2>
 
-<p>Follow <a href="http://tleyden.github.io/blog/2015-11-22-cuda-7-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04">these steps</a> to launch an AMI with CUDA pre-installed.</p>
+<p>Follow these instructions to <a href="http://tleyden.github.io/blog/2015/11/22/cuda-7-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">install CUDA 7.5 on AWS GPU Instance Running Ubuntu 14.04</a>.</p>
 
 <h2>SSH into AWS instance</h2>
 
@@ -194,22 +194,68 @@
 </span><span class='line'>$ sudo docker run -ti $DOCKER_NVIDIA_DEVICES kaixhin/cuda-torch /bin/bash</span></code></pre></td></tr></table></div></figure>
 
 
-<p><strong>Verify nvidia devices mounted inside container</strong></p>
+<h2>Re-install CUDA 7.5 in the Docker container</h2>
 
-<p>From within the container:</p>
+<p>As <a href="https://groups.google.com/d/msg/torch7/yCSNIzW590M/Af7CHXEdDQAJ">reported in the Torch7 Google Group</a> and in <a href="https://github.com/Kaixhin/dockerfiles/issues/6">Kaixhin/dockerfiles</a>, there is an API version mismatch with the docker container and the host&rsquo;s version of CUDA.</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ ls -la /dev | grep nvidia</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should see:</p>
+<p>The workaround is to re-install CUDA 7.5 via:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>crw-rw-rw-  1 root root    195,   0 Oct 25 19:37 nvidia0
-</span><span class='line'>crw-rw-rw-  1 root root    195, 255 Oct 25 19:37 nvidiactl
-</span><span class='line'>crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm</span></code></pre></td></tr></table></div></figure>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1404/x86_64/cuda-repo-ubuntu1404_7.5-18_amd64.deb
+</span><span class='line'>$ sudo dpkg -i cuda-repo-ubuntu1404_7.5-18_amd64.
+</span><span class='line'>deb
+</span><span class='line'>$ sudo apt-get update
+</span><span class='line'>$ sudo apt-get upgrade -y
+</span><span class='line'>$ sudo apt-get install -y opencl-headers build-essential protobuf-compiler \
+</span><span class='line'>    libprotoc-dev libboost-all-dev libleveldb-dev hdf5-tools libhdf5-serial-dev \
+</span><span class='line'>    libopencv-core-dev  libopencv-highgui-dev libsnappy-dev libsnappy1 \
+</span><span class='line'>    libatlas-base-dev cmake libstdc++6-4.8-dbg libgoogle-glog0 libgoogle-glog-dev \
+</span><span class='line'>    libgflags-dev liblmdb-dev git python-pip gfortran
+</span><span class='line'>$ sudo apt-get clean
+</span><span class='line'>$ sudo apt-get install -y linux-image-extra-`uname -r` linux-headers-`uname -r` linux-image-`uname -r`
+</span><span class='line'>$ sudo apt-get install -y cuda</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Verify CUDA inside docker container</h2>
+
+<p>Running:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ nvidia-smi </span></code></pre></td></tr></table></div></figure>
+
+
+<p>Should show info about the GPU driver and not return any errors.</p>
+
+<p>Running this torch command:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ th -e "require 'cutorch'; require 'cunn'; print(cutorch)"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Should produce this output:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>  getStream : function: 0x4054b760
+</span><span class='line'>  getDeviceCount : function: 0x408bca58
+</span><span class='line'>  .. etc
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
 
 
 <h2>Install neural-style</h2>
@@ -231,38 +277,6 @@
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ cd neural-style
 </span><span class='line'>$ sh models/download_models.sh</span></code></pre></td></tr></table></div></figure>
 
-
-<h2>Install CUDA backend for Torch</h2>
-
-<p>NOTE: Not sure this step is actually needed, tried it out of desperation to get around the error mentioned below.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ luarocks install cutorch
-</span><span class='line'>$ luarocks install cunn</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Verify</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ th -e "require 'cutorch'; require 'cunn'; print(cutorch)"</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Expected output:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>{
-</span><span class='line'>  getStream : function: 0x40d40ce8
-</span><span class='line'>  getDeviceCount : function: 0x40d413d8
-</span><span class='line'>  ... etc
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>ERROR: this isn&rsquo;t working!</strong>  I&rsquo;ve posted a <a href="https://groups.google.com/d/msg/torch7/yCSNIzW590M/Af7CHXEdDQAJ">question</a> to the Torch Google Group.  For some reason</p>
 
 <h2>Run neural style</h2>
 
