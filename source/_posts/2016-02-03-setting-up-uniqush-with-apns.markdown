@@ -33,6 +33,8 @@ So the *right* way to do this is to run redis in a separate container and link t
 
 ### Verify Uniqush is running
 
+Run this outside of the docker container:
+
 ```
 $ curl localhost:9898/version
 uniqush-push 1.5.2
@@ -63,26 +65,30 @@ This will save a CSR on your file system, and the next wizard step will ask you 
 
 Double click the downloaded cert and it will be added to your keychain.
 
-This is where I got a bit confused, since I had to also download the cert from the app id section -- go to the app id and hit "Edit", then download the cert and double click it to add to your keychain.  (I'm confused because I thought these were the same certs and this second step felt redundant)
+This is where I got a bit confused, since I had to *also* download the cert from the app id section -- go to the app id and hit "Edit", then download the cert and double click it to add to your keychain.  (I'm confused because I thought these were the same certs and this second step felt redundant)
 
 ![screenshot](http://tleyden-misc.s3.amazonaws.com/blog_images/download_app_id_cert.png)
 
 
 ## Create and use provisioning profile
 
+Go to the **Provisioning Profiles / Development** section and hit the "+" button:
+
 ![screenshot](http://tleyden-misc.s3.amazonaws.com/blog_images/create_provisioning_profile.png)
+
+Choose all certs and all devices, and then give your provisioning profile an easy to remember name.  
 
 ![screenshot](http://tleyden-misc.s3.amazonaws.com/blog_images/create_provisioning_profile_2.png)
 
 Download this provisioning profile and double click it to install it.
 
-In xcode, choose this provisioning profile:
+In xcode under **Build Settings**, choose this provisioning profile:
 
 ![screenshot](http://tleyden-misc.s3.amazonaws.com/blog_images/xcode_choose_provisioning_profile.png)
 
 ## Register for push notifications in your app
 
-Add code to `didFinishLaunchingWithOptions:`:
+Add the following code to your `didFinishLaunchingWithOptions:`:
 
 ```
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
@@ -101,16 +107,13 @@ Add code to `didFinishLaunchingWithOptions:`:
         [application registerForRemoteNotificationTypes:
          (UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeSound)];
     }
-    
-    LoginViewController *loginViewController =
-        (LoginViewController *)self.window.rootViewController;
 
-     ...
+    // rest of your code goes here ...
 
 }
 ```
 
-Add the following callback methods:
+And the following callback methods which will be called if remote notification is successful:
 
 ```
 - (void)application:(UIApplication *)app didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
@@ -127,7 +130,11 @@ Add the following callback methods:
      NSLog(@"didRegisterForRemoteNotificationsWithDeviceToken, Cleaned device token token: %@", deviceTokenCleaned);
 
 }
+```
 
+and this callback which will be called if it's not unsuccessful:
+
+```
 - (void)application:(UIApplication *)app didFailToRegisterForRemoteNotificationsWithError:(NSError *)err
 {
     NSString *str = [NSString stringWithFormat: @"Error: %@", err];
@@ -136,13 +143,13 @@ Add the following callback methods:
 
 ```
 
-If you run this app on a simulator, you can expect an error like `Error registering device token.  Push notifications will not workError`.
+If you now run this app on a simulator, you can expect an error like `Error registering device token.  Push notifications will not workError`.
 
 Run the app on a device you should see a popup dialog in the app asking if it's OK to receive push notifications, and the following log messages in the xcode console:
 
 ```
-2016-02-03 11:56:25.724 ToDoLite[5383:2210401] didRegisterForRemoteNotificationsWithDeviceToken, Device token: <281c8710 1b029fdb 16c8e134 39436336 116001ce bf6519e6 8edefab5 23dab4e9>
-2016-02-03 11:56:25.725 ToDoLite[5383:2210401] didRegisterForRemoteNotificationsWithDeviceToken, Cleaned device token token: 281c87101b029fdb16c8e13439436336116001cebf6519e68edefab523dab4e9
+didRegisterForRemoteNotificationsWithDeviceToken, Device token: <281c8710 1b029fdb 16c8e134 39436336 116001ce bf6519e6 8edefab5 23dab4e9>
+didRegisterForRemoteNotificationsWithDeviceToken, Cleaned device token token: 281c87101b029fdb16c8e13439436336116001cebf6519e68edefab523dab4e9
 ```
 
 ## Export APNS keys to .PEM format
@@ -151,13 +158,13 @@ Open keychain, select the `login` keychain and the `My Certificates` category:
 
 ![screenshot](http://tleyden-misc.s3.amazonaws.com/blog_images/export_cert_keychain.png)
 
-* Right click on the certificate (not the private key) “Apple Development Push Services: app id”
-* Choose Export “Apple Development Push Services: app id″.
-* Save this as apns-prod-cert.p12 file somewhere you can access it.
+* Right click on the certificate (not the private key) “Apple Development Push Services: (your app id)”
+* Choose Export “Apple Development Push Services: (your app id)″.
+* Save this as `apns-prod-cert.p12` file somewhere you can access it.
 * When it prompts you for a password, leave it blank (or add one if you want, but this tutorial will assume it was left blank)
-* Repeat with the private key (in this case, TodoLite Push Notification Cert) and save it as apns-prod-key.p12.
+* Repeat with the private key (in this case, TodoLite Push Notification Cert) and save it as `apns-prod-key.p12`.
 
-Now they need to be converted from .p12 to PEM format.
+Now they need to be converted from `.p12` to `.pem` format.
 
 ```
 $ openssl pkcs12 -clcerts -nokeys -out apns-prod-cert.pem -in apns-prod-cert.p12
@@ -182,7 +189,7 @@ writing RSA key
 
 ## Add PEM files to Uniqush docker container
 
-When you call the Uniqush REST API to add a Push Service Provider, it expects to find the PEM files on it's local file system.
+When you call the Uniqush REST API to add a Push Service Provider, it expects to find the PEM files on it's local file system.  Use the following commands to get these files into the running container in the `/tmp` directory:
 
 ```
 $ `container=$(docker ps | grep -i uniqush | awk '{print $1}')`
@@ -197,9 +204,9 @@ $ docker cp /tmp/apns-prod-key-noenc.pem $container:/tmp/apns-prod-key-noenc.pem
 $ export UNIQUSH_HOSTNAME=ec2-54-73-10-60.compute-1.amazonaws.com:9898
 $ curl -v http://$UNIQUSH_HOSTNAME/addpsp -d service=myservice \
                                           -d pushservicetype=apns \
-	        			  -d cert=/tmp/apns-prod-cert.pem
-				          -d key=/tmp/apns-prod-key-noenc.pem \
-				          -d sandbox=true
+					  -d cert=/tmp/apns-prod-cert.pem \
+					  -d key=/tmp/apns-prod-key-noenc.pem \
+					  -d sandbox=true
 ```
 
 (Note: I'm using a development cert, but if this was a distribution cert you'd want to use `sandbox=false`)
@@ -230,7 +237,7 @@ You should receive a `200 OK` response with:
 
 ## Push a test message
 
-The moment of truth ..
+The moment of truth!
 
 First, you need to either **background your app** by pressing the home button, or add [some code like this](https://gist.github.com/tleyden/97434117ad53757106ad) so that an alert will be shown if the app is foregrounded.
 
