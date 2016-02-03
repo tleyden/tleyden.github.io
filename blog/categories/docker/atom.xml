@@ -4,7 +4,7 @@
   <title><![CDATA[Category: docker | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/docker/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-02-03T13:25:55-08:00</updated>
+  <updated>2016-02-03T13:29:22-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -34,10 +34,9 @@
 
 <h3>Docker run</h3>
 
-<ul>
-<li><code>docker run -itd -p 9898:9898 -v ~/volumes/uniqush/uniqush-push.conf:/etc/uniqush/uniqush-push.conf tleyden5iwx/uniqush uniqush-push</code></li>
-</ul>
-
+<p><code>
+docker run -itd -p 9898:9898 -v ~/volumes/uniqush/uniqush-push.conf:/etc/uniqush/uniqush-push.conf tleyden5iwx/uniqush uniqush-push
+</code></p>
 
 <h3>Kick off redis (hack)</h3>
 
@@ -53,7 +52,7 @@
 
 <h3>Verify Uniqush is running</h3>
 
-<p>Run this outside of the docker container:</p>
+<p>Run this <code>curl</code> command outside of the docker container to verify that Uniqush is responding to HTTP requests:</p>
 
 <p><code>
 $ curl localhost:9898/version

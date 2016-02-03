@@ -117,9 +117,8 @@
 
 <h3>Docker run</h3>
 
-<ul>
-<li><code>docker run -itd -p 9898:9898 -v ~/volumes/uniqush/uniqush-push.conf:/etc/uniqush/uniqush-push.conf tleyden5iwx/uniqush uniqush-push</code></li>
-</ul>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>docker run -itd -p 9898:9898 -v ~/volumes/uniqush/uniqush-push.conf:/etc/uniqush/uniqush-push.conf tleyden5iwx/uniqush uniqush-push</span></code></pre></td></tr></table></div></figure>
 
 
 <h3>Kick off redis (hack)</h3>
@@ -136,7 +135,7 @@
 
 <h3>Verify Uniqush is running</h3>
 
-<p>Run this outside of the docker container:</p>
+<p>Run this <code>curl</code> command outside of the docker container to verify that Uniqush is responding to HTTP requests:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
