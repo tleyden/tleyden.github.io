@@ -166,7 +166,9 @@ Run it:
 $ th neural_style.lua -style_image images/vangogh.jpg -content_image images/hotel_del_coronado.jpg
 ```
 
-## CuDNN
+## CuDNN (optional)
+
+CuDNN can potentially speed things up.
 
 [download cuDNN](https://developer.nvidia.com/cudnn)
 
