@@ -165,3 +165,28 @@ Run it:
 ```
 $ th neural_style.lua -style_image images/vangogh.jpg -content_image images/hotel_del_coronado.jpg
 ```
+
+## CuDNN
+
+[download cuDNN](https://developer.nvidia.com/cudnn)
+
+Install via:
+
+```
+tar -xzvf cudnn-7.0-linux-x64-v3.0-prod.tgz
+cd cuda/
+sudo cp lib64/libcudnn* /usr/local/cuda-7.5/lib64/
+sudo cp include/cudnn.h /usr/local/cuda-7.5/include
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-7.5/lib64/
+```
+
+Install the torch bindings for cuDNN:
+
+```
+luarocks install cudnn
+```
+
+## References
+
+* [Neural-Style INSTALL.md](https://github.com/jcjohnson/neural-style/blob/master/INSTALL.md)
+* ami-84c787ee -- this AMI has everything pre-installed, however it is installed on the host rather than under docker, which was due to time constraints.
