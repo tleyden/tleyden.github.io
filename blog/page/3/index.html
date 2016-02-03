@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Debugging into the core Android source code can be useful. Here&rsquo;s how to do it in Android Studio 0.8.2. Starting out, if we hit a breakpoint &hellip;">
+  <meta name="description" content="Using a pre-built public AMI Based on the instructions in this blog post, I&rsquo;ve created an AMI and shared it publicly. So the easiest thing to &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +72,236 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">CUDA 6.5 on AWS GPU Instance Running Ubuntu 14.04</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-25T11:56:00-07:00" pubdate data-updated="true">Oct 25<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>Using a pre-built public AMI</h2>
+
+<p>Based on the instructions in this blog post, I&rsquo;ve created an AMI and shared it publicly.  So the easiest thing to do is just use that pre-built AMI:</p>
+
+<ul>
+<li>Image: <strong>ami-2cbf3e44</strong> for US-East or <strong>ami-c38babf3</strong> for US-West (Ubuntu Server 14.04 LTS (HVM) &ndash; CUDA 6.5)</li>
+<li>Instance type: <strong>g2.2xlarge</strong> (if you skip this step, you won&rsquo;t have an nvidia device)</li>
+<li>Storage: Use at least 8 GB, 20+ GB recommended</li>
+</ul>
+
+
+<p>If you use the pre-built AMI, then you can skip down to the <strong>Verify CUDA is correctly installed</strong> section, since all of the rest of the steps are &ldquo;baked in&rdquo; to the AMI.</p>
+
+<p><em>Note regarding AMI regions: the AMI only currently works in the US-East and US-West regions.  If you need it added to another region, please post a comment below</em></p>
+
+<h2>Building from scratch</h2>
+
+<p>Or if you prefer to build your own instance from scratch, keep reading.</p>
+
+<p>Create a new EC2 instance:</p>
+
+<ul>
+<li>Image: ami-9eaa1cf6 (Ubuntu Server 14.04 LTS (HVM), SSD Volume Type)</li>
+<li>Instance type: g2.2xlarge</li>
+<li>Storage: Use at least 8 GB, 20+ GB recommended</li>
+</ul>
+
+
+<p>Install build-essential:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ apt-get update && apt-get install build-essential</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Get CUDA installer:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget http://developer.download.nvidia.com/compute/cuda/6_5/rel/installers/cuda_6.5.14_linux_64.run</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Extract CUDA installer:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ chmod +x cuda_6.5.14_linux_64.run
+</span><span class='line'>$ mkdir nvidia_installers
+</span><span class='line'>$ ./cuda_6.5.14_linux_64.run -extract=`pwd`/nvidia_installers</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Run Nvidia driver installer:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd nvidia_installers
+</span><span class='line'>$ ./NVIDIA-Linux-x86_64-340.29.run</span></code></pre></td></tr></table></div></figure>
+
+
+<p>At this point it will popup an 8-bit UI that will ask you to accept a license agreement, and then start installing.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/install_cuda.png" alt="screenshot" /></p>
+
+<p>At this point, I got an error:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Unable to load the kernel module 'nvidia.ko'.  This happens most frequently when this kernel module was built against the wrong or
+</span><span class='line'>         improperly configured kernel sources, with a version of gcc that differs from the one used to build the target kernel, or if a driver
+</span><span class='line'>         such as rivafb, nvidiafb, or nouveau is present and prevents the NVIDIA kernel module from obtaining ownership of the NVIDIA graphics
+</span><span class='line'>         device(s), or no NVIDIA GPU installed in this system is supported by this NVIDIA Linux graphics driver release.
+</span><span class='line'>
+</span><span class='line'>         Please see the log entries 'Kernel module load error' and 'Kernel messages' at the end of the file '/var/log/nvidia-installer.log'
+</span><span class='line'>         for more information.</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After <a href="https://devtalk.nvidia.com/default/topic/547588/error-installing-nvidia-drivers-on-x86_64-amazon-ec2-gpu-cluster-t20-gpu-/">reading this forum post</a> I installed:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get install linux-image-extra-virtual</span></code></pre></td></tr></table></div></figure>
+
+
+<p>When it prompted me what do to about the grub changes, I chose &ldquo;choose package maintainers version&rdquo;.</p>
+
+<p>Reboot:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ reboot</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Disable nouveau</h2>
+
+<p>At this point you need to disable nouveau, since it conflicts with the nvidia kernel module.</p>
+
+<p>Open a new file</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ vi /etc/modprobe.d/blacklist-nouveau.conf</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and add these lines to it</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>blacklist nouveau
+</span><span class='line'>blacklist lbm-nouveau
+</span><span class='line'>options nouveau modeset=0
+</span><span class='line'>alias nouveau off
+</span><span class='line'>alias lbm-nouveau off</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and then save the file.</p>
+
+<p>Disable the Kernel Nouveau:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ echo options nouveau modeset=0 | sudo tee -a /etc/modprobe.d/nouveau-kms.conf</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Reboot:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ update-initramfs -u
+</span><span class='line'>$ reboot</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>One more try &mdash; this time it works</h2>
+
+<p>Get Kernel source:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ apt-get install linux-source
+</span><span class='line'>$ apt-get install linux-headers-3.13.0-37-generic
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Rerun Nvidia driver installer:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd nvidia_installers
+</span><span class='line'>$ ./NVIDIA-Linux-x86_64-340.29.run</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Load nvidia kernel module:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ modprobe nvidia</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Run CUDA + samples installer:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./cuda-linux64-rel-6.5.14-18749181.run
+</span><span class='line'>$ ./cuda-samples-linux-6.5.14-18745345.run</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Verify CUDA is correctly installed</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /usr/local/cuda/samples/1_Utilities/deviceQuery
+</span><span class='line'>$ make
+</span><span class='line'>$ ./deviceQuery   </span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see the following output:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 6.5, CUDA Runtime Version = 6.5, NumDevs = 1, Device0 = GRID K520
+</span><span class='line'>Result = PASS</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>References</h2>
+
+<ul>
+<li><a href="http://www.r-tutor.com/gpu-computing/cuda-installation/cuda6.5-ubuntu">http://www.r-tutor.com/gpu-computing/cuda-installation/cuda6.5-ubuntu</a></li>
+<li><a href="http://askubuntu.com/questions/451672/installing-and-testing-cuda-in-ubuntu-14-04">http://askubuntu.com/questions/451672/installing-and-testing-cuda-in-ubuntu-14-04</a></li>
+<li><a href="https://devtalk.nvidia.com/default/topic/547588/error-installing-nvidia-drivers-on-x86_64-amazon-ec2-gpu-cluster-t20-gpu-/">https://devtalk.nvidia.com/default/topic/547588/error-installing-nvidia-drivers-on-x86_64-amazon-ec2-gpu-cluster-t20-gpu-/</a></li>
+<li><a href="https://devtalk.nvidia.com/default/topic/769719/drm-ko-missing-on-ubuntu-14-04-1-lts-aws-ec2-g2-2xlarge-instance/">https://devtalk.nvidia.com/default/topic/769719/drm-ko-missing-on-ubuntu-14-04-1-lts-aws-ec2-g2-2xlarge-instance/</a></li>
+<li><a href="http://askubuntu.com/questions/451221/ubuntu-14-04-install-nvidia-driver">http://askubuntu.com/questions/451221/ubuntu-14-04-install-nvidia-driver</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1391,79 +1621,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/02/06/why-use-go-when-you-can-just-use-c-plus-plus/">Why Use Go When You Can Just Use C++?</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-02-06T08:25:00-08:00" pubdate data-updated="true">Feb 6<span>th</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>I recently saw this on a mailing list:</p>
-
-<blockquote><p>What are the advantages of Go against C++ or other languages?</p></blockquote>
-
-<h1>Go has sane concurrency.</h1>
-
-<p>In C++ the main tool to deal with concurrency is pthreads, but making threaded programming correct is extremely difficult and error prone.  Trying to make it performant by minimizing locking makes it even more challenging.</p>
-
-<p>Go, OTOH, has a concept of goroutines and channels for concurrency.  The idea has its roots in CSP (communicating sequential processing), and is not unlike Erlang&rsquo;s style of having processes that communicating by message passing.</p>
-
-<p>In Go, instead of having threads communicating by sharing memory (and locking), goroutines share memory by communicating over channels.  Eg, concurrent goroutines communicate over channels, and each goroutine&rsquo;s internal state is private to that goroutine.  Also, concurrency and their constructs like channels are built right into the Go language, which affords many advantages over languages that have had concurrency slapped on as an afterthought.</p>
-
-<h1>Other Strengths</h1>
-
-<ul>
-<li>No unsafe pointer arithmetic.</li>
-<li>Array bound checking</li>
-<li>Write once run anywhere</li>
-<li>Closures (eg, lambdas)</li>
-<li>Functions are first class objects</li>
-<li>Multiple return values</li>
-<li>Does not have IFDEF&rsquo;s, so no IFDEF hell and unmaintainable code.</li>
-<li>Compiles blazingly fast</li>
-<li>Gofmt &ndash; All code is uniformly formatted, making codebases much easier to read.  (a la Python)</li>
-<li>Garbage collection</li>
-</ul>
-
-
-<h1>Weaknesses</h1>
-
-<ul>
-<li>Lack of generics</li>
-<li>Not quite as fast as C/C++ (partly due to GC overhead)</li>
-<li>Integration with existing native code is a bit limited (you can&rsquo;t build libraries in Go or link Go code into a C/C++ executable)</li>
-<li>IDE support is limited compared to C/C++/Obj-C/Java</li>
-<li>Doesn&rsquo;t work with regular debugging tools because it doesn&rsquo;t use normal calling conventions.</li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/4/">&larr; Older</a>
@@ -1492,6 +1649,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/02/03/setting-up-uniqush-with-apns/">Setting Up Uniqush With APNS</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/11/22/cuda-7-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">CUDA 7.5 on AWS GPU Instance Running Ubuntu 14.04</a>
       </li>
     
@@ -1505,10 +1666,6 @@
     
       <li class="post">
         <a href="/blog/2015/05/05/running-couchbase-server-under-docker-on-joyent/">Running Couchbase Server Under Joyent Triton</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2015/04/25/setting-up-octopress-under-docker/">Setting Up Octopress Under Docker</a>
       </li>
     
   </ul>
@@ -1550,7 +1707,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2015 - Traun Leyden -
+  Copyright &copy; 2016 - Traun Leyden -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

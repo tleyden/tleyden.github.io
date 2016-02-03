@@ -4,7 +4,7 @@
   <title><![CDATA[Category: docker | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/docker/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-11-23T12:06:50-08:00</updated>
+  <updated>2016-02-03T13:08:06-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,288 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Setting up Uniqush with APNS]]></title>
+    <link href="http://tleyden.github.io/blog/2016/02/03/setting-up-uniqush-with-apns/"/>
+    <updated>2016-02-03T08:47:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2016/02/03/setting-up-uniqush-with-apns</id>
+    <content type="html"><![CDATA[<p>This walks you through running Uniqush in the cloud (under Docker) and setting up an iOS app to receive push notifications.</p>
+
+<h2>Run Uniqush under Docker</h2>
+
+<h3>Config</h3>
+
+<ul>
+<li><code>mkdir -p volumes/uniqush</code></li>
+<li><code>wget https://gist.githubusercontent.com/tleyden/3a7fa975db00c15b724f/raw/093288917b42f90d8db8722f2f6f645d2b9c7150/uniqush-push.conf -O volumes/uniqush/uniqush-push.conf</code></li>
+</ul>
+
+
+<p>Security note: the above config has Uniqush listening on all interfaces, but depending on your setup you probably want to change that to <code>localhost</code> or something more restrictive.</p>
+
+<h3>Docker run</h3>
+
+<ul>
+<li><code>docker run -itd -p 9898:9898 -v ~/volumes/uniqush/uniqush-push.conf:/etc/uniqush/uniqush-push.conf tleyden5iwx/uniqush uniqush-push</code></li>
+</ul>
+
+
+<h3>Kick off redis (hack)</h3>
+
+<p>So the <em>right</em> way to do this is to run redis in a separate container and link the containers via Docker Networks.  In the meantime, this little hack will work&hellip; shell into the container and kick off redis.</p>
+
+<ul>
+<li><code>container=$(docker ps | grep -i uniqush | awk '{print $1}')</code></li>
+<li><code>docker exec -ti $container bash</code></li>
+<li><code>/etc/init.d/redis-server start</code>  (&lt;&mdash;&ndash; inside the running container)</li>
+<li><code>exit</code> (to get out of the container)</li>
+</ul>
+
+
+<h3>Verify Uniqush is running</h3>
+
+<p><code>
+$ curl localhost:9898/version
+uniqush-push 1.5.2
+</code></p>
+
+<h2>Create APNS certificate</h2>
+
+<p>In my case, I already had an app id for my app (<code>com.couchbase.todolite</code>), but push notifications are not enabled, so I needed to enable them:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/todolite_app_settings.png" alt="screenshot" /></p>
+
+<p>Create a new push cert:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/create_new_push_cert.png" alt="screenshot" /></p>
+
+<p>Choose the correct app id:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/choose_app_id.png" alt="screenshot" /></p>
+
+<p>Generate CSR according to instructions in keychain:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/create_csr.png" alt="screenshot" /></p>
+
+<p>This will save a CSR on your file system, and the next wizard step will ask you to upload this CSSR and generate the certificate.  Now you can download it:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/download_cert.png" alt="screenshot" /></p>
+
+<p>Double click the downloaded cert and it will be added to your keychain.</p>
+
+<p>This is where I got a bit confused, since I had to also download the cert from the app id section &mdash; go to the app id and hit &ldquo;Edit&rdquo;, then download the cert and double click it to add to your keychain.  (I&rsquo;m confused because I thought these were the same certs and this second step felt redundant)</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/download_app_id_cert.png" alt="screenshot" /></p>
+
+<h2>Create and use provisioning profile</h2>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/create_provisioning_profile.png" alt="screenshot" /></p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/create_provisioning_profile_2.png" alt="screenshot" /></p>
+
+<p>Download this provisioning profile and double click it to install it.</p>
+
+<p>In xcode, choose this provisioning profile:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/xcode_choose_provisioning_profile.png" alt="screenshot" /></p>
+
+<h2>Register for push notifications in your app</h2>
+
+<p>Add code to <code>didFinishLaunchingWithOptions:</code>:</p>
+
+<p>```
+&ndash; (BOOL)application:(UIApplication <em>)application didFinishLaunchingWithOptions:(NSDictionary </em>)launchOptions {</p>
+
+<pre><code>// Register for push notifications
+if ([application respondsToSelector:@selector(isRegisteredForRemoteNotifications)])
+{
+    // iOS 8 Notifications
+    [application registerUserNotificationSettings:[UIUserNotificationSettings settingsForTypes:(UIUserNotificationTypeSound | UIUserNotificationTypeAlert | UIUserNotificationTypeBadge) categories:nil]];
+
+    [application registerForRemoteNotifications];
+}
+else
+{
+    // iOS &lt; 8 Notifications
+    [application registerForRemoteNotificationTypes:
+     (UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeSound)];
+}
+
+LoginViewController *loginViewController =
+    (LoginViewController *)self.window.rootViewController;
+
+ ...
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Add the following callback methods:</p>
+
+<p>```
+&ndash; (void)application:(UIApplication <em>)app didRegisterForRemoteNotificationsWithDeviceToken:(NSData </em>)deviceToken
+{</p>
+
+<pre><code>NSString *deviceTokenStr = [NSString stringWithFormat:@"%@",deviceToken];
+NSLog(@"didRegisterForRemoteNotificationsWithDeviceToken, Device token: %@", deviceTokenStr);
+
+NSString* deviceTokenCleaned = [[[[deviceToken description]
+                                  stringByReplacingOccurrencesOfString: @"&lt;" withString: @""]
+                                 stringByReplacingOccurrencesOfString: @"&gt;" withString: @""]
+                                stringByReplacingOccurrencesOfString: @" " withString: @""];
+
+ NSLog(@"didRegisterForRemoteNotificationsWithDeviceToken, Cleaned device token token: %@", deviceTokenCleaned);
+</code></pre>
+
+<p>}</p>
+
+<ul>
+<li>(void)application:(UIApplication <em>)app didFailToRegisterForRemoteNotificationsWithError:(NSError </em>)err
+{
+  NSString *str = [NSString stringWithFormat: @&ldquo;Error: %@&rdquo;, err];
+  NSLog(@&ldquo;Error registering device token.  Push notifications will not work%@&rdquo;, str);
+}</li>
+</ul>
+
+
+<p>```</p>
+
+<p>If you run this app on a simulator, you can expect an error like <code>Error registering device token.  Push notifications will not workError</code>.</p>
+
+<p>Run the app on a device you should see a popup dialog in the app asking if it&rsquo;s OK to receive push notifications, and the following log messages in the xcode console:</p>
+
+<p><code>
+2016-02-03 11:56:25.724 ToDoLite[5383:2210401] didRegisterForRemoteNotificationsWithDeviceToken, Device token: &lt;281c8710 1b029fdb 16c8e134 39436336 116001ce bf6519e6 8edefab5 23dab4e9&gt;
+2016-02-03 11:56:25.725 ToDoLite[5383:2210401] didRegisterForRemoteNotificationsWithDeviceToken, Cleaned device token token: 281c87101b029fdb16c8e13439436336116001cebf6519e68edefab523dab4e9
+</code></p>
+
+<h2>Export APNS keys to .PEM format</h2>
+
+<p>Open keychain, select the <code>login</code> keychain and the <code>My Certificates</code> category:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/export_cert_keychain.png" alt="screenshot" /></p>
+
+<ul>
+<li>Right click on the certificate (not the private key) “Apple Development Push Services: app id”</li>
+<li>Choose Export “Apple Development Push Services: app id″.</li>
+<li>Save this as apns-prod-cert.p12 file somewhere you can access it.</li>
+<li>When it prompts you for a password, leave it blank (or add one if you want, but this tutorial will assume it was left blank)</li>
+<li>Repeat with the private key (in this case, TodoLite Push Notification Cert) and save it as apns-prod-key.p12.</li>
+</ul>
+
+
+<p>Now they need to be converted from .p12 to PEM format.</p>
+
+<p><code>
+$ openssl pkcs12 -clcerts -nokeys -out apns-prod-cert.pem -in apns-prod-cert.p12
+Enter Import Password: &lt;return&gt;
+MAC verified OK
+</code></p>
+
+<p><code>
+$ openssl pkcs12 -nocerts -out apns-prod-key.pem -in apns-prod-key.p12
+Enter Import Password:
+MAC verified OK
+Enter PEM pass phrase: hello &lt;return&gt;
+</code></p>
+
+<p>Remove the PEM passphrase:</p>
+
+<p><code>
+$ openssl rsa -in apns-prod-key.pem -out apns-prod-key-noenc.pem
+Enter pass phrase for apns-prod-key.pem: hello
+writing RSA key
+</code></p>
+
+<h2>Add PEM files to Uniqush docker container</h2>
+
+<p>When you call the Uniqush REST API to add a Push Service Provider, it expects to find the PEM files on it&rsquo;s local file system.</p>
+
+<p><code>
+$ `container=$(docker ps | grep -i uniqush | awk '{print $1}')`
+$ docker cp /tmp/apns-prod-cert.pem $container:/tmp/apns-prod-cert.pem
+$ docker cp /tmp/apns-prod-key-noenc.pem $container:/tmp/apns-prod-key-noenc.pem
+</code></p>
+
+<h2>Create APNS provider in Uniqush via REST API</h2>
+
+<p>```
+$ export UNIQUSH_HOSTNAME=ec2-54-73-10-60.compute-1.amazonaws.com:9898
+$ curl -v <a href="http://$UNIQUSH_HOSTNAME/addpsp">http://$UNIQUSH_HOSTNAME/addpsp</a> -d service=myservice \</p>
+
+<pre><code>                                      -d pushservicetype=apns \
+                      -d cert=/tmp/apns-prod-cert.pem
+                      -d key=/tmp/apns-prod-key-noenc.pem \
+                      -d sandbox=true
+</code></pre>
+
+<p>```</p>
+
+<p>(Note: I&rsquo;m using a development cert, but if this was a distribution cert you&rsquo;d want to use <code>sandbox=false</code>)</p>
+
+<p>You should get a <code>200 OK</code> response with:</p>
+
+<p><code>
+[AddPushServiceProvider][Info] 2016/02/03 20:35:29 From=24.23.246.59:59447 Service=myservice PushServiceProvider=apns:9f49c9c618c97bebe21bea159d3c7a8577934bdf00 Success!
+</code></p>
+
+<h2>Add Uniqush subscriber</h2>
+
+<p>Using the cleaned up device token from the previous step <code>281c87101b029fdb16c8e13439436336116001cebf6519e68edefab523dab1e9</code>, create a subscriber with the name <code>mytestsubscriber</code> via:</p>
+
+<p>```
+$ curl -v <a href="http://$UNIQUSH_HOSTNAME/subscribe">http://$UNIQUSH_HOSTNAME/subscribe</a> -d service=myservice \</p>
+
+<pre><code>                                         -d subscriber=mytestsubscriber \
+                     -d pushservicetype=apns \
+                     -d devtoken=281c87101b029fdb16c8e13439436336116001cebf6519e68edefab523dab1e9 
+</code></pre>
+
+<p>```</p>
+
+<p>You should receive a <code>200 OK</code> response with:</p>
+
+<p><code>
+[Subscribe][Info] 2016/02/03 20:43:21 From=24.23.246.59:60299 Service=myservice Subscriber=mytestsubscriber PushServiceProvider=apns:9f49c9c618c97bebe21bea159d3c7a8577934bdf00 DeliveryPoint=apns:2cbecd0798cc6731d96d5b0fb01d813c7c9a83af00 Success!
+</code></p>
+
+<h2>Push a test message</h2>
+
+<p>The moment of truth ..</p>
+
+<p>First, you need to either <strong>background your app</strong> by pressing the home button, or add <a href="https://gist.github.com/tleyden/97434117ad53757106ad">some code like this</a> so that an alert will be shown if the app is foregrounded.</p>
+
+<p>```
+$ curl -v <a href="http://$UNIQUSH_HOSTNAME/push">http://$UNIQUSH_HOSTNAME/push</a> -d service=myservice \</p>
+
+<pre><code>                                    -d subscriber=mytestsubscriber \
+                -d msg=HelloWorld
+</code></pre>
+
+<p>```</p>
+
+<p>You should get a <code>200 OK</code> response with:</p>
+
+<p><code>
+[Push][Info] 2016/02/03 20:46:08 RequestId=56b26710-INbW8UWMUONtH8Ttddd2Qg== From=24.23.246.59:60634 Service=myservice NrSubscribers=1 Subscribers="[mytestsubscriber]"
+[Push][Info] 2016/02/03 20:46:09 RequestID=56b26710-INbW8UWMUONtH8Ttddd2Qg== Service=myservice Subscriber=mytestsubscriber PushServiceProvider=apns:9f49c9c618c97bebe21bea159d3c7a8577934bdf00 DeliveryPoint=apns:2cbecd0798cc6731d96d5b0fb01d813c7c9a83af MsgId=apns:apns:9f49c9c618c97bebe21bea159d3c7a8577934bdf-1 Success!
+</code></p>
+
+<p>And a push notification on the device!</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/push_notification_device.png" alt="screenshot" /></p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="http://uniqush.org/documentation/usage.html">Uniqush docs</a></li>
+<li><a href="http://quickblox.com/developers/How_to_create_APNS_certificates">How to create APNS certificates</a></li>
+<li><a href="https://blog.serverdensity.com/how-to-renew-your-apple-push-notification-push-ssl-certificate/">How to renew your Apple Push Notification Push SSL Certificate</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Running Neural Style on an AWS GPU instance]]></title>
@@ -180,6 +462,36 @@ $ wget http://exp.cdn-hotels.com/hotels/1000000/10000/7500/7496/7496_42_z.jpg -O
 <p><code>
 $ th neural_style.lua -style_image images/vangogh.jpg -content_image images/hotel_del_coronado.jpg
 </code></p>
+
+<h2>CuDNN (optional)</h2>
+
+<p>CuDNN can potentially speed things up.</p>
+
+<p><a href="https://developer.nvidia.com/cudnn">download cuDNN</a></p>
+
+<p>Install via:</p>
+
+<p><code>
+tar -xzvf cudnn-7.0-linux-x64-v3.0-prod.tgz
+cd cuda/
+sudo cp lib64/libcudnn* /usr/local/cuda-7.5/lib64/
+sudo cp include/cudnn.h /usr/local/cuda-7.5/include
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-7.5/lib64/
+</code></p>
+
+<p>Install the torch bindings for cuDNN:</p>
+
+<p><code>
+luarocks install cudnn
+</code></p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://github.com/jcjohnson/neural-style/blob/master/INSTALL.md">Neural-Style INSTALL.md</a></li>
+<li>ami-84c787ee &mdash; this AMI has everything pre-installed, however it is installed on the host rather than under docker, which was due to time constraints.</li>
+</ul>
+
 ]]></content>
   </entry>
   
@@ -882,188 +1194,6 @@ X-Handler: 10.231.220.110:4984
 
 <ul>
 <li><a href="http://blog.dixo.net/2015/02/load-balancing-with-coreos">http://blog.dixo.net/2015/02/load-balancing-with-coreos</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Running a CBFS cluster on CoreOS]]></title>
-    <link href="http://tleyden.github.io/blog/2014/11/14/running-cbfs/"/>
-    <updated>2014-11-14T06:43:00-08:00</updated>
-    <id>http://tleyden.github.io/blog/2014/11/14/running-cbfs</id>
-    <content type="html"><![CDATA[<p>This will walk you through getting a cbfs cluster up and running.</p>
-
-<h2>What is CBFS?</h2>
-
-<p>cbfs is a distributed filesystem on top of Couchbase Server, not unlike Mongo&rsquo;s GridFS or Riak&rsquo;s CS.</p>
-
-<p>Here&rsquo;s a typical deployment architecture:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/cbfs-overview.png" alt="cbfs overview" /></p>
-
-<p>Although not shown, all cbfs daemons can communicate with all Couchbase Server instances.</p>
-
-<p>It is not required to run cbfs on the same machine as Couchbase Server, but it <em>is</em> meant to be run in the same data center as Couchbase Server.</p>
-
-<p>If you want a deeper understanding of how cbfs works, check the <a href="http://labs.couchbase.com/cbfs/">cbfs presentation</a> or this <a href="http://dustin.sallings.org/2012/09/27/cbfs.html">blog post</a>.</p>
-
-<h2>Kick off a Couchbase Cluster</h2>
-
-<p>cbfs depends on having a Couchbase cluster running.</p>
-
-<p>Follow all of the steps in <a href="http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/">Running Couchbase Cluster Under CoreOS on AWS</a> to kick off a 3 node Couchbase cluster.</p>
-
-<h2>Add security groups</h2>
-
-<p>A few ports will need to be opened up for cbfs.</p>
-
-<p>Go to the AWS console and edit the Couchbase-CoreOS-CoreOSSecurityGroup-xxxx security group and add the following rules:</p>
-
-<p>```
-Type             Protocol  Port Range Source</p>
-
-<hr />
-
-<p>Custom TCP Rule  TCP       8484       Custom IP: sg-6e5a0d04 (copy and paste from port 4001 rule)
-Custom TCP Rule  TCP       8423       Custom IP: sg-6e5a0d04
-```</p>
-
-<p>At this point your security group should look like this:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/security_group_cbfs.png" alt="security group" /></p>
-
-<h1>Create a new bucket for cbfs</h1>
-
-<p><strong>Open Couchbase Server Admin UI</strong></p>
-
-<p>In the AWS EC2 console, find the public IP of one of the instances (it doesn&rsquo;t matter which)</p>
-
-<p>In your browser, go to <code>http://&lt;public_ip&gt;:8091/</code></p>
-
-<p><strong>Create Bucket</strong></p>
-
-<p>Go to Data Buckets / Create New Bucket</p>
-
-<p>Enter <strong>cbfs</strong> for the name of the bucket.</p>
-
-<p>Leave all other settings as default.</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/cbfs_create_bucket.png" alt="create bucket" /></p>
-
-<h2>ssh in</h2>
-
-<p>In the AWS EC2 console, find the public IP of one of the instances (it doesn&rsquo;t matter which)</p>
-
-<p>ssh into one of the machines:</p>
-
-<p><code>
-$ ssh -A core@&lt;public_ip&gt;
-</code></p>
-
-<h2>Run cbfs</h2>
-
-<p><strong>Create a volume dir</strong></p>
-
-<p>Since the fileystem of a docker container is not meant for high throughput io, a volume should be used for cbfs.</p>
-
-<p>Create a directory on the host OS (i.e., on the Core OS instance)</p>
-
-<p><code>
-$ sudo mkdir -p /var/lib/cbfs/data
-$ sudo chown -R core:core /var/lib/cbfs
-</code></p>
-
-<p>This will be mounted by the docker container in the next step.</p>
-
-<p><strong>Generate fleet unit files</strong></p>
-
-<p><code>
-$ wget https://gist.githubusercontent.com/tleyden/d70161c3827cb8b788a8/raw/8f6c81f0095b0007565e9b205e90afb132552060/cbfs_node.service.template
-$ for i in `seq 1 3`; do cp cbfs_node.service.template cbfs_node.$i.service; done
-</code></p>
-
-<p><strong>Start cbfs on all cluster nodes</strong></p>
-
-<p><code>
-$ fleetctl start cbfs_node.*.service
-</code></p>
-
-<p>Run <code>fleetctl list-units</code> to list the  units running in your cluster.  You should have the following:</p>
-
-<p><code>
-$ fleetctl list-units
-UNIT                                            MACHINE                         ACTIVE  SUB
-cbfs_node.1.service                             6ecff20c.../10.51.177.81        active  running
-cbfs_node.2.service                             b8eb6653.../10.79.155.153       active  running
-cbfs_node.3.service                             02d48afd.../10.186.172.24       active  running
-couchbase_bootstrap_node.service                02d48afd.../10.186.172.24       active  running
-couchbase_bootstrap_node_announce.service       02d48afd.../10.186.172.24       active  running
-couchbase_node.1.service                        6ecff20c.../10.51.177.81        active  running
-couchbase_node.2.service                        b8eb6653.../10.79.155.153       active  running
-</code></p>
-
-<p><strong>View cbfs output</strong></p>
-
-<p><code>
-$ fleetctl journal cbfs_node.1.service
-2014/11/14 23:18:58 Connecting to couchbase bucket cbfs at http://10.51.177.81:8091/
-2014/11/14 23:18:58 Error checking view version: MCResponse status=KEY_ENOENT, opcode=GET, opaque=0, msg: Not found
-2014/11/14 23:18:58 Installing new version of views (old version=0)
-2014/11/14 23:18:58 Listening to web requests on :8484 as server 10.51.177.81
-2014/11/14 23:18:58 Error removing 10.51.177.81's task list: MCResponse status=KEY_ENOENT, opcode=DELETE, opaque=0, msg: Not found
-2014/11/14 23:19:05 Error updating space used: Expected 1 result, got []
-</code></p>
-
-<h2>Run cbfs client</h2>
-
-<p>Run a bash shell in a docker container that has <code>cbfsclient</code> pre-installed:</p>
-
-<p><code>
-$ sudo docker run -ti --net=host tleyden5iwx/cbfs /bin/bash
-</code></p>
-
-<p><strong>Upload a file</strong></p>
-
-<p>From within the docker container launched in the previous step:</p>
-
-<p>```</p>
-
-<h1>echo &ldquo;foo&rdquo; > foo</h1>
-
-<h1>ip=$(hostname -i | tr -d &lsquo; &rsquo;)</h1>
-
-<h1>cbfsclient <a href="http://$ip:8484/">http://$ip:8484/</a> upload foo /foo</h1>
-
-<p>```</p>
-
-<p>There should be no errors.  If you run <code>fleetctl journal cbfs_node.1.service</code> again on the CoreOS instance, you should see log messages like:</p>
-
-<p><code>
-2014/11/14 21:51:43 Recorded myself as an owner of e242ed3bffccdf271b7fbaf34ed72d089537b42f: result=success
-</code></p>
-
-<p><strong>List directory</strong></p>
-
-<p>```</p>
-
-<h1>cbfsclient <a href="http://$ip:8484/">http://$ip:8484/</a> ls /</h1>
-
-<p>foo
-```</p>
-
-<p>It should list the foo file we uploaded earlier.</p>
-
-<p>Congratulations!  You now have cbfs up and running.</p>
-
-<h2>References</h2>
-
-<ul>
-<li><a href="http://dustin.sallings.org/2012/09/27/cbfs.html">cbfs &ndash; a couchbase large object store</a></li>
-<li><a href="http://labs.couchbase.com/cbfs/">cbfs presentation</a></li>
-<li><a href="http://cbfs-ext.hq.couchbase.com/dist/">cbfs binary downloads</a></li>
-<li><a href="http://github.com/couchbaselabs/cbfs">cbfs github repo</a></li>
-<li><a href="https://github.com/couchbaselabs/cbfs/issues/132">cbfs question</a></li>
 </ul>
 
 ]]></content>

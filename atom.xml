@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-11-23T12:06:50-08:00</updated>
+  <updated>2016-02-03T13:08:06-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,339 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Setting up Uniqush with APNS]]></title>
+    <link href="http://tleyden.github.io/blog/2016/02/03/setting-up-uniqush-with-apns/"/>
+    <updated>2016-02-03T08:47:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2016/02/03/setting-up-uniqush-with-apns</id>
+    <content type="html"><![CDATA[<p>This walks you through running Uniqush in the cloud (under Docker) and setting up an iOS app to receive push notifications.</p>
+
+<h2>Run Uniqush under Docker</h2>
+
+<h3>Config</h3>
+
+<ul>
+<li><code>mkdir -p volumes/uniqush</code></li>
+<li><code>wget https://gist.githubusercontent.com/tleyden/3a7fa975db00c15b724f/raw/093288917b42f90d8db8722f2f6f645d2b9c7150/uniqush-push.conf -O volumes/uniqush/uniqush-push.conf</code></li>
+</ul>
+
+
+<p>Security note: the above config has Uniqush listening on all interfaces, but depending on your setup you probably want to change that to <code>localhost</code> or something more restrictive.</p>
+
+<h3>Docker run</h3>
+
+<ul>
+<li><code>docker run -itd -p 9898:9898 -v ~/volumes/uniqush/uniqush-push.conf:/etc/uniqush/uniqush-push.conf tleyden5iwx/uniqush uniqush-push</code></li>
+</ul>
+
+
+<h3>Kick off redis (hack)</h3>
+
+<p>So the <em>right</em> way to do this is to run redis in a separate container and link the containers via Docker Networks.  In the meantime, this little hack will work&hellip; shell into the container and kick off redis.</p>
+
+<ul>
+<li><code>container=$(docker ps | grep -i uniqush | awk '{print $1}')</code></li>
+<li><code>docker exec -ti $container bash</code></li>
+<li><code>/etc/init.d/redis-server start</code>  (&lt;&mdash;&ndash; inside the running container)</li>
+<li><code>exit</code> (to get out of the container)</li>
+</ul>
+
+
+<h3>Verify Uniqush is running</h3>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl localhost:9898/version
+</span><span class='line'>uniqush-push 1.5.2</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Create APNS certificate</h2>
+
+<p>In my case, I already had an app id for my app (<code>com.couchbase.todolite</code>), but push notifications are not enabled, so I needed to enable them:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/todolite_app_settings.png" alt="screenshot" /></p>
+
+<p>Create a new push cert:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/create_new_push_cert.png" alt="screenshot" /></p>
+
+<p>Choose the correct app id:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/choose_app_id.png" alt="screenshot" /></p>
+
+<p>Generate CSR according to instructions in keychain:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/create_csr.png" alt="screenshot" /></p>
+
+<p>This will save a CSR on your file system, and the next wizard step will ask you to upload this CSSR and generate the certificate.  Now you can download it:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/download_cert.png" alt="screenshot" /></p>
+
+<p>Double click the downloaded cert and it will be added to your keychain.</p>
+
+<p>This is where I got a bit confused, since I had to also download the cert from the app id section &mdash; go to the app id and hit &ldquo;Edit&rdquo;, then download the cert and double click it to add to your keychain.  (I&rsquo;m confused because I thought these were the same certs and this second step felt redundant)</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/download_app_id_cert.png" alt="screenshot" /></p>
+
+<h2>Create and use provisioning profile</h2>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/create_provisioning_profile.png" alt="screenshot" /></p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/create_provisioning_profile_2.png" alt="screenshot" /></p>
+
+<p>Download this provisioning profile and double click it to install it.</p>
+
+<p>In xcode, choose this provisioning profile:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/xcode_choose_provisioning_profile.png" alt="screenshot" /></p>
+
+<h2>Register for push notifications in your app</h2>
+
+<p>Add code to <code>didFinishLaunchingWithOptions:</code>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+</span><span class='line'>    
+</span><span class='line'>    // Register for push notifications
+</span><span class='line'>    if ([application respondsToSelector:@selector(isRegisteredForRemoteNotifications)])
+</span><span class='line'>    {
+</span><span class='line'>        // iOS 8 Notifications
+</span><span class='line'>        [application registerUserNotificationSettings:[UIUserNotificationSettings settingsForTypes:(UIUserNotificationTypeSound | UIUserNotificationTypeAlert | UIUserNotificationTypeBadge) categories:nil]];
+</span><span class='line'>        
+</span><span class='line'>        [application registerForRemoteNotifications];
+</span><span class='line'>    }
+</span><span class='line'>    else
+</span><span class='line'>    {
+</span><span class='line'>        // iOS &lt; 8 Notifications
+</span><span class='line'>        [application registerForRemoteNotificationTypes:
+</span><span class='line'>         (UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeSound)];
+</span><span class='line'>    }
+</span><span class='line'>    
+</span><span class='line'>    LoginViewController *loginViewController =
+</span><span class='line'>        (LoginViewController *)self.window.rootViewController;
+</span><span class='line'>
+</span><span class='line'>     ...
+</span><span class='line'>
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Add the following callback methods:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)application:(UIApplication *)app didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
+</span><span class='line'>{
+</span><span class='line'>    
+</span><span class='line'>    NSString *deviceTokenStr = [NSString stringWithFormat:@"%@",deviceToken];
+</span><span class='line'>    NSLog(@"didRegisterForRemoteNotificationsWithDeviceToken, Device token: %@", deviceTokenStr);
+</span><span class='line'>    
+</span><span class='line'>    NSString* deviceTokenCleaned = [[[[deviceToken description]
+</span><span class='line'>                                      stringByReplacingOccurrencesOfString: @"&lt;" withString: @""]
+</span><span class='line'>                                     stringByReplacingOccurrencesOfString: @"&gt;" withString: @""]
+</span><span class='line'>                                    stringByReplacingOccurrencesOfString: @" " withString: @""];
+</span><span class='line'>    
+</span><span class='line'>     NSLog(@"didRegisterForRemoteNotificationsWithDeviceToken, Cleaned device token token: %@", deviceTokenCleaned);
+</span><span class='line'>
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>- (void)application:(UIApplication *)app didFailToRegisterForRemoteNotificationsWithError:(NSError *)err
+</span><span class='line'>{
+</span><span class='line'>    NSString *str = [NSString stringWithFormat: @"Error: %@", err];
+</span><span class='line'>    NSLog(@"Error registering device token.  Push notifications will not work%@", str);
+</span><span class='line'>}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If you run this app on a simulator, you can expect an error like <code>Error registering device token.  Push notifications will not workError</code>.</p>
+
+<p>Run the app on a device you should see a popup dialog in the app asking if it&rsquo;s OK to receive push notifications, and the following log messages in the xcode console:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>2016-02-03 11:56:25.724 ToDoLite[5383:2210401] didRegisterForRemoteNotificationsWithDeviceToken, Device token: &lt;281c8710 1b029fdb 16c8e134 39436336 116001ce bf6519e6 8edefab5 23dab4e9&gt;
+</span><span class='line'>2016-02-03 11:56:25.725 ToDoLite[5383:2210401] didRegisterForRemoteNotificationsWithDeviceToken, Cleaned device token token: 281c87101b029fdb16c8e13439436336116001cebf6519e68edefab523dab4e9</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Export APNS keys to .PEM format</h2>
+
+<p>Open keychain, select the <code>login</code> keychain and the <code>My Certificates</code> category:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/export_cert_keychain.png" alt="screenshot" /></p>
+
+<ul>
+<li>Right click on the certificate (not the private key) “Apple Development Push Services: app id”</li>
+<li>Choose Export “Apple Development Push Services: app id″.</li>
+<li>Save this as apns-prod-cert.p12 file somewhere you can access it.</li>
+<li>When it prompts you for a password, leave it blank (or add one if you want, but this tutorial will assume it was left blank)</li>
+<li>Repeat with the private key (in this case, TodoLite Push Notification Cert) and save it as apns-prod-key.p12.</li>
+</ul>
+
+
+<p>Now they need to be converted from .p12 to PEM format.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ openssl pkcs12 -clcerts -nokeys -out apns-prod-cert.pem -in apns-prod-cert.p12
+</span><span class='line'>Enter Import Password: &lt;return&gt;
+</span><span class='line'>MAC verified OK</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ openssl pkcs12 -nocerts -out apns-prod-key.pem -in apns-prod-key.p12
+</span><span class='line'>Enter Import Password:
+</span><span class='line'>MAC verified OK
+</span><span class='line'>Enter PEM pass phrase: hello &lt;return&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Remove the PEM passphrase:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ openssl rsa -in apns-prod-key.pem -out apns-prod-key-noenc.pem
+</span><span class='line'>Enter pass phrase for apns-prod-key.pem: hello
+</span><span class='line'>writing RSA key</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Add PEM files to Uniqush docker container</h2>
+
+<p>When you call the Uniqush REST API to add a Push Service Provider, it expects to find the PEM files on it&rsquo;s local file system.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ `container=$(docker ps | grep -i uniqush | awk '{print $1}')`
+</span><span class='line'>$ docker cp /tmp/apns-prod-cert.pem $container:/tmp/apns-prod-cert.pem
+</span><span class='line'>$ docker cp /tmp/apns-prod-key-noenc.pem $container:/tmp/apns-prod-key-noenc.pem</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Create APNS provider in Uniqush via REST API</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ export UNIQUSH_HOSTNAME=ec2-54-73-10-60.compute-1.amazonaws.com:9898
+</span><span class='line'>$ curl -v http://$UNIQUSH_HOSTNAME/addpsp -d service=myservice \
+</span><span class='line'>                                          -d pushservicetype=apns \
+</span><span class='line'>                        -d cert=/tmp/apns-prod-cert.pem
+</span><span class='line'>                        -d key=/tmp/apns-prod-key-noenc.pem \
+</span><span class='line'>                        -d sandbox=true</span></code></pre></td></tr></table></div></figure>
+
+
+<p>(Note: I&rsquo;m using a development cert, but if this was a distribution cert you&rsquo;d want to use <code>sandbox=false</code>)</p>
+
+<p>You should get a <code>200 OK</code> response with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[AddPushServiceProvider][Info] 2016/02/03 20:35:29 From=24.23.246.59:59447 Service=myservice PushServiceProvider=apns:9f49c9c618c97bebe21bea159d3c7a8577934bdf00 Success!</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Add Uniqush subscriber</h2>
+
+<p>Using the cleaned up device token from the previous step <code>281c87101b029fdb16c8e13439436336116001cebf6519e68edefab523dab1e9</code>, create a subscriber with the name <code>mytestsubscriber</code> via:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -v http://$UNIQUSH_HOSTNAME/subscribe -d service=myservice \
+</span><span class='line'>                                             -d subscriber=mytestsubscriber \
+</span><span class='line'>                       -d pushservicetype=apns \
+</span><span class='line'>                       -d devtoken=281c87101b029fdb16c8e13439436336116001cebf6519e68edefab523dab1e9 </span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should receive a <code>200 OK</code> response with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[Subscribe][Info] 2016/02/03 20:43:21 From=24.23.246.59:60299 Service=myservice Subscriber=mytestsubscriber PushServiceProvider=apns:9f49c9c618c97bebe21bea159d3c7a8577934bdf00 DeliveryPoint=apns:2cbecd0798cc6731d96d5b0fb01d813c7c9a83af00 Success!</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Push a test message</h2>
+
+<p>The moment of truth ..</p>
+
+<p>First, you need to either <strong>background your app</strong> by pressing the home button, or add <a href="https://gist.github.com/tleyden/97434117ad53757106ad">some code like this</a> so that an alert will be shown if the app is foregrounded.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -v http://$UNIQUSH_HOSTNAME/push -d service=myservice \
+</span><span class='line'>                                        -d subscriber=mytestsubscriber \
+</span><span class='line'>                  -d msg=HelloWorld</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should get a <code>200 OK</code> response with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[Push][Info] 2016/02/03 20:46:08 RequestId=56b26710-INbW8UWMUONtH8Ttddd2Qg== From=24.23.246.59:60634 Service=myservice NrSubscribers=1 Subscribers="[mytestsubscriber]"
+</span><span class='line'>[Push][Info] 2016/02/03 20:46:09 RequestID=56b26710-INbW8UWMUONtH8Ttddd2Qg== Service=myservice Subscriber=mytestsubscriber PushServiceProvider=apns:9f49c9c618c97bebe21bea159d3c7a8577934bdf00 DeliveryPoint=apns:2cbecd0798cc6731d96d5b0fb01d813c7c9a83af MsgId=apns:apns:9f49c9c618c97bebe21bea159d3c7a8577934bdf-1 Success!</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And a push notification on the device!</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/push_notification_device.png" alt="screenshot" /></p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="http://uniqush.org/documentation/usage.html">Uniqush docs</a></li>
+<li><a href="http://quickblox.com/developers/How_to_create_APNS_certificates">How to create APNS certificates</a></li>
+<li><a href="https://blog.serverdensity.com/how-to-renew-your-apple-push-notification-push-ssl-certificate/">How to renew your Apple Push Notification Push SSL Certificate</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[CUDA 7.5 on AWS GPU Instance Running Ubuntu 14.04]]></title>
@@ -351,6 +684,40 @@
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ th neural_style.lua -style_image images/vangogh.jpg -content_image images/hotel_del_coronado.jpg</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>CuDNN (optional)</h2>
+
+<p>CuDNN can potentially speed things up.</p>
+
+<p><a href="https://developer.nvidia.com/cudnn">download cuDNN</a></p>
+
+<p>Install via:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>tar -xzvf cudnn-7.0-linux-x64-v3.0-prod.tgz
+</span><span class='line'>cd cuda/
+</span><span class='line'>sudo cp lib64/libcudnn* /usr/local/cuda-7.5/lib64/
+</span><span class='line'>sudo cp include/cudnn.h /usr/local/cuda-7.5/include
+</span><span class='line'>export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-7.5/lib64/</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Install the torch bindings for cuDNN:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>luarocks install cudnn</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://github.com/jcjohnson/neural-style/blob/master/INSTALL.md">Neural-Style INSTALL.md</a></li>
+<li>ami-84c787ee &mdash; this AMI has everything pre-installed, however it is installed on the host rather than under docker, which was due to time constraints.</li>
+</ul>
 
 ]]></content>
   </entry>
@@ -3209,209 +3576,6 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
 <li><a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/">https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/</a></li>
 <li><a href="http://stackoverflow.com/questions/25185405/using-gpu-from-a-docker-container">http://stackoverflow.com/questions/25185405/using-gpu-from-a-docker-container</a></li>
 <li><a href="http://docs.docker.com/installation/ubuntulinux/#ubuntu-trusty-1404-lts-64-bit">http://docs.docker.com/installation/ubuntulinux/#ubuntu-trusty-1404-lts-64-bit</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[CUDA 6.5 on AWS GPU instance running Ubuntu 14.04]]></title>
-    <link href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/"/>
-    <updated>2014-10-25T11:56:00-07:00</updated>
-    <id>http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04</id>
-    <content type="html"><![CDATA[<h2>Using a pre-built public AMI</h2>
-
-<p>Based on the instructions in this blog post, I&rsquo;ve created an AMI and shared it publicly.  So the easiest thing to do is just use that pre-built AMI:</p>
-
-<ul>
-<li>Image: <strong>ami-2cbf3e44</strong> for US-East or <strong>ami-c38babf3</strong> for US-West (Ubuntu Server 14.04 LTS (HVM) &ndash; CUDA 6.5)</li>
-<li>Instance type: <strong>g2.2xlarge</strong> (if you skip this step, you won&rsquo;t have an nvidia device)</li>
-<li>Storage: Use at least 8 GB, 20+ GB recommended</li>
-</ul>
-
-
-<p>If you use the pre-built AMI, then you can skip down to the <strong>Verify CUDA is correctly installed</strong> section, since all of the rest of the steps are &ldquo;baked in&rdquo; to the AMI.</p>
-
-<p><em>Note regarding AMI regions: the AMI only currently works in the US-East and US-West regions.  If you need it added to another region, please post a comment below</em></p>
-
-<h2>Building from scratch</h2>
-
-<p>Or if you prefer to build your own instance from scratch, keep reading.</p>
-
-<p>Create a new EC2 instance:</p>
-
-<ul>
-<li>Image: ami-9eaa1cf6 (Ubuntu Server 14.04 LTS (HVM), SSD Volume Type)</li>
-<li>Instance type: g2.2xlarge</li>
-<li>Storage: Use at least 8 GB, 20+ GB recommended</li>
-</ul>
-
-
-<p>Install build-essential:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ apt-get update && apt-get install build-essential</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Get CUDA installer:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget http://developer.download.nvidia.com/compute/cuda/6_5/rel/installers/cuda_6.5.14_linux_64.run</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Extract CUDA installer:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ chmod +x cuda_6.5.14_linux_64.run
-</span><span class='line'>$ mkdir nvidia_installers
-</span><span class='line'>$ ./cuda_6.5.14_linux_64.run -extract=`pwd`/nvidia_installers</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Run Nvidia driver installer:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd nvidia_installers
-</span><span class='line'>$ ./NVIDIA-Linux-x86_64-340.29.run</span></code></pre></td></tr></table></div></figure>
-
-
-<p>At this point it will popup an 8-bit UI that will ask you to accept a license agreement, and then start installing.</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/install_cuda.png" alt="screenshot" /></p>
-
-<p>At this point, I got an error:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>Unable to load the kernel module 'nvidia.ko'.  This happens most frequently when this kernel module was built against the wrong or
-</span><span class='line'>         improperly configured kernel sources, with a version of gcc that differs from the one used to build the target kernel, or if a driver
-</span><span class='line'>         such as rivafb, nvidiafb, or nouveau is present and prevents the NVIDIA kernel module from obtaining ownership of the NVIDIA graphics
-</span><span class='line'>         device(s), or no NVIDIA GPU installed in this system is supported by this NVIDIA Linux graphics driver release.
-</span><span class='line'>
-</span><span class='line'>         Please see the log entries 'Kernel module load error' and 'Kernel messages' at the end of the file '/var/log/nvidia-installer.log'
-</span><span class='line'>         for more information.</span></code></pre></td></tr></table></div></figure>
-
-
-<p>After <a href="https://devtalk.nvidia.com/default/topic/547588/error-installing-nvidia-drivers-on-x86_64-amazon-ec2-gpu-cluster-t20-gpu-/">reading this forum post</a> I installed:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get install linux-image-extra-virtual</span></code></pre></td></tr></table></div></figure>
-
-
-<p>When it prompted me what do to about the grub changes, I chose &ldquo;choose package maintainers version&rdquo;.</p>
-
-<p>Reboot:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ reboot</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Disable nouveau</h2>
-
-<p>At this point you need to disable nouveau, since it conflicts with the nvidia kernel module.</p>
-
-<p>Open a new file</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ vi /etc/modprobe.d/blacklist-nouveau.conf</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and add these lines to it</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>blacklist nouveau
-</span><span class='line'>blacklist lbm-nouveau
-</span><span class='line'>options nouveau modeset=0
-</span><span class='line'>alias nouveau off
-</span><span class='line'>alias lbm-nouveau off</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and then save the file.</p>
-
-<p>Disable the Kernel Nouveau:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ echo options nouveau modeset=0 | sudo tee -a /etc/modprobe.d/nouveau-kms.conf</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Reboot:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ update-initramfs -u
-</span><span class='line'>$ reboot</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>One more try &mdash; this time it works</h2>
-
-<p>Get Kernel source:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ apt-get install linux-source
-</span><span class='line'>$ apt-get install linux-headers-3.13.0-37-generic
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Rerun Nvidia driver installer:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd nvidia_installers
-</span><span class='line'>$ ./NVIDIA-Linux-x86_64-340.29.run</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Load nvidia kernel module:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ modprobe nvidia</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Run CUDA + samples installer:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ ./cuda-linux64-rel-6.5.14-18749181.run
-</span><span class='line'>$ ./cuda-samples-linux-6.5.14-18745345.run</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Verify CUDA is correctly installed</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /usr/local/cuda/samples/1_Utilities/deviceQuery
-</span><span class='line'>$ make
-</span><span class='line'>$ ./deviceQuery   </span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should see the following output:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 6.5, CUDA Runtime Version = 6.5, NumDevs = 1, Device0 = GRID K520
-</span><span class='line'>Result = PASS</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>References</h2>
-
-<ul>
-<li><a href="http://www.r-tutor.com/gpu-computing/cuda-installation/cuda6.5-ubuntu">http://www.r-tutor.com/gpu-computing/cuda-installation/cuda6.5-ubuntu</a></li>
-<li><a href="http://askubuntu.com/questions/451672/installing-and-testing-cuda-in-ubuntu-14-04">http://askubuntu.com/questions/451672/installing-and-testing-cuda-in-ubuntu-14-04</a></li>
-<li><a href="https://devtalk.nvidia.com/default/topic/547588/error-installing-nvidia-drivers-on-x86_64-amazon-ec2-gpu-cluster-t20-gpu-/">https://devtalk.nvidia.com/default/topic/547588/error-installing-nvidia-drivers-on-x86_64-amazon-ec2-gpu-cluster-t20-gpu-/</a></li>
-<li><a href="https://devtalk.nvidia.com/default/topic/769719/drm-ko-missing-on-ubuntu-14-04-1-lts-aws-ec2-g2-2xlarge-instance/">https://devtalk.nvidia.com/default/topic/769719/drm-ko-missing-on-ubuntu-14-04-1-lts-aws-ec2-g2-2xlarge-instance/</a></li>
-<li><a href="http://askubuntu.com/questions/451221/ubuntu-14-04-install-nvidia-driver">http://askubuntu.com/questions/451221/ubuntu-14-04-install-nvidia-driver</a></li>
 </ul>
 
 ]]></content>

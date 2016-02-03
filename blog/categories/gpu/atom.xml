@@ -4,7 +4,7 @@
   <title><![CDATA[Category: gpu, | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/gpu/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2015-11-23T12:06:50-08:00</updated>
+  <updated>2016-02-03T13:08:06-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -180,6 +180,36 @@ $ wget http://exp.cdn-hotels.com/hotels/1000000/10000/7500/7496/7496_42_z.jpg -O
 <p><code>
 $ th neural_style.lua -style_image images/vangogh.jpg -content_image images/hotel_del_coronado.jpg
 </code></p>
+
+<h2>CuDNN (optional)</h2>
+
+<p>CuDNN can potentially speed things up.</p>
+
+<p><a href="https://developer.nvidia.com/cudnn">download cuDNN</a></p>
+
+<p>Install via:</p>
+
+<p><code>
+tar -xzvf cudnn-7.0-linux-x64-v3.0-prod.tgz
+cd cuda/
+sudo cp lib64/libcudnn* /usr/local/cuda-7.5/lib64/
+sudo cp include/cudnn.h /usr/local/cuda-7.5/include
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-7.5/lib64/
+</code></p>
+
+<p>Install the torch bindings for cuDNN:</p>
+
+<p><code>
+luarocks install cudnn
+</code></p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://github.com/jcjohnson/neural-style/blob/master/INSTALL.md">Neural-Style INSTALL.md</a></li>
+<li>ami-84c787ee &mdash; this AMI has everything pre-installed, however it is installed on the host rather than under docker, which was due to time constraints.</li>
+</ul>
+
 ]]></content>
   </entry>
   

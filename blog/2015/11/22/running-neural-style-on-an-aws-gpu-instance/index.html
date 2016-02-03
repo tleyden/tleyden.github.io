@@ -295,6 +295,40 @@
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ th neural_style.lua -style_image images/vangogh.jpg -content_image images/hotel_del_coronado.jpg</span></code></pre></td></tr></table></div></figure>
 
+
+<h2>CuDNN (optional)</h2>
+
+<p>CuDNN can potentially speed things up.</p>
+
+<p><a href="https://developer.nvidia.com/cudnn">download cuDNN</a></p>
+
+<p>Install via:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>tar -xzvf cudnn-7.0-linux-x64-v3.0-prod.tgz
+</span><span class='line'>cd cuda/
+</span><span class='line'>sudo cp lib64/libcudnn* /usr/local/cuda-7.5/lib64/
+</span><span class='line'>sudo cp include/cudnn.h /usr/local/cuda-7.5/include
+</span><span class='line'>export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-7.5/lib64/</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Install the torch bindings for cuDNN:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>luarocks install cudnn</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://github.com/jcjohnson/neural-style/blob/master/INSTALL.md">Neural-Style INSTALL.md</a></li>
+<li>ami-84c787ee &mdash; this AMI has everything pre-installed, however it is installed on the host rather than under docker, which was due to time constraints.</li>
+</ul>
+
 </div>
 
 
@@ -375,6 +409,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/02/03/setting-up-uniqush-with-apns/">Setting Up Uniqush With APNS</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/11/22/cuda-7-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">CUDA 7.5 on AWS GPU Instance Running Ubuntu 14.04</a>
       </li>
     
@@ -388,10 +426,6 @@
     
       <li class="post">
         <a href="/blog/2015/05/05/running-couchbase-server-under-docker-on-joyent/">Running Couchbase Server Under Joyent Triton</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2015/04/25/setting-up-octopress-under-docker/">Setting Up Octopress Under Docker</a>
       </li>
     
   </ul>
@@ -434,7 +468,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2015 - Traun Leyden -
+  Copyright &copy; 2016 - Traun Leyden -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 
