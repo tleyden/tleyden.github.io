@@ -6,7 +6,7 @@ comments: true
 categories: ios docker
 ---
 
-This walks you through running Uniqush in the cloud (under Docker) and setting up an iOS app to receive push notifications.
+This walks you through running [Uniqush](http://uniqush.org/index.html) in the cloud (under Docker) and setting up an iOS app to receive messages via APNS (Apple Push Notification Service).
 
 ## Run Uniqush under Docker
 
