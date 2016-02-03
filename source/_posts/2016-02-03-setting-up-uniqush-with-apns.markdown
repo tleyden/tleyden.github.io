@@ -19,8 +19,9 @@ Security note: the above config has Uniqush listening on all interfaces, but dep
 
 ### Docker run
 
-* `docker run -itd -p 9898:9898 -v ~/volumes/uniqush/uniqush-push.conf:/etc/uniqush/uniqush-push.conf tleyden5iwx/uniqush uniqush-push`
-
+```
+docker run -itd -p 9898:9898 -v ~/volumes/uniqush/uniqush-push.conf:/etc/uniqush/uniqush-push.conf tleyden5iwx/uniqush uniqush-push
+```
 
 ### Kick off redis (hack)
 
@@ -33,7 +34,7 @@ So the *right* way to do this is to run redis in a separate container and link t
 
 ### Verify Uniqush is running
 
-Run this outside of the docker container:
+Run this `curl` command outside of the docker container to verify that Uniqush is responding to HTTP requests:
 
 ```
 $ curl localhost:9898/version
