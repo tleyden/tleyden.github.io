@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-02-03T13:21:12-08:00</updated>
+  <updated>2016-02-03T13:25:55-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -18,7 +18,7 @@
     <link href="http://tleyden.github.io/blog/2016/02/03/setting-up-uniqush-with-apns/"/>
     <updated>2016-02-03T08:47:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2016/02/03/setting-up-uniqush-with-apns</id>
-    <content type="html"><![CDATA[<p>This walks you through running Uniqush in the cloud (under Docker) and setting up an iOS app to receive push notifications.</p>
+    <content type="html"><![CDATA[<p>This walks you through running <a href="http://uniqush.org/index.html">Uniqush</a> in the cloud (under Docker) and setting up an iOS app to receive messages via APNS (Apple Push Notification Service).</p>
 
 <h2>Run Uniqush under Docker</h2>
 
