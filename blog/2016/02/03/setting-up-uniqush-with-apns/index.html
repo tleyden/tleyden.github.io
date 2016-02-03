@@ -133,6 +133,8 @@
 
 <h3>Verify Uniqush is running</h3>
 
+<p>Run this outside of the docker container:</p>
+
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ curl localhost:9898/version
@@ -163,25 +165,29 @@
 
 <p>Double click the downloaded cert and it will be added to your keychain.</p>
 
-<p>This is where I got a bit confused, since I had to also download the cert from the app id section &mdash; go to the app id and hit &ldquo;Edit&rdquo;, then download the cert and double click it to add to your keychain.  (I&rsquo;m confused because I thought these were the same certs and this second step felt redundant)</p>
+<p>This is where I got a bit confused, since I had to <em>also</em> download the cert from the app id section &mdash; go to the app id and hit &ldquo;Edit&rdquo;, then download the cert and double click it to add to your keychain.  (I&rsquo;m confused because I thought these were the same certs and this second step felt redundant)</p>
 
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/download_app_id_cert.png" alt="screenshot" /></p>
 
 <h2>Create and use provisioning profile</h2>
 
+<p>Go to the <strong>Provisioning Profiles / Development</strong> section and hit the &ldquo;+&rdquo; button:</p>
+
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/create_provisioning_profile.png" alt="screenshot" /></p>
+
+<p>Choose all certs and all devices, and then give your provisioning profile an easy to remember name.</p>
 
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/create_provisioning_profile_2.png" alt="screenshot" /></p>
 
 <p>Download this provisioning profile and double click it to install it.</p>
 
-<p>In xcode, choose this provisioning profile:</p>
+<p>In xcode under <strong>Build Settings</strong>, choose this provisioning profile:</p>
 
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/xcode_choose_provisioning_profile.png" alt="screenshot" /></p>
 
 <h2>Register for push notifications in your app</h2>
 
-<p>Add code to <code>didFinishLaunchingWithOptions:</code>:</p>
+<p>Add the following code to your <code>didFinishLaunchingWithOptions:</code>:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -203,9 +209,6 @@
 <span class='line-number'>18</span>
 <span class='line-number'>19</span>
 <span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
 </span><span class='line'>    
 </span><span class='line'>    // Register for push notifications
@@ -222,16 +225,13 @@
 </span><span class='line'>        [application registerForRemoteNotificationTypes:
 </span><span class='line'>         (UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeSound)];
 </span><span class='line'>    }
-</span><span class='line'>    
-</span><span class='line'>    LoginViewController *loginViewController =
-</span><span class='line'>        (LoginViewController *)self.window.rootViewController;
 </span><span class='line'>
-</span><span class='line'>     ...
+</span><span class='line'>    // rest of your code goes here ...
 </span><span class='line'>
 </span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
 
 
-<p>Add the following callback methods:</p>
+<p>And the following callback methods which will be called if remote notification is successful:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -247,12 +247,6 @@
 <span class='line-number'>12</span>
 <span class='line-number'>13</span>
 <span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>- (void)application:(UIApplication *)app didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
 </span><span class='line'>{
 </span><span class='line'>    
@@ -266,9 +260,17 @@
 </span><span class='line'>    
 </span><span class='line'>     NSLog(@"didRegisterForRemoteNotificationsWithDeviceToken, Cleaned device token token: %@", deviceTokenCleaned);
 </span><span class='line'>
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>- (void)application:(UIApplication *)app didFailToRegisterForRemoteNotificationsWithError:(NSError *)err
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and this callback which will be called if it&rsquo;s not unsuccessful:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)application:(UIApplication *)app didFailToRegisterForRemoteNotificationsWithError:(NSError *)err
 </span><span class='line'>{
 </span><span class='line'>    NSString *str = [NSString stringWithFormat: @"Error: %@", err];
 </span><span class='line'>    NSLog(@"Error registering device token.  Push notifications will not work%@", str);
@@ -276,14 +278,14 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>If you run this app on a simulator, you can expect an error like <code>Error registering device token.  Push notifications will not workError</code>.</p>
+<p>If you now run this app on a simulator, you can expect an error like <code>Error registering device token.  Push notifications will not workError</code>.</p>
 
 <p>Run the app on a device you should see a popup dialog in the app asking if it&rsquo;s OK to receive push notifications, and the following log messages in the xcode console:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>2016-02-03 11:56:25.724 ToDoLite[5383:2210401] didRegisterForRemoteNotificationsWithDeviceToken, Device token: &lt;281c8710 1b029fdb 16c8e134 39436336 116001ce bf6519e6 8edefab5 23dab4e9&gt;
-</span><span class='line'>2016-02-03 11:56:25.725 ToDoLite[5383:2210401] didRegisterForRemoteNotificationsWithDeviceToken, Cleaned device token token: 281c87101b029fdb16c8e13439436336116001cebf6519e68edefab523dab4e9</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>didRegisterForRemoteNotificationsWithDeviceToken, Device token: &lt;281c8710 1b029fdb 16c8e134 39436336 116001ce bf6519e6 8edefab5 23dab4e9&gt;
+</span><span class='line'>didRegisterForRemoteNotificationsWithDeviceToken, Cleaned device token token: 281c87101b029fdb16c8e13439436336116001cebf6519e68edefab523dab4e9</span></code></pre></td></tr></table></div></figure>
 
 
 <h2>Export APNS keys to .PEM format</h2>
@@ -293,15 +295,15 @@
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/export_cert_keychain.png" alt="screenshot" /></p>
 
 <ul>
-<li>Right click on the certificate (not the private key) “Apple Development Push Services: app id”</li>
-<li>Choose Export “Apple Development Push Services: app id″.</li>
-<li>Save this as apns-prod-cert.p12 file somewhere you can access it.</li>
+<li>Right click on the certificate (not the private key) “Apple Development Push Services: (your app id)”</li>
+<li>Choose Export “Apple Development Push Services: (your app id)″.</li>
+<li>Save this as <code>apns-prod-cert.p12</code> file somewhere you can access it.</li>
 <li>When it prompts you for a password, leave it blank (or add one if you want, but this tutorial will assume it was left blank)</li>
-<li>Repeat with the private key (in this case, TodoLite Push Notification Cert) and save it as apns-prod-key.p12.</li>
+<li>Repeat with the private key (in this case, TodoLite Push Notification Cert) and save it as <code>apns-prod-key.p12</code>.</li>
 </ul>
 
 
-<p>Now they need to be converted from .p12 to PEM format.</p>
+<p>Now they need to be converted from <code>.p12</code> to <code>.pem</code> format.</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -335,7 +337,7 @@
 
 <h2>Add PEM files to Uniqush docker container</h2>
 
-<p>When you call the Uniqush REST API to add a Push Service Provider, it expects to find the PEM files on it&rsquo;s local file system.</p>
+<p>When you call the Uniqush REST API to add a Push Service Provider, it expects to find the PEM files on it&rsquo;s local file system.  Use the following commands to get these files into the running container in the <code>/tmp</code> directory:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -356,9 +358,9 @@
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ export UNIQUSH_HOSTNAME=ec2-54-73-10-60.compute-1.amazonaws.com:9898
 </span><span class='line'>$ curl -v http://$UNIQUSH_HOSTNAME/addpsp -d service=myservice \
 </span><span class='line'>                                          -d pushservicetype=apns \
-</span><span class='line'>                        -d cert=/tmp/apns-prod-cert.pem
-</span><span class='line'>                        -d key=/tmp/apns-prod-key-noenc.pem \
-</span><span class='line'>                        -d sandbox=true</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>                    -d cert=/tmp/apns-prod-cert.pem \
+</span><span class='line'>                    -d key=/tmp/apns-prod-key-noenc.pem \
+</span><span class='line'>                    -d sandbox=true</span></code></pre></td></tr></table></div></figure>
 
 
 <p>(Note: I&rsquo;m using a development cert, but if this was a distribution cert you&rsquo;d want to use <code>sandbox=false</code>)</p>
@@ -391,7 +393,7 @@
 
 <h2>Push a test message</h2>
 
-<p>The moment of truth ..</p>
+<p>The moment of truth!</p>
 
 <p>First, you need to either <strong>background your app</strong> by pressing the home button, or add <a href="https://gist.github.com/tleyden/97434117ad53757106ad">some code like this</a> so that an alert will be shown if the app is foregrounded.</p>
 
