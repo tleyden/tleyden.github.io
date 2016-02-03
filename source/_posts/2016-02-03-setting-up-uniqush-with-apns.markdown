@@ -13,7 +13,7 @@ This walks you through running Uniqush in the cloud (under Docker) and setting u
 ### Config
 
 * `mkdir -p volumes/uniqush`
-* `wget https://gist.githubusercontent.com/tleyden/3a7fa975db00c15b724f/raw/093288917b42f90d8db8722f2f6f645d2b9c7150/uniqush-push.conf -O volumes/uniqush/uniqush-push.conf`
+* `wget https://git.io/vgYXN -O volumes/uniqush/uniqush-push.conf`
 
 Security note: the above config has Uniqush listening on all interfaces, but depending on your setup you probably want to change that to `localhost` or something more restrictive.  
 
