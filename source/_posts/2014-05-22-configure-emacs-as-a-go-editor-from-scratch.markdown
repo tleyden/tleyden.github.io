@@ -16,7 +16,7 @@ It has a GUI installer so I won't say much more about it.
 
 ## Install Go
 
-* At the time of writing, I installed https://storage.googleapis.com/golang/go1.2.2.darwin-amd64-osx10.8.pkg
+* At the time of writing (05-22-2014), I installed https://storage.googleapis.com/golang/go1.2.2.darwin-amd64-osx10.8.pkg
 * After installing the package, you'll want to define the following environment variables in your `~/.bash_profile`:
 
 ```
