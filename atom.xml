@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-02-06T05:31:16+00:00</updated>
+  <updated>2016-02-06T05:57:40+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,87 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Octopress under Docker]]></title>
+    <link href="http://tleyden.github.io/blog/2016/02/06/octopress-under-docker/"/>
+    <updated>2016-02-06T05:38:00+00:00</updated>
+    <id>http://tleyden.github.io/blog/2016/02/06/octopress-under-docker</id>
+    <content type="html"><![CDATA[<p>I&rsquo;m setting up a clean install of El Capitan, and want to get my Octopress blog going.  However, I don&rsquo;t want to install it <em>directly</em> on my OSX workstation &mdash; I want to have it <em>contained</em> in a docker container.</p>
+
+<h2>Install Docker</h2>
+
+<p>That&rsquo;s beyond the scope of this blog post, but what I ended up doing on my new OSX installation was to:</p>
+
+<ul>
+<li>Install VirtualBox 5.0.14</li>
+<li>Install <a href="https://www.docker.com/products/docker-toolbox">docker toolbox</a></li>
+</ul>
+
+
+<h2>Run tleyden5iwx/octopress</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run -itd -v ~/Documents/blog/:/blog tleyden5iwx/octopress /bin/bash</span></code></pre></td></tr></table></div></figure>
+
+
+<p>What&rsquo;s in <code>~/Documents/blog/</code>?  Basically, the octopress instance I&rsquo;d setup as described in <a href="http://tleyden.github.io/blog/2013/09/07/octopress-setup-part-i/">Octopress Setup Part I</a>.</p>
+
+<h2>Bundle install</h2>
+
+<p>From inside the docker container:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># cd /blog/octopress
+</span><span class='line'># bundle install</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Edit a blog post</h2>
+
+<p>On OSX, open up <code>~/Documents/blog/source/_posts/path-to-post</code> and make some minor edits</p>
+
+<h2>Push source</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># git push origin source
+</span><span class='line'>Username for 'https://github.com': [enter your username]
+</span><span class='line'>Password for 'https://username@github.com': [enter your password]</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Generate and push to master</h2>
+
+<p><strong>Attempt 1</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># rake generate
+</span><span class='line'>rake aborted!
+</span><span class='line'>Gem::LoadError: You have already activated rake 10.4.2, but your Gemfile requires rake 0.9.6. Using bundle exec may solve this.
+</span><span class='line'>/blog/octopress/Rakefile:2:in `&lt;top (required)&gt;'
+</span><span class='line'>(See full trace by running task with --trace) </span></code></pre></td></tr></table></div></figure>
+
+
+<p>I have no idea why this is happening, but I just conceded defeat against these ruby weirdisms, wished I was using Go (and thought about converting my blog to Hugo), and took their advice and prefixed every command thereafter with <code>bundle exec</code>.</p>
+
+<p><strong>Attempt 2</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># bundle exec rake generate && bundle exec rake deploy
+</span><span class='line'>Username for 'https://github.com': [enter your username]
+</span><span class='line'>Password for 'https://username@github.com': [enter your password]</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Success!</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Setting up Uniqush with APNS]]></title>
@@ -3411,172 +3492,6 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
 <li><a href="https://registry.hub.docker.com/u/tleyden5iwx/caffe-cpu-master">tleyden5iwx/caffe-cpu-master</a> Caffe Docker image (CPU-only)</li>
 <li><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5</a></li>
 <li><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">CUDA 6.5 on AWS GPU Instance Running Ubuntu 14.04</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5]]></title>
-    <link href="http://tleyden.github.io/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5/"/>
-    <updated>2014-10-25T13:25:00+00:00</updated>
-    <id>http://tleyden.github.io/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5</id>
-    <content type="html"><![CDATA[<h2>Architecture</h2>
-
-<p>After going through the steps in this blog post, you&rsquo;ll end up with this:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/docker_gpu_aws_onion.png" alt="architecture diagram" /></p>
-
-<h2>Setup host</h2>
-
-<p>Before you can start your docker container, you will need to go <strong>deeper down the rabbit hole</strong>.</p>
-
-<p>You&rsquo;ll first need to complete the steps here:</p>
-
-<p><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">Setting up an Ubuntu 14.04 box running on a GPU-enabled AWS instance</a></p>
-
-<p>After you&rsquo;re done, you&rsquo;ll end up with a host OS with the following properties:</p>
-
-<ul>
-<li>A GPU enabled AWS instance running Ubuntu 14.04</li>
-<li>Nvidia kernel module</li>
-<li>Nvidia device drivers</li>
-<li>CUDA 6.5 installed and verified</li>
-</ul>
-
-
-<h2>Install Docker</h2>
-
-<p>Once your host OS is setup, you&rsquo;re ready to install docker.  The latest instructions are avaialable on the <a href="https://docs.docker.com/v1.8/installation/ubuntulinux/">Docker website</a>.  Currently for Ubuntu 14.0.4 you need to:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get update && sudo apt-get install curl
-</span><span class='line'>$ curl -sSL https://get.docker.com/ | sh</span></code></pre></td></tr></table></div></figure>
-
-
-<p>As the post-install message suggests, enable docker for non-root users:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo usermod -aG docker ubuntu</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Verify correct install via:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run hello-world</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Mount GPU devices</h2>
-
-<p><strong>Mount</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /usr/local/cuda/samples/1_Utilities/deviceQuery
-</span><span class='line'>$ ./deviceQuery</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should see something <a href="https://gist.github.com/tleyden/58ab2eedebc9529edb76">like this</a>:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>./deviceQuery Starting...
-</span><span class='line'>
-</span><span class='line'> CUDA Device Query (Runtime API) version (CUDART static linking)
-</span><span class='line'>
-</span><span class='line'>Detected 1 CUDA Capable device(s)
-</span><span class='line'>
-</span><span class='line'>Device 0: "GRID K520"
-</span><span class='line'>  CUDA Driver Version / Runtime Version          6.5 / 6.5
-</span><span class='line'>  ... snip ...
-</span><span class='line'>
-</span><span class='line'>deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 6.5, CUDA Runtime Version = 6.5, NumDevs = 1, Device0 = GRID K520
-</span><span class='line'>Result = PASS</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Verify: Find all your nvidia devices</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ ls -la /dev | grep nvidia</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should see:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>crw-rw-rw-  1 root root    195,   0 Oct 25 19:37 nvidia0
-</span><span class='line'>crw-rw-rw-  1 root root    195, 255 Oct 25 19:37 nvidiactl
-</span><span class='line'>crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Run GPU enabled docker image</h2>
-
-<p><strong>Launch docker container</strong></p>
-
-<p>The easiest way to get going is to use this pre-built <a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/">docker image</a> that has the cuda drivers pre-installed.  Or if you want to build your own, <a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/dockerfile/">the accompanying dockerfile</a> will be a useful starting point.  (Update: Nvidia has released <a href="https://github.com/nvidia/nvidia-docker">an official docker container</a> which you should probably use, but I haven&rsquo;t tried yet as of the time of this writing.  Please post a comment if you get this to work)</p>
-
-<p>You&rsquo;ll have to adapt the <code>DOCKER_NVIDIA_DEVICES</code> variable below to match your particular devices.</p>
-
-<p>To start the docker container, run:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ DOCKER_NVIDIA_DEVICES="--device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm"
-</span><span class='line'>$ sudo docker run -ti $DOCKER_NVIDIA_DEVICES tleyden5iwx/ubuntu-cuda /bin/bash</span></code></pre></td></tr></table></div></figure>
-
-
-<p>After running the above command, you should be at a shell inside your docker container:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>root@1149788c731c:# </span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Verify CUDA access from inside the docker container</h2>
-
-<p><strong>Install CUDA samples</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /opt/nvidia_installers
-</span><span class='line'>$ ./cuda-samples-linux-6.5.14-18745345.run -noprompt -cudaprefix=/usr/local/cuda-6.5/</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Build deviceQuery sample</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /usr/local/cuda/samples/1_Utilities/deviceQuery
-</span><span class='line'>$ make
-</span><span class='line'>$ ./deviceQuery   </span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>You should see the following output</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 6.5, CUDA Runtime Version = 6.5, NumDevs = 1, Device0 = GRID K520
-</span><span class='line'>Result = PASS</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>References</h2>
-
-<ul>
-<li><a href="https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/">https://registry.hub.docker.com/u/tleyden5iwx/ubuntu-cuda/</a></li>
-<li><a href="http://stackoverflow.com/questions/25185405/using-gpu-from-a-docker-container">http://stackoverflow.com/questions/25185405/using-gpu-from-a-docker-container</a></li>
-<li><a href="http://docs.docker.com/installation/ubuntulinux/#ubuntu-trusty-1404-lts-64-bit">http://docs.docker.com/installation/ubuntulinux/#ubuntu-trusty-1404-lts-64-bit</a></li>
 </ul>
 
 ]]></content>

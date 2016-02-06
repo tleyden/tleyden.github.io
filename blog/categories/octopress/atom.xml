@@ -4,7 +4,7 @@
   <title><![CDATA[Category: octopress | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/octopress/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-02-06T05:31:16+00:00</updated>
+  <updated>2016-02-06T05:57:40+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,87 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Octopress under Docker]]></title>
+    <link href="http://tleyden.github.io/blog/2016/02/06/octopress-under-docker/"/>
+    <updated>2016-02-06T05:38:00+00:00</updated>
+    <id>http://tleyden.github.io/blog/2016/02/06/octopress-under-docker</id>
+    <content type="html"><![CDATA[<p>I&rsquo;m setting up a clean install of El Capitan, and want to get my Octopress blog going.  However, I don&rsquo;t want to install it <em>directly</em> on my OSX workstation &mdash; I want to have it <em>contained</em> in a docker container.</p>
+
+<h2>Install Docker</h2>
+
+<p>That&rsquo;s beyond the scope of this blog post, but what I ended up doing on my new OSX installation was to:</p>
+
+<ul>
+<li>Install VirtualBox 5.0.14</li>
+<li>Install <a href="https://www.docker.com/products/docker-toolbox">docker toolbox</a></li>
+</ul>
+
+
+<h2>Run tleyden5iwx/octopress</h2>
+
+<p><code>
+$ docker run -itd -v ~/Documents/blog/:/blog tleyden5iwx/octopress /bin/bash
+</code></p>
+
+<p>What&rsquo;s in <code>~/Documents/blog/</code>?  Basically, the octopress instance I&rsquo;d setup as described in <a href="http://tleyden.github.io/blog/2013/09/07/octopress-setup-part-i/">Octopress Setup Part I</a>.</p>
+
+<h2>Bundle install</h2>
+
+<p>From inside the docker container:</p>
+
+<p>```</p>
+
+<h1>cd /blog/octopress</h1>
+
+<h1>bundle install</h1>
+
+<p>```</p>
+
+<h2>Edit a blog post</h2>
+
+<p>On OSX, open up <code>~/Documents/blog/source/_posts/path-to-post</code> and make some minor edits</p>
+
+<h2>Push source</h2>
+
+<p>```</p>
+
+<h1>git push origin source</h1>
+
+<p>Username for &lsquo;<a href="https://github.com">https://github.com</a>&rsquo;: [enter your username]
+Password for &lsquo;<a href="https://username@github.com">https://username@github.com</a>&rsquo;: [enter your password]
+```</p>
+
+<h2>Generate and push to master</h2>
+
+<p><strong>Attempt 1</strong></p>
+
+<p>```</p>
+
+<h1>rake generate</h1>
+
+<p>rake aborted!
+Gem::LoadError: You have already activated rake 10.4.2, but your Gemfile requires rake 0.9.6. Using bundle exec may solve this.
+/blog/octopress/Rakefile:2:in `<top (required)>&lsquo;
+(See full trace by running task with &mdash;trace) <br/>
+```</p>
+
+<p>I have no idea why this is happening, but I just conceded defeat against these ruby weirdisms, wished I was using Go (and thought about converting my blog to Hugo), and took their advice and prefixed every command thereafter with <code>bundle exec</code>.</p>
+
+<p><strong>Attempt 2</strong></p>
+
+<p>```</p>
+
+<h1>bundle exec rake generate &amp;&amp; bundle exec rake deploy</h1>
+
+<p>Username for &lsquo;<a href="https://github.com">https://github.com</a>&rsquo;: [enter your username]
+Password for &lsquo;<a href="https://username@github.com">https://username@github.com</a>&rsquo;: [enter your password]
+```</p>
+
+<p>Success!</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Setting up Octopress under Docker]]></title>
