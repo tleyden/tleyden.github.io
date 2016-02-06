@@ -4,7 +4,7 @@
   <title><![CDATA[Category: couchbase, | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/couchbase/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-02-03T13:29:22-08:00</updated>
+  <updated>2016-02-06T05:18:06+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Running the Sync Gateway Amazon AMI]]></title>
     <link href="http://tleyden.github.io/blog/2015/11/03/running-the-sync-gateway-amazon-ami/"/>
-    <updated>2015-11-03T11:11:00-08:00</updated>
+    <updated>2015-11-03T11:11:00+00:00</updated>
     <id>http://tleyden.github.io/blog/2015/11/03/running-the-sync-gateway-amazon-ami</id>
     <content type="html"><![CDATA[<p>How to run the Couchbase Sync Gateway AWS AMI</p>
 
@@ -90,7 +90,7 @@ $ curl http://&lt;instance public ip&gt;:4984/sync_gateway/
   <entry>
     <title type="html"><![CDATA[Running Couchbase Sync Gateway on Google Compute Engine]]></title>
     <link href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-sync-gateway-on-gce/"/>
-    <updated>2014-06-22T19:10:00-07:00</updated>
+    <updated>2014-06-22T19:10:00+00:00</updated>
     <id>http://tleyden.github.io/blog/2014/06/22/running-couchbase-sync-gateway-on-gce</id>
     <content type="html"><![CDATA[<p>First, a quick refresh of what Couchbase Sync Gateway actually <em>is</em>.</p>
 
@@ -256,7 +256,7 @@ gce:~$ curl -H "Content-Type: application/json" -d '{"such":"json"}' http://loca
   <entry>
     <title type="html"><![CDATA[Running a Couchbase Cluster on Google Compute Engine]]></title>
     <link href="http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/"/>
-    <updated>2014-06-22T15:52:00-07:00</updated>
+    <updated>2014-06-22T15:52:00+00:00</updated>
     <id>http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce</id>
     <content type="html"><![CDATA[<p>The easiest way to run Couchbase cluster on Google Compute Engine is to run all of the nodes in Docker containers.</p>
 

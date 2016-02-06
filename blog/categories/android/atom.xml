@@ -4,7 +4,7 @@
   <title><![CDATA[Category: android, | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/android/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-02-03T13:29:22-08:00</updated>
+  <updated>2016-02-06T05:18:06+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Debugging into Android source]]></title>
     <link href="http://tleyden.github.io/blog/2014/09/10/debugging-into-android-source/"/>
-    <updated>2014-09-10T15:57:00-07:00</updated>
+    <updated>2014-09-10T15:57:00+00:00</updated>
     <id>http://tleyden.github.io/blog/2014/09/10/debugging-into-android-source</id>
     <content type="html"><![CDATA[<p>Debugging into the core Android source code can be useful.  Here&rsquo;s how to do it in Android Studio 0.8.2.</p>
 

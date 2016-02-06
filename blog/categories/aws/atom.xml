@@ -4,7 +4,7 @@
   <title><![CDATA[Category: aws | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/aws/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-02-03T13:29:22-08:00</updated>
+  <updated>2016-02-06T05:18:06+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[CUDA 7.5 on AWS GPU Instance Running Ubuntu 14.04]]></title>
     <link href="http://tleyden.github.io/blog/2015/11/22/cuda-7-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/"/>
-    <updated>2015-11-22T17:32:00-08:00</updated>
+    <updated>2015-11-22T17:32:00+00:00</updated>
     <id>http://tleyden.github.io/blog/2015/11/22/cuda-7-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04</id>
     <content type="html"><![CDATA[<h2>Launch stock Ubuntu AMI</h2>
 
@@ -128,7 +128,7 @@ crw-rw-rw-  1 root root    195, 255 Nov 23 01:58 nvidiactl
   <entry>
     <title type="html"><![CDATA[Running the Sync Gateway Amazon AMI]]></title>
     <link href="http://tleyden.github.io/blog/2015/11/03/running-the-sync-gateway-amazon-ami/"/>
-    <updated>2015-11-03T11:11:00-08:00</updated>
+    <updated>2015-11-03T11:11:00+00:00</updated>
     <id>http://tleyden.github.io/blog/2015/11/03/running-the-sync-gateway-amazon-ami</id>
     <content type="html"><![CDATA[<p>How to run the Couchbase Sync Gateway AWS AMI</p>
 
@@ -202,7 +202,7 @@ $ curl http://&lt;instance public ip&gt;:4984/sync_gateway/
   <entry>
     <title type="html"><![CDATA[Running a Sync Gateway Cluster Under CoreOS on AWS]]></title>
     <link href="http://tleyden.github.io/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws/"/>
-    <updated>2014-12-15T19:22:00-08:00</updated>
+    <updated>2014-12-15T19:22:00+00:00</updated>
     <id>http://tleyden.github.io/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws</id>
     <content type="html"><![CDATA[<p>The content in this blog post has <strong>moved</strong>.</p>
 
@@ -213,7 +213,7 @@ $ curl http://&lt;instance public ip&gt;:4984/sync_gateway/
   <entry>
     <title type="html"><![CDATA[Running Couchbase Cluster Under CoreOS on AWS]]></title>
     <link href="http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/"/>
-    <updated>2014-11-01T12:16:00-07:00</updated>
+    <updated>2014-11-01T12:16:00+00:00</updated>
     <id>http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws</id>
     <content type="html"><![CDATA[<p>The content in this blog post has <strong>moved</strong>.</p>
 
@@ -224,7 +224,7 @@ $ curl http://&lt;instance public ip&gt;:4984/sync_gateway/
   <entry>
     <title type="html"><![CDATA[Running Caffe on AWS GPU instance via Docker]]></title>
     <link href="http://tleyden.github.io/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker/"/>
-    <updated>2014-10-25T20:42:00-07:00</updated>
+    <updated>2014-10-25T20:42:00+00:00</updated>
     <id>http://tleyden.github.io/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker</id>
     <content type="html"><![CDATA[<p>This is a tutorial to help you get the <a href="http://caffe.berkeleyvision.org/">Caffe deep learning framework</a> up and running on a GPU-powered AWS instance running inside a Docker container.</p>
 

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: deeplearning, | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/deeplearning/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-02-03T13:29:22-08:00</updated>
+  <updated>2016-02-06T05:18:06+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Running Neural Style on an AWS GPU instance]]></title>
     <link href="http://tleyden.github.io/blog/2015/11/22/running-neural-style-on-an-aws-gpu-instance/"/>
-    <updated>2015-11-22T11:02:00-08:00</updated>
+    <updated>2015-11-22T11:02:00+00:00</updated>
     <id>http://tleyden.github.io/blog/2015/11/22/running-neural-style-on-an-aws-gpu-instance</id>
     <content type="html"><![CDATA[<p>These instructions will walk you through getting <a href="https://github.com/jcjohnson/neural-style">neural-style</a> up and running on an AWS GPU instance.</p>
 
