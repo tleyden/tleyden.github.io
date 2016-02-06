@@ -36,12 +36,17 @@ From inside the docker container:
 
 On OSX, open up `~/Documents/blog/source/_posts/path-to-post` and make some minor edits
 
+## Configure git
+
+```
+# git config --global user.name "YOUR NAME"
+# git config --global user.email "YOUR EMAIL ADDRESS"
+```
+
 ## Push source
 
 ```
 # git push origin source
-Username for 'https://github.com': [enter your username]
-Password for 'https://username@github.com': [enter your password]
 ```
 
 ## Generate and push to master 
