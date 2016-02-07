@@ -206,35 +206,38 @@ Add the following to your `~/.emacs.d/init.el` file:
 
 Restart emacs, and if you open a .go file the mode should be `Go AC` (AC == AutoComplete)
 
-Before further verifying, we need to install gocode in the next step.
+Before further verifying, we need to install go-autocomplete in the next step.
 
-## Gocode: Go aware Autocomplete
+## go-autocomplete
 
-**This step seems broken (see details below), if you have any ideas on how to make it work, leave a comment**
+The basic autocomplete installed is not as "go aware" as it should be.  The go-autocomplete (aka [nsf/gocode](https://github.com/nsf/gocode/)) package fixes that. 
 
-The following is a brief summary of the [gocode README](https://github.com/nsf/gocode)
+Install melpa auto-complete via `M-x package-install` followed by `go-autocomplete`
 
-* `go get -u -v github.com/nsf/gocode`
-* `cp /Users/tleyden/Development/gocode/src/github.com/nsf/gocode/emacs/go-autocomplete.el ~/.emacs.d/`
-* Add the following to your `~/.emacs.d/init.el`
+Add the following to your `~/.emacs.d/init.el` file:
 
 ```
-(require 'go-autocomplete)
-(require 'auto-complete-config)
-(ac-config-default)
+(defun auto-complete-for-go ()
+(auto-complete-mode 1))
+ (add-hook 'go-mode-hook 'auto-complete-for-go)
 ```
 
-At this point, after you restart emacs, when you start typing something, you should see a popup menu with choices, like [this screenshot](http://tleyden-misc.s3.amazonaws.com/blog_images/emacs_autocomplete.png).
+Actually I'm not sure if this gets added automatically when installing `go-autocomplete`.  If it's already in your `~/.emacs.d/init.el` file then you can skip that.
 
-On my system I'm getting this error:
+You'll also need the following (as recommended in [gocode issue 325](https://github.com/nsf/gocode/issues/325)):
 
 ```
-Warning (initialization): An error occurred while loading `/Users/tleyden/.emacs.d/init.el':
-
-File error: Cannot open load file, no such file or directory, go-autocomplete
+(with-eval-after-load 'go-mode
+   (require 'go-autocomplete))
 ```
 
-## Customize compile command to run `go build`
+Now restart emacs, and when you start typing the name of a field in a struct it will popup something that looks like this:
+
+![screenshot](http://tleyden-misc.s3.amazonaws.com/blog_images/go-autocomplete.png)
+
+Note that is more "go-aware" than the default auto-complete functionality.
+
+## Customize the emacs compile command to run `go build`
 
 It's convenient to be able to run `M-x compile` to compile and test your Go code from within emacs.  
 
@@ -256,7 +259,6 @@ To do that, edit your `~/.emacs.d/init.el` and replace your go-mode hook with:
 After that, restart emacs, and when you type `M-x compile`, it should try to execute `go build -v && go test -v && go vet` instead of the default behavior.  On some projects, you might also want to run `go generate` before `go build`
 
 **Power tip**: you can jump straight to each compile error by running ``C-x ` ``.  Each time you do it, it will jump to the next error.
-
 
 ## Continue to Part 2
 
