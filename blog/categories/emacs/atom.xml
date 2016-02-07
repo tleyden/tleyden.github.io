@@ -4,7 +4,7 @@
   <title><![CDATA[Category: emacs | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/emacs/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-02-06T05:58:55+00:00</updated>
+  <updated>2016-02-07T03:27:31+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -166,43 +166,116 @@ M-x go-oracle-callers
 
 <p>It has a GUI installer so I won&rsquo;t say much more about it.</p>
 
-<h2>Install Go</h2>
+<h2>Install lastest version of Go</h2>
 
-<ul>
-<li>At the time of writing (05/22/2014), I installed <a href="https://storage.googleapis.com/golang/go1.2.2.darwin-amd64-osx10.8.pkg">https://storage.googleapis.com/golang/go1.2.2.darwin-amd64-osx10.8.pkg</a></li>
-<li>After installing the package, you&rsquo;ll want to define the following environment variables in your <code>~/.bash_profile</code>:</li>
-</ul>
+<p>See <a href="https://golang.org/doc/install">Installing Go</a></p>
 
+<p>After installing, you&rsquo;ll want to define the following environment variables in your <code>~/.bash_profile</code>.</p>
 
 <p><code>
-export GOROOT=/usr/local/go
+export GOROOT=/usr/local/go            
 export GOPATH=~/Development/gocode
 export PATH=$PATH:$GOROOT/bin
+export PATH=$PATH:$GOPATH/bin
 </code></p>
 
-<h2>Configure go-mode</h2>
+<p>These might be different on your system.</p>
 
-<p>Go-mode is an Emacs major mode for editing Go code.  An absolute must for anyone writing Go w/ Emacs.</p>
+<h2>Install additional go tools (godoc, etc)</h2>
 
-<p>The following is a brief summary of <a href="http://dominik.honnef.co/posts/2013/03/writing_go_in_emacs/">Dominik Honnef&rsquo;s instructions</a></p>
+<p>To get the <code>godoc</code> tool as well as others, run:</p>
+
+<p><code>
+go get golang.org/x/tools/cmd/...
+</code></p>
+
+<p>I ended up getting an error:</p>
+
+<p>```
+$ go get golang.org/x/tools/cmd/&hellip;</p>
+
+<h1>golang.org/x/tools/go/ssa/interp</h1>
+
+<p>Development/gocode/src/golang.org/x/tools/go/ssa/interp/external.go:244: undefined: syscall.Pipe2
+```</p>
+
+<p>which is documented in <a href="https://github.com/golang/go/issues/13831">issue 13831</a></p>
+
+<p>And installing these tools directly via:</p>
+
+<p><code>
+go get golang.org/x/tools/cmd/godoc
+go get golang.org/x/tools/cmd/cover
+go get golang.org/x/tools/cmd/gorename
+go get golang.org/x/tools/cmd/goimports
+go get golang.org/x/tools/cmd/oracle
+go get golang.org/x/tools/cmd/vet
+</code></p>
+
+<h2>Install Melpa</h2>
+
+<p><a href="http://melpa.org/#/getting-started">Melpa</a> is a package manager for Emacs, and is required for <a href="https://github.com/dominikh/go-mode.el">go-mode</a></p>
+
+<p>To configure emacs for melpa:</p>
 
 <ul>
-<li><code>mkdir -p ~/Misc/emacs &amp;&amp; cd ~/Misc/emacs</code></li>
-<li><code>git clone git@github.com:dominikh/go-mode.el.git</code></li>
-<li>From within Emacs, run <code>M-x update-file-autoloads</code>, point it at the <strong>go-mode.el</strong> file in the cloned directory.</li>
-<li>Emacs will prompt you for a result path, and you should enter <strong>~/Misc/emacs/go-mode.el/go-mode-load.el</strong></li>
-<li>Add these two lines to your ~/.emacs  (if you don&rsquo;t already have this file, you should create an empty one)</li>
+<li>Create a new file <code>~/.emacs.d/init.el</code></li>
+<li>Add the following contents:</li>
 </ul>
 
 
 <p><code>
-(add-to-list 'load-path "~/Misc/emacs/go-mode.el/")
-(require 'go-mode-load)
+(require 'package)
+(add-to-list 'package-archives
+  '("melpa" . "http://melpa.milkbox.net/packages/") t)
 </code></p>
+
+<p>Restart emacs and run <code>M-x package-list-packages</code> and you should see it contacting <code>http://melpa.milkbox.net</code> and you should also see lot of packages listed as being from the melpa archive.</p>
+
+<h2>Install go-mode</h2>
+
+<p>Run <code>M-x package-install</code> and when prompted, enter <code>go-mode</code> and hit enter.</p>
+
+<p>I got the following warnings:</p>
+
+<p><code>``
+Compiling file /Users/tleyden/.emacs.d/elpa/go-mode-20160127.4/go-mode.el at Sat Feb  6 17:58:11 2016
+Entering directory</code>/Users/tleyden/.emacs.d/elpa/go-mode-20160127.4/&lsquo;
+go-mode.el:16:1:Warning: cl package required at runtime</p>
+
+<p>In go-mode:
+go-mode.el:917:10:Warning: `font-lock-syntactic-keywords' is an obsolete</p>
+
+<pre><code>variable (as of 24.1); use `syntax-propertize-function' instead.
+</code></pre>
+
+<p>```</p>
 
 <p>Restart Emacs and open a .go file, you should see the mode as &ldquo;Go&rdquo; rather than &ldquo;Fundamental&rdquo;.</p>
 
 <p>For a full description of what go-mode can do for you, see <a href="http://dominik.honnef.co/posts/2013/03/writing_go_in_emacs/">Dominik Honnef&rsquo;s blog</a>, but one really useful thing to be aware of is that you can quickly import packages via <code>C-c C-a</code></p>
+
+<h2>Update Emacs path to find <code>godoc</code></h2>
+
+<p>Run <code>M-x package-install</code> and enter <code>exec-path-from-shell</code></p>
+
+<p>I got this warning:</p>
+
+<p><code>``
+Compiling file /Users/tleyden/.emacs.d/elpa/exec-path-from-shell-20160112.2246/exec-path-from-shell-pkg.el at Sat Feb  6 18:20:55 2016
+Entering directory</code>/Users/tleyden/.emacs.d/elpa/exec-path-from-shell-20160112.2246/'</p>
+
+<p>Compiling file /Users/tleyden/.emacs.d/elpa/exec-path-from-shell-20160112.2246/exec-path-from-shell.el at Sat Feb  6 18:20:55 2016</p>
+
+<p>In exec-path-from-shell-setenv:
+exec-path-from-shell.el:189:11:Warning: assignment to free variable</p>
+
+<pre><code>`eshell-path-env'
+</code></pre>
+
+<p>```</p>
+
+<p>Restart emacs.</p>
 
 <h2>Update Emacs config for <code>godoc</code></h2>
 
@@ -210,7 +283,7 @@ export PATH=$PATH:$GOROOT/bin
 
 <p><strong>PATH</strong></p>
 
-<p>Add the following to your <code>.emacs</code> file so that it gets the PATH environment:</p>
+<p>Add the following to your <code>~/.emacs.d/init.el</code> file so that it gets the PATH environment:</p>
 
 <p>```
 (defun set-exec-path-from-shell-PATH ()
@@ -243,7 +316,7 @@ export PATH=$PATH:$GOROOT/bin
 
 <p><code>gofmt</code> reformats code into the One True Go Style Coding Standard.  You&rsquo;ll want to call it every time you save a file.</p>
 
-<p>Add these to your ~/.emacs:</p>
+<p>Add these to your <code>~/.emacs.d/init.el</code>:</p>
 
 <p><code>
 (setq exec-path (cons "/usr/local/go/bin" exec-path))
@@ -269,7 +342,7 @@ export PATH=$PATH:$GOROOT/bin
 </ul>
 
 
-<p>In order to add godef key bindings, add these to your ~/.emacs:</p>
+<p>In order to add godef key bindings, add these to your <code>~/.emacs.d/init.el</code>:</p>
 
 <p><code>
 (defun my-go-mode-hook ()
@@ -286,49 +359,56 @@ export PATH=$PATH:$GOROOT/bin
 
 <h2>Autocomplete</h2>
 
-<p>The following is a brief summary of the <a href="http://cx4a.org/software/auto-complete/manual.html#Installation">emacs autocomplete manual</a></p>
+<p>Install melpa auto-complete via <code>M-x package-install</code> followed by <code>auto-complete</code></p>
 
-<ul>
-<li>Download and extract <a href="http://cx4a.org/pub/auto-complete/auto-complete-1.3.1.tar.bz2">http://cx4a.org/pub/auto-complete/auto-complete-1.3.1.tar.bz2</a></li>
-<li>Cd into extracted dir and run <code>emacs -batch -l etc/install.el</code></li>
-<li>Create a <code>lisp</code> subdirectory under your <code>~/.emacs.d</code> directory</li>
-<li>When prompted for where to install, give it the full path to your <code>~/.emacs.d/lisp</code> directory, eg: <code>/Users/tleyden/.emacs.d/lisp</code></li>
-<li>It will tell you to add the following to your ~/.emacs:</li>
-</ul>
+<p>I got <a href=":https://gist.github.com/tleyden/cecfbba9bd9112fb71ae">these warnings</a></p>
 
+<p>Add the following to your <code>~/.emacs.d/init.el</code> file:</p>
 
 <p><code>
-(add-to-list 'load-path "/Users/tleyden/.emacs.d/lisp")
-(require 'auto-complete-config)
-(add-to-list 'ac-dictionary-directories "/Users/tleyden/.emacs.d/lisp/ac-dict")
-(ac-config-default)
+(defun auto-complete-for-go ()
+  (auto-complete-mode 1))
+(add-hook 'go-mode-hook 'auto-complete-for-go)
 </code></p>
 
-<p>To see any effect, we need to install gocode in the next step.</p>
+<p>Restart emacs, and if you open a .go file the mode should be <code>Go AC</code> (AC == AutoComplete)</p>
+
+<p>Before further verifying, we need to install gocode in the next step.</p>
 
 <h2>Gocode: Go aware Autocomplete</h2>
+
+<p><strong>This step seems broken (see details below), if you have any ideas on how to make it work, leave a comment</strong></p>
 
 <p>The following is a brief summary of the <a href="https://github.com/nsf/gocode">gocode README</a></p>
 
 <ul>
 <li><code>go get -u -v github.com/nsf/gocode</code></li>
 <li><code>cp /Users/tleyden/Development/gocode/src/github.com/nsf/gocode/emacs/go-autocomplete.el ~/.emacs.d/</code></li>
-<li>Add the following to your ~/.emacs</li>
+<li>Add the following to your <code>~/.emacs.d/init.el</code></li>
 </ul>
 
 
 <p><code>
 (require 'go-autocomplete)
 (require 'auto-complete-config)
+(ac-config-default)
 </code></p>
 
 <p>At this point, after you restart emacs, when you start typing something, you should see a popup menu with choices, like <a href="http://tleyden-misc.s3.amazonaws.com/blog_images/emacs_autocomplete.png">this screenshot</a>.</p>
+
+<p>On my system I&rsquo;m getting this error:</p>
+
+<p><code>``
+Warning (initialization): An error occurred while loading</code>/Users/tleyden/.emacs.d/init.el':</p>
+
+<p>File error: Cannot open load file, no such file or directory, go-autocomplete
+```</p>
 
 <h2>Customize compile command to run <code>go build</code></h2>
 
 <p>It&rsquo;s convenient to be able to run <code>M-x compile</code> to compile and test your Go code from within emacs.</p>
 
-<p>To do that, edit your ~/.emacs and replace your go-mode hook with:</p>
+<p>To do that, edit your <code>~/.emacs.d/init.el</code> and replace your go-mode hook with:</p>
 
 <p>```
 (defun my-go-mode-hook ()
@@ -338,7 +418,7 @@ export PATH=$PATH:$GOROOT/bin
   (if (not (string-match &ldquo;go&rdquo; compile-command))</p>
 
 <pre><code>  (set (make-local-variable 'compile-command)
-       "go generate &amp;&amp; go build -v &amp;&amp; go test -v &amp;&amp; go vet"))
+       "go build -v &amp;&amp; go test -v &amp;&amp; go vet"))
 </code></pre>
 
 <p>  ; Godef jump key binding
@@ -346,19 +426,20 @@ export PATH=$PATH:$GOROOT/bin
 (add-hook 'go-mode-hook 'my-go-mode-hook)
 ```</p>
 
-<p>After that, restart emacs, and when you type <code>M-x compile</code>, it should try to execute <code>go build -v &amp;&amp; go test -v &amp;&amp; go vet</code> instead of the default behavior.</p>
+<p>After that, restart emacs, and when you type <code>M-x compile</code>, it should try to execute <code>go build -v &amp;&amp; go test -v &amp;&amp; go vet</code> instead of the default behavior.  On some projects, you might also want to run <code>go generate</code> before <code>go build</code></p>
 
 <p><strong>Power tip</strong>: you can jump straight to each compile error by running <code>C-x `</code>.  Each time you do it, it will jump to the next error.</p>
-
-<h2>Ready for more?</h2>
-
-<p>If you&rsquo;re ready to take it to the next level, check out <a href="http://www.youtube.com/watch?v=5wipWZKvNSo">5 minutes of go in emacs</a></p>
-
-<p>(PS: thanks <a href="https://twitter.com/dlsspy">@dlsspy</a> for taking the time to teach me the Emacs wrestling techniques needed to get this far.)</p>
 
 <h2>Continue to Part 2</h2>
 
 <p>go-imports and go-oracle are covered in <a href="../../27/configure-emacs-as-a-go-editor-from-scratch-part-2/">Part 2</a></p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="http://www.youtube.com/watch?v=5wipWZKvNSo">5 minutes of go in emacs</a> by <a href="https://twitter.com/dlsspy">@dlsspy</a></li>
+</ul>
+
 ]]></content>
   </entry>
   
