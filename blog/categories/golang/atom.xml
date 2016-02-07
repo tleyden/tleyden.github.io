@@ -4,7 +4,7 @@
   <title><![CDATA[Category: golang | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/golang/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-02-07T03:27:31+00:00</updated>
+  <updated>2016-02-07T04:12:05+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -505,7 +505,7 @@ err := q.ConnectToNSQLookupd("127.0.0.1:4161")
 $ go get golang.org/x/tools/cmd/goimports
 </code></p>
 
-<p>Continuing on previous .emacs in <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">Part 1</a>, update your .emacs to:</p>
+<p>Continuing on previous .emacs in <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">Part 1</a>, update your <code>~/.emacs.d/init.el</code> to:</p>
 
 <p>```
 (defun my-go-mode-hook ()
@@ -552,19 +552,29 @@ $ go get golang.org/x/tools/cmd/goimports
 go get golang.org/x/tools/cmd/oracle
 </code></p>
 
-<h3>Move oracle binary so Emacs can find it</h3>
+<h3>Update emacs config</h3>
 
-<p><code>
-sudo mv $GOPATH/bin/oracle $GOROOT/bin/
-</code></p>
+<p>Update your <code>~/.emacs.d/init.el</code> to:</p>
 
-<h3>Update .emacs</h3>
+<p>```
+(defun my-go-mode-hook ()
+  ; Use goimports instead of go-fmt
+  (setq gofmt-command &ldquo;goimports&rdquo;)
+  ; Call Gofmt before saving
+  (add-hook &lsquo;before-save-hook 'gofmt-before-save)
+  ; Customize compile command to run go build
+  (if (not (string-match &ldquo;go&rdquo; compile-command))</p>
 
-<p>Add the following to your <code>.emacs</code> file, <strong>above</strong> the <code>(defun my-go-mode-hook ()</code> line.</p>
+<pre><code>  (set (make-local-variable 'compile-command)
+       "go generate &amp;&amp; go build -v &amp;&amp; go test -v &amp;&amp; go vet"))
+</code></pre>
 
-<p><code>
-(load-file "$GOPATH/src/golang.org/x/tools/cmd/oracle/oracle.el")
-</code></p>
+<p>  ; Go oracle
+  (load-file &ldquo;$GOPATH/src/golang.org/x/tools/cmd/oracle/oracle.el&rdquo;)
+  ; Godef jump key binding
+  (local-set-key (kbd &ldquo;M-.&rdquo;) &lsquo;godef-jump))
+(add-hook 'go-mode-hook 'my-go-mode-hook)
+```</p>
 
 <p><strong>Restart Emacs</strong> to make these changes take effect.</p>
 

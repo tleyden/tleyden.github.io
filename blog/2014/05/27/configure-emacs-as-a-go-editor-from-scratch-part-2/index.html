@@ -110,7 +110,7 @@
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ go get golang.org/x/tools/cmd/goimports</span></code></pre></td></tr></table></div></figure>
 
 
-<p>Continuing on previous .emacs in <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">Part 1</a>, update your .emacs to:</p>
+<p>Continuing on previous .emacs in <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">Part 1</a>, update your <code>~/.emacs.d/init.el</code> to:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -165,18 +165,38 @@
 </pre></td><td class='code'><pre><code class=''><span class='line'>go get golang.org/x/tools/cmd/oracle</span></code></pre></td></tr></table></div></figure>
 
 
-<h3>Move oracle binary so Emacs can find it</h3>
+<h3>Update emacs config</h3>
+
+<p>Update your <code>~/.emacs.d/init.el</code> to:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>sudo mv $GOPATH/bin/oracle $GOROOT/bin/</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Update .emacs</h3>
-
-<p>Add the following to your <code>.emacs</code> file, <strong>above</strong> the <code>(defun my-go-mode-hook ()</code> line.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>(load-file "$GOPATH/src/golang.org/x/tools/cmd/oracle/oracle.el")</span></code></pre></td></tr></table></div></figure>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>(defun my-go-mode-hook ()
+</span><span class='line'>  ; Use goimports instead of go-fmt
+</span><span class='line'>  (setq gofmt-command "goimports")
+</span><span class='line'>  ; Call Gofmt before saving
+</span><span class='line'>  (add-hook 'before-save-hook 'gofmt-before-save)
+</span><span class='line'>  ; Customize compile command to run go build
+</span><span class='line'>  (if (not (string-match "go" compile-command))
+</span><span class='line'>      (set (make-local-variable 'compile-command)
+</span><span class='line'>           "go generate && go build -v && go test -v && go vet"))
+</span><span class='line'>  ; Go oracle
+</span><span class='line'>  (load-file "$GOPATH/src/golang.org/x/tools/cmd/oracle/oracle.el")
+</span><span class='line'>  ; Godef jump key binding
+</span><span class='line'>  (local-set-key (kbd "M-.") 'godef-jump))
+</span><span class='line'>(add-hook 'go-mode-hook 'my-go-mode-hook)</span></code></pre></td></tr></table></div></figure>
 
 
 <p><strong>Restart Emacs</strong> to make these changes take effect.</p>
@@ -305,7 +325,7 @@
     <section>
   <h1>About Me</h1>
   <p>
-  I'm a software engineer at Couchbase, working on <a href="http://developer.couchbase.com/mobile/">Couchbase Mobile</a> -- a mobile NoSQL database with Sync that runs on iOS, Android, and .NET platforms.
+  I'm a software engineer at Couchbase, working on <a href="https://github.com/couchbase/couchbase-lite-ios">Couchbase Mobile</a> -- an open source mobile NoSQL database with built-in sync capabilities.
   </p>
 
   <p>
