@@ -4,7 +4,7 @@
   <title><![CDATA[Category: emacs | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/emacs/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-02-07T04:12:05+00:00</updated>
+  <updated>2016-02-07T17:14:44+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,61 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Configure Emacs as a Go Editor From Scratch Part 3]]></title>
+    <link href="http://tleyden.github.io/blog/2016/02/07/configure-emacs-as-a-go-editor-from-scratch-part-3/"/>
+    <updated>2016-02-07T04:25:00+00:00</updated>
+    <id>http://tleyden.github.io/blog/2016/02/07/configure-emacs-as-a-go-editor-from-scratch-part-3</id>
+    <content type="html"><![CDATA[<p>So I haven&rsquo;t switched to <a href="http://spacemacs.org/">spacemacs</a> .. yet, but I have to admit, it looks like they&rsquo;ve improved the UI.</p>
+
+<p>This is a continuation from <a href="http://tleyden.github.io/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2/">a previous blog post</a>.  In this post I&rsquo;m going to focus on making emacs look a bit better.</p>
+
+<p>Currently:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/emacs_ugly.png" alt="screenshot" /></p>
+
+<h2>Install a nicer theme</h2>
+
+<p>I like the <code>taming-mr-arneson-theme</code>, so let&rsquo;s install that one.  Feel free to browse the emacs themes and find one that you like more.</p>
+
+<p><code>
+$ `mkdir ~/.emacs.d/color-themes`
+$ `wget https://raw.githubusercontent.com/emacs-jp/replace-colorthemes/d23b086141019c76ea81881bda00fb385f795048/taming-mr-arneson-theme.el`
+</code></p>
+
+<p>Update your <code>~/emacs.d/init.el</code> to add the following lines to the top of the file:</p>
+
+<p><code>
+(add-to-list 'custom-theme-load-path "/Users/tleyden/.emacs.d/color-themes/")
+(load-theme 'taming-mr-arneson t)
+</code></p>
+
+<p>Now when you restart emacs it should look like this:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/emacs_taming_mr_arneson.png" alt="screenshot" /></p>
+
+<p> ## Directory Tree</p>
+
+<p><code>
+$ cd ~/DevLibraries
+$ git clone https://github.com/jaypei/emacs-neotree.git neotree
+</code></p>
+
+<p>Update your <code>~/emacs.d/init.el</code> to add the following lines:</p>
+
+<p><code>
+(add-to-list 'load-path "/some/path/neotree")
+(require 'neotree)
+</code></p>
+
+<p>Open a <code>.go</code> file and the enter <code>M-x neotree-dir</code> to show a directory browser:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/emacs-neotree.png" alt="screnshot" /></p>
+
+<p>Ref: <a href="http://www.emacswiki.org/emacs/NeoTree">NeoTree</a></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Configure Emacs as a Go Editor From Scratch Part 2]]></title>
@@ -383,38 +438,38 @@ exec-path-from-shell.el:189:11:Warning: assignment to free variable</p>
 
 <p>Restart emacs, and if you open a .go file the mode should be <code>Go AC</code> (AC == AutoComplete)</p>
 
-<p>Before further verifying, we need to install gocode in the next step.</p>
+<p>Before further verifying, we need to install go-autocomplete in the next step.</p>
 
-<h2>Gocode: Go aware Autocomplete</h2>
+<h2>go-autocomplete</h2>
 
-<p><strong>This step seems broken (see details below), if you have any ideas on how to make it work, leave a comment</strong></p>
+<p>The basic autocomplete installed is not as &ldquo;go aware&rdquo; as it should be.  The go-autocomplete (aka <a href="https://github.com/nsf/gocode/">nsf/gocode</a>) package fixes that.</p>
 
-<p>The following is a brief summary of the <a href="https://github.com/nsf/gocode">gocode README</a></p>
+<p>Install melpa auto-complete via <code>M-x package-install</code> followed by <code>go-autocomplete</code></p>
 
-<ul>
-<li><code>go get -u -v github.com/nsf/gocode</code></li>
-<li><code>cp /Users/tleyden/Development/gocode/src/github.com/nsf/gocode/emacs/go-autocomplete.el ~/.emacs.d/</code></li>
-<li>Add the following to your <code>~/.emacs.d/init.el</code></li>
-</ul>
-
+<p>Add the following to your <code>~/.emacs.d/init.el</code> file:</p>
 
 <p><code>
-(require 'go-autocomplete)
-(require 'auto-complete-config)
-(ac-config-default)
+(defun auto-complete-for-go ()
+(auto-complete-mode 1))
+ (add-hook 'go-mode-hook 'auto-complete-for-go)
 </code></p>
 
-<p>At this point, after you restart emacs, when you start typing something, you should see a popup menu with choices, like <a href="http://tleyden-misc.s3.amazonaws.com/blog_images/emacs_autocomplete.png">this screenshot</a>.</p>
+<p>Actually I&rsquo;m not sure if this gets added automatically when installing <code>go-autocomplete</code>.  If it&rsquo;s already in your <code>~/.emacs.d/init.el</code> file then you can skip that.</p>
 
-<p>On my system I&rsquo;m getting this error:</p>
+<p>You&rsquo;ll also need the following (as recommended in <a href="https://github.com/nsf/gocode/issues/325">gocode issue 325</a>):</p>
 
-<p><code>``
-Warning (initialization): An error occurred while loading</code>/Users/tleyden/.emacs.d/init.el':</p>
+<p><code>
+(with-eval-after-load 'go-mode
+   (require 'go-autocomplete))
+</code></p>
 
-<p>File error: Cannot open load file, no such file or directory, go-autocomplete
-```</p>
+<p>Now restart emacs, and when you start typing the name of a field in a struct it will popup something that looks like this:</p>
 
-<h2>Customize compile command to run <code>go build</code></h2>
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go-autocomplete.png" alt="screenshot" /></p>
+
+<p>Note that is more &ldquo;go-aware&rdquo; than the default auto-complete functionality.</p>
+
+<h2>Customize the emacs compile command to run <code>go build</code></h2>
 
 <p>It&rsquo;s convenient to be able to run <code>M-x compile</code> to compile and test your Go code from within emacs.</p>
 

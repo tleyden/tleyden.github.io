@@ -5,12 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Running Couchbase Cluster Under CoreOS on AWS - Seven Story Rabbit Hole</title>
+  <title>Configure Emacs as a Go Editor From Scratch Part 3 - Seven Story Rabbit Hole</title>
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="The content in this blog post has moved. Please go HERE to view the updated content.
-">
+  <meta name="description" content="So I haven&rsquo;t switched to spacemacs .. yet, but I have to admit, it looks like they&rsquo;ve improved the UI. This is a continuation from a &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -19,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws">
+  <link rel="canonical" href="http://tleyden.github.io/blog/2016/02/07/configure-emacs-as-a-go-editor-from-scratch-part-3">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
@@ -76,7 +75,7 @@
   
   <header>
     
-      <h1 class="entry-title">Running Couchbase Cluster Under CoreOS on AWS</h1>
+      <h1 class="entry-title">Configure Emacs as a Go Editor From Scratch Part 3</h1>
     
     
       <p class="meta">
@@ -92,16 +91,64 @@
   
 
 
-<time datetime="2014-11-01T12:16:00+00:00" pubdate data-updated="true">Nov 1<span>st</span>, 2014</time>
+<time datetime="2016-02-07T04:25:00+00:00" pubdate data-updated="true">Feb 7<span>th</span>, 2016</time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><p>The content in this blog post has <strong>moved</strong>.</p>
+<div class="entry-content"><p>So I haven&rsquo;t switched to <a href="http://spacemacs.org/">spacemacs</a> .. yet, but I have to admit, it looks like they&rsquo;ve improved the UI.</p>
 
-<p>Please go <a href="https://github.com/couchbaselabs/couchbase-server-coreos">HERE</a> to view the updated content.</p>
+<p>This is a continuation from <a href="http://tleyden.github.io/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2/">a previous blog post</a>.  In this post I&rsquo;m going to focus on making emacs look a bit better.</p>
+
+<p>Currently:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/emacs_ugly.png" alt="screenshot" /></p>
+
+<h2>Install a nicer theme</h2>
+
+<p>I like the <code>taming-mr-arneson-theme</code>, so let&rsquo;s install that one.  Feel free to browse the emacs themes and find one that you like more.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ `mkdir ~/.emacs.d/color-themes`
+</span><span class='line'>$ `wget https://raw.githubusercontent.com/emacs-jp/replace-colorthemes/d23b086141019c76ea81881bda00fb385f795048/taming-mr-arneson-theme.el`</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Update your <code>~/emacs.d/init.el</code> to add the following lines to the top of the file:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>(add-to-list 'custom-theme-load-path "/Users/tleyden/.emacs.d/color-themes/")
+</span><span class='line'>(load-theme 'taming-mr-arneson t)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now when you restart emacs it should look like this:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/emacs_taming_mr_arneson.png" alt="screenshot" /></p>
+
+<p> ## Directory Tree</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd ~/DevLibraries
+</span><span class='line'>$ git clone https://github.com/jaypei/emacs-neotree.git neotree</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Update your <code>~/emacs.d/init.el</code> to add the following lines:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>(add-to-list 'load-path "/some/path/neotree")
+</span><span class='line'>(require 'neotree)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Open a <code>.go</code> file and the enter <code>M-x neotree-dir</code> to show a directory browser:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/emacs-neotree.png" alt="screnshot" /></p>
+
+<p>Ref: <a href="http://www.emacswiki.org/emacs/NeoTree">NeoTree</a></p>
 </div>
 
 
@@ -124,12 +171,12 @@
   
 
 
-<time datetime="2014-11-01T12:16:00+00:00" pubdate data-updated="true">Nov 1<span>st</span>, 2014</time>
+<time datetime="2016-02-07T04:25:00+00:00" pubdate data-updated="true">Feb 7<span>th</span>, 2016</time>
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/aws/'>aws</a>, <a class='category' href='/blog/categories/coreos/'>coreos</a>, <a class='category' href='/blog/categories/couchbase/'>couchbase</a>, <a class='category' href='/blog/categories/docker/'>docker</a>
+    <a class='category' href='/blog/categories/emacs/'>emacs</a>, <a class='category' href='/blog/categories/golang/'>golang</a>
   
 </span>
 
@@ -138,7 +185,7 @@
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2016/02/07/configure-emacs-as-a-go-editor-from-scratch-part-3/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2016/02/07/configure-emacs-as-a-go-editor-from-scratch-part-3/" >Tweet</a>
   
   
   
@@ -147,10 +194,8 @@
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2014/10/30/goroutines-vs-threads/" title="Previous Post: Goroutines vs Threads">&laquo; Goroutines vs Threads</a>
+        <a class="basic-alignment left" href="/blog/2016/02/06/octopress-under-docker/" title="Previous Post: Octopress under Docker">&laquo; Octopress under Docker</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2014/11/04/coreos-with-nvidia-cuda-gpu-drivers/" title="Next Post: CoreOS with Nvidia CUDA GPU drivers">CoreOS with Nvidia CUDA GPU drivers &raquo;</a>
       
     </p>
   </footer>
@@ -253,8 +298,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/';
-        var disqus_url = 'http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/';
+        var disqus_identifier = 'http://tleyden.github.io/blog/2016/02/07/configure-emacs-as-a-go-editor-from-scratch-part-3/';
+        var disqus_url = 'http://tleyden.github.io/blog/2016/02/07/configure-emacs-as-a-go-editor-from-scratch-part-3/';
         var disqus_script = 'embed.js';
       
     (function () {

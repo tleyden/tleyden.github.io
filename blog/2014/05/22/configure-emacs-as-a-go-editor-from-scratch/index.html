@@ -347,42 +347,41 @@
 
 <p>Restart emacs, and if you open a .go file the mode should be <code>Go AC</code> (AC == AutoComplete)</p>
 
-<p>Before further verifying, we need to install gocode in the next step.</p>
+<p>Before further verifying, we need to install go-autocomplete in the next step.</p>
 
-<h2>Gocode: Go aware Autocomplete</h2>
+<h2>go-autocomplete</h2>
 
-<p><strong>This step seems broken (see details below), if you have any ideas on how to make it work, leave a comment</strong></p>
+<p>The basic autocomplete installed is not as &ldquo;go aware&rdquo; as it should be.  The go-autocomplete (aka <a href="https://github.com/nsf/gocode/">nsf/gocode</a>) package fixes that.</p>
 
-<p>The following is a brief summary of the <a href="https://github.com/nsf/gocode">gocode README</a></p>
+<p>Install melpa auto-complete via <code>M-x package-install</code> followed by <code>go-autocomplete</code></p>
 
-<ul>
-<li><code>go get -u -v github.com/nsf/gocode</code></li>
-<li><code>cp /Users/tleyden/Development/gocode/src/github.com/nsf/gocode/emacs/go-autocomplete.el ~/.emacs.d/</code></li>
-<li>Add the following to your <code>~/.emacs.d/init.el</code></li>
-</ul>
-
+<p>Add the following to your <code>~/.emacs.d/init.el</code> file:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>(require 'go-autocomplete)
-</span><span class='line'>(require 'auto-complete-config)
-</span><span class='line'>(ac-config-default)</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>(defun auto-complete-for-go ()
+</span><span class='line'>(auto-complete-mode 1))
+</span><span class='line'> (add-hook 'go-mode-hook 'auto-complete-for-go)</span></code></pre></td></tr></table></div></figure>
 
 
-<p>At this point, after you restart emacs, when you start typing something, you should see a popup menu with choices, like <a href="http://tleyden-misc.s3.amazonaws.com/blog_images/emacs_autocomplete.png">this screenshot</a>.</p>
+<p>Actually I&rsquo;m not sure if this gets added automatically when installing <code>go-autocomplete</code>.  If it&rsquo;s already in your <code>~/.emacs.d/init.el</code> file then you can skip that.</p>
 
-<p>On my system I&rsquo;m getting this error:</p>
+<p>You&rsquo;ll also need the following (as recommended in <a href="https://github.com/nsf/gocode/issues/325">gocode issue 325</a>):</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>Warning (initialization): An error occurred while loading `/Users/tleyden/.emacs.d/init.el':
-</span><span class='line'>
-</span><span class='line'>File error: Cannot open load file, no such file or directory, go-autocomplete</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>(with-eval-after-load 'go-mode
+</span><span class='line'>   (require 'go-autocomplete))</span></code></pre></td></tr></table></div></figure>
 
 
-<h2>Customize compile command to run <code>go build</code></h2>
+<p>Now restart emacs, and when you start typing the name of a field in a struct it will popup something that looks like this:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go-autocomplete.png" alt="screenshot" /></p>
+
+<p>Note that is more &ldquo;go-aware&rdquo; than the default auto-complete functionality.</p>
+
+<h2>Customize the emacs compile command to run <code>go build</code></h2>
 
 <p>It&rsquo;s convenient to be able to run <code>M-x compile</code> to compile and test your Go code from within emacs.</p>
 
@@ -504,6 +503,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/02/07/configure-emacs-as-a-go-editor-from-scratch-part-3/">Configure Emacs as a Go Editor From Scratch Part 3</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/02/06/octopress-under-docker/">Octopress Under Docker</a>
       </li>
     
@@ -517,10 +520,6 @@
     
       <li class="post">
         <a href="/blog/2015/11/22/running-neural-style-on-an-aws-gpu-instance/">Running Neural Style on an AWS GPU Instance</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2015/11/03/running-the-sync-gateway-amazon-ami/">Running the Sync Gateway Amazon AMI</a>
       </li>
     
   </ul>

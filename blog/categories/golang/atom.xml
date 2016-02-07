@@ -4,7 +4,7 @@
   <title><![CDATA[Category: golang | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/golang/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-02-07T04:12:05+00:00</updated>
+  <updated>2016-02-07T17:14:44+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,61 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Configure Emacs as a Go Editor From Scratch Part 3]]></title>
+    <link href="http://tleyden.github.io/blog/2016/02/07/configure-emacs-as-a-go-editor-from-scratch-part-3/"/>
+    <updated>2016-02-07T04:25:00+00:00</updated>
+    <id>http://tleyden.github.io/blog/2016/02/07/configure-emacs-as-a-go-editor-from-scratch-part-3</id>
+    <content type="html"><![CDATA[<p>So I haven&rsquo;t switched to <a href="http://spacemacs.org/">spacemacs</a> .. yet, but I have to admit, it looks like they&rsquo;ve improved the UI.</p>
+
+<p>This is a continuation from <a href="http://tleyden.github.io/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2/">a previous blog post</a>.  In this post I&rsquo;m going to focus on making emacs look a bit better.</p>
+
+<p>Currently:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/emacs_ugly.png" alt="screenshot" /></p>
+
+<h2>Install a nicer theme</h2>
+
+<p>I like the <code>taming-mr-arneson-theme</code>, so let&rsquo;s install that one.  Feel free to browse the emacs themes and find one that you like more.</p>
+
+<p><code>
+$ `mkdir ~/.emacs.d/color-themes`
+$ `wget https://raw.githubusercontent.com/emacs-jp/replace-colorthemes/d23b086141019c76ea81881bda00fb385f795048/taming-mr-arneson-theme.el`
+</code></p>
+
+<p>Update your <code>~/emacs.d/init.el</code> to add the following lines to the top of the file:</p>
+
+<p><code>
+(add-to-list 'custom-theme-load-path "/Users/tleyden/.emacs.d/color-themes/")
+(load-theme 'taming-mr-arneson t)
+</code></p>
+
+<p>Now when you restart emacs it should look like this:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/emacs_taming_mr_arneson.png" alt="screenshot" /></p>
+
+<p> ## Directory Tree</p>
+
+<p><code>
+$ cd ~/DevLibraries
+$ git clone https://github.com/jaypei/emacs-neotree.git neotree
+</code></p>
+
+<p>Update your <code>~/emacs.d/init.el</code> to add the following lines:</p>
+
+<p><code>
+(add-to-list 'load-path "/some/path/neotree")
+(require 'neotree)
+</code></p>
+
+<p>Open a <code>.go</code> file and the enter <code>M-x neotree-dir</code> to show a directory browser:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/emacs-neotree.png" alt="screnshot" /></p>
+
+<p>Ref: <a href="http://www.emacswiki.org/emacs/NeoTree">NeoTree</a></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Test coverage for Go with drone.io and coveralls.io]]></title>
@@ -485,156 +540,6 @@ err := q.ConnectToNSQLookupd("127.0.0.1:4161")
 <p>There are other approaches to achieving high concurrency with a small number of threads.  Python Twisted was one of the early ones that got a lot of attention.  Node.js is currently the most prominent evented frameworks out there.</p>
 
 <p>The problem with these evented frameworks is that the code complexity is also high, and difficult to reason about.  Rather than &ldquo;straightline&rdquo; coding, the programmer is forced to chain callbacks, which gets interleaved with error handling.  While refactoring can help tame some of the mental load, it&rsquo;s still an issue.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Configure Emacs as a Go Editor From Scratch Part 2]]></title>
-    <link href="http://tleyden.github.io/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2/"/>
-    <updated>2014-05-27T12:03:00+00:00</updated>
-    <id>http://tleyden.github.io/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2</id>
-    <content type="html"><![CDATA[<p>This is a continuation of <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">Part 1</a>, so if you haven&rsquo;t read that already, you should do so now.</p>
-
-<h2>goimports</h2>
-
-<p>The idea of goimports is that every time you save a file, it will automatically update all of your imports, so you don&rsquo;t have to.  This can save a lot of time.  Kudos to <a href="https://twitter.com/bradfitz">@bradfitz</a> for taking the time to build this nifty tool.</p>
-
-<p>go get goimports with:</p>
-
-<p><code>
-$ go get golang.org/x/tools/cmd/goimports
-</code></p>
-
-<p>Continuing on previous .emacs in <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">Part 1</a>, update your <code>~/.emacs.d/init.el</code> to:</p>
-
-<p>```
-(defun my-go-mode-hook ()
-  ; Use goimports instead of go-fmt
-  (setq gofmt-command &ldquo;goimports&rdquo;)
-  ; Call Gofmt before saving
-  (add-hook &lsquo;before-save-hook 'gofmt-before-save)
-  ; Customize compile command to run go build
-  (if (not (string-match &ldquo;go&rdquo; compile-command))</p>
-
-<pre><code>  (set (make-local-variable 'compile-command)
-       "go build -v &amp;&amp; go test -v &amp;&amp; go vet"))
-</code></pre>
-
-<p>  ; Godef jump key binding
-  (local-set-key (kbd &ldquo;M-.&rdquo;) &lsquo;godef-jump))
-(add-hook 'go-mode-hook 'my-go-mode-hook)
-```</p>
-
-<p><strong>Restart emacs</strong> to force it to reload the configuration</p>
-
-<h3>Testing out goimports</h3>
-
-<ul>
-<li>Open an existing .go file that contains imports</li>
-<li>Remove one or more of the imports</li>
-<li>Save the file</li>
-</ul>
-
-
-<p>After you save the file, it should re-add the imports.  Yay!</p>
-
-<p>Basically any time you add or remove code that requires a different set of imports, saving the file will cause it to re-write the file with the correct imports.</p>
-
-<h2>The Go Oracle</h2>
-
-<p>The <a href="https://docs.google.com/document/d/1SLk36YRjjMgKqe490mSRzOPYEDe0Y_WQNRv-EiFYUyw/view">Go Oracle</a> will blow your mind!  It can do things like find all the callers of a given function/method.  It can also show you all the functions that read or write from a given channel.  In short, it rocks.</p>
-
-<p>Here&rsquo;s what you need to do in order to wield this powerful tool from within Emacs.</p>
-
-<h3>Go get oracle</h3>
-
-<p><code>
-go get golang.org/x/tools/cmd/oracle
-</code></p>
-
-<h3>Update emacs config</h3>
-
-<p>Update your <code>~/.emacs.d/init.el</code> to:</p>
-
-<p>```
-(defun my-go-mode-hook ()
-  ; Use goimports instead of go-fmt
-  (setq gofmt-command &ldquo;goimports&rdquo;)
-  ; Call Gofmt before saving
-  (add-hook &lsquo;before-save-hook 'gofmt-before-save)
-  ; Customize compile command to run go build
-  (if (not (string-match &ldquo;go&rdquo; compile-command))</p>
-
-<pre><code>  (set (make-local-variable 'compile-command)
-       "go generate &amp;&amp; go build -v &amp;&amp; go test -v &amp;&amp; go vet"))
-</code></pre>
-
-<p>  ; Go oracle
-  (load-file &ldquo;$GOPATH/src/golang.org/x/tools/cmd/oracle/oracle.el&rdquo;)
-  ; Godef jump key binding
-  (local-set-key (kbd &ldquo;M-.&rdquo;) &lsquo;godef-jump))
-(add-hook 'go-mode-hook 'my-go-mode-hook)
-```</p>
-
-<p><strong>Restart Emacs</strong> to make these changes take effect.</p>
-
-<h3>Get a test package to play with</h3>
-
-<p>This package works with go-oracle (I tested it out while writing this blog post), so you should use it to give Go Oracle a spin:</p>
-
-<p><code>
-go get github.com/tleyden/checkers-bot-minimax
-</code></p>
-
-<h3>Set the oracle analysis scope</h3>
-
-<p>From within emacs, open <code>$GOPATH/src/github.com/tleyden/checkers-bot-minimax/thinker.go</code></p>
-
-<p>You need to tell Go Oracle the <strong>main</strong> package scope under which you want it to operate:</p>
-
-<p><code>M-x go-oracle-set-scope</code></p>
-
-<p>it will prompt you with:</p>
-
-<p><code>Go oracle scope:</code></p>
-
-<p>and you should enter:</p>
-
-<p><code>github.com/tleyden/checkers-bot-minimax</code> and hit Enter.</p>
-
-<p>Nothing will appear to happen, but now Go Oracle is now ready to show it&rsquo;s magic.  (<em>note</em> it will <strong>not</strong> autocomplete packages in this dialog, which is mildly annoying.  Make sure to spell them correctly.)</p>
-
-<p><strong>Important:</strong> When you call <code>go-oracle-set-scope</code>, you always need to give it a <strong>main</strong> package.  This is something that will probably frequently trip you up while using Go Oracle.</p>
-
-<h3>Use oracle to find the callers of a method</h3>
-
-<p>You should still have the <code>$GOPATH/src/github.com/tleyden/checkers-bot-minimax/thinker.go</code> file open within emacs.</p>
-
-<p>Position the cursor on the &ldquo;T&rdquo; in the <code>Think</code> method (line 13 of thinker.go):</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/Emacs_go_oracle_0" alt="screenshot" /></p>
-
-<p>And then run</p>
-
-<p><code>
-M-x go-oracle-callers
-</code></p>
-
-<p>Emacs should open a new buffer on the right hand side with all of the places where the <code>Think</code> method is called.  In this case, there is only one place in the code that calls it:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/Emacs_go_oracle" alt="screenshot" /></p>
-
-<p>To go to the call site, position your cursor on the red underscore to the left of &ldquo;dynamic method call&rdquo; and hit Enter.  It should take you to line 240 in gamecontroller.go:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/Emacs_go_oracle2" alt="screenshot" /></p>
-
-<p>Note that it actually crossed package boundaries, since the called function (<code>Think</code>) was in the <code>main</code> package, while the call site was in the <code>checkersbot</code> package.</p>
-
-<p>If you got this far, you are up and running with The Go Oracle on Emacs!</p>
-
-<p>Now you should try it with one of your own packages.</p>
-
-<p>This is just scratching the surface &mdash; to get more information on how to use Go Oracle, see <a href="https://docs.google.com/document/d/1SLk36YRjjMgKqe490mSRzOPYEDe0Y_WQNRv-EiFYUyw/view">go oracle: user manual</a>.</p>
 ]]></content>
   </entry>
   

@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-02-07T04:12:05+00:00</updated>
+  <updated>2016-02-07T17:14:44+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,65 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Configure Emacs as a Go Editor From Scratch Part 3]]></title>
+    <link href="http://tleyden.github.io/blog/2016/02/07/configure-emacs-as-a-go-editor-from-scratch-part-3/"/>
+    <updated>2016-02-07T04:25:00+00:00</updated>
+    <id>http://tleyden.github.io/blog/2016/02/07/configure-emacs-as-a-go-editor-from-scratch-part-3</id>
+    <content type="html"><![CDATA[<p>So I haven&rsquo;t switched to <a href="http://spacemacs.org/">spacemacs</a> .. yet, but I have to admit, it looks like they&rsquo;ve improved the UI.</p>
+
+<p>This is a continuation from <a href="http://tleyden.github.io/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2/">a previous blog post</a>.  In this post I&rsquo;m going to focus on making emacs look a bit better.</p>
+
+<p>Currently:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/emacs_ugly.png" alt="screenshot" /></p>
+
+<h2>Install a nicer theme</h2>
+
+<p>I like the <code>taming-mr-arneson-theme</code>, so let&rsquo;s install that one.  Feel free to browse the emacs themes and find one that you like more.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ `mkdir ~/.emacs.d/color-themes`
+</span><span class='line'>$ `wget https://raw.githubusercontent.com/emacs-jp/replace-colorthemes/d23b086141019c76ea81881bda00fb385f795048/taming-mr-arneson-theme.el`</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Update your <code>~/emacs.d/init.el</code> to add the following lines to the top of the file:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>(add-to-list 'custom-theme-load-path "/Users/tleyden/.emacs.d/color-themes/")
+</span><span class='line'>(load-theme 'taming-mr-arneson t)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now when you restart emacs it should look like this:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/emacs_taming_mr_arneson.png" alt="screenshot" /></p>
+
+<p> ## Directory Tree</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd ~/DevLibraries
+</span><span class='line'>$ git clone https://github.com/jaypei/emacs-neotree.git neotree</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Update your <code>~/emacs.d/init.el</code> to add the following lines:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>(add-to-list 'load-path "/some/path/neotree")
+</span><span class='line'>(require 'neotree)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Open a <code>.go</code> file and the enter <code>M-x neotree-dir</code> to show a directory browser:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/emacs-neotree.png" alt="screnshot" /></p>
+
+<p>Ref: <a href="http://www.emacswiki.org/emacs/NeoTree">NeoTree</a></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Octopress under Docker]]></title>
@@ -3351,149 +3410,6 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
 <p>There are other approaches to achieving high concurrency with a small number of threads.  Python Twisted was one of the early ones that got a lot of attention.  Node.js is currently the most prominent evented frameworks out there.</p>
 
 <p>The problem with these evented frameworks is that the code complexity is also high, and difficult to reason about.  Rather than &ldquo;straightline&rdquo; coding, the programmer is forced to chain callbacks, which gets interleaved with error handling.  While refactoring can help tame some of the mental load, it&rsquo;s still an issue.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Running Caffe on AWS GPU instance via Docker]]></title>
-    <link href="http://tleyden.github.io/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker/"/>
-    <updated>2014-10-25T20:42:00+00:00</updated>
-    <id>http://tleyden.github.io/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker</id>
-    <content type="html"><![CDATA[<p>This is a tutorial to help you get the <a href="http://caffe.berkeleyvision.org/">Caffe deep learning framework</a> up and running on a GPU-powered AWS instance running inside a Docker container.</p>
-
-<h2>Architecture</h2>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/caffe_docker_aws_onion.png" alt="architecture diagram" /></p>
-
-<h2>Setup host</h2>
-
-<p>Before you can start your docker container, you will need to go <strong>deeper down the rabbit hole</strong>.</p>
-
-<p>You&rsquo;ll first need to complete the steps here:</p>
-
-<p><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">Setting up an Ubuntu 14.04 box running on a GPU-enabled AWS instance</a></p>
-
-<p>After you&rsquo;re done, you&rsquo;ll end up with a host OS with the following properties:</p>
-
-<ul>
-<li>A GPU enabled AWS instance running Ubuntu 14.04</li>
-<li>Nvidia kernel module</li>
-<li>Nvidia device drivers</li>
-<li>CUDA 6.5 installed and verified</li>
-</ul>
-
-
-<h2>Install Docker</h2>
-
-<p>Once your host OS is setup, you&rsquo;re ready to install docker.  (version 1.3 at the time of this writing)</p>
-
-<p>Setup the key for the docker repo:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Add the docker repo:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo sh -c "echo deb https://get.docker.com/ubuntu docker main &gt; /etc/apt/sources.list.d/docker.list"
-</span><span class='line'>$ sudo apt-get update</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Install docker:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get install lxc-docker</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Run the docker container</h2>
-
-<p><strong>Find your nvidia devices</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ ls -la /dev | grep nvidia</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should see:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>crw-rw-rw-  1 root root    195,   0 Oct 25 19:37 nvidia0
-</span><span class='line'>crw-rw-rw-  1 root root    195, 255 Oct 25 19:37 nvidiactl
-</span><span class='line'>crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You&rsquo;ll have to adapt the <code>DOCKER_NVIDIA_DEVICES</code> variable below to match your particular devices.</p>
-
-<p>Here&rsquo;s how to start the docker container:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ DOCKER_NVIDIA_DEVICES="--device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm"
-</span><span class='line'>$ sudo docker run -ti $DOCKER_NVIDIA_DEVICES tleyden5iwx/caffe-gpu-master /bin/bash</span></code></pre></td></tr></table></div></figure>
-
-
-<p>It&rsquo;s a large docker image, so this might take a few minutes, depending on your network connection.</p>
-
-<h2>Run caffe test suite</h2>
-
-<p>After the above <code>docker run</code> command completes, your shell will now be inside a docker container that has Caffe installed.</p>
-
-<p>You&rsquo;ll want run the Caffe test suite and make sure it passes.  This will validate your environment, including your GPU drivers.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /opt/caffe
-</span><span class='line'>$ make test && make runtest</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Expected Result:</strong> <code>... [  PASSED  ] 838 tests.</code></p>
-
-<h2>Run the MNIST LeNet example</h2>
-
-<p>A more comprehensive way to verify your environment is to train the MNIST LeNet example:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /opt/caffe/data/mnist
-</span><span class='line'>$ ./get_mnist.sh
-</span><span class='line'>$ cd /opt/caffe
-</span><span class='line'>$ ./examples/mnist/create_mnist.sh
-</span><span class='line'>$ ./examples/mnist/train_lenet.sh</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This will take a few minutes.</p>
-
-<p><strong>Expected output:</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>libdc1394 error: Failed to initialize libdc1394 
-</span><span class='line'>I1018 17:02:23.552733    66 caffe.cpp:90] Starting Optimization 
-</span><span class='line'>I1018 17:02:23.553583    66 solver.cpp:32] Initializing solver from parameters:
-</span><span class='line'>... lots of output ...
-</span><span class='line'>I1018 17:17:58.684598    66 caffe.cpp:102] Optimization Done.</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Congratulations, you&rsquo;ve got GPU-powered Caffe running in a docker container &mdash; celebrate with a cup of <a href="http://www.yelp.com/biz/philz-coffee-berkeley-2">Philz</a>!</p>
-
-<h1>References</h1>
-
-<ul>
-<li><a href="https://registry.hub.docker.com/u/tleyden5iwx/caffe-gpu-master">tleyden5iwx/caffe-gpu-master</a> Caffe Docker image (GPU)</li>
-<li><a href="https://registry.hub.docker.com/u/tleyden5iwx/caffe-cpu-master">tleyden5iwx/caffe-cpu-master</a> Caffe Docker image (CPU-only)</li>
-<li><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5</a></li>
-<li><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">CUDA 6.5 on AWS GPU Instance Running Ubuntu 14.04</a></li>
-</ul>
-
 ]]></content>
   </entry>
   
