@@ -6,7 +6,6 @@ comments: true
 categories: emacs golang
 ---
 
-
 This is a continuation of [Part 1](http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/), so if you haven't read that already, you should do so now.
 
 ## goimports
@@ -19,8 +18,7 @@ go get goimports with:
 $ go get golang.org/x/tools/cmd/goimports
 ```
 
-Continuing on previous .emacs in [Part 1](http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/), update your .emacs to:
-
+Continuing on previous .emacs in [Part 1](http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/), update your `~/.emacs.d/init.el` to:
 
 ```
 (defun my-go-mode-hook ()
@@ -49,7 +47,7 @@ After you save the file, it should re-add the imports.  Yay!
 
 Basically any time you add or remove code that requires a different set of imports, saving the file will cause it to re-write the file with the correct imports.
 
-## The Go Oracle
+## The Go Oracle 
 
 The [Go Oracle](https://docs.google.com/document/d/1SLk36YRjjMgKqe490mSRzOPYEDe0Y_WQNRv-EiFYUyw/view) will blow your mind!  It can do things like find all the callers of a given function/method.  It can also show you all the functions that read or write from a given channel.  In short, it rocks.
 
@@ -61,18 +59,25 @@ Here's what you need to do in order to wield this powerful tool from within Emac
 go get golang.org/x/tools/cmd/oracle
 ```
 
-### Move oracle binary so Emacs can find it
+### Update emacs config
+
+Update your `~/.emacs.d/init.el` to:
 
 ```
-sudo mv $GOPATH/bin/oracle $GOROOT/bin/
-```
-
-### Update .emacs
-
-Add the following to your `.emacs` file, **above** the `(defun my-go-mode-hook ()` line.
-
-```
-(load-file "$GOPATH/src/golang.org/x/tools/cmd/oracle/oracle.el")
+(defun my-go-mode-hook ()
+  ; Use goimports instead of go-fmt
+  (setq gofmt-command "goimports")
+  ; Call Gofmt before saving
+  (add-hook 'before-save-hook 'gofmt-before-save)
+  ; Customize compile command to run go build
+  (if (not (string-match "go" compile-command))
+      (set (make-local-variable 'compile-command)
+           "go generate && go build -v && go test -v && go vet"))
+  ; Go oracle
+  (load-file "$GOPATH/src/golang.org/x/tools/cmd/oracle/oracle.el")
+  ; Godef jump key binding
+  (local-set-key (kbd "M-.") 'godef-jump))
+(add-hook 'go-mode-hook 'my-go-mode-hook)
 ```
 
 **Restart Emacs** to make these changes take effect.
@@ -134,3 +139,4 @@ If you got this far, you are up and running with The Go Oracle on Emacs!
 Now you should try it with one of your own packages.
 
 This is just scratching the surface -- to get more information on how to use Go Oracle, see [go oracle: user manual](https://docs.google.com/document/d/1SLk36YRjjMgKqe490mSRzOPYEDe0Y_WQNRv-EiFYUyw/view).
+
