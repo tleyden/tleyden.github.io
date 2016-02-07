@@ -4,7 +4,7 @@
   <title><![CDATA[Category: emacs | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/emacs/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-02-07T17:14:44+00:00</updated>
+  <updated>2016-02-07T17:18:37+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -18,9 +18,7 @@
     <link href="http://tleyden.github.io/blog/2016/02/07/configure-emacs-as-a-go-editor-from-scratch-part-3/"/>
     <updated>2016-02-07T04:25:00+00:00</updated>
     <id>http://tleyden.github.io/blog/2016/02/07/configure-emacs-as-a-go-editor-from-scratch-part-3</id>
-    <content type="html"><![CDATA[<p>So I haven&rsquo;t switched to <a href="http://spacemacs.org/">spacemacs</a> .. yet, but I have to admit, it looks like they&rsquo;ve improved the UI.</p>
-
-<p>This is a continuation from <a href="http://tleyden.github.io/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2/">a previous blog post</a>.  In this post I&rsquo;m going to focus on making emacs look a bit better.</p>
+    <content type="html"><![CDATA[<p>This is a continuation from <a href="http://tleyden.github.io/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2/">a previous blog post</a>.  In this post I&rsquo;m going to focus on making emacs look a bit better.</p>
 
 <p>Currently:</p>
 
