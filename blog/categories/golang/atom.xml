@@ -4,7 +4,7 @@
   <title><![CDATA[Category: golang | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/golang/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-02-09T06:41:24+00:00</updated>
+  <updated>2016-02-09T06:49:55+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -92,6 +92,8 @@ $ go run main.go changesfollower
 CALLED IT!!
 main: error: URL is empty
 </code></p>
+
+<p>(note: <code>export GO15VENDOREXPERIMENT=1</code> is still in effect in my shell)</p>
 
 <h2>Restore the dependency</h2>
 
