@@ -4,7 +4,7 @@
   <title><![CDATA[Category: golang | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/golang/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-02-09T06:49:55+00:00</updated>
+  <updated>2016-02-09T18:06:01+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -37,7 +37,7 @@ $ go get -u github.com/tleyden/todolite-appserver
 
 <h2>Vendor dependencies</h2>
 
-<p>I&rsquo;m choosing the dependency on <a href="github.com/alecthomas/kingpin">kingpin</a> since it has dependencies of it&rsquo;s own (github.com/alecthomas/units, etc).</p>
+<p>I&rsquo;m going to vendor the dependency on <a href="github.com/alecthomas/kingpin">kingpin</a> since it has transitive dependencies of it&rsquo;s own (github.com/alecthomas/units, etc).  <code>gvt</code> handles this by automatically pulling all of the transitive dependencies.</p>
 
 <p><code>
 $ gvt fetch github.com/alecthomas/kingpin

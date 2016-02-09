@@ -118,7 +118,7 @@
 
 <h2>Vendor dependencies</h2>
 
-<p>I&rsquo;m choosing the dependency on <a href="github.com/alecthomas/kingpin">kingpin</a> since it has dependencies of it&rsquo;s own (github.com/alecthomas/units, etc).</p>
+<p>I&rsquo;m going to vendor the dependency on <a href="github.com/alecthomas/kingpin">kingpin</a> since it has transitive dependencies of it&rsquo;s own (github.com/alecthomas/units, etc).  <code>gvt</code> handles this by automatically pulling all of the transitive dependencies.</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ gvt fetch github.com/alecthomas/kingpin</span></code></pre></td></tr></table></div></figure>
