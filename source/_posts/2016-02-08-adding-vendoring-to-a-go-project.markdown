@@ -76,6 +76,8 @@ CALLED IT!!
 main: error: URL is empty
 ```
 
+(note: `export GO15VENDOREXPERIMENT=1` is still in effect in my shell)
+
 ## Restore the dependency
 
 Before I check in the `vendor` directory to git, I want to reset it to it's previous state before I made the above change to the `global.go` source file.
