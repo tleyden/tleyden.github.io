@@ -47,7 +47,7 @@ Development/gocode/src/golang.org/x/tools/go/ssa/interp/external.go:244: undefin
 
 which is documented in [issue 13831](https://github.com/golang/go/issues/13831)
 
-And installing these tools directly via:
+To get around this, you can install the tools you need directly via:
 
 ```
 go get golang.org/x/tools/cmd/godoc
@@ -212,7 +212,7 @@ Before further verifying, we need to install go-autocomplete in the next step.
 
 The basic autocomplete installed is not as "go aware" as it should be.  The go-autocomplete (aka [nsf/gocode](https://github.com/nsf/gocode/)) package fixes that. 
 
-Install melpa auto-complete via `M-x package-install` followed by `go-autocomplete`
+Install the melpa package via `M-x package-install` followed by `go-autocomplete`
 
 Add the following to your `~/.emacs.d/init.el` file:
 
