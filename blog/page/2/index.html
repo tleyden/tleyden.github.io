@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="This will walk you through the basics of putting data into seriesly and visualizing it with cubism. You will end up with this in your browser: &hellip;">
+  <meta name="description" content="This will walk you through setting up Sync Gateway behind nginx. The nginx conf will be auto generated based on Sync Gateway status. Launch CoreOS &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +72,188 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/03/21/nginx-proxy-for-sync-gateway-using-confd/">Nginx Proxy for Sync Gateway Using Confd</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-03-21T15:25:00+00:00" pubdate data-updated="true">Mar 21<span>st</span>, 2015</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>This will walk you through setting up Sync Gateway behind nginx.  The nginx conf will be auto generated based on Sync Gateway status.</p>
+
+<h3>Launch CoreOS instances on EC2</h3>
+
+<p><a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#cstack=sn%7ECouchbase-CoreOS%7Cturl%7Ehttp://tleyden-misc.s3.amazonaws.com/couchbase-coreos/sync_gateway.template"><img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"></a></p>
+
+<p>Recommended values:</p>
+
+<ul>
+<li><strong>ClusterSize</strong>: 3 nodes (default)</li>
+<li><strong>Discovery URL</strong>:  as it says, you need to grab a new token from <a href="https://discovery.etcd.io/new">https://discovery.etcd.io/new</a> and paste it in the box.</li>
+<li><strong>KeyPair</strong>: the name of the AWS keypair you want to use.  If you haven&rsquo;t already, you&rsquo;ll want to upload your local ssh key into AWS and create a named keypair.</li>
+</ul>
+
+
+<h3>Wait until instances are up</h3>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/cloud-formation-create-complete.png" alt="screenshot" /></p>
+
+<h3>ssh into a CoreOS instance</h3>
+
+<p>Go to the AWS console under EC2 instances and find the public ip of one of your newly launched CoreOS instances.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/ec2-instances-coreos.png" alt="screenshot" /></p>
+
+<p>Choose any one of them (it doesn&rsquo;t matter which), and ssh into it as the <strong>core</strong> user with the cert provided in the previous step:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ssh -i aws.cer -A core@ec2-54-83-80-161.compute-1.amazonaws.com</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Spin up Sync Gateway containers</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ etcdctl set /couchbase.com/enable-code-refresh true
+</span><span class='line'>$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go update-wrapper sync-gw-cluster launch-sgw --num-nodes=2 --config-url=http://git.io/hFwa --in-memory-db</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Verify etcd entries</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ etcdctl ls --recursive /
+</span><span class='line'>...
+</span><span class='line'>/couchbase.com/sync-gw-node-state
+</span><span class='line'>/couchbase.com/sync-gw-node-state/10.169.70.114
+</span><span class='line'>/couchbase.com/sync-gw-node-state/10.231.220.110</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Create data volume container</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://raw.githubusercontent.com/lordelph/confd-demo/master/confdata.service
+</span><span class='line'>$ fleetctl start confdata.service</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Launch sync-gateway-nginx-confd.service</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://raw.githubusercontent.com/lordelph/confd-demo/master/confd.service
+</span><span class='line'>$ sed -i -e 's/lordelph\/confd-demo/tleyden5iwx\/sync-gateway-nginx-confd/' confd.service
+</span><span class='line'>$ fleetctl start confd.service</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Launch nginx service</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://raw.githubusercontent.com/lordelph/confd-demo/master/nginx.service
+</span><span class='line'>$ fleetctl start nginx.service</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Verify</h2>
+
+<p>Try a basic http get.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ nginx_ip=`fleetctl list-units | grep -i nginx | awk '{print $2}' | awk -F/ '{print $2}'`
+</span><span class='line'>$ curl $nginx_ip
+</span><span class='line'>{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/master(a47a17f)"}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Add &lsquo;-v&rsquo; flag to see which Sync Gateway server is servicing the request</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -v $nginx_ip
+</span><span class='line'>...
+</span><span class='line'>X-Handler: 10.231.220.110:4984
+</span><span class='line'>...</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If you repeat that a few more times, you should see different ip addresses for the handler.</p>
+
+<p><strong>Take a sync gateway out of rotation</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ fleetctl stop sync_gw_node@1.service sync_gw_sidekick@1.service</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now try hitting nginx again, and should not see the Sync Gw that you just shutdown as a handler.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -v $nginx_ip
+</span><span class='line'>...
+</span><span class='line'>X-Handler: 10.231.220.114:4984
+</span><span class='line'>...</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Put sync gateway back into rotation</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ fleetctl start sync_gw_node@1.service sync_gw_sidekick@1.service</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now try hitting nginx again, and should again see the Sync Gw that you just restarted as being a handler.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -v $nginx_ip
+</span><span class='line'>...
+</span><span class='line'>X-Handler: 10.231.220.110:4984
+</span><span class='line'>...</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>References</h2>
+
+<ul>
+<li><a href="http://blog.dixo.net/2015/02/load-balancing-with-coreos">http://blog.dixo.net/2015/02/load-balancing-with-coreos</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1766,73 +1948,6 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/10/30/goroutines-vs-threads/">Goroutines vs Threads</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-10-30T06:28:00+00:00" pubdate data-updated="true">Oct 30<span>th</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Here are some of the advantages of Goroutines over threads:</p>
-
-<ul>
-<li>You can run more goroutines on a typical system than you can threads.</li>
-<li>Goroutines have growable segmented stacks.</li>
-<li>Goroutines have a faster startup time than threads.</li>
-<li>Goroutines come with built-in primitives to communicate safely between themselves (channels).</li>
-<li>Goroutines allow you to avoid having to resort to mutex locking when sharing data structures.</li>
-<li>Goroutines are multiplexed onto a small number of OS threads, rather than a 1:1 mapping.</li>
-<li>You can write massively concurrent servers withouth having to resort to evented programming.</li>
-</ul>
-
-
-<h2>You can run more of them</h2>
-
-<p>On Java you can run 1000&rsquo;s or tens of 1000&rsquo;s threads.  On Go you can run hundreds of thousands or millions of goroutines.</p>
-
-<p>Java threads map directly to OS threads, and are relatively heavyweight.  Part of the reason they are heavyweight is their rather large fixed stack size.  This caps the number of them you can run in a single VM due to the increasing memory overhead.</p>
-
-<p>Go OTOH has a segmented stack that grows as needed.  They are &ldquo;Green threads&rdquo;, which means the Go runtime does the scheduling, not the OS.  The runtime multiplexes the goroutines onto real OS threads, the number of which is controlled by <code>GOMAXPROCS</code>.  Typically you&rsquo;ll want to set this to the number of cores on your system, to maximize potential parellelism.</p>
-
-<h2>They let you avoid locking hell</h2>
-
-<p>One of the biggest drawback of threaded programming is the complexity and brittleness of many codebases that use threads to achieve high concurrency.  There can be latent deadlocks and race conditions, and it can become near impossible to reason about the code.</p>
-
-<p>Go OTOH gives you primitives that allow you to avoid locking completely.  The mantra is <em>don&rsquo;t communicate by sharing memory, share memory by communicating</em>.  In other words, if two goroutines need to share data, they can do so safely over a channel.  Go handles all of the synchronization for you, and it&rsquo;s much harder to run into things like deadlocks.</p>
-
-<h2>No callback spaghetti, either</h2>
-
-<p>There are other approaches to achieving high concurrency with a small number of threads.  Python Twisted was one of the early ones that got a lot of attention.  Node.js is currently the most prominent evented frameworks out there.</p>
-
-<p>The problem with these evented frameworks is that the code complexity is also high, and difficult to reason about.  Rather than &ldquo;straightline&rdquo; coding, the programmer is forced to chain callbacks, which gets interleaved with error handling.  While refactoring can help tame some of the mental load, it&rsquo;s still an issue.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/3/">&larr; Older</a>
@@ -1861,6 +1976,10 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/02/08/adding-vendoring-to-a-go-project/">Adding Vendoring to a Go Project</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/02/07/configure-emacs-as-a-go-editor-from-scratch-part-3/">Configure Emacs as a Go Editor From Scratch Part 3</a>
       </li>
     
@@ -1874,10 +1993,6 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
     
       <li class="post">
         <a href="/blog/2015/11/22/cuda-7-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">CUDA 7.5 on AWS GPU Instance Running Ubuntu 14.04</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2015/11/22/running-neural-style-on-an-aws-gpu-instance/">Running Neural Style on an AWS GPU Instance</a>
       </li>
     
   </ul>

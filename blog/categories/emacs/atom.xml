@@ -4,7 +4,7 @@
   <title><![CDATA[Category: emacs | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/emacs/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-02-07T17:18:37+00:00</updated>
+  <updated>2016-02-09T06:41:24+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -264,7 +264,7 @@ $ go get golang.org/x/tools/cmd/&hellip;</p>
 
 <p>which is documented in <a href="https://github.com/golang/go/issues/13831">issue 13831</a></p>
 
-<p>And installing these tools directly via:</p>
+<p>To get around this, you can install the tools you need directly via:</p>
 
 <p><code>
 go get golang.org/x/tools/cmd/godoc
@@ -442,7 +442,7 @@ exec-path-from-shell.el:189:11:Warning: assignment to free variable</p>
 
 <p>The basic autocomplete installed is not as &ldquo;go aware&rdquo; as it should be.  The go-autocomplete (aka <a href="https://github.com/nsf/gocode/">nsf/gocode</a>) package fixes that.</p>
 
-<p>Install melpa auto-complete via <code>M-x package-install</code> followed by <code>go-autocomplete</code></p>
+<p>Install the melpa package via <code>M-x package-install</code> followed by <code>go-autocomplete</code></p>
 
 <p>Add the following to your <code>~/.emacs.d/init.el</code> file:</p>
 

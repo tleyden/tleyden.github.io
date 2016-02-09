@@ -4,7 +4,7 @@
   <title><![CDATA[Category: golang | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/golang/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-02-07T17:18:37+00:00</updated>
+  <updated>2016-02-09T06:41:24+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,141 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Adding vendoring to a Go project]]></title>
+    <link href="http://tleyden.github.io/blog/2016/02/08/adding-vendoring-to-a-go-project/"/>
+    <updated>2016-02-08T22:49:00+00:00</updated>
+    <id>http://tleyden.github.io/blog/2016/02/08/adding-vendoring-to-a-go-project</id>
+    <content type="html"><![CDATA[<h2>Install gvt</h2>
+
+<p>After doing some research, I decided to try <code>gvt</code> since it seemed simple and well documented, and integrated well with exiting tools like <code>go get</code>.</p>
+
+<p><code>
+$ export GO15VENDOREXPERIMENT=1
+$ go get -u github.com/FiloSottile/gvt
+</code></p>
+
+<h2>Go get target project to be updated</h2>
+
+<p>I&rsquo;m going to update <a href="https://github.com/tleyden/todolite-appserver">todolite-appserver</a> to use vendored dependencies for <em>some</em> of it&rsquo;s dependencies, just to see how things go.</p>
+
+<p><code>
+$ go get -u github.com/tleyden/todolite-appserver
+</code></p>
+
+<h2>Vendor dependencies</h2>
+
+<p>I&rsquo;m choosing the dependency on <a href="github.com/alecthomas/kingpin">kingpin</a> since it has dependencies of it&rsquo;s own (github.com/alecthomas/units, etc).</p>
+
+<p><code>
+$ gvt fetch github.com/alecthomas/kingpin
+</code></p>
+
+<p>Now my directory structure looks like this:</p>
+
+<p>```
+├── main.go
+└── vendor</p>
+
+<pre><code>├── github.com
+│   └── alecthomas
+├── gopkg.in
+│   └── alecthomas
+└── manifest
+</code></pre>
+
+<p>```</p>
+
+<p>Here is the <a href="https://gist.github.com/tleyden/60328c7e0fd778970314">manifest</a></p>
+
+<p><code>gvt list</code> shows the following:</p>
+
+<p><code>
+$  gvt list
+github.com/alecthomas/kingpin  https://github.com/alecthomas/kingpin  master 46aba6af542541c54c5b7a71a9dfe8f2ab95b93a
+github.com/alecthomas/template https://github.com/alecthomas/template master 14fd436dd20c3cc65242a9f396b61bfc8a3926fc
+github.com/alecthomas/units    https://github.com/alecthomas/units    master 2efee857e7cfd4f3d0138cc3cbb1b4966962b93a
+gopkg.in/alecthomas/kingpin.v2 https://gopkg.in/alecthomas/kingpin.v2 master 24b74030480f0aa98802b51ff4622a7eb09dfddd
+</code></p>
+
+<h2>Verify it&rsquo;s using the vendor folder</h2>
+
+<p>I opened up the <code>vendor/github.com/alecthomas/kingpin/global.go</code> and made the following change:</p>
+
+<p>```
+// Errorf prints an error message to stderr.
+func Errorf(format string, args &hellip;interface{}) {</p>
+
+<pre><code>fmt.Println("CALLED IT!!")
+CommandLine.Errorf(format, args...)
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Now verify that code is getting compiled and run:</p>
+
+<p><code>
+$ go run main.go changesfollower
+CALLED IT!!
+main: error: URL is empty
+</code></p>
+
+<h2>Restore the dependency</h2>
+
+<p>Before I check in the <code>vendor</code> directory to git, I want to reset it to it&rsquo;s previous state before I made the above change to the <code>global.go</code> source file.</p>
+
+<p><code>
+$ gvt restore
+</code></p>
+
+<p>Now if I open <code>global.go</code> again, it&rsquo;s back to it&rsquo;s original state.  Nice!</p>
+
+<h2>Add the vendor folder and push</h2>
+
+<p><code>
+$ git add vendor
+$ git commit -m "..."
+$ git push origin master
+</code></p>
+
+<p>Also, I updated the README to tell users to set the <code>GO15VENDOREXPERIMENT=1</code> variable:</p>
+
+<p><code>
+$ export GO15VENDOREXPERIMENT=1
+$ go get -u github.com/tleyden/todolite-appserver
+$ todolite-appserver --help
+</code></p>
+
+<p>but the instructions otherwise remained the same.  If someone tries to use this but forgets to set <code>GO15VENDOREXPERIMENT=1</code> in Go 1.5, it will still work, it will just use the kingpin dependency in the <code>$GOPATH</code> rather than the <code>vendor/</code> directory.  Ditto for someone using go 1.4 or earlier.</p>
+
+<h2>Removing a vendored dependency</h2>
+
+<p>As it turns out, I don&rsquo;t even need kingpin in this project, since I&rsquo;m using <a href="https://github.com/spf13/cobra">cobra</a>.  The kingpin dependency was caused by some leftover code I forgot to cleanup.</p>
+
+<p>To remove it, I ran:</p>
+
+<p><code>
+$ gvt delete github.com/alecthomas/kingpin
+$ gvt delete github.com/alecthomas/template
+$ gvt delete github.com/alecthomas/units
+$ gvt delete gopkg.in/alecthomas/kingpin.v2
+</code></p>
+
+<p>In this case, since it was my only dependency, it was easy to identify the transitive dependencies.  In general though it looks like it&rsquo;s up to you as a user to track down which ones to remove.  I filed <a href="https://github.com/FiloSottile/gvt/issues/16">gvt issue 16</a> to hopefully address that.</p>
+
+<h2>Editor annoyances</h2>
+
+<p>I have emacs setup using the <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">steps in this blog post</a>, and I&rsquo;m running into the following annoyances:</p>
+
+<ul>
+<li>When I use <code>godef</code> to jump into the code of vendored dependency, it takes me to source code that lives in the <code>GOPATH</code>, which might be <em>different</em> than what&rsquo;s under <code>vendor/</code>.  Also, if I edit it there, my changes won&rsquo;t be reflected when I rebuild.</li>
+<li>I usually search for things in the project via <code>M-x rgrep</code>, but now it&rsquo;s searching through every repo under <code>vendor/</code> and returning things I&rsquo;m not interested in .. since most of the time I only want to search within my project.</li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Configure Emacs as a Go Editor From Scratch Part 3]]></title>
@@ -498,46 +633,6 @@ err := q.ConnectToNSQLookupd("127.0.0.1:4161")
 </code></p>
 
 <p>Which will connect to the HTTP port of <code>nsqlookupd</code>.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Goroutines vs Threads]]></title>
-    <link href="http://tleyden.github.io/blog/2014/10/30/goroutines-vs-threads/"/>
-    <updated>2014-10-30T06:28:00+00:00</updated>
-    <id>http://tleyden.github.io/blog/2014/10/30/goroutines-vs-threads</id>
-    <content type="html"><![CDATA[<p>Here are some of the advantages of Goroutines over threads:</p>
-
-<ul>
-<li>You can run more goroutines on a typical system than you can threads.</li>
-<li>Goroutines have growable segmented stacks.</li>
-<li>Goroutines have a faster startup time than threads.</li>
-<li>Goroutines come with built-in primitives to communicate safely between themselves (channels).</li>
-<li>Goroutines allow you to avoid having to resort to mutex locking when sharing data structures.</li>
-<li>Goroutines are multiplexed onto a small number of OS threads, rather than a 1:1 mapping.</li>
-<li>You can write massively concurrent servers withouth having to resort to evented programming.</li>
-</ul>
-
-
-<h2>You can run more of them</h2>
-
-<p>On Java you can run 1000&rsquo;s or tens of 1000&rsquo;s threads.  On Go you can run hundreds of thousands or millions of goroutines.</p>
-
-<p>Java threads map directly to OS threads, and are relatively heavyweight.  Part of the reason they are heavyweight is their rather large fixed stack size.  This caps the number of them you can run in a single VM due to the increasing memory overhead.</p>
-
-<p>Go OTOH has a segmented stack that grows as needed.  They are &ldquo;Green threads&rdquo;, which means the Go runtime does the scheduling, not the OS.  The runtime multiplexes the goroutines onto real OS threads, the number of which is controlled by <code>GOMAXPROCS</code>.  Typically you&rsquo;ll want to set this to the number of cores on your system, to maximize potential parellelism.</p>
-
-<h2>They let you avoid locking hell</h2>
-
-<p>One of the biggest drawback of threaded programming is the complexity and brittleness of many codebases that use threads to achieve high concurrency.  There can be latent deadlocks and race conditions, and it can become near impossible to reason about the code.</p>
-
-<p>Go OTOH gives you primitives that allow you to avoid locking completely.  The mantra is <em>don&rsquo;t communicate by sharing memory, share memory by communicating</em>.  In other words, if two goroutines need to share data, they can do so safely over a channel.  Go handles all of the synchronization for you, and it&rsquo;s much harder to run into things like deadlocks.</p>
-
-<h2>No callback spaghetti, either</h2>
-
-<p>There are other approaches to achieving high concurrency with a small number of threads.  Python Twisted was one of the early ones that got a lot of attention.  Node.js is currently the most prominent evented frameworks out there.</p>
-
-<p>The problem with these evented frameworks is that the code complexity is also high, and difficult to reason about.  Rather than &ldquo;straightline&rdquo; coding, the programmer is forced to chain callbacks, which gets interleaved with error handling.  While refactoring can help tame some of the mental load, it&rsquo;s still an issue.</p>
 ]]></content>
   </entry>
   
