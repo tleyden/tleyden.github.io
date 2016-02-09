@@ -25,7 +25,7 @@ $ go get -u github.com/tleyden/todolite-appserver
 
 ## Vendor dependencies
 
-I'm choosing the dependency on [kingpin](github.com/alecthomas/kingpin) since it has dependencies of it's own (github.com/alecthomas/units, etc).
+I'm going to vendor the dependency on [kingpin](github.com/alecthomas/kingpin) since it has transitive dependencies of it's own (github.com/alecthomas/units, etc).  `gvt` handles this by automatically pulling all of the transitive dependencies.
 
 ```
 $ gvt fetch github.com/alecthomas/kingpin
