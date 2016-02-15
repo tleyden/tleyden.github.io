@@ -10,27 +10,49 @@ This walks you through running [Uniqush](http://uniqush.org/index.html) in the c
 
 ## Run Uniqush under Docker
 
+### Install Docker components
+
+* [Install docker](https://docs.docker.com/v1.8/installation/mac/)
+* [Install docker-compose](https://docs.docker.com/compose/install/)
+
+
 ### Config
 
 * `mkdir -p volumes/uniqush`
-* `wget https://git.io/vgYXN -O volumes/uniqush/uniqush-push.conf`
+* `wget https://git.io/vgSYM -O volumes/uniqush/uniqush-push.conf`
 
 Security note: the above config has Uniqush listening on all interfaces, but depending on your setup you probably want to change that to `localhost` or something more restrictive.  
 
-### Docker run
+### Docker compose file
+
+Copy and paste this content into `docker-compose.yml`
 
 ```
-docker run -itd -p 9898:9898 -v ~/volumes/uniqush/uniqush-push.conf:/etc/uniqush/uniqush-push.conf tleyden5iwx/uniqush uniqush-push
+
+version: '2'
+
+services:
+  uniqush:
+    container_name: uniqush
+    ports:
+      - "9898:9898"
+    image: tleyden5iwx/uniqush
+    entrypoint: uniqush-push
+    links:
+      - redis
+    volumes:
+      - ~/docker/volumes/uniqush/uniqush-push.conf:/etc/uniqush/uniqush-push.conf
+  redis:
+    container_name: redis
+    image: redis
+
 ```
 
-### Kick off redis (hack)
+### Start docker containers
 
-So the *right* way to do this is to run redis in a separate container and link the containers via Docker Networks.  In the meantime, this little hack will work... shell into the container and kick off redis.
-
-* `container=$(docker ps | grep -i uniqush | awk '{print $1}')`
-* `docker exec -ti $container bash`
-* `/etc/init.d/redis-server start`  (<--- inside the running container)
-* `exit` (to get out of the container)
+```
+$ docker compose up -d
+```
 
 ### Verify Uniqush is running
 
@@ -40,7 +62,6 @@ Run this `curl` command outside of the docker container to verify that Uniqush i
 $ curl localhost:9898/version
 uniqush-push 1.5.2
 ```
-
 
 ## Create APNS certificate
 
@@ -193,7 +214,7 @@ writing RSA key
 When you call the Uniqush REST API to add a Push Service Provider, it expects to find the PEM files on it's local file system.  Use the following commands to get these files into the running container in the `/tmp` directory:
 
 ```
-$ `container=$(docker ps | grep -i uniqush | awk '{print $1}')`
+$ `container=$(docker ps | grep -i uniqush-push | awk '{print $1}')`
 $ docker cp /tmp/apns-prod-cert.pem $container:/tmp/apns-prod-cert.pem
 $ docker cp /tmp/apns-prod-key-noenc.pem $container:/tmp/apns-prod-key-noenc.pem
 ```
@@ -202,12 +223,11 @@ $ docker cp /tmp/apns-prod-key-noenc.pem $container:/tmp/apns-prod-key-noenc.pem
 ## Create APNS provider in Uniqush via REST API
 
 ```
-$ export UNIQUSH_HOSTNAME=ec2-54-73-10-60.compute-1.amazonaws.com:9898
-$ curl -v http://$UNIQUSH_HOSTNAME/addpsp -d service=myservice \
-                                          -d pushservicetype=apns \
-					  -d cert=/tmp/apns-prod-cert.pem \
-					  -d key=/tmp/apns-prod-key-noenc.pem \
-					  -d sandbox=true
+$ curl -v http://localhost:9898/addpsp -d service=myservice \
+       	  			       -d pushservicetype=apns \
+				       -d cert=/tmp/apns-prod-cert.pem \
+				       -d key=/tmp/apns-prod-key-noenc.pem \
+				       -d sandbox=true
 ```
 
 (Note: I'm using a development cert, but if this was a distribution cert you'd want to use `sandbox=false`)
@@ -224,7 +244,7 @@ You should get a `200 OK` response with:
 Using the cleaned up device token from the previous step `281c87101b029fdb16c8e13439436336116001cebf6519e68edefab523dab1e9`, create a subscriber with the name `mytestsubscriber` via:
 
 ```
-$ curl -v http://$UNIQUSH_HOSTNAME/subscribe -d service=myservice \
+$ curl -v http://localhost:9898/subscribe -d service=myservice \
                                              -d subscriber=mytestsubscriber \
 					     -d pushservicetype=apns \
 					     -d devtoken=281c87101b029fdb16c8e13439436336116001cebf6519e68edefab523dab1e9 
@@ -243,7 +263,7 @@ The moment of truth!
 First, you need to either **background your app** by pressing the home button, or add [some code like this](https://gist.github.com/tleyden/97434117ad53757106ad) so that an alert will be shown if the app is foregrounded.
 
 ```
-$ curl -v http://$UNIQUSH_HOSTNAME/push -d service=myservice \
+$ curl -v http://localhost:9898/push -d service=myservice \
                                         -d subscriber=mytestsubscriber \
 					-d msg=HelloWorld
 ```
