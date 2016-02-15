@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ci | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/ci/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-02-15T23:41:23+00:00</updated>
+  <updated>2016-02-15T23:56:51+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -171,7 +171,7 @@ $ git push origin master
 
 <p>and in your drone UI you should see a build in progress:</p>
 
-<p>$<a href="http://tleyden-misc.s3.amazonaws.com/blog_images/drone_build_running.png">screenshot</a></p>
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/drone_build_running.png" alt="screenshot" /></p>
 
 <p>when it finishes, you&rsquo;ll see either a pass or a failure.  If you get a failure (which I did), it will look like this:</p>
 
