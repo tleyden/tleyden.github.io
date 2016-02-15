@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ios | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/ios/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-02-09T18:06:01+00:00</updated>
+  <updated>2016-02-15T23:41:23+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -22,33 +22,59 @@
 
 <h2>Run Uniqush under Docker</h2>
 
+<h3>Install Docker components</h3>
+
+<ul>
+<li><a href="https://docs.docker.com/v1.8/installation/mac/">Install docker</a></li>
+<li><a href="https://docs.docker.com/compose/install/">Install docker-compose</a></li>
+</ul>
+
+
 <h3>Config</h3>
 
 <ul>
 <li><code>mkdir -p volumes/uniqush</code></li>
-<li><code>wget https://git.io/vgYXN -O volumes/uniqush/uniqush-push.conf</code></li>
+<li><code>wget https://git.io/vgSYM -O volumes/uniqush/uniqush-push.conf</code></li>
 </ul>
 
 
 <p>Security note: the above config has Uniqush listening on all interfaces, but depending on your setup you probably want to change that to <code>localhost</code> or something more restrictive.</p>
 
-<h3>Docker run</h3>
+<h3>Docker compose file</h3>
+
+<p>Copy and paste this content into <code>docker-compose.yml</code></p>
+
+<p>```</p>
+
+<p>version: &lsquo;2&rsquo;</p>
+
+<p>services:
+  uniqush:</p>
+
+<pre><code>container_name: uniqush
+ports:
+  - "9898:9898"
+image: tleyden5iwx/uniqush
+entrypoint: uniqush-push
+links:
+  - redis
+volumes:
+  - ~/docker/volumes/uniqush/uniqush-push.conf:/etc/uniqush/uniqush-push.conf
+</code></pre>
+
+<p>  redis:</p>
+
+<pre><code>container_name: redis
+image: redis
+</code></pre>
+
+<p>```</p>
+
+<h3>Start docker containers</h3>
 
 <p><code>
-docker run -itd -p 9898:9898 -v ~/volumes/uniqush/uniqush-push.conf:/etc/uniqush/uniqush-push.conf tleyden5iwx/uniqush uniqush-push
+$ docker compose up -d
 </code></p>
-
-<h3>Kick off redis (hack)</h3>
-
-<p>So the <em>right</em> way to do this is to run redis in a separate container and link the containers via Docker Networks.  In the meantime, this little hack will work&hellip; shell into the container and kick off redis.</p>
-
-<ul>
-<li><code>container=$(docker ps | grep -i uniqush | awk '{print $1}')</code></li>
-<li><code>docker exec -ti $container bash</code></li>
-<li><code>/etc/init.d/redis-server start</code>  (&lt;&mdash;&ndash; inside the running container)</li>
-<li><code>exit</code> (to get out of the container)</li>
-</ul>
-
 
 <h3>Verify Uniqush is running</h3>
 
@@ -217,7 +243,7 @@ writing RSA key
 <p>When you call the Uniqush REST API to add a Push Service Provider, it expects to find the PEM files on it&rsquo;s local file system.  Use the following commands to get these files into the running container in the <code>/tmp</code> directory:</p>
 
 <p><code>
-$ `container=$(docker ps | grep -i uniqush | awk '{print $1}')`
+$ `container=$(docker ps | grep -i uniqush-push | awk '{print $1}')`
 $ docker cp /tmp/apns-prod-cert.pem $container:/tmp/apns-prod-cert.pem
 $ docker cp /tmp/apns-prod-key-noenc.pem $container:/tmp/apns-prod-key-noenc.pem
 </code></p>
@@ -225,13 +251,12 @@ $ docker cp /tmp/apns-prod-key-noenc.pem $container:/tmp/apns-prod-key-noenc.pem
 <h2>Create APNS provider in Uniqush via REST API</h2>
 
 <p>```
-$ export UNIQUSH_HOSTNAME=ec2-54-73-10-60.compute-1.amazonaws.com:9898
-$ curl -v <a href="http://$UNIQUSH_HOSTNAME/addpsp">http://$UNIQUSH_HOSTNAME/addpsp</a> -d service=myservice \</p>
+$ curl -v <a href="http://localhost:9898/addpsp">http://localhost:9898/addpsp</a> -d service=myservice \</p>
 
-<pre><code>                                      -d pushservicetype=apns \
-                  -d cert=/tmp/apns-prod-cert.pem \
-                  -d key=/tmp/apns-prod-key-noenc.pem \
-                  -d sandbox=true
+<pre><code>                       -d pushservicetype=apns \
+                   -d cert=/tmp/apns-prod-cert.pem \
+                   -d key=/tmp/apns-prod-key-noenc.pem \
+                   -d sandbox=true
 </code></pre>
 
 <p>```</p>
@@ -249,7 +274,7 @@ $ curl -v <a href="http://$UNIQUSH_HOSTNAME/addpsp">http://$UNIQUSH_HOSTNAME/add
 <p>Using the cleaned up device token from the previous step <code>281c87101b029fdb16c8e13439436336116001cebf6519e68edefab523dab1e9</code>, create a subscriber with the name <code>mytestsubscriber</code> via:</p>
 
 <p>```
-$ curl -v <a href="http://$UNIQUSH_HOSTNAME/subscribe">http://$UNIQUSH_HOSTNAME/subscribe</a> -d service=myservice \</p>
+$ curl -v <a href="http://localhost:9898/subscribe">http://localhost:9898/subscribe</a> -d service=myservice \</p>
 
 <pre><code>                                         -d subscriber=mytestsubscriber \
                      -d pushservicetype=apns \
@@ -271,7 +296,7 @@ $ curl -v <a href="http://$UNIQUSH_HOSTNAME/subscribe">http://$UNIQUSH_HOSTNAME/
 <p>First, you need to either <strong>background your app</strong> by pressing the home button, or add <a href="https://gist.github.com/tleyden/97434117ad53757106ad">some code like this</a> so that an alert will be shown if the app is foregrounded.</p>
 
 <p>```
-$ curl -v <a href="http://$UNIQUSH_HOSTNAME/push">http://$UNIQUSH_HOSTNAME/push</a> -d service=myservice \</p>
+$ curl -v <a href="http://localhost:9898/push">http://localhost:9898/push</a> -d service=myservice \</p>
 
 <pre><code>                                    -d subscriber=mytestsubscriber \
                 -d msg=HelloWorld

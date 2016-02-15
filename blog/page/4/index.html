@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="This further extends A Slight Tweak on a Successful Git Branching Model with the addition of the concept of support branches. Release Branches When &hellip;">
+  <meta name="description" content="Couchbase Mobile just announced it&rsquo;s 1.0 release today. What is Couchbase Mobile? Couchbase Lite is an open source iOS/Android NoSQL DB with &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +72,151 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/05/21/what-is-couchbase-mobile-and-why-should-you-care/">What Is Couchbase Mobile and Why Should You Care?</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-05-21T13:57:00+00:00" pubdate data-updated="true">May 21<span>st</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Couchbase Mobile just announced it&rsquo;s <a href="http://www.couchbase.com/press-releases/couchbase-mobile-enables-new-breed-network-independent-mobile-applications">1.0 release</a> today.</p>
+
+<p>What is Couchbase Mobile?</p>
+
+<ul>
+<li>Couchbase Lite is an open source iOS/Android NoSQL DB with built-in sync capability.</li>
+<li>Couchbase Mobile refers to the &ldquo;full stack&rdquo; solution, which includes the (also open source) server components that Couchbase Lite uses for sync.</li>
+</ul>
+
+
+<p>To give a deeper look at what problem Couchbase Mobile is meant to solve, let me tell you the story of how I came to discover Couchbase Lite as a developer.  In my <a href="http://techcrunch.com/2012/01/26/signature-launches-to-bring-a-personalized-mobile-shopping-service-to-brick-and-mortar-retailers/">previous startup</a>, we built a mobile CRM app for sales associates.</p>
+
+<p>The very first pilot release of the app, the initial architecture was:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/architecture_1.png" alt="screenshot" /></p>
+
+<p>It was very simple, and the server was almost the Single Point of Truth, except for our JSON caching layer which had a very short expiry time before it would refetch from the server.  The biggest downside to this architecture was that <em>it only worked well when the device had a fast connection to the internet</em>.</p>
+
+<p>But there was another problem: getting updates to sync across devices in a timely manner.   When sales associate #1 would update a customer, sales associate #2 wouldn&rsquo;t see the change because:</p>
+
+<ul>
+<li>How does the app for sales associate #2 know it needs to &ldquo;re-sync&rdquo; the data?</li>
+<li>How will the app know that something changed on the backend that should cause it to invalidate that locally cached data?</li>
+</ul>
+
+
+<p>We realized that the data sync between the devices was going to be a huge issue going forward, and so we decided to change our architecture to something like this:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/architecture_2.png" alt="screenshot" /></p>
+
+<p>So the app would be displaying what&rsquo;s stored in the Core Data datastore, and we&rsquo;d build a <em>sync engine</em> component that would shuttle data bidirectionally between Core Data and the backend server.</p>
+
+<p>That seemed like a fine idea on paper, except that I refused to build it.  I knew it would take way too long to build, and once it was built it probably would entail endless debugging and tuning.</p>
+
+<p>Instead, after some intense debate we embarked on a furious sprint to convert everything over to <a href="https://github.com/couchbase/couchbase-lite-ios">Couchbase Lite iOS</a>.  We ended up with an architecture like this:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/architecture%203.png" alt="screenshot" /></p>
+
+<p>It was similar in spirit to our original plans, except <strong>we didn&rsquo;t have to build any of the hard stuff</strong> &mdash; the storage engine and the sync was already taken care of for us by Couchbase Lite.</p>
+
+<p>(<em>note</em>: there were also components that listened for changes to the backend server database and fired off emails and push notifications, but I&rsquo;m not showing them here)</p>
+
+<p>After the conversion ..</p>
+
+<p><strong>On the upside</strong></p>
+
+<ul>
+<li>Any updates to customer data would quickly sync across all devices.</li>
+<li>Our app still worked even when the device was completely offline.</li>
+<li>Our app was orders of magnituted faster in &ldquo;barely connected&rdquo; scenarios, because Couchbase Lite <em>takes the network out of the critical path</em>.</li>
+<li>Our data was now &ldquo;document oriented&rdquo;, and so we could worry less about rolling out schema changes while having several different versions of our app out in the wild.</li>
+</ul>
+
+
+<p><strong>On the downside</strong></p>
+
+<ul>
+<li>We ran into a few bizarre situations where a client app would <em>regurgitate</em> a ton of unwanted data back into the system after we&rsquo;d thought we&rsquo;d removed it.  To be fair, that was our fault, but I mention it because Couchbase Lite can throw you some curve balls if you aren&rsquo;t paying attention.</li>
+<li>Certain things were awkward.  For example for our initial login experience, we had to sync the data before the sales associate could login.  We ended up re-working that to have the login go directly against the server, which meant that logging in required the user to be online.</li>
+<li>When things went wrong, they were a bit complicated to debug.  (but because Couchbase Lite is Open Source, we could diagnose and fix bugs ourselves, which was a huge win.)</li>
+</ul>
+
+
+<h1>So what can Couchbase Lite do for you?</h1>
+
+<h2>Sync Engine included, so you don&rsquo;t have to build one</h2>
+
+<p>If I had to sum up one quick elevator pitch of Couchbase Lite, it would be:</p>
+
+<blockquote><p>If you find that you&rsquo;re building a &ldquo;sync engine&rdquo; to sync data from your app to other instances of your app and/or the cloud, then you should probably be building it on top of Couchbase Lite instead of going down that rabbit hole &mdash; since you may never make it back out.</p></blockquote>
+
+<h2>Your app now works well in offline or occasionally connected scenarios</h2>
+
+<p>This is something that users expect your app to handle.  For example, if I&rsquo;m on the BART going from SF &ndash;> Oakland and have no signal, I should still be able to read my tweets, and even send new tweets that will be queued to sync once the device comes back online.</p>
+
+<p>If your app is based on Couchbase Lite, you essentially get these features for free.</p>
+
+<ul>
+<li>When you load tweets, it is loaded from the local Couchbase Lite store, without any need to hit the server.</li>
+<li>When you create a new tweet, you just save it to Couchbase Lite, and let it handle the heavy lifting of getting that pushed up to the server once the device is back online.</li>
+</ul>
+
+
+<h2>Your data model is now Document Oriented</h2>
+
+<p>This is a double edged sword, and to be perfectly honest a Document Oriented approach is not always the ideal data model for every application.  However, for some applications (like CRM), it&rsquo;s a much more natural fit than the relational model.</p>
+
+<p>And you&rsquo;ll never have to worry about getting yourself stuck in Core Data schema migration hell.</p>
+
+<h1>What&rsquo;s the dark side of Couchbase Lite?</h1>
+
+<h2>Queries can be faster, but they have certain limitations</h2>
+
+<p>With SQL, you can run arbitrary queries, irregardless if there is an index or not.</p>
+
+<p>Couchbase Lite cannot be queried with SQL.  Instead you must define <em>Views</em>, which are essentially indexes, and run queries on those views.  Views are extremely fast and efficient, but if you don&rsquo;t have a view, you can&rsquo;t run a query, period.</p>
+
+<p>For people who are used to SQL, defining lower level map/reduce views takes some time to wrap your head around.</p>
+
+<h2>Complex queries can get downright awkward</h2>
+
+<p>Views are powerful, but they have their limitations, and if your query is complex enough, you may end up needing to write multiple views and coalescing/sorting the data in memory.</p>
+
+<h2>It&rsquo;s not a black box, but it <em>is</em> complicated.</h2>
+
+<p>The replication code in Couchbase Lite is complicated.  I know, because I&rsquo;ve spent a better part of the last year staring at it.</p>
+
+<p>As an app developer, you are putting your trust that the replication will work as you would expect and that it will be performant and easy on the battery.</p>
+
+<p><strong>The good news</strong> is that it&rsquo;s 100% open source under the Apache 2 license.  So you can debug into it, send issues and pull requests to our <a href="https://github.com/couchbase/couchbase-lite-android">github repo</a>, and even maintain your own fork if needed.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -928,340 +1073,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/11/21/a-simple-data-race-in-go-and-how-to-fix-it/">A Simple Data Race in Go and How to Fix It</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-11-21T08:16:00+00:00" pubdate data-updated="true">Nov 21<span>st</span>, 2013</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Suppose you want to add an http handler which can show some things that in memory.</p>
-
-<p>Simple, right?  Actually, if you aren&rsquo;t careful, doing this can lead to data races, even though only one goroutine is writing the data at any given time.</p>
-
-<p>Here&rsquo;s the golang code (also on <a href="https://github.com/tleyden/go-scratchpad/blob/1521d96e8f093b06ed57cd32e702b8ccb458e270/concurrentaccess/main.go">github</a>) that reproduces the issue:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>type Foo struct {
-</span><span class='line'>  content string
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>type FooSlice []*Foo
-</span><span class='line'>
-</span><span class='line'>func updateFooSlice(fooSlice FooSlice) {
-</span><span class='line'>  for {
-</span><span class='line'>      foo := &Foo{content: "new"}
-</span><span class='line'>      (*fooSlice)[0] = foo
-</span><span class='line'>      time.Sleep(time.Second)
-</span><span class='line'>  }
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>func installHttpHandler(fooSlice FooSlice) {
-</span><span class='line'>  handler := func(w http.ResponseWriter, r *http.Request) {
-</span><span class='line'>      for _, foo := range fooSlice {
-</span><span class='line'>          if foo != nil {
-</span><span class='line'>              fmt.Fprintf(w, "foo: %v ", (*foo).content)
-</span><span class='line'>          }
-</span><span class='line'>      }
-</span><span class='line'>
-</span><span class='line'>  }
-</span><span class='line'>  http.HandleFunc("/", handler)
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>func main() {
-</span><span class='line'>  foo1 := &Foo{content: "hey"}
-</span><span class='line'>  foo2 := &Foo{content: "yo"}
-</span><span class='line'>  fooSlice := FooSlice{foo1, foo2}
-</span><span class='line'>
-</span><span class='line'>  installHttpHandler(fooSlice)
-</span><span class='line'>
-</span><span class='line'>  go updateFooSlice(fooSlice)
-</span><span class='line'>
-</span><span class='line'>  http.ListenAndServe(":8080", nil)
-</span><span class='line'>}
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>if you run this code with <code>go run main.go</code> and then open <code>http://localhost:8080</code> in your browser, it will work as expected.</p>
-
-<p>But not so fast!  Lurking in this code are data races, and if you run this with race detection enabled using <code>go run -race main.go</code> and then access it with the browser, it will panic with:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>==================
-</span><span class='line'>WARNING: DATA RACE
-</span><span class='line'>Read by goroutine 6:
-</span><span class='line'>  main.func·001()
-</span><span class='line'>      /../concurrentaccess/main.go:45 +0x9e
-</span><span class='line'>      ...
-</span><span class='line'>Previous write by goroutine 4:
-</span><span class='line'>  main.updateFooSlice()
-</span><span class='line'>      /../concurrentaccess/main.go:35 +0x98
-</span><span class='line'>      ...</span></code></pre></td></tr></table></div></figure>
-
-
-<p>because there are two goroutines accessing the same slice without any protection &mdash; the main goroutine running the http server, and the goroutine running <code>updateFooSlice</code>.</p>
-
-<h2>Fix #1 &ndash; use sync.mutex to lock the slice</h2>
-
-<p>This isn&rsquo;t necessarily the <em>best</em> way to fix this, but it&rsquo;s the simplest to understand and explain.</p>
-
-<p>Here are the changes to the code (also on <a href="https://github.com/tleyden/go-scratchpad/blob/8f031806d5f0d7becef844f5400f2cc663ff4bf7/concurrentaccess/main.go">github</a>):</p>
-
-<ul>
-<li>Import the <code>sync</code> package</li>
-<li>Create a sync.Mutex object in the package-global namespace</li>
-<li>Before updating the slice, lock the mutex, and after updating it, unlock it.</li>
-<li>Before the http handler access the slice, it locks the mutex, and after it&rsquo;s done, it unlocks it.</li>
-</ul>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>type Foo struct {
-</span><span class='line'>  content string
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>type FooSlice []*Foo
-</span><span class='line'>
-</span><span class='line'>var mutex sync.Mutex
-</span><span class='line'>
-</span><span class='line'>func updateFooSlice(fooSlice FooSlice) {
-</span><span class='line'>  for {
-</span><span class='line'>      mutex.Lock()
-</span><span class='line'>      foo := &Foo{content: "new"}
-</span><span class='line'>      fooSlice[0] = foo
-</span><span class='line'>      fooSlice[1] = nil
-</span><span class='line'>      mutex.Unlock()
-</span><span class='line'>      time.Sleep(time.Second)
-</span><span class='line'>  }
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>func installHttpHandler(fooSlice FooSlice) {
-</span><span class='line'>  handler := func(w http.ResponseWriter, r *http.Request) {
-</span><span class='line'>      mutex.Lock()
-</span><span class='line'>      defer mutex.Unlock()
-</span><span class='line'>      for _, foo := range fooSlice {
-</span><span class='line'>          if foo != nil {
-</span><span class='line'>              fmt.Fprintf(w, "foo: %v ", (*foo).content)
-</span><span class='line'>          }
-</span><span class='line'>      }
-</span><span class='line'>  }
-</span><span class='line'>  http.HandleFunc("/", handler)
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>func main() {
-</span><span class='line'>
-</span><span class='line'>  foo1 := &Foo{content: "hey"}
-</span><span class='line'>  foo2 := &Foo{content: "yo"}
-</span><span class='line'>
-</span><span class='line'>  fooSlice := FooSlice{foo1, foo2}
-</span><span class='line'>
-</span><span class='line'>  installHttpHandler(fooSlice)
-</span><span class='line'>
-</span><span class='line'>  go updateFooSlice(fooSlice)
-</span><span class='line'>
-</span><span class='line'>  http.ListenAndServe(":8080", nil)
-</span><span class='line'>
-</span><span class='line'>}
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If you now re-run the code with the <code>-race</code> flag and access <code>http://localhost:8080</code>, it won&rsquo;t panic.</p>
-
-<h2>Digression &ndash; chan chan</h2>
-
-<p>Before we can talk about Fix #2, we need to take a digression to talk about chan chan&rsquo;s &mdash; channels which contain other channels as the morsels of data that pass through the channel tubes (metachannels, if you will).</p>
-
-<p><strong>tl;dr</strong> A channel describes a transport of sorts.  You can send a thing down that transport.  When using a chan chan, the thing you want to send down the transport is another transport to send things back.</p>
-
-<p>If it&rsquo;s still a little fuzzy for you, here&rsquo;s the <a href="http://tleyden.github.io/blog/2013/11/23/understanding-chan-chans-in-go/">long description of chan chan&rsquo;s with diagrams</a></p>
-
-<h2>Fix #2 &ndash; Use channels instead of <code>sync.Mutex</code></h2>
-
-<p>In this version of the fix, the goroutine running the http handler (the main goroutine in this case), makes a response chan and passes it into a request chan chan that both goroutines can access.  It then reads the response from the response chan, which will contain a copy of the FooSlice.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>func installHttpHandler(fooSlice FooSlice) {
-</span><span class='line'>        handler := func(w http.ResponseWriter, r *http.Request) {
-</span><span class='line'>                response := make(chan FooSlice)
-</span><span class='line'>                request &lt;- response
-</span><span class='line'>                fooSliceCopy := &lt;-response
-</span><span class='line'>                for _, foo := range fooSliceCopy {
-</span><span class='line'>                        if foo != nil {
-</span><span class='line'>                                fmt.Fprintf(w, "foo: %v ", (*foo).content)
-</span><span class='line'>                        }
-</span><span class='line'>                }
-</span><span class='line'>        }
-</span><span class='line'>        http.HandleFunc("/", handler)
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The other goroutine updates the FooSlice and is also checking the request chan chan for new messages.  If it gets a new request message, it makes a copy of the FooSlice and sends it to the response chan.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>func updateFooSlice(fooSlice FooSlice) {
-</span><span class='line'>        t := time.Tick(time.Second)
-</span><span class='line'>        for {
-</span><span class='line'>                select {
-</span><span class='line'>                case &lt;-t:
-</span><span class='line'>                        foo := &Foo{content: "new"}
-</span><span class='line'>                        fooSlice[0] = foo
-</span><span class='line'>                        fooSlice[1] = nil
-</span><span class='line'>                case ch := &lt;-request:
-</span><span class='line'>                        fooSliceCopy := make(FooSlice, len(fooSlice))
-</span><span class='line'>                        copy(fooSliceCopy, fooSlice)
-</span><span class='line'>                        ch &lt;- fooSliceCopy
-</span><span class='line'>                }
-</span><span class='line'>        }
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Again, if you now re-run this code with the <code>-race</code> flag and access <code>http://localhost:8080</code>, it won&rsquo;t panic.</p>
-
-<p>The full code sample is <a href="https://github.com/tleyden/go-scratchpad/blob/e92685b35c2d6f61274c7e72a3cdebf85817878a/concurrentaccess/main.go">available on gihub</a></p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/5/">&larr; Older</a>
@@ -1294,6 +1105,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/02/15/setting-up-a-self-hosted-drone-dot-io-ci-server/">Setting Up a Self-hosted drone.io CI Server</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/02/08/adding-vendoring-to-a-go-project/">Adding Vendoring to a Go Project</a>
       </li>
     
@@ -1307,10 +1122,6 @@
     
       <li class="post">
         <a href="/blog/2016/02/03/setting-up-uniqush-with-apns/">Setting Up Uniqush With APNS</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2015/11/22/cuda-7-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">CUDA 7.5 on AWS GPU Instance Running Ubuntu 14.04</a>
       </li>
     
   </ul>

@@ -9,7 +9,9 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Install gvt After doing some research, I decided to try gvt since it seemed simple and well documented, and integrated well with exiting tools like &hellip;">
+  <meta name="description" content="Spin up AWS server Ubuntu Server 14.04 LTS (HVM), SSD Volume Type &ndash; ami-fce3c696
+m3.medium
+250MB magnetic storage Install docker ssh ubuntu@&lt &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +74,220 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/02/15/setting-up-a-self-hosted-drone-dot-io-ci-server/">Setting Up a Self-hosted drone.io CI Server</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-02-15T19:37:00+00:00" pubdate data-updated="true">Feb 15<span>th</span>, 2016</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>Spin up AWS server</h2>
+
+<ul>
+<li>Ubuntu Server 14.04 LTS (HVM), SSD Volume Type &ndash; ami-fce3c696</li>
+<li>m3.medium</li>
+<li>250MB magnetic storage</li>
+</ul>
+
+
+<h2>Install docker</h2>
+
+<p><code>ssh ubuntu@&lt;aws-instance&gt;</code> and <a href="https://docs.docker.com/engine/installation/linux/ubuntulinux/">install docker</a></p>
+
+<h2>Register github application</h2>
+
+<p>Go to github and <a href="https://github.com/settings/applications/new">register</a> a new OAuth application using the following values:</p>
+
+<ul>
+<li><strong>Application name</strong> Couchbase Mobile Drone CI</li>
+<li><strong>Homepage URL</strong> <a href="http://ec2-54-163-185-45.compute-1.amazonaws.com">http://ec2-54-163-185-45.compute-1.amazonaws.com</a></li>
+<li><strong>Application description</strong> Couchbase Mobile Drone CI</li>
+<li><strong>Authorization callback URL</strong> <a href="http://ec2-54-163-185-45.compute-1.amazonaws.com/authorize">http://ec2-54-163-185-45.compute-1.amazonaws.com/authorize</a></li>
+</ul>
+
+
+<p>It will give you a <strong>Client ID</strong> and <strong>Client Secret</strong></p>
+
+<h2>Create <code>/etc/drone/dronerc</code> config file</h2>
+
+<p>On the ubuntu host:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo mkdir /etc/drone
+</span><span class='line'>$ emacs /etc/drone/dronerc</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Configure Remote Driver</strong></p>
+
+<p>Add these values:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>REMOTE_DRIVER=github
+</span><span class='line'>REMOTE_CONFIG=https://github.com?client_id=${client_id}&client_secret=${client_secret}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and replace <code>client_id</code> and <code>client_secret</code> with the values returned from github.</p>
+
+<p><strong>Configure Database</strong></p>
+
+<p>Add these values:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>DATABASE_DRIVER=sqlite3
+</span><span class='line'>DATABASE_CONFIG=/var/lib/drone/drone.sqlite</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Run Docker container</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>sudo docker run \
+</span><span class='line'>  --volume /var/lib/drone:/var/lib/drone \
+</span><span class='line'>  --volume /var/run/docker.sock:/var/run/docker.sock \
+</span><span class='line'>  --env-file /etc/drone/dronerc \
+</span><span class='line'>  --restart=always \
+</span><span class='line'>  --publish=80:8000 \
+</span><span class='line'>  --detach=true \
+</span><span class='line'>  --name=drone \
+</span><span class='line'>  drone/drone:0.4</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Check the logs via <code>docker logs &lt;container-id&gt;</code> and they should look something like <a href="https://gist.github.com/tleyden/db0a894c30b4811a5deb">this</a></p>
+
+<h2>Edit AWS security group</h2>
+
+<p>With your instance selected, look for the security groups in the instance details:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/drone_setup_security_group.png" alt="screenshot" /></p>
+
+<p>Add a new inbound port with the following settings:</p>
+
+<ul>
+<li><strong>Protocol</strong> TCP</li>
+<li><strong>Port Range</strong> 80</li>
+<li><strong>Source</strong> 0.0.0.0</li>
+</ul>
+
+
+<p>It should look like this when you&rsquo;re done:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/drone_setup_security_group2.png" alt="screenshot" /></p>
+
+<h2>Verify it&rsquo;s running</h2>
+
+<p>Paste the hostname of your aws instance into your browser (eg, <code>http://ec2-54-163-185-45.compute-1.amazonaws.com</code>), and you should see a page like this:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/drone_login_screen.png" alt="screenshot" /></p>
+
+<h2>Login</h2>
+
+<p>If you click the login button, you should see:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/drone_github_authorize.png" alt="screenshot" /></p>
+
+<p>And then:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/drone_post_github_login.png" alt="screenshot" /></p>
+
+<h2>Activate a repository</h2>
+
+<p>Click one of the repositories you have access to, and you should get an &ldquo;activate now&rdquo; option:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/drone_activate_now.png" alt="screenshot" /></p>
+
+<p>which will take you to your project home screen:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/drone_project_home.png" alt="screenshot" /></p>
+
+<h2>Add a <code>.drone.yml</code> file to the root of the repository</h2>
+
+<p>In the repository you have chosen (in my case I&rsquo;m using <code>tleyden/sync_gateway</code>, which is a golang project, and may refer to it later), add a <code>.drone.yml</code> file to the root of the repository with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>build:
+</span><span class='line'>  image: golang
+</span><span class='line'>  commands:
+</span><span class='line'>    - go get
+</span><span class='line'>    - go build
+</span><span class='line'>    - go test</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Commit your change, but do not push to github yet, that will be in the next step.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ git add .drone.yml
+</span><span class='line'>$ git commit -m "Add drone.yml"</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Kickoff a build</h2>
+
+<p>Now push your change up to github.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ git push origin master</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and in your drone UI you should see a build in progress:</p>
+
+<p>$<a href="http://tleyden-misc.s3.amazonaws.com/blog_images/drone_build_running.png">screenshot</a></p>
+
+<p>when it finishes, you&rsquo;ll see either a pass or a failure.  If you get a failure (which I did), it will look like this:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/drone_build_failure.png" alt="screenshot" /></p>
+
+<h2>Manually triggering another build</h2>
+
+<p>In my case, the above failure was due to a dependency not building.  Since nothing else needs to be pushed to the repo to fix the build, I&rsquo;m just going to manually trigger a build.</p>
+
+<p>On the build failure screen above, there is a <strong>Restart</strong> button, which triggers a new build.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/drone_build_success.png" alt="screenshot" /></p>
+
+<p>Now it works!</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -479,32 +695,69 @@
 
 <h2>Run Uniqush under Docker</h2>
 
+<h3>Install Docker components</h3>
+
+<ul>
+<li><a href="https://docs.docker.com/v1.8/installation/mac/">Install docker</a></li>
+<li><a href="https://docs.docker.com/compose/install/">Install docker-compose</a></li>
+</ul>
+
+
 <h3>Config</h3>
 
 <ul>
 <li><code>mkdir -p volumes/uniqush</code></li>
-<li><code>wget https://git.io/vgYXN -O volumes/uniqush/uniqush-push.conf</code></li>
+<li><code>wget https://git.io/vgSYM -O volumes/uniqush/uniqush-push.conf</code></li>
 </ul>
 
 
 <p>Security note: the above config has Uniqush listening on all interfaces, but depending on your setup you probably want to change that to <code>localhost</code> or something more restrictive.</p>
 
-<h3>Docker run</h3>
+<h3>Docker compose file</h3>
+
+<p>Copy and paste this content into <code>docker-compose.yml</code></p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>docker run -itd -p 9898:9898 -v ~/volumes/uniqush/uniqush-push.conf:/etc/uniqush/uniqush-push.conf tleyden5iwx/uniqush uniqush-push</span></code></pre></td></tr></table></div></figure>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>version: '2'
+</span><span class='line'>
+</span><span class='line'>services:
+</span><span class='line'>  uniqush:
+</span><span class='line'>    container_name: uniqush
+</span><span class='line'>    ports:
+</span><span class='line'>      - "9898:9898"
+</span><span class='line'>    image: tleyden5iwx/uniqush
+</span><span class='line'>    entrypoint: uniqush-push
+</span><span class='line'>    links:
+</span><span class='line'>      - redis
+</span><span class='line'>    volumes:
+</span><span class='line'>      - ~/docker/volumes/uniqush/uniqush-push.conf:/etc/uniqush/uniqush-push.conf
+</span><span class='line'>  redis:
+</span><span class='line'>    container_name: redis
+</span><span class='line'>    image: redis
+</span></code></pre></td></tr></table></div></figure>
 
 
-<h3>Kick off redis (hack)</h3>
+<h3>Start docker containers</h3>
 
-<p>So the <em>right</em> way to do this is to run redis in a separate container and link the containers via Docker Networks.  In the meantime, this little hack will work&hellip; shell into the container and kick off redis.</p>
-
-<ul>
-<li><code>container=$(docker ps | grep -i uniqush | awk '{print $1}')</code></li>
-<li><code>docker exec -ti $container bash</code></li>
-<li><code>/etc/init.d/redis-server start</code>  (&lt;&mdash;&ndash; inside the running container)</li>
-<li><code>exit</code> (to get out of the container)</li>
-</ul>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker compose up -d</span></code></pre></td></tr></table></div></figure>
 
 
 <h3>Verify Uniqush is running</h3>
@@ -718,7 +971,7 @@
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ `container=$(docker ps | grep -i uniqush | awk '{print $1}')`
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ `container=$(docker ps | grep -i uniqush-push | awk '{print $1}')`
 </span><span class='line'>$ docker cp /tmp/apns-prod-cert.pem $container:/tmp/apns-prod-cert.pem
 </span><span class='line'>$ docker cp /tmp/apns-prod-key-noenc.pem $container:/tmp/apns-prod-key-noenc.pem</span></code></pre></td></tr></table></div></figure>
 
@@ -730,13 +983,11 @@
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ export UNIQUSH_HOSTNAME=ec2-54-73-10-60.compute-1.amazonaws.com:9898
-</span><span class='line'>$ curl -v http://$UNIQUSH_HOSTNAME/addpsp -d service=myservice \
-</span><span class='line'>                                          -d pushservicetype=apns \
-</span><span class='line'>                    -d cert=/tmp/apns-prod-cert.pem \
-</span><span class='line'>                    -d key=/tmp/apns-prod-key-noenc.pem \
-</span><span class='line'>                    -d sandbox=true</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -v http://localhost:9898/addpsp -d service=myservice \
+</span><span class='line'>                             -d pushservicetype=apns \
+</span><span class='line'>                     -d cert=/tmp/apns-prod-cert.pem \
+</span><span class='line'>                     -d key=/tmp/apns-prod-key-noenc.pem \
+</span><span class='line'>                     -d sandbox=true</span></code></pre></td></tr></table></div></figure>
 
 
 <p>(Note: I&rsquo;m using a development cert, but if this was a distribution cert you&rsquo;d want to use <code>sandbox=false</code>)</p>
@@ -755,7 +1006,7 @@
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -v http://$UNIQUSH_HOSTNAME/subscribe -d service=myservice \
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -v http://localhost:9898/subscribe -d service=myservice \
 </span><span class='line'>                                             -d subscriber=mytestsubscriber \
 </span><span class='line'>                       -d pushservicetype=apns \
 </span><span class='line'>                       -d devtoken=281c87101b029fdb16c8e13439436336116001cebf6519e68edefab523dab1e9 </span></code></pre></td></tr></table></div></figure>
@@ -776,7 +1027,7 @@
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -v http://$UNIQUSH_HOSTNAME/push -d service=myservice \
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -v http://localhost:9898/push -d service=myservice \
 </span><span class='line'>                                        -d subscriber=mytestsubscriber \
 </span><span class='line'>                  -d msg=HelloWorld</span></code></pre></td></tr></table></div></figure>
 
@@ -2069,188 +2320,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io/">Test Coverage for Go With drone.io and coveralls.io</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-03-31T07:26:00+00:00" pubdate data-updated="true">Mar 31<span>st</span>, 2015</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>This will walk you through setting up a test coverage report on coveralls.io which will be updated every time a new build happens on drone.io (a continuous integration server similar to TavisCI).</p>
-
-<p>I&rsquo;m going to use the <a href="https://github.com/couchbaselabs/sg-replicate">couchbaselabs/sg-replicate</a> repo as an example, since it currently does not have any test coverage statistics.  The goal is to end up with a badge in the README that points to a test coverage report hosted on coveralls.io.</p>
-
-<h2>Clone the repo</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ git clone https://github.com/couchbaselabs/sg-replicate.git
-</span><span class='line'>$ cd sg-replicate</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Test coverage command line stats</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ go test -cover
-</span><span class='line'>go tool: no such tool "cover"; to install:
-</span><span class='line'>  go get golang.org/x/tools/cmd/cover
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Try again:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ go get golang.org/x/tools/cmd/cover && go test -cover
-</span><span class='line'>PASS
-</span><span class='line'>coverage: 69.4% of statements
-</span><span class='line'>ok    github.com/couchbaselabs/sg-replicate   0.156s</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Ouch, 69.4% is barely a C-. (if you round up!)</p>
-
-<h2>Coverage breakdown</h2>
-
-<p>Text report:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ go test -coverprofile=coverage.out 
-</span><span class='line'>$ go tool cover -func=coverage.out
-</span><span class='line'>github.com/couchbaselabs/sg-replicate/attachment.go:15:           NewAttachment           84.6%
-</span><span class='line'>github.com/couchbaselabs/sg-replicate/changes_feed_parameters.go:20:  NewChangesFeedParams        100.0%
-</span><span class='line'>github.com/couchbaselabs/sg-replicate/changes_feed_parameters.go:30:  FeedType            100.0%
-</span><span class='line'>github.com/couchbaselabs/sg-replicate/changes_feed_parameters.go:34:  Limit               100.0%</span></code></pre></td></tr></table></div></figure>
-
-
-<p>HTML report:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ go test -coverprofile=coverage.out 
-</span><span class='line'>$ go tool cover -html=coverage.out</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This should open up the following report in your default browser:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_coverage_html.png" alt="html report" /></p>
-
-<h2>Coveralls.io setup</h2>
-
-<ul>
-<li>Login to coveralls.io</li>
-<li>Create a new repo</li>
-<li>Get the repo token from the <strong>SET UP COVERALLS</strong> section</li>
-</ul>
-
-
-<p>At this point, your empty coveralls repo will look something like this:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/coveralls_empty_repo.png" alt="empty coveralls repo" /></p>
-
-<h2>Configure Drone.io + Goveralls</h2>
-
-<p>If you have not already done so, setup a drone.io build for your repo.</p>
-
-<p>On the drone.io <strong>Settings</strong> page, make the following changes:</p>
-
-<p><strong>Environment Variables</strong></p>
-
-<p>In the Environment Variables section of the web ui, add:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>COVERALLS_TOKEN=&lt;coveralls_repo_token&gt;</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Commands</strong></p>
-
-<p>In the commands section, you can replace your existing <code>go test</code> call with:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>go get github.com/axw/gocov/gocov
-</span><span class='line'>go get github.com/mattn/goveralls
-</span><span class='line'>goveralls -service drone.io -repotoken $COVERALLS_TOKEN</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Here&rsquo;s what it should look like:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/drone_io_coverage.png" alt="drone io ui" /></p>
-
-<h2>Kick off a build</h2>
-
-<p>Go to the drone.io project page for your repo, and hit <strong>Build Now</strong></p>
-
-<p>At the bottom of the build output, you should see:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>Job #1.1
-</span><span class='line'>https://coveralls.io/jobs/5189501</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If you follow the link, you should see something like:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/coveralls_sgreplicate.png" alt="coveralls report" /></p>
-
-<p>Looks like we just went from a C- to a B!  I have no idea why the coverage improved, but I&rsquo;ll take it.</p>
-
-<h2>Add a badge, call it a day</h2>
-
-<p>On the coveralls.io project page for your repo, you should see a button near the top called <strong>Badge URLS</strong>.  Click and copy/paste the markdown, which should look something like this:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>[![Coverage Status](https://coveralls.io/repos/couchbaselabs/sg-replicate/badge.svg?branch=master)](https://coveralls.io/r/couchbaselabs/sg-replicate?branch=master)</span></code></pre></td></tr></table></div></figure>
-
-
-<p>And add it to your project&rsquo;s README.</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/sg_replicate_badges.png" alt="badges" /></p>
-
-<h2>References</h2>
-
-<ul>
-<li><a href="https://blog.golang.org/cover">https://blog.golang.org/cover</a></li>
-<li><a href="https://github.com/mattn/goveralls">https://github.com/mattn/goveralls</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -2281,6 +2350,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/02/15/setting-up-a-self-hosted-drone-dot-io-ci-server/">Setting Up a Self-hosted drone.io CI Server</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/02/08/adding-vendoring-to-a-go-project/">Adding Vendoring to a Go Project</a>
       </li>
     
@@ -2294,10 +2367,6 @@
     
       <li class="post">
         <a href="/blog/2016/02/03/setting-up-uniqush-with-apns/">Setting Up Uniqush With APNS</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2015/11/22/cuda-7-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">CUDA 7.5 on AWS GPU Instance Running Ubuntu 14.04</a>
       </li>
     
   </ul>

@@ -102,32 +102,69 @@
 
 <h2>Run Uniqush under Docker</h2>
 
+<h3>Install Docker components</h3>
+
+<ul>
+<li><a href="https://docs.docker.com/v1.8/installation/mac/">Install docker</a></li>
+<li><a href="https://docs.docker.com/compose/install/">Install docker-compose</a></li>
+</ul>
+
+
 <h3>Config</h3>
 
 <ul>
 <li><code>mkdir -p volumes/uniqush</code></li>
-<li><code>wget https://git.io/vgYXN -O volumes/uniqush/uniqush-push.conf</code></li>
+<li><code>wget https://git.io/vgSYM -O volumes/uniqush/uniqush-push.conf</code></li>
 </ul>
 
 
 <p>Security note: the above config has Uniqush listening on all interfaces, but depending on your setup you probably want to change that to <code>localhost</code> or something more restrictive.</p>
 
-<h3>Docker run</h3>
+<h3>Docker compose file</h3>
+
+<p>Copy and paste this content into <code>docker-compose.yml</code></p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>docker run -itd -p 9898:9898 -v ~/volumes/uniqush/uniqush-push.conf:/etc/uniqush/uniqush-push.conf tleyden5iwx/uniqush uniqush-push</span></code></pre></td></tr></table></div></figure>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>version: '2'
+</span><span class='line'>
+</span><span class='line'>services:
+</span><span class='line'>  uniqush:
+</span><span class='line'>    container_name: uniqush
+</span><span class='line'>    ports:
+</span><span class='line'>      - "9898:9898"
+</span><span class='line'>    image: tleyden5iwx/uniqush
+</span><span class='line'>    entrypoint: uniqush-push
+</span><span class='line'>    links:
+</span><span class='line'>      - redis
+</span><span class='line'>    volumes:
+</span><span class='line'>      - ~/docker/volumes/uniqush/uniqush-push.conf:/etc/uniqush/uniqush-push.conf
+</span><span class='line'>  redis:
+</span><span class='line'>    container_name: redis
+</span><span class='line'>    image: redis
+</span></code></pre></td></tr></table></div></figure>
 
 
-<h3>Kick off redis (hack)</h3>
+<h3>Start docker containers</h3>
 
-<p>So the <em>right</em> way to do this is to run redis in a separate container and link the containers via Docker Networks.  In the meantime, this little hack will work&hellip; shell into the container and kick off redis.</p>
-
-<ul>
-<li><code>container=$(docker ps | grep -i uniqush | awk '{print $1}')</code></li>
-<li><code>docker exec -ti $container bash</code></li>
-<li><code>/etc/init.d/redis-server start</code>  (&lt;&mdash;&ndash; inside the running container)</li>
-<li><code>exit</code> (to get out of the container)</li>
-</ul>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker compose up -d</span></code></pre></td></tr></table></div></figure>
 
 
 <h3>Verify Uniqush is running</h3>
@@ -341,7 +378,7 @@
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ `container=$(docker ps | grep -i uniqush | awk '{print $1}')`
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ `container=$(docker ps | grep -i uniqush-push | awk '{print $1}')`
 </span><span class='line'>$ docker cp /tmp/apns-prod-cert.pem $container:/tmp/apns-prod-cert.pem
 </span><span class='line'>$ docker cp /tmp/apns-prod-key-noenc.pem $container:/tmp/apns-prod-key-noenc.pem</span></code></pre></td></tr></table></div></figure>
 
@@ -353,13 +390,11 @@
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ export UNIQUSH_HOSTNAME=ec2-54-73-10-60.compute-1.amazonaws.com:9898
-</span><span class='line'>$ curl -v http://$UNIQUSH_HOSTNAME/addpsp -d service=myservice \
-</span><span class='line'>                                          -d pushservicetype=apns \
-</span><span class='line'>                    -d cert=/tmp/apns-prod-cert.pem \
-</span><span class='line'>                    -d key=/tmp/apns-prod-key-noenc.pem \
-</span><span class='line'>                    -d sandbox=true</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -v http://localhost:9898/addpsp -d service=myservice \
+</span><span class='line'>                             -d pushservicetype=apns \
+</span><span class='line'>                     -d cert=/tmp/apns-prod-cert.pem \
+</span><span class='line'>                     -d key=/tmp/apns-prod-key-noenc.pem \
+</span><span class='line'>                     -d sandbox=true</span></code></pre></td></tr></table></div></figure>
 
 
 <p>(Note: I&rsquo;m using a development cert, but if this was a distribution cert you&rsquo;d want to use <code>sandbox=false</code>)</p>
@@ -378,7 +413,7 @@
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -v http://$UNIQUSH_HOSTNAME/subscribe -d service=myservice \
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -v http://localhost:9898/subscribe -d service=myservice \
 </span><span class='line'>                                             -d subscriber=mytestsubscriber \
 </span><span class='line'>                       -d pushservicetype=apns \
 </span><span class='line'>                       -d devtoken=281c87101b029fdb16c8e13439436336116001cebf6519e68edefab523dab1e9 </span></code></pre></td></tr></table></div></figure>
@@ -399,7 +434,7 @@
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -v http://$UNIQUSH_HOSTNAME/push -d service=myservice \
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -v http://localhost:9898/push -d service=myservice \
 </span><span class='line'>                                        -d subscriber=mytestsubscriber \
 </span><span class='line'>                  -d msg=HelloWorld</span></code></pre></td></tr></table></div></figure>
 
@@ -508,6 +543,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/02/15/setting-up-a-self-hosted-drone-dot-io-ci-server/">Setting Up a Self-hosted drone.io CI Server</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/02/08/adding-vendoring-to-a-go-project/">Adding Vendoring to a Go Project</a>
       </li>
     
@@ -521,10 +560,6 @@
     
       <li class="post">
         <a href="/blog/2016/02/03/setting-up-uniqush-with-apns/">Setting Up Uniqush With APNS</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2015/11/22/cuda-7-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">CUDA 7.5 on AWS GPU Instance Running Ubuntu 14.04</a>
       </li>
     
   </ul>
