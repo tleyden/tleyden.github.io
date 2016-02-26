@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-02-15T23:56:51+00:00</updated>
+  <updated>2016-02-26T21:15:30+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -197,6 +197,44 @@
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/drone_build_success.png" alt="screenshot" /></p>
 
 <p>Now it works!</p>
+
+<h2>Setup the Drone CLI</h2>
+
+<p>I could run this on my OSX workstation, but I decided to run this on a linux docker container.  The rest of the steps assume you have spun up and are inside a linux docker container.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl http://downloads.drone.io/drone-cli/drone_linux_amd64.tar.gz | tar zx
+</span><span class='line'>$ install -t /usr/local/bin drone</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Go to your Profile page in the drone UI, and click <strong>Show Token</strong>.</p>
+
+<p>Now set these environment variables</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ export DRONE_SERVER=http://ec2-54-163-185-45.compute-1.amazonaws.com
+</span><span class='line'>$ export DRONE_TOKEN=eyJhbGci...</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Query repos</strong></p>
+
+<p>To test the CLI tool works, try the following commands:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># drone repo ls
+</span><span class='line'>couchbase/sync_gateway
+</span><span class='line'>tleyden/sync_gateway
+</span><span class='line'># drone repo info tleyden/sync_gateway
+</span><span class='line'>tleyden/sync_gateway</span></code></pre></td></tr></table></div></figure>
+
+
+
 ]]></content>
   </entry>
   

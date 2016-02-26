@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ci | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/ci/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-02-15T23:56:51+00:00</updated>
+  <updated>2016-02-26T21:15:30+00:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -186,6 +186,40 @@ $ git push origin master
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/drone_build_success.png" alt="screenshot" /></p>
 
 <p>Now it works!</p>
+
+<h2>Setup the Drone CLI</h2>
+
+<p>I could run this on my OSX workstation, but I decided to run this on a linux docker container.  The rest of the steps assume you have spun up and are inside a linux docker container.</p>
+
+<p><code>
+$ curl http://downloads.drone.io/drone-cli/drone_linux_amd64.tar.gz | tar zx
+$ install -t /usr/local/bin drone
+</code></p>
+
+<p>Go to your Profile page in the drone UI, and click <strong>Show Token</strong>.</p>
+
+<p>Now set these environment variables</p>
+
+<p><code>
+$ export DRONE_SERVER=http://ec2-54-163-185-45.compute-1.amazonaws.com
+$ export DRONE_TOKEN=eyJhbGci...
+</code></p>
+
+<p><strong>Query repos</strong></p>
+
+<p>To test the CLI tool works, try the following commands:</p>
+
+<p>```</p>
+
+<h1>drone repo ls</h1>
+
+<p>couchbase/sync_gateway
+tleyden/sync_gateway</p>
+
+<h1>drone repo info tleyden/sync_gateway</h1>
+
+<p>tleyden/sync_gateway
+```</p>
 ]]></content>
   </entry>
   
