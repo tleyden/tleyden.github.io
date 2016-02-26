@@ -164,6 +164,39 @@ On the build failure screen above, there is a **Restart** button, which triggers
 
 Now it works!
 
+## Setup the Drone CLI
+
+I could run this on my OSX workstation, but I decided to run this on a linux docker container.  The rest of the steps assume you have spun up and are inside a linux docker container.
+
+```
+$ curl http://downloads.drone.io/drone-cli/drone_linux_amd64.tar.gz | tar zx
+$ install -t /usr/local/bin drone
+```
+
+Go to your Profile page in the drone UI, and click **Show Token**.
+
+Now set these environment variables
+
+```
+$ export DRONE_SERVER=http://ec2-54-163-185-45.compute-1.amazonaws.com
+$ export DRONE_TOKEN=eyJhbGci...
+```
+
+**Query repos**
+
+To test the CLI tool works, try the following commands:
+
+```
+# drone repo ls
+couchbase/sync_gateway
+tleyden/sync_gateway
+# drone repo info tleyden/sync_gateway
+tleyden/sync_gateway
+```
+
+
+
+
 
 
 
