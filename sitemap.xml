@@ -255,12 +255,18 @@
         <lastmod>2016-02-17T00:57:06+00:00</lastmod>
     </url>
     <url>
+        <loc>
+            http://tleyden.github.io/blog/2016/05/19/go-race-detector-gotcha-with-value-receivers/
+        </loc>
+        <lastmod>2016-05-19T23:17:39+00:00</lastmod>
+    </url>
+    <url>
         <loc>http://tleyden.github.io/blog/archives/</loc>
-        <lastmod>2016-02-17T00:57:06+00:00</lastmod>
+        <lastmod>2016-05-19T23:17:39+00:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/</loc>
-        <lastmod>2016-02-17T00:57:06+00:00</lastmod>
+        <lastmod>2016-05-19T23:17:39+00:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/robots.txt</loc>

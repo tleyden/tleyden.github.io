@@ -5,11 +5,24 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Objective C coding interview challenge: URLPuller - Seven Story Rabbit Hole</title>
+  <title>Go race detector gotcha with value receivers - Seven Story Rabbit Hole</title>
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Programming Challenge The goal is to create an Objective-C class which takes an array of NSURL&rsquo;s, downloads their contents asynchronously, and &hellip;">
+  <meta name="description" content="I ran into the following race detector error: 1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+WARNING: DATA RACE
+Write by goroutine 44: github.com/couchbaselabs/sg- &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +31,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://tleyden.github.io/blog/2014/01/13/objective-c-coding-interview-challenge-urlpuller">
+  <link rel="canonical" href="http://tleyden.github.io/blog/2016/05/19/go-race-detector-gotcha-with-value-receivers">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
@@ -75,7 +88,7 @@
   
   <header>
     
-      <h1 class="entry-title">Objective C Coding Interview Challenge: URLPuller</h1>
+      <h1 class="entry-title">Go Race Detector Gotcha With Value Receivers</h1>
     
     
       <p class="meta">
@@ -91,78 +104,91 @@
   
 
 
-<time datetime="2014-01-13T11:45:00+00:00" pubdate data-updated="true">Jan 13<span>th</span>, 2014</time>
+<time datetime="2016-05-19T23:06:00+00:00" pubdate data-updated="true">May 19<span>th</span>, 2016</time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><h1>Programming Challenge</h1>
+<div class="entry-content"><p>I ran into the following race detector error:</p>
 
-<p>The goal is to create an Objective-C class which takes an array of NSURL&rsquo;s, downloads their contents asynchronously, and writes the contents of each URL to a unique file.</p>
-
-<p>The class should be named URLPuller and should have the following instance methods:</p>
-
-<ul>
-<li><code>- (void) downloadUrlsAsync: (NSArray*)urls</code></li>
-<li><code>- (void) waitUntilAllDownloadsFinish</code></li>
-<li><code>- (NSString*) downloadedPathForURL: (NSURL*)url</code></li>
-</ul>
-
-
-<p>Here are the detailed descriptions of each method:</p>
-
-<h2>downloadUrlsAsync</h2>
-
-<p><code>- (void) downloadUrlsAsync: (NSArray*)urls</code></p>
-
-<p>The urls array will contain an array of NSURL&rsquo;s.  The method should return immediately, eg, it&rsquo;s an asynchronous API call that will run in the background.</p>
-
-<p>The downloaded files can be stored in any directory, where the filename is {sha1 hash of url}.downloaded</p>
-
-<h2>waitUntilAllDownloadsFinish</h2>
-
-<p><code>- (void) waitUntilAllDownloadsFinish</code></p>
-
-<p>Block until all of the URLs have been downloaded.</p>
-
-<p>If this is called while there is no download in progress, it should return immediately.  Otherwise, it should block until all the downloads have finished.</p>
-
-<h2>downloadedPathForURL</h2>
-
-<p><code>- (NSString*) downloadedPathForURL: (NSURL*)url</code></p>
-
-<p>Return the path where the given url was downloaded to.</p>
-
-<p>If the given url has not been downloaded yet, or was never requested to be downloaded, then it should return nil.</p>
-
-<h1>Objectives</h1>
-
-<p>Demonstrate that:</p>
-
-<ul>
-<li>You can write a program that satisfies the API methods and described behavior.</li>
-<li>You can write code that is well factored, and easy to understand.</li>
-<li>You can clearly communicate questions (if any arise) regarding this specification.</li>
-</ul>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>WARNING: DATA RACE
+</span><span class='line'>Write by goroutine 44:
+</span><span class='line'>  github.com/couchbaselabs/sg-replicate.stateFnActiveFetchCheckpoint()
+</span><span class='line'>      /Users/tleyden/Development/gocode/src/github.com/couchbaselabs/sg-replicate/replication_state.go:53 +0xb1d
+</span><span class='line'>  github.com/couchbaselabs/sg-replicate.(*Replication).processEvents()
+</span><span class='line'>      /Users/tleyden/Development/gocode/src/github.com/couchbaselabs/sg-replicate/synctube.go:120 +0xa3
+</span><span class='line'>
+</span><span class='line'>Previous read by goroutine 27:
+</span><span class='line'>  github.com/couchbaselabs/sg-replicate.(*Replication).GetStats()
+</span><span class='line'>      &lt;autogenerated&gt;:24 +0xef
+</span><span class='line'>  github.com/couchbase/sync_gateway/base.(*Replicator).populateActiveTaskFromReplication()
+</span><span class='line'>      /Users/tleyden/Development/gocode/src/github.com/couchbase/sync_gateway/base/replicator.go:241 +0x145</span></code></pre></td></tr></table></div></figure>
 
 
-<h1>Deliverable</h1>
+<p>Goroutine 44 was running this code:</p>
 
-<ul>
-<li>Zipped Xcode project directory or a link to github repo that contains the Xcode project.  It can be either an iOS or MacOS project.</li>
-</ul>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func (r *Replication) shutdownEventChannel() {
+</span><span class='line'>  r.EventChan = nil
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
 
 
-<h1>Rules</h1>
+<p>and nil&#8217;ing out the r.EventChan field.</p>
 
-<ul>
-<li>You can use any available resource you can find on the Internet &mdash; eg, Stack Overflow, API docs, etc.</li>
-<li>You may not ask questions related to the problem on Stack Overflow, IRC, etc.  (eg, the Internet is &ldquo;read-only&rdquo;)</li>
-<li>You cannot use any 3rd party libraries or products, you can only use classes and API&rsquo;s in the standard iOS/Cocoa Objective-C runtime.  If in doubt, just ask.</li>
-<li>You are welcome to go above and beyond the call of duty in any way that you see fit, however with the constraint that you must provide the above methods with signatures exactly matching with the specification.</li>
-</ul>
+<p>While goroutine 27 was calling this code on the same <code>*Replication</code> instance:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func (r Replication) GetStats() ReplicationStats {
+</span><span class='line'>  return r.Stats
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It didn&rsquo;t make sense, because they were accessing different fields of the <code>Replication</code> &mdash; one was writing to <code>r.EventChan</code> while the other was reading from <code>r.Stats</code>.</p>
+
+<p>Then I changed the <code>GetStats()</code> method to this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func (r Replication) GetStats() ReplicationStats {
+</span><span class='line'>  return ReplicationStats{}
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and it still failed!</p>
+
+<p>I started wandering around the Couchbase office looking for help, and got <a href="https://twitter.com/steveyentweets">Steve Yen</a> to help me.</p>
+
+<p>He was asking me about using a pointer receiver vs a value receiver here, and then we realized that by using a value reciever it was <em>copying</em> all the fields, and therefore <strong>reading</strong> all of the fields, including the <code>r.EventChan</code> field that the other goroutine was concurrently writing to!  Hence, the data race that was subtly caused by using a value receiver..</p>
+
+<p>The fix was to convert this over to a pointer reciever, and the data race disappeared!</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func (r *Replication) GetStats() ReplicationStats {
+</span><span class='line'>     return r.Stats
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
 
 </div>
 
@@ -186,12 +212,12 @@
   
 
 
-<time datetime="2014-01-13T11:45:00+00:00" pubdate data-updated="true">Jan 13<span>th</span>, 2014</time>
+<time datetime="2016-05-19T23:06:00+00:00" pubdate data-updated="true">May 19<span>th</span>, 2016</time>
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/objectivec/'>objectivec</a>
+    <a class='category' href='/blog/categories/golang/'>golang</a>
   
 </span>
 
@@ -200,7 +226,7 @@
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2014/01/13/objective-c-coding-interview-challenge-urlpuller/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2014/01/13/objective-c-coding-interview-challenge-urlpuller/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2016/05/19/go-race-detector-gotcha-with-value-receivers/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2016/05/19/go-race-detector-gotcha-with-value-receivers/" >Tweet</a>
   
   
   
@@ -209,10 +235,8 @@
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2013/12/19/how-to-downgrade-android-studio/" title="Previous Post: How to downgrade Android Studio">&laquo; How to downgrade Android Studio</a>
+        <a class="basic-alignment left" href="/blog/2016/02/15/setting-up-a-self-hosted-drone-dot-io-ci-server/" title="Previous Post: Setting up a self-hosted drone.io CI server">&laquo; Setting up a self-hosted drone.io CI server</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2014/01/31/a-stubbed-out-gradle-multi-project-hierarchy-using-git-submodules/" title="Next Post: A stubbed out gradle multi-project hierarchy using git submodules">A stubbed out gradle multi-project hierarchy using git submodules &raquo;</a>
       
     </p>
   </footer>
@@ -319,8 +343,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://tleyden.github.io/blog/2014/01/13/objective-c-coding-interview-challenge-urlpuller/';
-        var disqus_url = 'http://tleyden.github.io/blog/2014/01/13/objective-c-coding-interview-challenge-urlpuller/';
+        var disqus_identifier = 'http://tleyden.github.io/blog/2016/05/19/go-race-detector-gotcha-with-value-receivers/';
+        var disqus_url = 'http://tleyden.github.io/blog/2016/05/19/go-race-detector-gotcha-with-value-receivers/';
         var disqus_script = 'embed.js';
       
     (function () {
