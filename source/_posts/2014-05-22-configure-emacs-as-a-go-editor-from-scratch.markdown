@@ -179,7 +179,7 @@ The basic autocomplete installed is not as "go aware" as it should be.  The go-a
 
 Install the melpa package via `M-x package-install` followed by `go-autocomplete`
 
-Add the following to your `~/.emacs.d/init.el` file:
+After installing `go-autocomplete`, open your `~/.emacs.d/init.el` file and make sure the following was added:
 
 ```
 (defun auto-complete-for-go ()
@@ -187,7 +187,7 @@ Add the following to your `~/.emacs.d/init.el` file:
  (add-hook 'go-mode-hook 'auto-complete-for-go)
 ```
 
-Actually I'm not sure if this gets added automatically when installing `go-autocomplete`.  If it's already in your `~/.emacs.d/init.el` file then you can skip that.
+If it was not added, you'll need to add it yourself.
 
 You'll also need the following (as recommended in [gocode issue 325](https://github.com/nsf/gocode/issues/325)):
 
