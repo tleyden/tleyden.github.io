@@ -58,19 +58,6 @@ Restart emacs and run `M-x package-list-packages` and you should see it contacti
 
 Run `M-x package-install` and when prompted, enter `go-mode` and hit enter.
 
-I got the following warnings:
-
-```
-Compiling file /Users/tleyden/.emacs.d/elpa/go-mode-20160127.4/go-mode.el at Sat Feb  6 17:58:11 2016
-Entering directory `/Users/tleyden/.emacs.d/elpa/go-mode-20160127.4/'
-go-mode.el:16:1:Warning: cl package required at runtime
-
-In go-mode:
-go-mode.el:917:10:Warning: `font-lock-syntactic-keywords' is an obsolete
-    variable (as of 24.1); use `syntax-propertize-function' instead.
-
-```
-
 Restart Emacs and open a .go file, you should see the mode as "Go" rather than "Fundamental".
 
 For a full description of what go-mode can do for you, see [Dominik Honnef's blog](http://dominik.honnef.co/posts/2013/03/writing_go_in_emacs/), but one really useful thing to be aware of is that you can quickly import packages via `C-c C-a`
