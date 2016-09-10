@@ -102,8 +102,6 @@ Add the following to your `~/.emacs.d/init.el` file so that it gets the PATH env
 (when window-system (set-exec-path-from-shell-PATH))
 ```
 
-NOTE: according to [this StackOverflow post](http://stackoverflow.com/questions/6411121/how-to-make-emacs-use-my-bashrc-file), it's possible to achieve this via downloading the [exec-path-from-shell](https://github.com/purcell/exec-path-from-shell) emacs plugin from Marmelade or Melpa.
-
 **GOPATH**
 
 ```
