@@ -37,27 +37,6 @@ To get the `godoc` tool as well as others, run:
 go get golang.org/x/tools/cmd/...
 ```
 
-I ended up getting an error:
-
-```
-$ go get golang.org/x/tools/cmd/...
-# golang.org/x/tools/go/ssa/interp
-Development/gocode/src/golang.org/x/tools/go/ssa/interp/external.go:244: undefined: syscall.Pipe2
-```
-
-which is documented in [issue 13831](https://github.com/golang/go/issues/13831)
-
-To get around this, you can install the tools you need directly via:
-
-```
-go get golang.org/x/tools/cmd/godoc
-go get golang.org/x/tools/cmd/cover
-go get golang.org/x/tools/cmd/gorename
-go get golang.org/x/tools/cmd/goimports
-go get golang.org/x/tools/cmd/oracle
-go get golang.org/x/tools/cmd/vet
-```
-
 ## Install Melpa
 
 [Melpa](http://melpa.org/#/getting-started) is a package manager for Emacs, and is required for [go-mode](https://github.com/dominikh/go-mode.el)
