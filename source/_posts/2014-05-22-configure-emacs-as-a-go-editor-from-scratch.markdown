@@ -129,9 +129,15 @@ After this step, whenever you save a Go file, it will automatically reformat the
 
 Godef is essential: it lets you quickly jump around the code, as you might be used to with a full featured IDE.
 
-From what I can tell, installing [go-mode](https://github.com/dominikh/go-mode.el) seems to automatically install godef.  
+Install godef itself:
 
-To verify that godef is indeed installed:
+```
+go get github.com/rogpeppe/godef
+```
+
+Installing [go-mode](https://github.com/dominikh/go-mode.el) automatically installs godef bindings.  
+
+To verify that godef bindings work:
 
 * Putting the cursor over a method name 
 * Try doing `M-x godef-jump` to jump into the method, and `M-*` to go back.
