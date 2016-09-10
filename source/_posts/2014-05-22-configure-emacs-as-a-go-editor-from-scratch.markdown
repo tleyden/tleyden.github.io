@@ -173,11 +173,17 @@ Restart emacs, and if you open a .go file the mode should be `Go AC` (AC == Auto
 
 Before further verifying, we need to install go-autocomplete in the next step.
 
-## go-autocomplete
+### go-autocomplete
 
 The basic autocomplete installed is not as "go aware" as it should be.  The go-autocomplete (aka [nsf/gocode](https://github.com/nsf/gocode/)) package fixes that. 
 
-Install the melpa package via `M-x package-install` followed by `go-autocomplete`
+Install the [gocode binary](https://github.com/nsf/gocode)
+
+```
+go get -u github.com/nsf/gocode
+```
+
+and then install the melpa package via `M-x package-install` followed by `go-autocomplete`
 
 After installing `go-autocomplete`, open your `~/.emacs.d/init.el` file and make sure the following was added:
 
