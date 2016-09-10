@@ -119,7 +119,6 @@ After doing this step, you should be able to run `M-x godoc` and it should be ab
 Add these to your `~/.emacs.d/init.el`:
 
 ```
-(setq exec-path (cons "/usr/local/go/bin" exec-path))
 (add-to-list 'exec-path "/Users/tleyden/Development/gocode/bin")
 (add-hook 'before-save-hook 'gofmt-before-save)
 ```
