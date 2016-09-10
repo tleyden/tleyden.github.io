@@ -140,3 +140,25 @@ Now you should try it with one of your own packages.
 
 This is just scratching the surface -- to get more information on how to use Go Oracle, see [go oracle: user manual](https://docs.google.com/document/d/1SLk36YRjjMgKqe490mSRzOPYEDe0Y_WQNRv-EiFYUyw/view).
 
+## Troubleshooting
+
+If you get this error when running `go-oracle-callers`:
+
+```
+Go Oracle
+
+Agreeing to the Xcode/iOS license requires admin privileges, please re-run as root via sudo.
+
+cgo failed: [go tool cgo -objdir /var/folders/2j/cp3qdxqs72g99l49h40f9p7m0000gn/T/net_C392209343 -- -I /var/folders/2j/cp3qdxqs72g99l49h40f9p7m0000gn/T/net_C392209343 cgo_bsd.go cgo_resnew.go cgo_sockold.go cgo_unix.go]: exit status 1
+
+Agreeing to the Xcode/iOS license requires admin privileges, please re-run as root via sudo.
+
+... etc
+
+```
+
+Fix it by running:
+
+```
+sudo xcodebuild -license
+```
