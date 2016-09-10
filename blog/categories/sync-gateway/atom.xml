@@ -4,7 +4,7 @@
   <title><![CDATA[Category: sync-gateway, | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/sync-gateway/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-05-19T23:25:30+00:00</updated>
+  <updated>2016-09-10T08:28:33-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Running a Walrus-backed Sync Gateway on AWS]]></title>
     <link href="http://tleyden.github.io/blog/2015/01/23/running-a-walrus-backed-sync-gateway-on-aws/"/>
-    <updated>2015-01-23T09:30:00+00:00</updated>
+    <updated>2015-01-23T09:30:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2015/01/23/running-a-walrus-backed-sync-gateway-on-aws</id>
     <content type="html"><![CDATA[<p>Follow the steps below to create a Sync Gateway instance running under AWS with the following architecture:</p>
 

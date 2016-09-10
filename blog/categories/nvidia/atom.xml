@@ -4,7 +4,7 @@
   <title><![CDATA[Category: nvidia | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/nvidia/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-05-19T23:25:30+00:00</updated>
+  <updated>2016-09-10T08:28:33-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[CoreOS with Nvidia CUDA GPU drivers]]></title>
     <link href="http://tleyden.github.io/blog/2014/11/04/coreos-with-nvidia-cuda-gpu-drivers/"/>
-    <updated>2014-11-04T07:08:00+00:00</updated>
+    <updated>2014-11-04T07:08:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2014/11/04/coreos-with-nvidia-cuda-gpu-drivers</id>
     <content type="html"><![CDATA[<p>This will walk you through installing the Nvidia GPU kernel module and CUDA drivers on a docker container running inside of CoreOS.</p>
 

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: golang | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/golang/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-05-19T23:25:30+00:00</updated>
+  <updated>2016-09-10T08:28:33-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Go race detector gotcha with value receivers]]></title>
     <link href="http://tleyden.github.io/blog/2016/05/19/go-race-detector-gotcha-with-value-receivers/"/>
-    <updated>2016-05-19T23:06:00+00:00</updated>
+    <updated>2016-05-19T23:06:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2016/05/19/go-race-detector-gotcha-with-value-receivers</id>
     <content type="html"><![CDATA[<p>I ran into the following race detector error:</p>
 
@@ -105,7 +105,7 @@ func (r *Replication) GetStats() ReplicationStats {</p>
   <entry>
     <title type="html"><![CDATA[Adding vendoring to a Go project]]></title>
     <link href="http://tleyden.github.io/blog/2016/02/08/adding-vendoring-to-a-go-project/"/>
-    <updated>2016-02-08T22:49:00+00:00</updated>
+    <updated>2016-02-08T22:49:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2016/02/08/adding-vendoring-to-a-go-project</id>
     <content type="html"><![CDATA[<h2>Install gvt</h2>
 
@@ -242,7 +242,7 @@ $ gvt delete gopkg.in/alecthomas/kingpin.v2
   <entry>
     <title type="html"><![CDATA[Configure Emacs as a Go Editor From Scratch Part 3]]></title>
     <link href="http://tleyden.github.io/blog/2016/02/07/configure-emacs-as-a-go-editor-from-scratch-part-3/"/>
-    <updated>2016-02-07T04:25:00+00:00</updated>
+    <updated>2016-02-07T04:25:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2016/02/07/configure-emacs-as-a-go-editor-from-scratch-part-3</id>
     <content type="html"><![CDATA[<p>This is a continuation from <a href="http://tleyden.github.io/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2/">a previous blog post</a>.  In this post I&rsquo;m going to focus on making emacs look a bit better.</p>
 
@@ -295,7 +295,7 @@ $ git clone https://github.com/jaypei/emacs-neotree.git neotree
   <entry>
     <title type="html"><![CDATA[Test coverage for Go with drone.io and coveralls.io]]></title>
     <link href="http://tleyden.github.io/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io/"/>
-    <updated>2015-03-31T07:26:00+00:00</updated>
+    <updated>2015-03-31T07:26:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io</id>
     <content type="html"><![CDATA[<p>This will walk you through setting up a test coverage report on coveralls.io which will be updated every time a new build happens on drone.io (a continuous integration server similar to TavisCI).</p>
 
@@ -437,7 +437,7 @@ https://coveralls.io/jobs/5189501
   <entry>
     <title type="html"><![CDATA[Getting started with Go and Protocol Buffers]]></title>
     <link href="http://tleyden.github.io/blog/2014/12/02/getting-started-with-go-and-protocol-buffers/"/>
-    <updated>2014-12-02T06:32:00+00:00</updated>
+    <updated>2014-12-02T06:32:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2014/12/02/getting-started-with-go-and-protocol-buffers</id>
     <content type="html"><![CDATA[<p>I found the <a href="https://github.com/golang/protobuf">official docs</a> on using Google Protocol Buffers from Go a bit confusing, and couldn&rsquo;t find any other clearly written blog posts on the subject, so I figured I&rsquo;d write my own.</p>
 

@@ -91,7 +91,7 @@
   
 
 
-<time datetime="2014-05-22T16:46:00+00:00" pubdate data-updated="true">May 22<span>nd</span>, 2014</time>
+<time datetime="2014-05-22T16:46:00-07:00" pubdate data-updated="true">May 22<span>nd</span>, 2014</time>
         
       </p>
     
@@ -130,34 +130,6 @@
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>go get golang.org/x/tools/cmd/...</span></code></pre></td></tr></table></div></figure>
-
-
-<p>I ended up getting an error:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ go get golang.org/x/tools/cmd/...
-</span><span class='line'># golang.org/x/tools/go/ssa/interp
-</span><span class='line'>Development/gocode/src/golang.org/x/tools/go/ssa/interp/external.go:244: undefined: syscall.Pipe2</span></code></pre></td></tr></table></div></figure>
-
-
-<p>which is documented in <a href="https://github.com/golang/go/issues/13831">issue 13831</a></p>
-
-<p>To get around this, you can install the tools you need directly via:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>go get golang.org/x/tools/cmd/godoc
-</span><span class='line'>go get golang.org/x/tools/cmd/cover
-</span><span class='line'>go get golang.org/x/tools/cmd/gorename
-</span><span class='line'>go get golang.org/x/tools/cmd/goimports
-</span><span class='line'>go get golang.org/x/tools/cmd/oracle
-</span><span class='line'>go get golang.org/x/tools/cmd/vet</span></code></pre></td></tr></table></div></figure>
 
 
 <h2>Install Melpa</h2>
@@ -445,7 +417,7 @@
   
 
 
-<time datetime="2014-05-22T16:46:00+00:00" pubdate data-updated="true">May 22<span>nd</span>, 2014</time>
+<time datetime="2014-05-22T16:46:00-07:00" pubdate data-updated="true">May 22<span>nd</span>, 2014</time>
       
 
 <span class="categories">

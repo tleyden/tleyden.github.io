@@ -4,7 +4,7 @@
   <title><![CDATA[Category: mobile | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/mobile/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-05-19T23:25:30+00:00</updated>
+  <updated>2016-09-10T08:28:33-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Up and Running with Couchbase Lite Phonegap Android on OSX]]></title>
     <link href="http://tleyden.github.io/blog/2014/12/11/up-and-running-with-couchbase-lite-phonegap/"/>
-    <updated>2014-12-11T12:48:00+00:00</updated>
+    <updated>2014-12-11T12:48:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2014/12/11/up-and-running-with-couchbase-lite-phonegap</id>
     <content type="html"><![CDATA[<p>This will walk you through the steps to install the TodoLite-Phonegap sample app that uses Couchbase Lite Android.  After you&rsquo;re finished, you&rsquo;ll end up with <a href="http://tleyden-misc.s3.amazonaws.com/blog_images/TodoLitePhonegap.png">this app</a>.</p>
 

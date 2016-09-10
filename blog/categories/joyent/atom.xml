@@ -4,7 +4,7 @@
   <title><![CDATA[Category: joyent | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/joyent/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-05-19T23:25:30+00:00</updated>
+  <updated>2016-09-10T08:28:33-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Running Couchbase Server under Joyent Triton]]></title>
     <link href="http://tleyden.github.io/blog/2015/05/05/running-couchbase-server-under-docker-on-joyent/"/>
-    <updated>2015-05-05T09:31:00+00:00</updated>
+    <updated>2015-05-05T09:31:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2015/05/05/running-couchbase-server-under-docker-on-joyent</id>
     <content type="html"><![CDATA[<p>Joyent has recently announced their new Triton Docker container hosting service.  There are several advantages of running Docker containers on Triton over a more traditional cloud hosting platform:</p>
 

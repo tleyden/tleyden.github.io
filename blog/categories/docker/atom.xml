@@ -4,7 +4,7 @@
   <title><![CDATA[Category: docker | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/docker/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-05-19T23:25:30+00:00</updated>
+  <updated>2016-09-10T08:28:33-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Octopress under Docker]]></title>
     <link href="http://tleyden.github.io/blog/2016/02/06/octopress-under-docker/"/>
-    <updated>2016-02-06T05:38:00+00:00</updated>
+    <updated>2016-02-06T05:38:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2016/02/06/octopress-under-docker</id>
     <content type="html"><![CDATA[<p>I&rsquo;m setting up a clean install of El Capitan, and want to get my Octopress blog going.  However, I don&rsquo;t want to install it <em>directly</em> on my OSX workstation &mdash; I want to have it <em>contained</em> in a docker container.</p>
 
@@ -97,7 +97,7 @@ Password for &lsquo;<a href="https://username@github.com">https://username@githu
   <entry>
     <title type="html"><![CDATA[Setting up Uniqush with APNS]]></title>
     <link href="http://tleyden.github.io/blog/2016/02/03/setting-up-uniqush-with-apns/"/>
-    <updated>2016-02-03T08:47:00+00:00</updated>
+    <updated>2016-02-03T08:47:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2016/02/03/setting-up-uniqush-with-apns</id>
     <content type="html"><![CDATA[<p>This walks you through running <a href="http://uniqush.org/index.html">Uniqush</a> in the cloud (under Docker) and setting up an iOS app to receive messages via APNS (Apple Push Notification Service).</p>
 
@@ -410,7 +410,7 @@ $ curl -v <a href="http://localhost:9898/push">http://localhost:9898/push</a> -d
   <entry>
     <title type="html"><![CDATA[Running Neural Style on an AWS GPU instance]]></title>
     <link href="http://tleyden.github.io/blog/2015/11/22/running-neural-style-on-an-aws-gpu-instance/"/>
-    <updated>2015-11-22T11:02:00+00:00</updated>
+    <updated>2015-11-22T11:02:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2015/11/22/running-neural-style-on-an-aws-gpu-instance</id>
     <content type="html"><![CDATA[<p>These instructions will walk you through getting <a href="https://github.com/jcjohnson/neural-style">neural-style</a> up and running on an AWS GPU instance.</p>
 
@@ -610,7 +610,7 @@ luarocks install cudnn
   <entry>
     <title type="html"><![CDATA[Running Couchbase Server under Joyent Triton]]></title>
     <link href="http://tleyden.github.io/blog/2015/05/05/running-couchbase-server-under-docker-on-joyent/"/>
-    <updated>2015-05-05T09:31:00+00:00</updated>
+    <updated>2015-05-05T09:31:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2015/05/05/running-couchbase-server-under-docker-on-joyent</id>
     <content type="html"><![CDATA[<p>Joyent has recently announced their new Triton Docker container hosting service.  There are several advantages of running Docker containers on Triton over a more traditional cloud hosting platform:</p>
 
@@ -1056,7 +1056,7 @@ $ sdc-getmachine &lt;machine_id&gt; | json -aH ips | json -aH | egrep "10\.|192\
   <entry>
     <title type="html"><![CDATA[Setting up Octopress under Docker]]></title>
     <link href="http://tleyden.github.io/blog/2015/04/25/setting-up-octopress-under-docker/"/>
-    <updated>2015-04-25T03:57:00+00:00</updated>
+    <updated>2015-04-25T03:57:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2015/04/25/setting-up-octopress-under-docker</id>
     <content type="html"><![CDATA[<p>I got a new computer last week.  It&rsquo;s the latest macbook retina, and I needed to refresh because I wanted a bigger SSD drive (and after having an SSD drive, I&rsquo;ll never go back)</p>
 

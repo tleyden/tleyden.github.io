@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-05-19T23:25:30+00:00</updated>
+  <updated>2016-09-10T08:28:33-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Go race detector gotcha with value receivers]]></title>
     <link href="http://tleyden.github.io/blog/2016/05/19/go-race-detector-gotcha-with-value-receivers/"/>
-    <updated>2016-05-19T23:06:00+00:00</updated>
+    <updated>2016-05-19T23:06:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2016/05/19/go-race-detector-gotcha-with-value-receivers</id>
     <content type="html"><![CDATA[<p>I ran into the following race detector error:</p>
 
@@ -103,7 +103,7 @@
   <entry>
     <title type="html"><![CDATA[Setting up a self-hosted drone.io CI server]]></title>
     <link href="http://tleyden.github.io/blog/2016/02/15/setting-up-a-self-hosted-drone-dot-io-ci-server/"/>
-    <updated>2016-02-15T19:37:00+00:00</updated>
+    <updated>2016-02-15T19:37:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2016/02/15/setting-up-a-self-hosted-drone-dot-io-ci-server</id>
     <content type="html"><![CDATA[<h2>Spin up AWS server</h2>
 
@@ -328,7 +328,7 @@
   <entry>
     <title type="html"><![CDATA[Adding vendoring to a Go project]]></title>
     <link href="http://tleyden.github.io/blog/2016/02/08/adding-vendoring-to-a-go-project/"/>
-    <updated>2016-02-08T22:49:00+00:00</updated>
+    <updated>2016-02-08T22:49:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2016/02/08/adding-vendoring-to-a-go-project</id>
     <content type="html"><![CDATA[<h2>Install gvt</h2>
 
@@ -483,7 +483,7 @@
   <entry>
     <title type="html"><![CDATA[Configure Emacs as a Go Editor From Scratch Part 3]]></title>
     <link href="http://tleyden.github.io/blog/2016/02/07/configure-emacs-as-a-go-editor-from-scratch-part-3/"/>
-    <updated>2016-02-07T04:25:00+00:00</updated>
+    <updated>2016-02-07T04:25:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2016/02/07/configure-emacs-as-a-go-editor-from-scratch-part-3</id>
     <content type="html"><![CDATA[<p>This is a continuation from <a href="http://tleyden.github.io/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2/">a previous blog post</a>.  In this post I&rsquo;m going to focus on making emacs look a bit better.</p>
 
@@ -540,7 +540,7 @@
   <entry>
     <title type="html"><![CDATA[Octopress under Docker]]></title>
     <link href="http://tleyden.github.io/blog/2016/02/06/octopress-under-docker/"/>
-    <updated>2016-02-06T05:38:00+00:00</updated>
+    <updated>2016-02-06T05:38:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2016/02/06/octopress-under-docker</id>
     <content type="html"><![CDATA[<p>I&rsquo;m setting up a clean install of El Capitan, and want to get my Octopress blog going.  However, I don&rsquo;t want to install it <em>directly</em> on my OSX workstation &mdash; I want to have it <em>contained</em> in a docker container.</p>
 
@@ -621,7 +621,7 @@
   <entry>
     <title type="html"><![CDATA[Setting up Uniqush with APNS]]></title>
     <link href="http://tleyden.github.io/blog/2016/02/03/setting-up-uniqush-with-apns/"/>
-    <updated>2016-02-03T08:47:00+00:00</updated>
+    <updated>2016-02-03T08:47:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2016/02/03/setting-up-uniqush-with-apns</id>
     <content type="html"><![CDATA[<p>This walks you through running <a href="http://uniqush.org/index.html">Uniqush</a> in the cloud (under Docker) and setting up an iOS app to receive messages via APNS (Apple Push Notification Service).</p>
 
@@ -990,7 +990,7 @@
   <entry>
     <title type="html"><![CDATA[CUDA 7.5 on AWS GPU Instance Running Ubuntu 14.04]]></title>
     <link href="http://tleyden.github.io/blog/2015/11/22/cuda-7-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/"/>
-    <updated>2015-11-22T17:32:00+00:00</updated>
+    <updated>2015-11-22T17:32:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2015/11/22/cuda-7-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04</id>
     <content type="html"><![CDATA[<h2>Launch stock Ubuntu AMI</h2>
 
@@ -1127,7 +1127,7 @@
   <entry>
     <title type="html"><![CDATA[Running Neural Style on an AWS GPU instance]]></title>
     <link href="http://tleyden.github.io/blog/2015/11/22/running-neural-style-on-an-aws-gpu-instance/"/>
-    <updated>2015-11-22T11:02:00+00:00</updated>
+    <updated>2015-11-22T11:02:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2015/11/22/running-neural-style-on-an-aws-gpu-instance</id>
     <content type="html"><![CDATA[<p>These instructions will walk you through getting <a href="https://github.com/jcjohnson/neural-style">neural-style</a> up and running on an AWS GPU instance.</p>
 
@@ -1366,7 +1366,7 @@
   <entry>
     <title type="html"><![CDATA[Running the Sync Gateway Amazon AMI]]></title>
     <link href="http://tleyden.github.io/blog/2015/11/03/running-the-sync-gateway-amazon-ami/"/>
-    <updated>2015-11-03T11:11:00+00:00</updated>
+    <updated>2015-11-03T11:11:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2015/11/03/running-the-sync-gateway-amazon-ami</id>
     <content type="html"><![CDATA[<p>How to run the Couchbase Sync Gateway AWS AMI</p>
 
@@ -1453,7 +1453,7 @@
   <entry>
     <title type="html"><![CDATA[Running Couchbase Server under Joyent Triton]]></title>
     <link href="http://tleyden.github.io/blog/2015/05/05/running-couchbase-server-under-docker-on-joyent/"/>
-    <updated>2015-05-05T09:31:00+00:00</updated>
+    <updated>2015-05-05T09:31:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2015/05/05/running-couchbase-server-under-docker-on-joyent</id>
     <content type="html"><![CDATA[<p>Joyent has recently announced their new Triton Docker container hosting service.  There are several advantages of running Docker containers on Triton over a more traditional cloud hosting platform:</p>
 
@@ -1990,7 +1990,7 @@
   <entry>
     <title type="html"><![CDATA[Setting up Octopress under Docker]]></title>
     <link href="http://tleyden.github.io/blog/2015/04/25/setting-up-octopress-under-docker/"/>
-    <updated>2015-04-25T03:57:00+00:00</updated>
+    <updated>2015-04-25T03:57:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2015/04/25/setting-up-octopress-under-docker</id>
     <content type="html"><![CDATA[<p>I got a new computer last week.  It&rsquo;s the latest macbook retina, and I needed to refresh because I wanted a bigger SSD drive (and after having an SSD drive, I&rsquo;ll never go back)</p>
 
@@ -2116,7 +2116,7 @@
   <entry>
     <title type="html"><![CDATA[Test coverage for Go with drone.io and coveralls.io]]></title>
     <link href="http://tleyden.github.io/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io/"/>
-    <updated>2015-03-31T07:26:00+00:00</updated>
+    <updated>2015-03-31T07:26:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io</id>
     <content type="html"><![CDATA[<p>This will walk you through setting up a test coverage report on coveralls.io which will be updated every time a new build happens on drone.io (a continuous integration server similar to TavisCI).</p>
 
@@ -2271,7 +2271,7 @@
   <entry>
     <title type="html"><![CDATA[Nginx proxy for Sync Gateway using Confd]]></title>
     <link href="http://tleyden.github.io/blog/2015/03/21/nginx-proxy-for-sync-gateway-using-confd/"/>
-    <updated>2015-03-21T15:25:00+00:00</updated>
+    <updated>2015-03-21T15:25:00-07:00</updated>
     <id>http://tleyden.github.io/blog/2015/03/21/nginx-proxy-for-sync-gateway-using-confd</id>
     <content type="html"><![CDATA[<p>This will walk you through setting up Sync Gateway behind nginx.  The nginx conf will be auto generated based on Sync Gateway status.</p>
 
@@ -2426,7 +2426,7 @@
   <entry>
     <title type="html"><![CDATA[Graphing time series data with Seriesly and Cubism]]></title>
     <link href="http://tleyden.github.io/blog/2015/03/03/graphing-time-series-data-with-seriesly-and-cubism/"/>
-    <updated>2015-03-03T16:53:00+00:00</updated>
+    <updated>2015-03-03T16:53:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2015/03/03/graphing-time-series-data-with-seriesly-and-cubism</id>
     <content type="html"><![CDATA[<p>This will walk you through the basics of putting data into <a href="https://github.com/dustin/seriesly">seriesly</a> and visualizing it with <a href="https://square.github.io/cubism/">cubism</a>.</p>
 
@@ -2553,7 +2553,7 @@
   <entry>
     <title type="html"><![CDATA[Running a Walrus-backed Sync Gateway on AWS]]></title>
     <link href="http://tleyden.github.io/blog/2015/01/23/running-a-walrus-backed-sync-gateway-on-aws/"/>
-    <updated>2015-01-23T09:30:00+00:00</updated>
+    <updated>2015-01-23T09:30:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2015/01/23/running-a-walrus-backed-sync-gateway-on-aws</id>
     <content type="html"><![CDATA[<p>Follow the steps below to create a Sync Gateway instance running under AWS with the following architecture:</p>
 
@@ -2784,7 +2784,7 @@
   <entry>
     <title type="html"><![CDATA[Running a Sync Gateway Cluster Under CoreOS on AWS]]></title>
     <link href="http://tleyden.github.io/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws/"/>
-    <updated>2014-12-15T19:22:00+00:00</updated>
+    <updated>2014-12-15T19:22:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws</id>
     <content type="html"><![CDATA[<p>The content in this blog post has <strong>moved</strong>.</p>
 
@@ -2795,7 +2795,7 @@
   <entry>
     <title type="html"><![CDATA[Up and Running with Couchbase Lite Phonegap Android on OSX]]></title>
     <link href="http://tleyden.github.io/blog/2014/12/11/up-and-running-with-couchbase-lite-phonegap/"/>
-    <updated>2014-12-11T12:48:00+00:00</updated>
+    <updated>2014-12-11T12:48:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2014/12/11/up-and-running-with-couchbase-lite-phonegap</id>
     <content type="html"><![CDATA[<p>This will walk you through the steps to install the TodoLite-Phonegap sample app that uses Couchbase Lite Android.  After you&rsquo;re finished, you&rsquo;ll end up with <a href="http://tleyden-misc.s3.amazonaws.com/blog_images/TodoLitePhonegap.png">this app</a>.</p>
 
@@ -3033,7 +3033,7 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
   <entry>
     <title type="html"><![CDATA[Getting started with Go and Protocol Buffers]]></title>
     <link href="http://tleyden.github.io/blog/2014/12/02/getting-started-with-go-and-protocol-buffers/"/>
-    <updated>2014-12-02T06:32:00+00:00</updated>
+    <updated>2014-12-02T06:32:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2014/12/02/getting-started-with-go-and-protocol-buffers</id>
     <content type="html"><![CDATA[<p>I found the <a href="https://github.com/golang/protobuf">official docs</a> on using Google Protocol Buffers from Go a bit confusing, and couldn&rsquo;t find any other clearly written blog posts on the subject, so I figured I&rsquo;d write my own.</p>
 
@@ -3220,7 +3220,7 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
   <entry>
     <title type="html"><![CDATA[Running a CBFS cluster on CoreOS]]></title>
     <link href="http://tleyden.github.io/blog/2014/11/14/running-cbfs/"/>
-    <updated>2014-11-14T06:43:00+00:00</updated>
+    <updated>2014-11-14T06:43:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2014/11/14/running-cbfs</id>
     <content type="html"><![CDATA[<p>This will walk you through getting a cbfs cluster up and running.</p>
 
@@ -3416,7 +3416,7 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
   <entry>
     <title type="html"><![CDATA[An example of using NSQ from Go]]></title>
     <link href="http://tleyden.github.io/blog/2014/11/12/an-example-of-using-nsq-from-go/"/>
-    <updated>2014-11-12T07:26:00+00:00</updated>
+    <updated>2014-11-12T07:26:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2014/11/12/an-example-of-using-nsq-from-go</id>
     <content type="html"><![CDATA[<p><a href="https://github.com/bitly/nsq">NSQ</a> is a message queue, similar to RabbitMQ.  I decided I&rsquo;d give it a whirl.</p>
 

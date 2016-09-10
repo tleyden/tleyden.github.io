@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ci | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/ci/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-05-19T23:25:30+00:00</updated>
+  <updated>2016-09-10T08:28:33-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Setting up a self-hosted drone.io CI server]]></title>
     <link href="http://tleyden.github.io/blog/2016/02/15/setting-up-a-self-hosted-drone-dot-io-ci-server/"/>
-    <updated>2016-02-15T19:37:00+00:00</updated>
+    <updated>2016-02-15T19:37:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2016/02/15/setting-up-a-self-hosted-drone-dot-io-ci-server</id>
     <content type="html"><![CDATA[<h2>Spin up AWS server</h2>
 
