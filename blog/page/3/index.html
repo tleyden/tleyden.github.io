@@ -1717,6 +1717,37 @@
 <p>Now you should try it with one of your own packages.</p>
 
 <p>This is just scratching the surface &mdash; to get more information on how to use Go Oracle, see <a href="https://docs.google.com/document/d/1SLk36YRjjMgKqe490mSRzOPYEDe0Y_WQNRv-EiFYUyw/view">go oracle: user manual</a>.</p>
+
+<h2>Troubleshooting</h2>
+
+<p>If you get this error when running <code>go-oracle-callers</code>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Go Oracle
+</span><span class='line'>
+</span><span class='line'>Agreeing to the Xcode/iOS license requires admin privileges, please re-run as root via sudo.
+</span><span class='line'>
+</span><span class='line'>cgo failed: [go tool cgo -objdir /var/folders/2j/cp3qdxqs72g99l49h40f9p7m0000gn/T/net_C392209343 -- -I /var/folders/2j/cp3qdxqs72g99l49h40f9p7m0000gn/T/net_C392209343 cgo_bsd.go cgo_resnew.go cgo_sockold.go cgo_unix.go]: exit status 1
+</span><span class='line'>
+</span><span class='line'>Agreeing to the Xcode/iOS license requires admin privileges, please re-run as root via sudo.
+</span><span class='line'>
+</span><span class='line'>... etc
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Fix it by running:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>sudo xcodebuild -license</span></code></pre></td></tr></table></div></figure>
+
 </div>
   
   

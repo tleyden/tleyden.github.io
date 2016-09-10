@@ -158,25 +158,6 @@
 
 <p>Run <code>M-x package-install</code> and when prompted, enter <code>go-mode</code> and hit enter.</p>
 
-<p>I got the following warnings:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>Compiling file /Users/tleyden/.emacs.d/elpa/go-mode-20160127.4/go-mode.el at Sat Feb  6 17:58:11 2016
-</span><span class='line'>Entering directory `/Users/tleyden/.emacs.d/elpa/go-mode-20160127.4/'
-</span><span class='line'>go-mode.el:16:1:Warning: cl package required at runtime
-</span><span class='line'>
-</span><span class='line'>In go-mode:
-</span><span class='line'>go-mode.el:917:10:Warning: `font-lock-syntactic-keywords' is an obsolete
-</span><span class='line'>    variable (as of 24.1); use `syntax-propertize-function' instead.
-</span></code></pre></td></tr></table></div></figure>
-
-
 <p>Restart Emacs and open a .go file, you should see the mode as &ldquo;Go&rdquo; rather than &ldquo;Fundamental&rdquo;.</p>
 
 <p>For a full description of what go-mode can do for you, see <a href="http://dominik.honnef.co/posts/2013/03/writing_go_in_emacs/">Dominik Honnef&rsquo;s blog</a>, but one really useful thing to be aware of is that you can quickly import packages via <code>C-c C-a</code></p>
@@ -237,8 +218,6 @@
 </span><span class='line'>(when window-system (set-exec-path-from-shell-PATH))</span></code></pre></td></tr></table></div></figure>
 
 
-<p>NOTE: according to <a href="http://stackoverflow.com/questions/6411121/how-to-make-emacs-use-my-bashrc-file">this StackOverflow post</a>, it&rsquo;s possible to achieve this via downloading the <a href="https://github.com/purcell/exec-path-from-shell">exec-path-from-shell</a> emacs plugin from Marmelade or Melpa.</p>
-
 <p><strong>GOPATH</strong></p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -257,13 +236,9 @@
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>(setq exec-path (cons "/usr/local/go/bin" exec-path))
-</span><span class='line'>(add-to-list 'exec-path "/Users/tleyden/Development/gocode/bin")
+</pre></td><td class='code'><pre><code class=''><span class='line'>(add-to-list 'exec-path "/Users/tleyden/Development/gocode/bin")
 </span><span class='line'>(add-hook 'before-save-hook 'gofmt-before-save)</span></code></pre></td></tr></table></div></figure>
 
-
-<p>(replace the above path to the absolute path to your <code>$GOPATH/bin</code> directory)</p>
 
 <p>After this step, whenever you save a Go file, it will automatically reformat the file with <code>gofmt</code>.</p>
 
@@ -271,9 +246,15 @@
 
 <p>Godef is essential: it lets you quickly jump around the code, as you might be used to with a full featured IDE.</p>
 
-<p>From what I can tell, installing <a href="https://github.com/dominikh/go-mode.el">go-mode</a> seems to automatically install godef.</p>
+<p>Install godef itself:</p>
 
-<p>To verify that godef is indeed installed:</p>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>go get github.com/rogpeppe/godef</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Installing <a href="https://github.com/dominikh/go-mode.el">go-mode</a> automatically installs godef bindings.</p>
+
+<p>To verify that godef bindings work:</p>
 
 <ul>
 <li>Putting the cursor over a method name</li>
@@ -305,8 +286,6 @@
 
 <p>Install melpa auto-complete via <code>M-x package-install</code> followed by <code>auto-complete</code></p>
 
-<p>I got <a href=":https://gist.github.com/tleyden/cecfbba9bd9112fb71ae">these warnings</a></p>
-
 <p>Add the following to your <code>~/.emacs.d/init.el</code> file:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -321,13 +300,19 @@
 
 <p>Before further verifying, we need to install go-autocomplete in the next step.</p>
 
-<h2>go-autocomplete</h2>
+<h3>go-autocomplete</h3>
 
 <p>The basic autocomplete installed is not as &ldquo;go aware&rdquo; as it should be.  The go-autocomplete (aka <a href="https://github.com/nsf/gocode/">nsf/gocode</a>) package fixes that.</p>
 
-<p>Install the melpa package via <code>M-x package-install</code> followed by <code>go-autocomplete</code></p>
+<p>Install the <a href="https://github.com/nsf/gocode">gocode binary</a></p>
 
-<p>Add the following to your <code>~/.emacs.d/init.el</code> file:</p>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>go get -u github.com/nsf/gocode</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and then install the melpa package via <code>M-x package-install</code> followed by <code>go-autocomplete</code></p>
+
+<p>After installing <code>go-autocomplete</code>, open your <code>~/.emacs.d/init.el</code> file and make sure the following was added:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -337,7 +322,7 @@
 </span><span class='line'> (add-hook 'go-mode-hook 'auto-complete-for-go)</span></code></pre></td></tr></table></div></figure>
 
 
-<p>Actually I&rsquo;m not sure if this gets added automatically when installing <code>go-autocomplete</code>.  If it&rsquo;s already in your <code>~/.emacs.d/init.el</code> file then you can skip that.</p>
+<p>If it was not added, you&rsquo;ll need to add it yourself.</p>
 
 <p>You&rsquo;ll also need the following (as recommended in <a href="https://github.com/nsf/gocode/issues/325">gocode issue 325</a>):</p>
 
