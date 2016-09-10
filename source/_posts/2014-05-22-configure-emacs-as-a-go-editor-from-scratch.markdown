@@ -161,8 +161,6 @@ Now you can jump into code with `M-.` and jump back with `M-*`
 
 Install melpa auto-complete via `M-x package-install` followed by `auto-complete`
 
-I got [these warnings](:https://gist.github.com/tleyden/cecfbba9bd9112fb71ae)
-
 Add the following to your `~/.emacs.d/init.el` file:
 
 ```
