@@ -123,8 +123,6 @@ Add these to your `~/.emacs.d/init.el`:
 (add-hook 'before-save-hook 'gofmt-before-save)
 ```
 
-(replace the above path to the absolute path to your `$GOPATH/bin` directory)
-
 After this step, whenever you save a Go file, it will automatically reformat the file with `gofmt`.
 
 ## Godef 
