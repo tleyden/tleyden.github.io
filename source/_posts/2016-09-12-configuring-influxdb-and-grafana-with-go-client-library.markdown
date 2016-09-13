@@ -136,9 +136,9 @@ resp, err := http.DefaultClient.Do(req)
 if err != nil {
 	return err
 }
-s.StatsdClient.Timing(1.0, "get_google_homepage", time.Since(startTime))
+s.StatsdClient.Timing(1.0, "open_website", time.Since(startTime))
 ```
 
-This will push statsd "timing" data points under the key "get_google_homepage", with the normal sample rate (set to 0.1 to downsample and only take every 10th sample).  Run the code in a loop and it will start pushing stats to `statsd`.
+This will push statsd "timing" data points under the key "open_website", with the normal sample rate (set to 0.1 to downsample and only take every 10th sample).  Run the code in a loop and it will start pushing stats to `statsd`.
 
-Now, create a new Grafana dashboard with the steps above, but from the **select measurement** field choose **get_google_homepage**, and under **SELECT** choose **field (mean)** instead of **field (value)**.  
+Now, create a new Grafana dashboard with the steps above, but from the **select measurement** field choose **open_website**, and under **SELECT** choose **field (mean)** instead of **field (value)**.  
