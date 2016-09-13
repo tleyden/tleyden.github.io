@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-09-13T16:20:21-07:00</updated>
+  <updated>2016-09-13T16:23:22-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -196,12 +196,12 @@
 </span><span class='line'>if err != nil {
 </span><span class='line'>  return err
 </span><span class='line'>}
-</span><span class='line'>s.StatsdClient.Timing(1.0, "get_google_homepage", time.Since(startTime))</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>s.StatsdClient.Timing(1.0, "open_website", time.Since(startTime))</span></code></pre></td></tr></table></div></figure>
 
 
-<p>This will push statsd &ldquo;timing&rdquo; data points under the key &ldquo;get_google_homepage&rdquo;, with the normal sample rate (set to 0.1 to downsample and only take every 10th sample).  Run the code in a loop and it will start pushing stats to <code>statsd</code>.</p>
+<p>This will push statsd &ldquo;timing&rdquo; data points under the key &ldquo;open_website&rdquo;, with the normal sample rate (set to 0.1 to downsample and only take every 10th sample).  Run the code in a loop and it will start pushing stats to <code>statsd</code>.</p>
 
-<p>Now, create a new Grafana dashboard with the steps above, but from the <strong>select measurement</strong> field choose <strong>get_google_homepage</strong>, and under <strong>SELECT</strong> choose <strong>field (mean)</strong> instead of <strong>field (value)</strong>.</p>
+<p>Now, create a new Grafana dashboard with the steps above, but from the <strong>select measurement</strong> field choose <strong>open_website</strong>, and under <strong>SELECT</strong> choose <strong>field (mean)</strong> instead of <strong>field (value)</strong>.</p>
 ]]></content>
   </entry>
   

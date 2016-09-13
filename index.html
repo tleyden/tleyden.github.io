@@ -283,12 +283,12 @@ brew install influxdb grafana telegraf &hellip;">
 </span><span class='line'>if err != nil {
 </span><span class='line'>  return err
 </span><span class='line'>}
-</span><span class='line'>s.StatsdClient.Timing(1.0, "get_google_homepage", time.Since(startTime))</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>s.StatsdClient.Timing(1.0, "open_website", time.Since(startTime))</span></code></pre></td></tr></table></div></figure>
 
 
-<p>This will push statsd &ldquo;timing&rdquo; data points under the key &ldquo;get_google_homepage&rdquo;, with the normal sample rate (set to 0.1 to downsample and only take every 10th sample).  Run the code in a loop and it will start pushing stats to <code>statsd</code>.</p>
+<p>This will push statsd &ldquo;timing&rdquo; data points under the key &ldquo;open_website&rdquo;, with the normal sample rate (set to 0.1 to downsample and only take every 10th sample).  Run the code in a loop and it will start pushing stats to <code>statsd</code>.</p>
 
-<p>Now, create a new Grafana dashboard with the steps above, but from the <strong>select measurement</strong> field choose <strong>get_google_homepage</strong>, and under <strong>SELECT</strong> choose <strong>field (mean)</strong> instead of <strong>field (value)</strong>.</p>
+<p>Now, create a new Grafana dashboard with the steps above, but from the <strong>select measurement</strong> field choose <strong>open_website</strong>, and under <strong>SELECT</strong> choose <strong>field (mean)</strong> instead of <strong>field (value)</strong>.</p>
 </div>
   
   
