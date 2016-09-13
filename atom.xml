@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-09-10T09:14:20-07:00</updated>
+  <updated>2016-09-13T16:20:21-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,198 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Configuring InfluxDB and Grafana with Go client library]]></title>
+    <link href="http://tleyden.github.io/blog/2016/09/12/configuring-influxdb-and-grafana-with-go-client-library/"/>
+    <updated>2016-09-12T15:14:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2016/09/12/configuring-influxdb-and-grafana-with-go-client-library</id>
+    <content type="html"><![CDATA[<p>Create a beautiful Grafana dashboard with realtime performance stats:</p>
+
+<p><img src="https://cloud.githubusercontent.com/assets/296876/18493836/730085b0-79c7-11e6-9236-50dd3d4c72d4.png" alt="screen shot 2016-09-13 at 3 33 20 pm" /></p>
+
+<h2>Install InfluxDB and Grafana</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>brew install influxdb grafana telegraf
+</span><span class='line'>brew services start influxdb
+</span><span class='line'>brew services start grafana
+</span><span class='line'>brew services start telegraf</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Versions at the time of this writing:</p>
+
+<ul>
+<li>InfluxDB: 1.0</li>
+<li>Grafana: 3.1.1</li>
+</ul>
+
+
+<h2>Verify</h2>
+
+<ul>
+<li>The Grafana Web UI should be available at <a href="http://localhost:3000/">localhost:3000</a> &mdash; login with admin/admin</li>
+<li>The InfluxDB Web UI should be available at <a href="http://localhost:8083/">localhost:8083</a></li>
+</ul>
+
+
+<h2>Create database on influx</h2>
+
+<p>Create db named &ldquo;db&rdquo;</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ influx
+</span><span class='line'>&gt; create database db</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Edit telegraf conf</h2>
+
+<p>Uncomment the entire statsd server section:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># Statsd Server
+</span><span class='line'>[[inputs.statsd]]
+</span><span class='line'>  ## Address and port to host UDP listener on
+</span><span class='line'>  service_address = ":8125"
+</span><span class='line'>
+</span><span class='line'>  .. etc .. </span></code></pre></td></tr></table></div></figure>
+
+
+<p>Set the database to use the &ldquo;db&rdquo; database created earlier, under the <code>outputs.influxdb</code> section of the telegraf config</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[[outputs.influxdb]]
+</span><span class='line'>  ## The full HTTP or UDP endpoint URL for your InfluxDB instance.
+</span><span class='line'>  ## Multiple urls can be specified as part of the same cluster,
+</span><span class='line'>  ## this means that only ONE of the urls will be written to each interval.
+</span><span class='line'>  # urls = ["udp://localhost:8089"] # UDP endpoint example
+</span><span class='line'>  urls = ["http://localhost:8086"] # required
+</span><span class='line'>  ## The target database for metrics (telegraf will create it if not exists).
+</span><span class='line'>  database = "db" # required</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Restart telegraf</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>brew services restart telegraf</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Create Grafana Data Source</h2>
+
+<ul>
+<li>Open the <a href="http://localhost:3000/">Grafana Web UI</a> in your browsers (login with admin/admin)</li>
+<li>Use the following values:</li>
+</ul>
+
+
+<p><img src="https://cloud.githubusercontent.com/assets/296876/18494027/a87adcf8-79c8-11e6-912b-a5e5a82dad14.png" alt="screen shot 2016-09-13 at 3 39 43 pm" /></p>
+
+<h2>Create Grafana Dashboard</h2>
+
+<ul>
+<li>Go to Dashboards / + New</li>
+<li>Click the green thing on the left, and choose Add Panel / Graph</li>
+</ul>
+
+
+<p><img src="https://cloud.githubusercontent.com/assets/296876/18494074/f230784e-79c8-11e6-9ab0-bc284b9e01f5.png" alt="screen shot 2016-09-13 at 3 43 50 pm" /></p>
+
+<ul>
+<li>Delete the test metric, which is not needed, by clicking the trash can to the right of &ldquo;Test Metric&rdquo;</li>
+</ul>
+
+
+<p><img src="https://cloud.githubusercontent.com/assets/296876/18494109/1a927152-79c9-11e6-98f9-f338549ee3d9.png" alt="screen shot 2016-09-13 at 3 45 04 pm" /></p>
+
+<ul>
+<li>Under Panel / Datasource, choose <strong>db</strong>, and then hit <strong>+ Add Query</strong>, you will end up with this</li>
+</ul>
+
+
+<p><img src="https://cloud.githubusercontent.com/assets/296876/18494180/7b8f9570-79c9-11e6-93c0-3f721d93002a.png" alt="screen shot 2016-09-13 at 3 47 21 pm" /></p>
+
+<h2>Push sample data point from command line</h2>
+
+<p>In order for the field we want to show up on the grafana dashboard, we need to push some data points to the telegraf statds daemon.</p>
+
+<p>Run this in a shell to push the <code>foo:1|c</code> data point, which is a counter with value increasing by 1 on the key named &ldquo;foo&rdquo;.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>while true; do echo "foo:1|c" | nc -u -w0 127.0.0.1 8125; sleep 1; echo "pushed data point"; done</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Create Grafana Dashboard, Part 2</h2>
+
+<ul>
+<li>Under <strong>select measurement</strong>, choose <strong>foo</strong> from the pulldown</li>
+<li>On the top right of the screen near the clock icon, choose &ldquo;Last 5 minutes&rdquo; and set <strong>Refreshing every</strong> to 5 seconds</li>
+<li>You should see your data point counter being increased!</li>
+</ul>
+
+
+<p><img src="https://cloud.githubusercontent.com/assets/296876/18494256/f45fe55e-79c9-11e6-9663-abf9db7e7299.png" alt="screen shot 2016-09-13 at 3 51 16 pm" /></p>
+
+<h2>Add Go client library and push data points</h2>
+
+<p>Here&rsquo;s how to update to your <code>golang</code> application to push new datapoints.</p>
+
+<ul>
+<li>Install the <a href="github.com/peterbourgon/g2s">g2s</a> client library via:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go get github.com/peterbourgon/g2s</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Here is some sample code to push data points to the <code>statds</code> telegraf process from your go program:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>statdsClient, err := g2s.Dial("udp", "http://localhost:8125")
+</span><span class='line'>if err != nil {
+</span><span class='line'>  panic("Couldn't connect to statsd!")
+</span><span class='line'>}
+</span><span class='line'>req, err := http.NewRequest("GET", "http://waynechain.com/")
+</span><span class='line'>resp, err := http.DefaultClient.Do(req)
+</span><span class='line'>if err != nil {
+</span><span class='line'>  return err
+</span><span class='line'>}
+</span><span class='line'>s.StatsdClient.Timing(1.0, "get_google_homepage", time.Since(startTime))</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This will push statsd &ldquo;timing&rdquo; data points under the key &ldquo;get_google_homepage&rdquo;, with the normal sample rate (set to 0.1 to downsample and only take every 10th sample).  Run the code in a loop and it will start pushing stats to <code>statsd</code>.</p>
+
+<p>Now, create a new Grafana dashboard with the steps above, but from the <strong>select measurement</strong> field choose <strong>get_google_homepage</strong>, and under <strong>SELECT</strong> choose <strong>field (mean)</strong> instead of <strong>field (value)</strong>.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Go race detector gotcha with value receivers]]></title>
@@ -3410,185 +3602,6 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
 <li><a href="https://github.com/couchbaselabs/cbfs/issues/132">cbfs question</a></li>
 </ul>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[An example of using NSQ from Go]]></title>
-    <link href="http://tleyden.github.io/blog/2014/11/12/an-example-of-using-nsq-from-go/"/>
-    <updated>2014-11-12T07:26:00-08:00</updated>
-    <id>http://tleyden.github.io/blog/2014/11/12/an-example-of-using-nsq-from-go</id>
-    <content type="html"><![CDATA[<p><a href="https://github.com/bitly/nsq">NSQ</a> is a message queue, similar to RabbitMQ.  I decided I&rsquo;d give it a whirl.</p>
-
-<h2>Install Nsq</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://s3.amazonaws.com/bitly-downloads/nsq/nsq-0.2.31.darwin-amd64.go1.3.1.tar.gz
-</span><span class='line'>$ tar xvfz nsq-0.2.31.darwin-amd64.go1.3.1.tar.gz
-</span><span class='line'>$ sudo mv nsq-0.2.31.darwin-amd64.go1.3.1/bin/* /usr/local/bin</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Launch Nsq</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ nsqlookupd & 
-</span><span class='line'>$ nsqd --lookupd-tcp-address=127.0.0.1:4160 &
-</span><span class='line'>$ nsqadmin --lookupd-http-address=127.0.0.1:4161 &</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Get Go client library</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ go get -u -v github.com/bitly/go-nsq</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Create a producer</h2>
-
-<p>Add the following code to main.go:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>package main
-</span><span class='line'>
-</span><span class='line'>import (
-</span><span class='line'>  "log"
-</span><span class='line'>  "github.com/bitly/go-nsq"
-</span><span class='line'>)
-</span><span class='line'>
-</span><span class='line'>func main() {
-</span><span class='line'>  config := nsq.NewConfig()
-</span><span class='line'>  w, _ := nsq.NewProducer("127.0.0.1:4150", config)
-</span><span class='line'>
-</span><span class='line'>  err := w.Publish("write_test", []byte("test"))
-</span><span class='line'>  if err != nil {
-</span><span class='line'>      log.Panic("Could not connect")
-</span><span class='line'>  }
-</span><span class='line'>
-</span><span class='line'>  w.Stop()
-</span><span class='line'>}
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and then run it with:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ go run main.go</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If you go to your NSQAdmin at <a href="http://localhost:4171/">http://localhost:4171</a>, you should see a single message in the <code>write_test</code> topic.</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/nsq_admin.png" alt="NSQAdmin" /></p>
-
-<h2>Create a consumer</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>package main
-</span><span class='line'>
-</span><span class='line'>import (
-</span><span class='line'>  "log"
-</span><span class='line'>  "sync"
-</span><span class='line'>
-</span><span class='line'>  "github.com/bitly/go-nsq"
-</span><span class='line'>)
-</span><span class='line'>
-</span><span class='line'>func main() {
-</span><span class='line'>
-</span><span class='line'>  wg := &sync.WaitGroup{}
-</span><span class='line'>  wg.Add(1)
-</span><span class='line'>
-</span><span class='line'>  config := nsq.NewConfig()
-</span><span class='line'>  q, _ := nsq.NewConsumer("write_test", "ch", config)
-</span><span class='line'>  q.AddHandler(nsq.HandlerFunc(func(message *nsq.Message) error {
-</span><span class='line'>      log.Printf("Got a message: %v", message)
-</span><span class='line'>      wg.Done()
-</span><span class='line'>      return nil
-</span><span class='line'>  }))
-</span><span class='line'>  err := q.ConnectToNSQD("127.0.0.1:4150")
-</span><span class='line'>  if err != nil {
-</span><span class='line'>      log.Panic("Could not connect")
-</span><span class='line'>  }
-</span><span class='line'>  wg.Wait()
-</span><span class='line'>
-</span><span class='line'>}
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and then run it with:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ go run main.go</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should see output:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>2014/11/12 08:37:29 INF    1 [write_test/ch] (127.0.0.1:4150) connecting to nsqd
-</span><span class='line'>2014/11/12 08:37:29 Got a message: &{[48 55 54 52 48 57 51 56 50 100 50 56 101 48 48 55] [116 101 115 116] 1415810020571836511 2 0xc208042118 0 0}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Congratulations!  You just pushed a message through <strong>NSQ</strong>.</p>
-
-<h2>Enhanced consumer: use NSQLookupd</h2>
-
-<p>The above example hardcoded the ip of <code>nsqd</code> into the consumer code, which is not a best practice.  A better way to go about it is to point the consumer at <code>nsqlookupd</code>, which will transparently connect to the appropriate <code>nsqd</code> that happens to be publishing that topic.</p>
-
-<p>In our example, we only have a single <code>nsqd</code>, so it&rsquo;s an extraneous lookup.  But it&rsquo;s good to get into the right habits early, especially if you are a <em>habitual copy/paster</em>.</p>
-
-<p>The consumer example only needs a one-line change to get this enhancement:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>err := q.ConnectToNSQLookupd("127.0.0.1:4161")</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Which will connect to the HTTP port of <code>nsqlookupd</code>.</p>
 ]]></content>
   </entry>
   

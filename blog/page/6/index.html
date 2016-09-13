@@ -1,0 +1,401 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Seven Story Rabbit Hole</title>
+  <meta name="author" content="Traun Leyden">
+
+  
+  <meta name="description" content="I&rsquo;m writing this blog entry as I&rsquo;m creating my blog. I have decided to use Octopress, and I&rsquo;m initially going to host it on Github &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://tleyden.github.io/blog/page/6">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+
+  <table><tr><td>
+  <h1><a href="/">Seven Story Rabbit Hole</a></h1>
+  
+    <h2>Sometimes awesome things happen in deep rabbit holes.  Or not.</h2>
+  
+  </td><td>&nbsp;&nbsp;
+  <img class="left" src="/images/rabbit_hole_graphic.png" width="132" height="105" title="image" alt="images">
+  </td></tr>
+  </table>
+
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:tleyden.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/09/07/octopress-setup-part-i/">Octopress Setup Part I</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-09-07T11:26:00-07:00" pubdate data-updated="true">Sep 7<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I&rsquo;m writing this blog entry as I&rsquo;m creating my blog.  I have decided to use <a href="http://octopress.org/">Octopress</a>, and I&rsquo;m initially going to host it on <a href="http://pages.github.com/">Github Pages</a>.</p>
+
+<h2>Step 1: create a github pages repo</h2>
+
+<p>In my case, I made a new repo called tleyden/tleyden.github.io.</p>
+
+<h2>Step 2: push an index.html</h2>
+
+<p>Clone the repo</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ git clone git@github.com:tleyden/tleyden.github.io.git</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Add some content</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd tleyden.github.io
+</span><span class='line'>$ echo "&lt;h1&gt;hello&lt;/h1&gt;" &gt; index.html</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Commit and push</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ git add index.html
+</span><span class='line'>$ git commit -m "empty blog"
+</span><span class='line'>$ git push origin master</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Step 3: see if it actually worked</h2>
+
+<p>Go to <a href="http://tleyden.github.io/">http://tleyden.github.io/</a> to see if it works.</p>
+
+<p><strong>It did not work.  WTH!?</strong></p>
+
+<p>Oh wait, it says: <em>It may take up to ten minutes until your page is available.</em></p>
+
+<p>Patiently hit reload 5 times / minute, and 7 minutes later .. <strong>IT WORKS!</strong></p>
+
+<h2>Step 4: get rvm (octopress dependency)</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ \curl -L https://get.rvm.io | bash
+</span><span class='line'>$ source /Users/traun/.rvm/scripts/rvm
+</span><span class='line'>$ rvm notes</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Step 5: get ruby 1.9.3 (octopress dependency)</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ rvm install 1.9.3
+</span><span class='line'>Searching for binary rubies, this might take some time.
+</span><span class='line'>No binary rubies available for: osx/10.8/x86_64/ruby-1.9.3-p448.
+</span><span class='line'>Continuing with compilation. Please read 'rvm help mount' to get more information on binary rubies.
+</span><span class='line'>Checking requirements for osx.
+</span><span class='line'>Installing requirements for osx.
+</span><span class='line'>Updating system......
+</span><span class='line'>Error running 'requirements_osx_brew_update_system ruby-1.9.3-p448',
+</span><span class='line'>please read /Users/traun/.rvm/log/1378534467_ruby-1.9.3-p448/update_system.log
+</span><span class='line'>Requirements installation failed with status: 1.</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I managed to get past this error by following this <a href="http://stackoverflow.com/questions/14113427/brew-update-failed">stack overflow post</a>.  However, the second time I went through these instructions, I got <a href="https://gist.github.com/tleyden/f7553a4c5843d553d695">this error</a> which I haven&rsquo;t figured out yet.</p>
+
+<p>Let&rsquo;s try this again ..</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Installing required packages: gcc46, libyaml, libksba, openssl......................................................................................................</span></code></pre></td></tr></table></div></figure>
+
+
+<p>45 minutes later, it finally worked.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ rvm use 1.9.3
+</span><span class='line'>$ rvm rubygems latest</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Step 6: get octopress</h2>
+
+<p>Follow the <a href="http://octopress.org/docs/setup/">Setup Ocotpress</a> instructions</p>
+
+<h2>Step 7: recreate repo</h2>
+
+<p>So this is a little <em>awkward</em>, and looking back I wish I hadn&rsquo;t pushed that index.html earlier, because it interferes with the github push in the next step.</p>
+
+<ul>
+<li>Delete your entire github repository: <code>username/username.github.io</code></li>
+<li>Create a new empty github repository: <code>username/username.github.io</code></li>
+</ul>
+
+
+<h2>Step 8: deploy to github pages</h2>
+
+<p>Follow the <a href="http://octopress.org/docs/deploying/github/">Deploy to Github pages</a> instructions.</p>
+
+<p>There is one step that is crucial if you don&rsquo;t want to accidentally lose your blog content:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>git add .
+</span><span class='line'>git commit -m 'your message'
+</span><span class='line'>git push origin source</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After doing that, your github repo should have two branches:</p>
+
+<ul>
+<li>Master: the &ldquo;published blog&rdquo; goes here, and will have a top-level index.html</li>
+<li>Source: the entire octopress source tree, plus a &ldquo;source&rdquo; and &ldquo;sass&rdquo; directory.  The &ldquo;source&rdquo; directory is where your blog markdown content will actually live.</li>
+</ul>
+
+
+<h2>Step 9: write a blog entry</h2>
+
+<p>Follow the <a href="http://octopress.org/docs/blogging/">New blog post</a> instructions.</p>
+
+<h2>Step 10: re-deploy</h2>
+
+<p>From the last step in the <a href="http://octopress.org/docs/deploying/github/">Deploy to Github pages</a> instructions, do the following:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ rake generate
+</span><span class='line'>$ rake deploy</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Step 11: revel in it&rsquo;s beauty</h2>
+
+<p><img src="http://cl.ly/image/1e2x3I293X3w/Screen%20Shot%202013-09-07%20at%2012.21.57%20AM.png" alt="screenshot" /></p>
+
+<h2>Step 12: Oops, don&rsquo;t forget to push the source changes!</h2>
+
+<p>Even though the blog content is deployed (eg, your master branch with your content has been pushed to github), the source is still sitting on your computer.  If your hard drive crashes, you&rsquo;ll lose your markdown, which is no fun.</p>
+
+<p>Here&rsquo;s how to push the latest changes of your source files up to github:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>git add .
+</span><span class='line'>git commit -m 'I just added a new blog entry'
+</span><span class='line'>git push origin source</span></code></pre></td></tr></table></div></figure>
+
+
+
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/blog/page/5/">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>About Me</h1>
+  <p>
+  I&#8217;m a software engineer at Couchbase, working on <a href="https://github.com/couchbase/couchbase-lite-ios">Couchbase Mobile</a> &#8211; an open source mobile NoSQL database with built-in sync capabilities.
+  </p>
+
+  <p>
+  In my spare time I am working on <a href="https://github.com/tleyden/elastic-thought">ElasticThought</a> &#8211; a scalable containerized REST API wrapper for the Caffe Deep Learning toolkit.
+  </p>
+
+  <p>
+  Follow me on twitter: <a href="https://twitter.com/tleydn">@tleydn</a>
+  </p>
+
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/09/12/configuring-influxdb-and-grafana-with-go-client-library/">Configuring InfluxDB and Grafana With Go Client Library</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/05/19/go-race-detector-gotcha-with-value-receivers/">Go Race Detector Gotcha With Value Receivers</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/15/setting-up-a-self-hosted-drone-dot-io-ci-server/">Setting Up a Self-hosted drone.io CI Server</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/08/adding-vendoring-to-a-go-project/">Adding Vendoring to a Go Project</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/07/configure-emacs-as-a-go-editor-from-scratch-part-3/">Configure Emacs as a Go Editor From Scratch Part 3</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating&#8230;</li>
+  </ul>
+  
+  <a href="https://github.com/tleyden">@tleyden</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'tleyden',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Traun Leyden -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'sevenstoryrabbithole';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

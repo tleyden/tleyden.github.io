@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: influxdb | Seven Story Rabbit Hole]]></title>
+  <link href="http://tleyden.github.io/blog/categories/influxdb/atom.xml" rel="self"/>
+  <link href="http://tleyden.github.io/"/>
+  <updated>2016-09-13T16:20:21-07:00</updated>
+  <id>http://tleyden.github.io/</id>
+  <author>
+    <name><![CDATA[Traun Leyden]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Configuring InfluxDB and Grafana with Go client library]]></title>
+    <link href="http://tleyden.github.io/blog/2016/09/12/configuring-influxdb-and-grafana-with-go-client-library/"/>
+    <updated>2016-09-12T15:14:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2016/09/12/configuring-influxdb-and-grafana-with-go-client-library</id>
+    <content type="html"><![CDATA[<p>Create a beautiful Grafana dashboard with realtime performance stats:</p>
+
+<p><img src="https://cloud.githubusercontent.com/assets/296876/18493836/730085b0-79c7-11e6-9236-50dd3d4c72d4.png" alt="screen shot 2016-09-13 at 3 33 20 pm" /></p>
+
+<h2>Install InfluxDB and Grafana</h2>
+
+<p><code>
+brew install influxdb grafana telegraf
+brew services start influxdb
+brew services start grafana
+brew services start telegraf
+</code></p>
+
+<p>Versions at the time of this writing:</p>
+
+<ul>
+<li>InfluxDB: 1.0</li>
+<li>Grafana: 3.1.1</li>
+</ul>
+
+
+<h2>Verify</h2>
+
+<ul>
+<li>The Grafana Web UI should be available at <a href="http://localhost:3000/">localhost:3000</a> &mdash; login with admin/admin</li>
+<li>The InfluxDB Web UI should be available at <a href="http://localhost:8083/">localhost:8083</a></li>
+</ul>
+
+
+<h2>Create database on influx</h2>
+
+<p>Create db named &ldquo;db&rdquo;</p>
+
+<p>```
+$ influx</p>
+
+<blockquote><p>create database db
+```</p></blockquote>
+
+<h2>Edit telegraf conf</h2>
+
+<p>Uncomment the entire statsd server section:</p>
+
+<p>```</p>
+
+<h1>Statsd Server</h1>
+
+<p>[[inputs.statsd]]
+  ## Address and port to host UDP listener on
+  service_address = &ldquo;:8125&rdquo;</p>
+
+<p>  .. etc ..
+```</p>
+
+<p>Set the database to use the &ldquo;db&rdquo; database created earlier, under the <code>outputs.influxdb</code> section of the telegraf config</p>
+
+<p><code>
+[[outputs.influxdb]]
+  ## The full HTTP or UDP endpoint URL for your InfluxDB instance.
+  ## Multiple urls can be specified as part of the same cluster,
+  ## this means that only ONE of the urls will be written to each interval.
+  # urls = ["udp://localhost:8089"] # UDP endpoint example
+  urls = ["http://localhost:8086"] # required
+  ## The target database for metrics (telegraf will create it if not exists).
+  database = "db" # required
+</code></p>
+
+<h2>Restart telegraf</h2>
+
+<p><code>
+brew services restart telegraf
+</code></p>
+
+<h2>Create Grafana Data Source</h2>
+
+<ul>
+<li>Open the <a href="http://localhost:3000/">Grafana Web UI</a> in your browsers (login with admin/admin)</li>
+<li>Use the following values:</li>
+</ul>
+
+
+<p><img src="https://cloud.githubusercontent.com/assets/296876/18494027/a87adcf8-79c8-11e6-912b-a5e5a82dad14.png" alt="screen shot 2016-09-13 at 3 39 43 pm" /></p>
+
+<h2>Create Grafana Dashboard</h2>
+
+<ul>
+<li>Go to Dashboards / + New</li>
+<li>Click the green thing on the left, and choose Add Panel / Graph</li>
+</ul>
+
+
+<p><img src="https://cloud.githubusercontent.com/assets/296876/18494074/f230784e-79c8-11e6-9ab0-bc284b9e01f5.png" alt="screen shot 2016-09-13 at 3 43 50 pm" /></p>
+
+<ul>
+<li>Delete the test metric, which is not needed, by clicking the trash can to the right of &ldquo;Test Metric&rdquo;</li>
+</ul>
+
+
+<p><img src="https://cloud.githubusercontent.com/assets/296876/18494109/1a927152-79c9-11e6-98f9-f338549ee3d9.png" alt="screen shot 2016-09-13 at 3 45 04 pm" /></p>
+
+<ul>
+<li>Under Panel / Datasource, choose <strong>db</strong>, and then hit <strong>+ Add Query</strong>, you will end up with this</li>
+</ul>
+
+
+<p><img src="https://cloud.githubusercontent.com/assets/296876/18494180/7b8f9570-79c9-11e6-93c0-3f721d93002a.png" alt="screen shot 2016-09-13 at 3 47 21 pm" /></p>
+
+<h2>Push sample data point from command line</h2>
+
+<p>In order for the field we want to show up on the grafana dashboard, we need to push some data points to the telegraf statds daemon.</p>
+
+<p>Run this in a shell to push the <code>foo:1|c</code> data point, which is a counter with value increasing by 1 on the key named &ldquo;foo&rdquo;.</p>
+
+<p><code>
+while true; do echo "foo:1|c" | nc -u -w0 127.0.0.1 8125; sleep 1; echo "pushed data point"; done
+</code></p>
+
+<h2>Create Grafana Dashboard, Part 2</h2>
+
+<ul>
+<li>Under <strong>select measurement</strong>, choose <strong>foo</strong> from the pulldown</li>
+<li>On the top right of the screen near the clock icon, choose &ldquo;Last 5 minutes&rdquo; and set <strong>Refreshing every</strong> to 5 seconds</li>
+<li>You should see your data point counter being increased!</li>
+</ul>
+
+
+<p><img src="https://cloud.githubusercontent.com/assets/296876/18494256/f45fe55e-79c9-11e6-9663-abf9db7e7299.png" alt="screen shot 2016-09-13 at 3 51 16 pm" /></p>
+
+<h2>Add Go client library and push data points</h2>
+
+<p>Here&rsquo;s how to update to your <code>golang</code> application to push new datapoints.</p>
+
+<ul>
+<li>Install the <a href="github.com/peterbourgon/g2s">g2s</a> client library via:</li>
+</ul>
+
+
+<p><code>
+$ go get github.com/peterbourgon/g2s
+</code></p>
+
+<ul>
+<li>Here is some sample code to push data points to the <code>statds</code> telegraf process from your go program:</li>
+</ul>
+
+
+<p>```
+statdsClient, err := g2s.Dial(&ldquo;udp&rdquo;, &ldquo;<a href="http://localhost:8125">http://localhost:8125</a>&rdquo;)
+if err != nil {</p>
+
+<pre><code>panic("Couldn't connect to statsd!")
+</code></pre>
+
+<p>}
+req, err := http.NewRequest(&ldquo;GET&rdquo;, &ldquo;<a href="http://waynechain.com/">http://waynechain.com/</a>&rdquo;)
+resp, err := http.DefaultClient.Do(req)
+if err != nil {</p>
+
+<pre><code>return err
+</code></pre>
+
+<p>}
+s.StatsdClient.Timing(1.0, &ldquo;get_google_homepage&rdquo;, time.Since(startTime))
+```</p>
+
+<p>This will push statsd &ldquo;timing&rdquo; data points under the key &ldquo;get_google_homepage&rdquo;, with the normal sample rate (set to 0.1 to downsample and only take every 10th sample).  Run the code in a loop and it will start pushing stats to <code>statsd</code>.</p>
+
+<p>Now, create a new Grafana dashboard with the steps above, but from the <strong>select measurement</strong> field choose <strong>get_google_homepage</strong>, and under <strong>SELECT</strong> choose <strong>field (mean)</strong> instead of <strong>field (value)</strong>.</p>
+]]></content>
+  </entry>
+  
+</feed>

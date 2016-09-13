@@ -9,20 +9,11 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="I ran into the following race detector error: 1
+  <meta name="description" content="Create a beautiful Grafana dashboard with realtime performance stats: Install InfluxDB and Grafana 1
 2
 3
 4
-5
-6
-7
-8
-9
-10
-11
-12
-WARNING: DATA RACE
-Write by goroutine 44: github.com/couchbaselabs/sg- &hellip;">
+brew install influxdb grafana telegraf &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -85,6 +76,225 @@ Write by goroutine 44: github.com/couchbaselabs/sg- &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/09/12/configuring-influxdb-and-grafana-with-go-client-library/">Configuring InfluxDB and Grafana With Go Client Library</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-09-12T15:14:00-07:00" pubdate data-updated="true">Sep 12<span>th</span>, 2016</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Create a beautiful Grafana dashboard with realtime performance stats:</p>
+
+<p><img src="https://cloud.githubusercontent.com/assets/296876/18493836/730085b0-79c7-11e6-9236-50dd3d4c72d4.png" alt="screen shot 2016-09-13 at 3 33 20 pm" /></p>
+
+<h2>Install InfluxDB and Grafana</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>brew install influxdb grafana telegraf
+</span><span class='line'>brew services start influxdb
+</span><span class='line'>brew services start grafana
+</span><span class='line'>brew services start telegraf</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Versions at the time of this writing:</p>
+
+<ul>
+<li>InfluxDB: 1.0</li>
+<li>Grafana: 3.1.1</li>
+</ul>
+
+
+<h2>Verify</h2>
+
+<ul>
+<li>The Grafana Web UI should be available at <a href="http://localhost:3000/">localhost:3000</a> &mdash; login with admin/admin</li>
+<li>The InfluxDB Web UI should be available at <a href="http://localhost:8083/">localhost:8083</a></li>
+</ul>
+
+
+<h2>Create database on influx</h2>
+
+<p>Create db named &ldquo;db&rdquo;</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ influx
+</span><span class='line'>&gt; create database db</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Edit telegraf conf</h2>
+
+<p>Uncomment the entire statsd server section:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># Statsd Server
+</span><span class='line'>[[inputs.statsd]]
+</span><span class='line'>  ## Address and port to host UDP listener on
+</span><span class='line'>  service_address = ":8125"
+</span><span class='line'>
+</span><span class='line'>  .. etc .. </span></code></pre></td></tr></table></div></figure>
+
+
+<p>Set the database to use the &ldquo;db&rdquo; database created earlier, under the <code>outputs.influxdb</code> section of the telegraf config</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[[outputs.influxdb]]
+</span><span class='line'>  ## The full HTTP or UDP endpoint URL for your InfluxDB instance.
+</span><span class='line'>  ## Multiple urls can be specified as part of the same cluster,
+</span><span class='line'>  ## this means that only ONE of the urls will be written to each interval.
+</span><span class='line'>  # urls = ["udp://localhost:8089"] # UDP endpoint example
+</span><span class='line'>  urls = ["http://localhost:8086"] # required
+</span><span class='line'>  ## The target database for metrics (telegraf will create it if not exists).
+</span><span class='line'>  database = "db" # required</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Restart telegraf</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>brew services restart telegraf</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Create Grafana Data Source</h2>
+
+<ul>
+<li>Open the <a href="http://localhost:3000/">Grafana Web UI</a> in your browsers (login with admin/admin)</li>
+<li>Use the following values:</li>
+</ul>
+
+
+<p><img src="https://cloud.githubusercontent.com/assets/296876/18494027/a87adcf8-79c8-11e6-912b-a5e5a82dad14.png" alt="screen shot 2016-09-13 at 3 39 43 pm" /></p>
+
+<h2>Create Grafana Dashboard</h2>
+
+<ul>
+<li>Go to Dashboards / + New</li>
+<li>Click the green thing on the left, and choose Add Panel / Graph</li>
+</ul>
+
+
+<p><img src="https://cloud.githubusercontent.com/assets/296876/18494074/f230784e-79c8-11e6-9ab0-bc284b9e01f5.png" alt="screen shot 2016-09-13 at 3 43 50 pm" /></p>
+
+<ul>
+<li>Delete the test metric, which is not needed, by clicking the trash can to the right of &ldquo;Test Metric&rdquo;</li>
+</ul>
+
+
+<p><img src="https://cloud.githubusercontent.com/assets/296876/18494109/1a927152-79c9-11e6-98f9-f338549ee3d9.png" alt="screen shot 2016-09-13 at 3 45 04 pm" /></p>
+
+<ul>
+<li>Under Panel / Datasource, choose <strong>db</strong>, and then hit <strong>+ Add Query</strong>, you will end up with this</li>
+</ul>
+
+
+<p><img src="https://cloud.githubusercontent.com/assets/296876/18494180/7b8f9570-79c9-11e6-93c0-3f721d93002a.png" alt="screen shot 2016-09-13 at 3 47 21 pm" /></p>
+
+<h2>Push sample data point from command line</h2>
+
+<p>In order for the field we want to show up on the grafana dashboard, we need to push some data points to the telegraf statds daemon.</p>
+
+<p>Run this in a shell to push the <code>foo:1|c</code> data point, which is a counter with value increasing by 1 on the key named &ldquo;foo&rdquo;.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>while true; do echo "foo:1|c" | nc -u -w0 127.0.0.1 8125; sleep 1; echo "pushed data point"; done</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Create Grafana Dashboard, Part 2</h2>
+
+<ul>
+<li>Under <strong>select measurement</strong>, choose <strong>foo</strong> from the pulldown</li>
+<li>On the top right of the screen near the clock icon, choose &ldquo;Last 5 minutes&rdquo; and set <strong>Refreshing every</strong> to 5 seconds</li>
+<li>You should see your data point counter being increased!</li>
+</ul>
+
+
+<p><img src="https://cloud.githubusercontent.com/assets/296876/18494256/f45fe55e-79c9-11e6-9663-abf9db7e7299.png" alt="screen shot 2016-09-13 at 3 51 16 pm" /></p>
+
+<h2>Add Go client library and push data points</h2>
+
+<p>Here&rsquo;s how to update to your <code>golang</code> application to push new datapoints.</p>
+
+<ul>
+<li>Install the <a href="github.com/peterbourgon/g2s">g2s</a> client library via:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go get github.com/peterbourgon/g2s</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Here is some sample code to push data points to the <code>statds</code> telegraf process from your go program:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>statdsClient, err := g2s.Dial("udp", "http://localhost:8125")
+</span><span class='line'>if err != nil {
+</span><span class='line'>  panic("Couldn't connect to statsd!")
+</span><span class='line'>}
+</span><span class='line'>req, err := http.NewRequest("GET", "http://waynechain.com/")
+</span><span class='line'>resp, err := http.DefaultClient.Do(req)
+</span><span class='line'>if err != nil {
+</span><span class='line'>  return err
+</span><span class='line'>}
+</span><span class='line'>s.StatsdClient.Timing(1.0, "get_google_homepage", time.Since(startTime))</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This will push statsd &ldquo;timing&rdquo; data points under the key &ldquo;get_google_homepage&rdquo;, with the normal sample rate (set to 0.1 to downsample and only take every 10th sample).  Run the code in a loop and it will start pushing stats to <code>statsd</code>.</p>
+
+<p>Now, create a new Grafana dashboard with the steps above, but from the <strong>select measurement</strong> field choose <strong>get_google_homepage</strong>, and under <strong>SELECT</strong> choose <strong>field (mean)</strong> instead of <strong>field (value)</strong>.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1766,570 +1976,6 @@ Write by goroutine 44: github.com/couchbaselabs/sg- &hellip;">
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/05/05/running-couchbase-server-under-docker-on-joyent/">Running Couchbase Server Under Joyent Triton</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-05-05T09:31:00-07:00" pubdate data-updated="true">May 5<span>th</span>, 2015</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Joyent has recently announced their new Triton Docker container hosting service.  There are several advantages of running Docker containers on Triton over a more traditional cloud hosting platform:</p>
-
-<ul>
-<li><p>Better performance since there is no hardware level virtualization overhead.  Your containers run on bare-metal.</p></li>
-<li><p>Simplified networking between containers.  Each container gets its own private (and optionally public) ip address.</p></li>
-<li><p>Hosts are abstracted away &mdash; you just deploy into the &ldquo;container cloud&rdquo;, and don&rsquo;t care which host your container is running on.</p></li>
-</ul>
-
-
-<p>For more details, check out Bryan Cantrill&rsquo;s talk about <a href="https://www.joyent.com/developers/videos/docker-and-the-future-of-containers-in-production">Docker and the Future of Containers in Production</a>.</p>
-
-<p>Let&rsquo;s give it a spin with a &ldquo;hello world&rdquo; container, and then with a cluster of Couchbase servers.</p>
-
-<h2>Sign up for a Joyent account</h2>
-
-<p><a href="https://www.joyent.com/lp/preview">Follow the signup instructions on the Joyent website</a></p>
-
-<p>You will also need to add your SSH key to your account.</p>
-
-<h2>Install or Upgrade Docker</h2>
-
-<p>If you don&rsquo;t have Docker installed already and you are on Ubuntu, run:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -sSL https://get.docker.com/ | sh</span></code></pre></td></tr></table></div></figure>
-
-
-<p>See <a href="https://docs.docker.com/installation/ubuntulinux/">install Docker on Ubuntu</a> for more details.</p>
-
-<h2>Upgrade Docker client to 1.4.1 or later</h2>
-
-<p>Check your version of Docker with:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker --version
-</span><span class='line'>Docker version 1.0.1, build 990021a</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If you are on a version before 1.4.1 (like I was), you can upgrade Docker via the <a href="https://github.com/boot2docker/osx-installer/releases">boot2docker installers</a>.</p>
-
-<h2>Joyent + Docker setup</h2>
-
-<p>Get the sdc-docker repo (sdc == Smart Data Center):</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ git clone https://github.com/joyent/sdc-docker.git</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Perform setup via:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd sdc-docker
-</span><span class='line'>$  ./tools/sdc-docker-setup.sh -k 165.225.168.22 $ACCOUNT ~/.ssh/$PRIVATE_KEY_FILE</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Replace values as follows:</p>
-
-<ul>
-<li><strong>$ACCOUNT</strong>: you can get this by logging into the Joyent web ui and going to the Account menu from the pulldown in the top-right corner.  Find the <strong>Username</strong> field, and use that</li>
-<li><strong>$PRIVATE_KEY_FILE</strong>: the name of the file where your private key is stored, typically this will be <code>id_rsa</code></li>
-</ul>
-
-
-<p>Run the command and you should see the following output:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>Setting up Docker client for SDC using:
-</span><span class='line'>    CloudAPI:        https://165.225.168.22
-</span><span class='line'>    Account:         &lt;your username&gt;
-</span><span class='line'>    Key:             /home/ubuntu/.ssh/id_rsa
-</span><span class='line'>
-</span><span class='line'>[..snip..]
-</span><span class='line'>
-</span><span class='line'>Wrote certificate files to /home/ubuntu/.sdc/docker/&lt;username&gt;
-</span><span class='line'>
-</span><span class='line'>Docker service endpoint is: tcp://&lt;generated ip&gt;:2376
-</span><span class='line'>
-</span><span class='line'>* * *
-</span><span class='line'>Success. Set your environment as follows:
-</span><span class='line'>
-</span><span class='line'>    export DOCKER_CERT_PATH=/home/ubuntu/.sdc/docker/&lt;username&gt;
-</span><span class='line'>    export DOCKER_HOST=tcp://&lt;generated-ip&gt;:2376
-</span><span class='line'>    alias docker="docker --tls"
-</span><span class='line'>
-</span><span class='line'>Then you should be able to run 'docker info' and see your account
-</span><span class='line'>name 'SDCAccount: &lt;username&gt;' in the output.</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Export environment variables</strong></p>
-
-<p>As the output above suggests, copy and paste the commands from the output.  Here&rsquo;s an example of what that will look like (but you should copy and paste from your command output, not the snippet below):</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ export DOCKER_CERT_PATH=/home/ubuntu/.sdc/docker/&lt;username&gt;
-</span><span class='line'>$ export DOCKER_HOST=tcp://&lt;generated-ip&gt;:2376
-</span><span class='line'>$ alias docker="docker --tls"</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Docker Hello World</h2>
-
-<p>Let&rsquo;s spin up an Ubuntu docker image that says hello world.</p>
-
-<p>Remember you&rsquo;re running the Docker client on your workstation, not in the cloud.  Here&rsquo;s an overview on what&rsquo;s going to be happening:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/joyent_container_hello_world.png" alt="diagram" /></p>
-
-<p>To start the docker container::</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run --rm ubuntu:14.04 echo "Hello Docker World, from Joyent"</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should see the following output:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>Unable to find image 'ubuntu:14.04' locally
-</span><span class='line'>Pulling repository library/ubuntu
-</span><span class='line'>...
-</span><span class='line'>Hello Docker World, from Joyent</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Also, since the <code>--rm</code> flag was passed, the container will have been removed after exiting.  You can verify this by running <code>docker ps -a</code>.  This is important because <strong>stopped containers incur charges on Joyent</strong>.</p>
-
-<p>Congratulations!  You&rsquo;ve gotten a &ldquo;hello world&rdquo; Docker container running on Joyent.</p>
-
-<h2>Run Couchbase Server containers</h2>
-
-<p>Now it&rsquo;s time to run Couchbase Server.</p>
-
-<p>To kick off three Couchbase Server containers, run:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ for i in `seq 1 3`; do \
-</span><span class='line'>      echo "Starting container $i"; \
-</span><span class='line'>      export container_$i=$(docker run --name couchbase-server-$i -d -P couchbase/server); \
-</span><span class='line'>  done</span></code></pre></td></tr></table></div></figure>
-
-
-<p>To confirm the containers are up, run:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker ps</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and you should see:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>CONTAINER ID        IMAGE                                       COMMAND             CREATED             STATUS              PORTS               NAMES
-</span><span class='line'>5bea8901814c        couchbase/server   "couchbase-start"   3 minutes ago       Up 2 minutes                            couchbase-server-1
-</span><span class='line'>bef1f2f32726        couchbase/server   "couchbase-start"   2 minutes ago       Up 2 minutes                            couchbase-server-2
-</span><span class='line'>6f4e2a1e8e63        couchbase/server   "couchbase-start"   2 minutes ago       Up About a minute                       couchbase-server-3</span></code></pre></td></tr></table></div></figure>
-
-
-<p>At this point you will have environment variables defined with the container ids of each container.  You can check this by running:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ echo $container_1 && echo $container_2 && echo $container_3
-</span><span class='line'>21264e44d66b4004b4828b7ae408979e7f71924aadab435aa9de662024a37b0e
-</span><span class='line'>ff9fb4db7b304e769f694802e6a072656825aa2059604ba4ab4d579bd2e5d18d
-</span><span class='line'>0c6f8ca2951448e497d7e12026dcae4aeaf990ec51e047cf9d8b2cbdd9bd7668</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Get public ip addresses of the containers</h3>
-
-<p>Each container will have two IP addresses assigned:</p>
-
-<ul>
-<li>A public IP, accessible from anywhere</li>
-<li>A private IP, only accessible from containers/machines in your Joyent account</li>
-</ul>
-
-
-<p>To get the public IP, we can use the Docker client.  (to get the private IP, you need to use the Joyent SmartDataCenter tools, which is described below)</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ container_1_ip=`docker inspect $container_1 | grep -i IPAddress | awk -F: '{print $2}' |  grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b"`
-</span><span class='line'>$ container_2_ip=`docker inspect $container_2 | grep -i IPAddress | awk -F: '{print $2}' |  grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b"`
-</span><span class='line'>$ container_3_ip=`docker inspect $container_3 | grep -i IPAddress | awk -F: '{print $2}' |  grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b"`
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You will now have the public IP addresses of each container defined in environment variables.  You can check that it worked via:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ echo $container_1_ip && echo $container_2_ip && echo $container_3_ip
-</span><span class='line'>165.225.185.11
-</span><span class='line'>165.225.185.12
-</span><span class='line'>165.225.185.13</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Connect to Couchbase Web UI</h3>
-
-<p>Open your browser to $container_1_ip:8091 and you should see:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_cluster_setup.png" alt="Couchbase Welcome Screen" /></p>
-
-<p>At this point, it&rsquo;s possible to setup the cluster by going to each Couchbase node&rsquo;s Web UI and following the Setup Wizard.  However, in case you want to automate this in the future, let&rsquo;s do this over the command line instead.</p>
-
-<h3>Setup first Couchbase node</h3>
-
-<p>Let&rsquo;s arbitrarily pick <strong>container_1</strong> as the first node in the cluster.  This node is special in the sense that other nodes will join it.</p>
-
-<p>The following command will do the following:</p>
-
-<ul>
-<li>Set the Administrator&rsquo;s username and password to Administrator / password (you should change this)</li>
-<li>Set the cluster RAM size to 600 MB</li>
-</ul>
-
-
-<p>Note: the <code>-u admin -p password</code> should be left as-is, since that is just passing in the default admin name and password for auth purposes.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run --rm --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
-</span><span class='line'>cluster-init -c $container_1_ip \
-</span><span class='line'>--cluster-init-username=Administrator \
-</span><span class='line'>--cluster-init-password=password \
-</span><span class='line'>--cluster-init-ramsize=600 \
-</span><span class='line'>-u admin -p password</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should see a response like:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>SUCCESS: init 165.225.185.11</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Create a default bucket</h3>
-
-<p>A bucket is equivalent to a database in typical RDMS systems.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run --rm --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
-</span><span class='line'>bucket-create -c $container_1_ip:8091 \
-</span><span class='line'>--bucket=default \
-</span><span class='line'>--bucket-type=couchbase \
-</span><span class='line'>--bucket-port=11211 \
-</span><span class='line'>--bucket-ramsize=600 \
-</span><span class='line'>--bucket-replica=1 \
-</span><span class='line'>-u Administrator -p password</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should see:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>SUCCESS: bucket-create</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Add 2nd Couchbase node</h3>
-
-<p>Add in the second Couchbase node with this command</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run --rm --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
-</span><span class='line'>server-add -c $container_1_ip \
-</span><span class='line'>-u Administrator -p password \
-</span><span class='line'>--server-add $container_2_ip \
-</span><span class='line'>--server-add-username Administrator \
-</span><span class='line'>--server-add-password password </span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should see:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>SUCCESS: server-add 165.225.185.12:8091</span></code></pre></td></tr></table></div></figure>
-
-
-<p>To verify it was added, run:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run --rm --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
-</span><span class='line'>server-list -c $container_1_ip \
-</span><span class='line'>-u Administrator -p password</span></code></pre></td></tr></table></div></figure>
-
-
-<p>which should return the list of Couchbase Server nodes that are now part of the cluster:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ns_1@165.225.185.11 165.225.185.11:8091 healthy active
-</span><span class='line'>ns_1@165.225.185.12 165.225.185.12:8091 healthy inactiveAdded</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Add 3rd Couchbase node and rebalance</h3>
-
-<p>In this step we will:</p>
-
-<ul>
-<li>Add the 3rd Couchbase node</li>
-<li>Trigger a &ldquo;rebalance&rdquo;, which distributes the (empty) bucket&rsquo;s data across the cluster</li>
-</ul>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run --rm --entrypoint=/opt/couchbase/bin/couchbase-cli couchbase/server \
-</span><span class='line'>rebalance -c $container_1_ip \
-</span><span class='line'>-u Administrator -p password \
-</span><span class='line'>--server-add $container_3_ip \
-</span><span class='line'>--server-add-username Administrator \
-</span><span class='line'>--server-add-password password </span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should see:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>INFO: rebalancing . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-</span><span class='line'>SUCCESS: rebalanced cluster
-</span><span class='line'>close failed in file object destructor:
-</span><span class='line'>Error in sys.excepthook:
-</span><span class='line'>
-</span><span class='line'>Original exception was:</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If you see <strong>SUCCESS</strong>, then it worked.  <em>(I&rsquo;m not sure why the &ldquo;close failed in file ..&rdquo; error is happening, but so far it appears that it can be safely ignored.)</em></p>
-
-<h3>Login to Web UI</h3>
-
-<p>Open your browser to $container_1_ip:8091 and you should see:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_cluster_login.png" alt="Couchbase Login Screen" /></p>
-
-<p>Login with:</p>
-
-<ul>
-<li>Username: <strong>Administrator</strong></li>
-<li>Password: <strong>password</strong></li>
-</ul>
-
-
-<p>And you should see:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/couchbase_cluster_nodes.png" alt="Couchbase Nodes" /></p>
-
-<p>Congratulations!  You have a Couchbase Server cluster up and running on Joyent Triton.</p>
-
-<h2>Teardown</h2>
-
-<p>To stop and remove your Couchbase server containers, run:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker stop $container_1 $container_2 $container_3
-</span><span class='line'>$ docker rm $container_1 $container_2 $container_3</span></code></pre></td></tr></table></div></figure>
-
-
-<p>To double check that you no longer have any containers running or in the stopped state, run <code>docker ps -a</code> and you should see an empty list.</p>
-
-<h2>Installing the SDC tools (optional)</h2>
-
-<p>Installing the Joyent Smart Data Center (SDC) tools will allow you to gain more visibility into your container cluster &mdash; for example being able to view the internal IP of each continer.</p>
-
-<p>Here&rsquo;s how to install the sdc-tools suite.</p>
-
-<h3>Install smartdc</h3>
-
-<p>First <a href="http://coolestguidesontheplanet.com/installing-node-js-on-osx-10-10-yosemite/">install NodeJS + NPM</a></p>
-
-<p>Install smartdc:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>npm install -g smartdc</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Configure environment variables</h3>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ export SDC_URL=https://us-east-3b.api.joyent.com
-</span><span class='line'>$ export SDC_ACCOUNT=&lt;ACCOUNT&gt;
-</span><span class='line'>$ export SDC_KEY_ID=$(ssh-keygen -l -f $HOME/.ssh/id_rsa.pub | awk '{print $2}')</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Replace values as follows:</p>
-
-<ul>
-<li><strong>ACCOUNT</strong>: you can get this by logging into the Joyent web ui and going to the Account menu from the pulldown in the top-right corner.  Find the <strong>Username</strong> field, and use that</li>
-</ul>
-
-
-<h3>List machines</h3>
-
-<p>Run <code>sdc-listmachines</code> to list all the containers running under your Joyent account.  Your output should look something like this:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sdc-listmachines
-</span><span class='line'>[
-</span><span class='line'>{
-</span><span class='line'>    "id": "0c6f8ca2-9514-48e4-97d7-e12026dcae4a",
-</span><span class='line'>    "name": "couchbase-server-3",
-</span><span class='line'>    "type": "smartmachine",
-</span><span class='line'>    "state": "running",
-</span><span class='line'>    "image": "335a8046-0749-1174-5666-6f084472b5ef",
-</span><span class='line'>    "ips": [
-</span><span class='line'>      "192.168.128.32",
-</span><span class='line'>      "165.225.185.13"
-</span><span class='line'>    ],
-</span><span class='line'>    "memory": 1024,
-</span><span class='line'>    "disk": 25600,
-</span><span class='line'>    "metadata": {},
-</span><span class='line'>    "tags": {},
-</span><span class='line'>    "created": "2015-03-26T14:50:31.196Z",
-</span><span class='line'>    "updated": "2015-03-26T14:50:45.000Z",
-</span><span class='line'>    "networks": [
-</span><span class='line'>      "7cfe29d4-e313-4c3b-a967-a28ea34342e9",
-</span><span class='line'>      "178967cb-8d11-4f53-8434-9c91ff819a0d"
-</span><span class='line'>    ],
-</span><span class='line'>    "dataset": "335a8046-0749-1174-5666-6f084472b5ef",
-</span><span class='line'>    "primaryIp": "165.225.185.13",
-</span><span class='line'>    "firewall_enabled": false,
-</span><span class='line'>    "compute_node": "44454c4c-4400-1046-8050-b5c04f383432",
-</span><span class='line'>    "package": "t4-standard-1G"
-</span><span class='line'>  },
-</span><span class='line'>]</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Find private IP of an individual machine</h3>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sdc-getmachine &lt;machine_id&gt; | json -aH ips | json -aH | egrep "10\.|192\.”</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>References</h2>
-
-<ul>
-<li><p><a href="https://github.com/joyent/sdc-docker/blob/master/docs/divergence.md">Native Docker API vs Joyent Triton API</a></p></li>
-<li><p><a href="https://www.joyent.com/blog/container-service-preview">https://www.joyent.com/blog/container-service-preview</a></p></li>
-<li><p><a href="https://www.joyent.com/blog/docker-bake-off-aws-vs-joyent">https://www.joyent.com/blog/docker-bake-off-aws-vs-joyent</a></p></li>
-<li><p><a href="https://github.com/joyent/sdc-docker">https://github.com/joyent/sdc-docker</a></p></li>
-<li><p><a href="https://github.com/joyent/sdc-docker/blob/master/docs/divergence.md">https://github.com/joyent/sdc-docker/blob/master/docs/divergence.md</a></p></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -2360,6 +2006,10 @@ Write by goroutine 44: github.com/couchbaselabs/sg- &hellip;">
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/09/12/configuring-influxdb-and-grafana-with-go-client-library/">Configuring InfluxDB and Grafana With Go Client Library</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/05/19/go-race-detector-gotcha-with-value-receivers/">Go Race Detector Gotcha With Value Receivers</a>
       </li>
     
@@ -2373,10 +2023,6 @@ Write by goroutine 44: github.com/couchbaselabs/sg- &hellip;">
     
       <li class="post">
         <a href="/blog/2016/02/07/configure-emacs-as-a-go-editor-from-scratch-part-3/">Configure Emacs as a Go Editor From Scratch Part 3</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/02/06/octopress-under-docker/">Octopress Under Docker</a>
       </li>
     
   </ul>
