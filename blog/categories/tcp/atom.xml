@@ -4,7 +4,7 @@
   <title><![CDATA[Category: tcp | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/tcp/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-10-02T16:27:42-07:00</updated>
+  <updated>2016-10-02T16:29:20-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -284,7 +284,7 @@ hu-0-13-0-0-pe02.529bryant.ca.ibone.comcast.net (68.86.86.94)  12.404 ms
 
 <p>So from my computer to the computer at google.com, it goes through all of those intermediate computers.  Some have DNS names, like <code>be-33651-cr01.sunnyvale.ca.ibone.comcast.net</code>, but some only have IP addresses, like <code>162.151.78.93</code></p>
 
-<p>Any one of those computers could <em>sniff</em> the traffic going through the tubes (even the <strong>IP</strong> tubes that all the other ones sit on top of!).  That&rsquo;s why you don&rsquo;t want to send your credit cards over the internet without using encryption!</p>
+<p>Any one of those computers could <em>sniff</em> the traffic going through the tubes (even the <strong>IP</strong> tubes that all the other ones sit on top of!).  That&rsquo;s one of the reasons you don&rsquo;t want to send your credit cards over the internet without using encryption.</p>
 
 <h2>The End</h2>
 ]]></content>
