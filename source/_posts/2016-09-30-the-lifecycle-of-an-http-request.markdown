@@ -50,7 +50,7 @@ It all starts with a DNS lookup.
 
 ## Step 1. The DNS Lookup
 
-Your Google Chrome software contacts a thing on the Internet called a DNS server and asks it "Hey what's the IP of organic-juice-for-dogs.io?".
+Your Google Chrome software contacts a server on the Internet called a DNS server and asks it "Hey what's the IP of organic-juice-for-dogs.io?".
 
 DNS has an official sounding acronym, and for good reason, because it's a very authoritative and fundamental Internet service.
 
@@ -202,9 +202,5 @@ And you can finally buy some juice for your dog!
 
 So that's it for the high level stuff.
 
-For those of you who just want to be able to "talk the talk" but don't *really* care about any of this stuff, you can go back to checking the latest on [BuzzFeed](http://www.buzzfeed.com) or whatever it is you do with your spare time ..
-
-But if you're dying to know about what kind of *concrete* you might use to build an internet tube, and how all these tubes get connected together:
-
-Continue on to [Deep Dive of What Happens Under The Hood When You Open A Web Page](/blog/2016/10/02/deep-dive-of-what-happens-under-the-hood-when-you-open-a-web-page/)
+If you're dying to know more, continue on to [Deep Dive of What Happens Under The Hood When You Open A Web Page](/blog/2016/10/02/deep-dive-of-what-happens-under-the-hood-when-you-open-a-web-page/)
 
