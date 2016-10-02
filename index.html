@@ -9,11 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Create a beautiful Grafana dashboard with realtime performance stats: Install InfluxDB and Grafana 1
-2
-3
-4
-brew install influxdb grafana telegraf &hellip;">
+  <meta name="description" content="This is a continuation of What Happens Under The Hood When You Open A Web Page, and it&rsquo;s meant to be a deeper dive. Clients and Servers &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -76,6 +72,733 @@ brew install influxdb grafana telegraf &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/10/02/deep-dive-of-what-happens-under-the-hood-when-you-open-a-web-page/">Deep Dive of What Happens Under the Hood When You Open a Web Page</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-10-02T12:50:00-07:00" pubdate data-updated="true">Oct 2<span>nd</span>, 2016</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>This is a continuation of <a href="/blog/2016/09/30/the-lifecycle-of-an-http-request/">What Happens Under The Hood When You Open A Web Page</a>, and it&rsquo;s meant to be a deeper dive.</p>
+
+<h3>Clients and Servers</h3>
+
+<p>Remember back in the day when you wanted to know what time it was, and you picked up your phone and dialed 853-1212 and it said &ldquo;At the tone, the time will be 8:53 AM?&rdquo;.</p>
+
+<p>Those days are over, but the idea lives on.  The time <em>service</em> is identical in principal to an internet <em>server</em>.  You ask it something, and it gives you an answer.</p>
+
+<p>A well designed service does one thing, and one thing well.</p>
+
+<ul>
+<li><p>With the time service, you can only ask one kind of question: &ldquo;What time is it?&rdquo;</p></li>
+<li><p>With a DNS server, you can only ask one kind of question: &ldquo;What is the IP address of organic-juice-for-dogs.io&rdquo;</p></li>
+</ul>
+
+
+<p>Clients vs Servers:</p>
+
+<ul>
+<li><p>A &ldquo;Client&rdquo; can essentially be thought of as being a &ldquo;Customer&rdquo;.  In the case of calling the time, it&rsquo;s the person dialing the phone number.  In the case of DNS, it&rsquo;s the Google Chrome browser asking for the IP address.</p></li>
+<li><p>A &ldquo;Server&rdquo; can be thought of as being a &ldquo;Service&rdquo;.  In the case of calling the time, it&rsquo;s something running at the phone company.  In the case of DNS, it&rsquo;s a service run by a combination of universities, business, and governments.</p></li>
+</ul>
+
+
+<h2>Web Browsers</h2>
+
+<p>The following programs are all web browsers, which are all technically HTTP Clients, meaning they are on the client end of the HTTP tube.</p>
+
+<ul>
+<li>Google Chrome</li>
+<li>Safari</li>
+<li>Firefox</li>
+<li>Internet Explorer</li>
+<li>Etc..</li>
+</ul>
+
+
+<p>What web browsers do:</p>
+
+<ul>
+<li>Lookup IP addresses from DNS servers over the DNS protocol (which in turn sits on top of the UDP protocol)</li>
+<li>Retrieve web pages, images, and more from web servers over the HTTP protocol (which in turn sits on top of the TCP protocol)</li>
+<li>Render HTML into formatted &ldquo;pages&rdquo;</li>
+<li>Executes JavaScript code to add a level of dynamic behavior to web pages</li>
+</ul>
+
+
+<h2>Protocols</h2>
+
+<p>In the previous post, there were a few &ldquo;protocols&rdquo; mentioned, like HTTP.</p>
+
+<p>What are protocols really?</p>
+
+<p><strong>Any protocol is something to make it possible for things that speak the same protocol to speak to each other over that protocol.</strong></p>
+
+<p>A protocol is just a <em>language</em>, and just like everyone in English-speaking countries agree to speak English and can therefore intercommunicate without issues, many things on the internet agree to speak HTTP to each other.</p>
+
+<p>Here&rsquo;s what a conversation looks like in the HTTP protocol:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>HTTP Client: GET /
+</span><span class='line'>HTTP Server: &lt;html&gt;I'm a &lt;blink&gt;amazing&lt;/blink&gt; HTML web page!!&lt;/html&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Almost everything that happens on the Internet looks something like this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>                                                                                  
+</span><span class='line'> ┌────────────────────┐                                         ┌────────────────────┐
+</span><span class='line'> │                    │                                         │                    │
+</span><span class='line'> │                    │                                         │                    │
+</span><span class='line'> │                    │                                         │                    │
+</span><span class='line'> │     Internet       ◀──────────────Protocol───────────────────▶    Internet        │
+</span><span class='line'> │     Thing 1        │                                         │    Thing 2         │
+</span><span class='line'> │                    │                                         │                    │
+</span><span class='line'> │                    │                                         │                    │
+</span><span class='line'> │                    │                                         │                    │
+</span><span class='line'> └────────────────────┘                                         └────────────────────┘</span></code></pre></td></tr></table></div></figure>
+
+
+<p>There are lots of different protocols, which are just &ldquo;languages&rdquo; that things on the Internet use to speak to each other.  You and I speak English.  Many things on the Internet speak protocols like HTTP, others speak different protocols like DNS.</p>
+
+<p>Let&rsquo;s look at a few, at a very high level.</p>
+
+<h3><strong>TCP</strong> and <strong>UDP</strong></h3>
+
+<p>You can think of the internet as being made up of <em>tubes</em>.  Two very common types of tubes are:</p>
+
+<ul>
+<li>TCP (Transmission Control Protocol)</li>
+<li>UDP (User Datagram Protocol)</li>
+</ul>
+
+
+<p>Here&rsquo;s what an internet tube looks like:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/internet-tube.jpg" alt="image" /></p>
+
+<h3><strong>IP</strong></h3>
+
+<p>Really, you can think of TCP and UDP as internet tubes that are built from the same kind of concrete &mdash; and that concrete is called IP (Internet Protocol)</p>
+
+<p>TCP <em>wraps</em> IP, in the sense that it is built on top of IP.  If you took a <em>slice</em> of a TCP internet tube, it would look like this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> ┌───────────────────────────────────────────┐
+</span><span class='line'> │   TCP - (Transmission Control Protocol)   │
+</span><span class='line'> │                                           │
+</span><span class='line'> │                                           │
+</span><span class='line'> │       ┌──────────────────────────┐        │
+</span><span class='line'> │       │ IP - (Internet Protocol) │        │
+</span><span class='line'> │       │                          │        │
+</span><span class='line'> │       │                          │        │
+</span><span class='line'> │       │                          │        │
+</span><span class='line'> │       └──────────────────────────┘        │
+</span><span class='line'> │                                           │
+</span><span class='line'> └───────────────────────────────────────────┘</span></code></pre></td></tr></table></div></figure>
+
+
+<p></p>
+
+<p>Ditto for UDP &mdash; it&rsquo;s also built on top of IP.  The slice of a UDP internet tube would look like this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> ┌───────────────────────────────────────────┐
+</span><span class='line'> │    UDP - (Universal Datagram Protocol)    │
+</span><span class='line'> │                                           │
+</span><span class='line'> │                                           │
+</span><span class='line'> │       ┌──────────────────────────┐        │
+</span><span class='line'> │       │ IP - (Internet Protocol) │        │
+</span><span class='line'> │       │                          │        │
+</span><span class='line'> │       │                          │        │
+</span><span class='line'> │       │                          │        │
+</span><span class='line'> │       └──────────────────────────┘        │
+</span><span class='line'> │                                           │
+</span><span class='line'> └───────────────────────────────────────────┘</span></code></pre></td></tr></table></div></figure>
+
+
+<p>IP, or &ldquo;Internet Protocol&rdquo;, is fancy way of saying &ldquo;How machines on the Internet talk to each other&rdquo;, and <strong>IP addresses</strong> are their equivalent of phone numbers.</p>
+
+<p>Why do we need two types of tubes built on top of IP?  They have different properties:</p>
+
+<ul>
+<li>TCP tubes are heavy weight, they take a long time to build, and a long time to tear down, but they are super reliable.</li>
+<li>UDP tubes are light weight, and have no guarantees. They&rsquo;re like the <code>¯\_(ツ)_/¯</code> of internet tubes.  If you send something down a UDP internet tube, you actually have no idea whether it will make it down the tube or not.  It might seem useless, but it&rsquo;s not.  Pretty much all real time gaming, voice, and video transmissions go through UDP tubes.</li>
+</ul>
+
+
+<h2>HTTP tubes</h2>
+
+<p>If you take a slice of an HTTP tube, it looks like this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>┌───────────────────────────────────────────────────────────┐
+</span><span class='line'>│           HTTP - (HyperText Transfer Protocol)            │
+</span><span class='line'>│                                                           │
+</span><span class='line'>│       ┌───────────────────────────────────────────┐       │
+</span><span class='line'>│       │   TCP - (Transmission Control Protocol)   │       │
+</span><span class='line'>│       │                                           │       │
+</span><span class='line'>│       │        ┌──────────────────────────┐       │       │
+</span><span class='line'>│       │        │ IP - (Internet Protocol) │       │       │
+</span><span class='line'>│       │        │                          │       │       │
+</span><span class='line'>│       │        └──────────────────────────┘       │       │
+</span><span class='line'>│       │                                           │       │
+</span><span class='line'>│       └───────────────────────────────────────────┘       │
+</span><span class='line'>│                                                           │
+</span><span class='line'>└───────────────────────────────────────────────────────────┘</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Because HTTP <em>sits on top of</em> TCP, which in turn <em>sits on top of</em> IP.</p>
+
+<h3>DNS tubes</h3>
+
+<p>DNS tubes are very similar to HTTP tubes, except they sit on top of UDP tubes.  Here&rsquo;s what a slice might look like:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>┌───────────────────────────────────────────────────────────┐
+</span><span class='line'>│                DNS - (Domain Name Service)                │
+</span><span class='line'>│                                                           │
+</span><span class='line'>│       ┌───────────────────────────────────────────┐       │
+</span><span class='line'>│       │    UDP - (Universal Datagram Protocol)    │       │
+</span><span class='line'>│       │                                           │       │
+</span><span class='line'>│       │        ┌──────────────────────────┐       │       │
+</span><span class='line'>│       │        │ IP - (Internet Protocol) │       │       │
+</span><span class='line'>│       │        │                          │       │       │
+</span><span class='line'>│       │        └──────────────────────────┘       │       │
+</span><span class='line'>│       │                                           │       │
+</span><span class='line'>│       └───────────────────────────────────────────┘       │
+</span><span class='line'>│                                                           │
+</span><span class='line'>└───────────────────────────────────────────────────────────┘</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Actually, internet tubes are more complicated</h2>
+
+<p>So when your Google Chrome web browser gets a web page over an HTTP tube, it actually looks more like this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>                                             
+</span><span class='line'>          ┌────────────────────┐             
+</span><span class='line'>          │                    │             
+</span><span class='line'>          │       Chrome       │             
+</span><span class='line'>          │       Browser      │             
+</span><span class='line'>          │                    │             
+</span><span class='line'>          └─────────┬────▲─────┘             
+</span><span class='line'>                    │    │                   
+</span><span class='line'>                    │    │                   
+</span><span class='line'>          ┌─────────▼────┴─────┐             
+</span><span class='line'>          │                    │             
+</span><span class='line'>          │   Some random      │             
+</span><span class='line'>          │  computer in WA    │             
+</span><span class='line'>          │                    │             
+</span><span class='line'>          └─────────┬─────▲────┘             
+</span><span class='line'>          ┌─────────▼─────┴────┐             
+</span><span class='line'>          │                    │             
+</span><span class='line'>          │   Some random      │             
+</span><span class='line'>          │  computer in IL    │             
+</span><span class='line'>          │                    │             
+</span><span class='line'>          └────────┬───▲───────┘             
+</span><span class='line'>          ┌────────▼───┴───────┐             
+</span><span class='line'>          │                    │             
+</span><span class='line'>          │   Some random      │             
+</span><span class='line'>          │  computer in MA    │             
+</span><span class='line'>          │                    │             
+</span><span class='line'>          └──────────┬───▲─────┘             
+</span><span class='line'>                     │   │                   
+</span><span class='line'>                     │   │                   
+</span><span class='line'>                     │   │                   
+</span><span class='line'> Send me the HTML    │   │ &lt;html&gt;stuff&lt;/html&gt;
+</span><span class='line'>                     │   │                   
+</span><span class='line'>                     │   │                   
+</span><span class='line'>                     │   │                   
+</span><span class='line'>                     │   │                   
+</span><span class='line'>          ┌──────────▼───┴─────┐             
+</span><span class='line'>          │                    │             
+</span><span class='line'>          │    HTTP Server     │             
+</span><span class='line'>          │                    │             
+</span><span class='line'>          └────────────────────┘</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Each of these random computers in between are called <em>routers</em>, and they basically shuttle traffic across the internet.  They make it possible that any two computers on the internet can communicate with each other, without having a direct connection.</p>
+
+<p>If you&rsquo;re curious to know which computers are in the middle of your connection between you and another computer on the internet, you can run a nifty little utility called <code>traceroute</code>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ traceroute google.com
+</span><span class='line'>traceroute to google.com (172.217.5.110), 64 hops max, 52 byte packets
+</span><span class='line'> 1  dd-wrt (192.168.11.1)  1.605 ms  1.049 ms  0.953 ms
+</span><span class='line'> 2  96.120.90.157 (96.120.90.157)  9.334 ms  8.796 ms  8.850 ms
+</span><span class='line'> 3  te-0-7-0-18-sur03.oakland.ca.sfba.comcast.net (68.87.227.209)  9.744 ms  9.416 ms  9.120 ms
+</span><span class='line'> 4  162.151.78.93 (162.151.78.93)  12.310 ms  11.559 ms  11.662 ms
+</span><span class='line'> 5  be-33651-cr01.sunnyvale.ca.ibone.comcast.net (68.86.90.93)  11.276 ms  11.187 ms  12.426 ms
+</span><span class='line'> 6  hu-0-13-0-1-pe02.529bryant.ca.ibone.comcast.net (68.86.84.14)  11.624 ms
+</span><span class='line'>    hu-0-12-0-1-pe02.529bryant.ca.ibone.comcast.net (68.86.87.14)  11.637 ms
+</span><span class='line'>    hu-0-13-0-0-pe02.529bryant.ca.ibone.comcast.net (68.86.86.94)  12.404 ms
+</span><span class='line'> 7  as15169-3-c.529bryant.ca.ibone.comcast.net (23.30.206.102)  11.024 ms  11.498 ms  11.148 ms
+</span><span class='line'> 8  108.170.243.1 (108.170.243.1)  11.037 ms
+</span><span class='line'>    108.170.242.225 (108.170.242.225)  12.246 ms
+</span><span class='line'>    108.170.243.1 (108.170.243.1)  11.482 ms</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So from my computer to the computer at google.com, it goes through all of those intermediate computers.  Some have DNS names, like <code>be-33651-cr01.sunnyvale.ca.ibone.comcast.net</code>, but some only have IP addresses, like <code>162.151.78.93</code></p>
+
+<p>Any one of those computers could <em>sniff</em> the traffic going through the tubes (even the <strong>IP</strong> tubes that all the other ones sit on top of!).  That&rsquo;s why you don&rsquo;t want to send your credit cards over the internet without using encryption!</p>
+
+<h2>The End</h2>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/09/30/the-lifecycle-of-an-http-request/">What Happens Under the Hood When You Open a Web Page?</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-09-30T20:25:00-07:00" pubdate data-updated="true">Sep 30<span>th</span>, 2016</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>First, the bird&rsquo;s eye view:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>                                                                        
+</span><span class='line'>┌────┐                   ┌────────────────┐               ┌────────────────┐
+</span><span class='line'>│You │                   │ Google Chrome  │               │    Internet    │
+</span><span class='line'>└────┘                   └────────────────┘               └────────────────┘
+</span><span class='line'> │                               │                                  │   
+</span><span class='line'> │    Show me the website for    │                                  │   
+</span><span class='line'> │───organic-juice-for-dogs.io──▶│       1. Hey what's the IP of    │   
+</span><span class='line'> │                               │─────organic-juice-for-dogs.io?──▶│   
+</span><span class='line'> │                               │                                  │   
+</span><span class='line'> │                               │                                  │   
+</span><span class='line'> │                               │◀───────────63.120.10.5───────────│   
+</span><span class='line'> │                               │                                  │   
+</span><span class='line'> │                               │                                  │   
+</span><span class='line'> │                               │        2. HTTP GET / to          │   
+</span><span class='line'> │                               │───────────63.120.10.5───────────▶│   
+</span><span class='line'> │                               │                                  │   
+</span><span class='line'> │                               │                                  │   
+</span><span class='line'> │                               │     HTML Content for homepage    │   
+</span><span class='line'> │                               │◀───────────────of ───────────────│   
+</span><span class='line'> │                               │     organic-juice-for-dogs.io    │   
+</span><span class='line'> │                               │                                  │   
+</span><span class='line'> │                               │                                  │   
+</span><span class='line'> │         3. Render HTML into   │                                  │   
+</span><span class='line'> │◀────────────a Web Page────────│                                  │   
+</span><span class='line'> │                               │                                  │   
+</span><span class='line'> │                               │                                  │   
+</span><span class='line'> │      Click stuff in Google    │                                  │   
+</span><span class='line'> │─────────────Chrome───────────▶│                                  │   
+</span><span class='line'> │                               │                                  │   
+</span><span class='line'> │                               │                                  │   
+</span><span class='line'> │         4. Execute JavaScript │                                  │   
+</span><span class='line'> │◀─────────and update Web Page──┤                                  │   
+</span><span class='line'> │                               │                                  │   
+</span><span class='line'> ▼                               ▼                                  ▼</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It all starts with a DNS lookup.</p>
+
+<h2>Step 1. The DNS Lookup</h2>
+
+<p>Your Google Chrome software contacts a thing on the Internet called a DNS server and asks it &ldquo;Hey what&rsquo;s the IP of organic-juice-for-dogs.io?&rdquo;.</p>
+
+<p>DNS has an official sounding acronym, and for good reason, because it&rsquo;s a very authoritative and fundamental Internet service.</p>
+
+<p>So what exactly is DNS useful for?</p>
+
+<p><strong>It transforms Domain names into IP addresses</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>                                                                               
+</span><span class='line'> ┌────────────────────┐                                     ┌────────────────────┐
+</span><span class='line'> │                    │      What's the IP address of       │                    │
+</span><span class='line'> │                    │─────organic-juice-for-dogs.io?──────▶                    │
+</span><span class='line'> │                    │                                     │                    │
+</span><span class='line'> │       Chrome       │                                     │      DNS Server    │
+</span><span class='line'> │       Browser      ◀───────────63.120.10.5───────────────│                    │
+</span><span class='line'> │                    │                                     │                    │
+</span><span class='line'> │                    │                                     │                    │
+</span><span class='line'> │                    │                                     │                    │
+</span><span class='line'> └────────────────────┘                                     └────────────────────┘
+</span><span class='line'> </span></code></pre></td></tr></table></div></figure>
+
+
+<p>A <strong>Domain name</strong>, also referred to as a &ldquo;Dot com name&rdquo;, is an easy-to-remember word or group of words, so people don&rsquo;t have to memorize a list of meaningless numbers.  You could think of it like dialing <strong>1-800-FLOWERS</strong>, which is a lot easier to remember than <strong>1-800-901-1111</strong></p>
+
+<p>The IP address <code>63.120.10.5</code> is just like a phone number.  If you are a human being and want to call someone, you might dial <code>415-555-1212</code>.  But if you&rsquo;re a thing on the internet and you want to talk to another thing on the internet, you instead dial the <strong>IP address</strong> <code>63.120.10.5</code> &mdash; same concept though.</p>
+
+<p>So, that&rsquo;s DNS in a nutshell.  Not very complicated on the surface.</p>
+
+<h2>Step 2. Contact the IP address and fetch the HTML over HTTP</h2>
+
+<p>In this step, Google Chrome sends an <code>HTTP GET /</code> HTTP request the HTTP Server software running on a computer somewhere on the Internet that has the IP address <code>63.120.10.5</code>.</p>
+
+<p>You can think of the <code>GET /</code> as &ldquo;Get me the top-most web page from the website&rdquo;.  This is known as the <em>root</em> of the website, in contrast to things deeper into the website, like <code>GET /juices/oakland</code>, which might return a list of dog juice products local to Oakland, CA.  Since the <em>root</em> is a the top, that means the tree is actually upside down, and folks tend to think of websites as being structured as <em>inverted trees</em>.</p>
+
+<p>The back-and-forth is going to look something like this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'> ┌────────────────────┐                                         ┌────────────────────┐
+</span><span class='line'> │                    │          What's the HTML for            │                    │
+</span><span class='line'> │                    ├──────────http://63.120.10.5/?───────────▶                    │
+</span><span class='line'> │                    │                                         │                    │
+</span><span class='line'> │       Chrome       │                                         │    HTTP Server     │
+</span><span class='line'> │       Browser      ◀──────────────&lt;html&gt;stuff&lt;/html&gt;─────────│                    │
+</span><span class='line'> │                    │                                         │                    │
+</span><span class='line'> │    HTTP CLIENT     │                                         │                    │
+</span><span class='line'> │                    │                                         │                    │
+</span><span class='line'> └────────────────────┘                                         └────────────────────┘
+</span><span class='line'> </span></code></pre></td></tr></table></div></figure>
+
+
+<p>These things are speaking <strong>HTTP</strong> to each other.  What is HTTP?</p>
+
+<p>You can think of things that communicate with each other over the internet as using <strong>tubes</strong>.  There are lots of different types of tubes, and in this case it&rsquo;s an HTTP tube.  As long as the software on both ends agree on the type of tube they&rsquo;re using, everything <em>just works</em> and they can send stuff back and forth.  HTTP is a really common type of tube, but it&rsquo;s not the only one &mdash; for example the DNS lookup in the previous step used a completely <em>different</em> type of tube.</p>
+
+<p>Usually the stuff sent back from the HTTP Server is something called <strong>HTML</strong>, which stands for  <strong>H</strong>yper<strong>T</strong>ext <strong>M</strong>arkup <strong>L</strong>anguage.</p>
+
+<p>But HTML is not the only kind of stuff that can be sent through an HTTP tube.  In fact, JSON (Javascript Object Notation) and XML (eXtensible Markup Language) are also very common.  In fact there are tons of different types of things that can be sent through HTTP tubes.</p>
+
+<p>So at this point in our walk through, the Google Chrome web browser software has some HTML text, and it needs to <em>render</em> it in order for it to appear on your screen in a nice easy to view format.  That&rsquo;s the next step.</p>
+
+<h2>Step 3. Render HTML in a Web page</h2>
+
+<p>HTML is technically a <em>markup language</em>, which means that the text contains <em>formatting directives</em> which has an agreed upon standard on how it should be formatted.  You can think of HTML as being similar to a Microsoft Word document, but MS Word is obfuscated while HTML is very transparent and simple:</p>
+
+<p>For example, here is some HTML:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;html&gt;
+</span><span class='line'>   &lt;Header&gt;My first web page, circa, 1993!&lt;/Header&gt;
+</span><span class='line'>   &lt;Paragraph&gt;
+</span><span class='line'>        I am so proud to have made my very first web page, I &lt;blink&gt;Love&lt;/blink&gt; the World Wide Web
+</span><span class='line'>   &lt;Paragraph&gt;
+</span><span class='line'>   &lt;Footer&gt;Best Viewed on NCSA Mosaic&lt;/Footer&gt;
+</span><span class='line'>&lt;/html&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Which gets rendered into:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/my_first_webpage.jpg" alt="image" /></p>
+
+<p>So, you&rsquo;ll notice that the <code>&lt;Header&gt;</code> element is in a larger font.  And the <code>&lt;Paragraph&gt;</code> has spaces in between it and the other text.</p>
+
+<p>How does the Google Chrome Web Browser do the rendering?  It&rsquo;s just a piece of software, and rendering HTML is one of it&rsquo;s primary responsibilities.  There are tons of poor engineers at Google who do nothing all day but fix bugs in the Google Chrome rendering code.</p>
+
+<p> Of course, there&rsquo;s a lot more to it, but that&rsquo;s the essence of rendering HTML into a web page.</p>
+
+<h2>Step 4: Execute JavaScript in your Google Chrome Web Browser</h2>
+
+<p>So this step is <em>optional</em> because not all web pages will execute JavaScript in your web browser software, however it&rsquo;s getting more and more common these days.  When you open the Gmail website in your browser, it&rsquo;s running tons of Javascript code to make the website as fast and responsive as possible.</p>
+
+<p>Essentially, JavaScript adds another level of dynamic abilities to HTML, because when the browser is given HTML and it renders it .. that&rsquo;s it!  There&rsquo;s no more action, it just sits there &mdash; it&rsquo;s completely <em>inert</em>.</p>
+
+<p>JavaScript, on the other hand, is basically a program-within-a-program.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>                                                              
+</span><span class='line'> ┌───────────────────────────────────────────────────────────────┐
+</span><span class='line'> │                         Google Chrome                         │
+</span><span class='line'> │           (A program written in C++ you downloaded)           │
+</span><span class='line'> │                                                               │
+</span><span class='line'> │                                                               │
+</span><span class='line'> │      ┌──────────────────────────────────────────────────┐     │
+</span><span class='line'> │      │                                                  │     │
+</span><span class='line'> │      │                                                  │     │
+</span><span class='line'> │      │     JavaScript for organic-juice-for-dogs.io     │     │
+</span><span class='line'> │      │  (A program in JavaScript that snuck in via the  │     │
+</span><span class='line'> │      │                  HTML document)                  │     │
+</span><span class='line'> │      │                                                  │     │
+</span><span class='line'> │      │                                                  │     │
+</span><span class='line'> │      └──────────────────────────────────────────────────┘     │
+</span><span class='line'> │                                                               │
+</span><span class='line'> │                                                               │
+</span><span class='line'> └───────────────────────────────────────────────────────────────┘</span></code></pre></td></tr></table></div></figure>
+
+
+<p>How does the JavaScript get to the web browser?  It sneaks in over the HTML!  It&rsquo;s <em>embedded</em> in the HTML, since it&rsquo;s just another form of text, and your Web Browser (Google Chrome) executes it.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;html&gt;
+</span><span class='line'>     &lt;Javascript&gt;
+</span><span class='line'>          if (Paragraph == CLICKED) {
+</span><span class='line'>              Window.Alert("YOU MAY BE INFECTED BY A VIRUS, CLICK HERE IMMEDIATELY")
+</span><span class='line'>    }
+</span><span class='line'>     &lt;/Javascript&gt;
+</span><span class='line'>    ...
+</span><span class='line'>&lt;/html&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>What can JavaScript do exactly?  The list is really, really long.  But as a simple example, if you click a button on a webpage:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/html_button.gif" alt="html button" /></p>
+
+<p>A JavasScript program can pop up a little &ldquo;Alert Box&rdquo;, like this:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/javascript_alert.png" alt="javascript alert" /></p>
+
+<h2>Done!</h2>
+
+<p>And that&rsquo;s the World Wide Web!  You just went from typing a URL in your browser, from a shiny web page in your Google Chrome.  Soup to nuts.</p>
+
+<p>And you can finally buy some juice for your dog!</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/doge_coin_hungry_dog.png" alt="dogecoin dog" /></p>
+
+<p>So that&rsquo;s it for the high level stuff.</p>
+
+<p>For those of you who just want to be able to &ldquo;talk the talk&rdquo; but don&rsquo;t <em>really</em> care about any of this stuff, you can go back to checking the latest on <a href="http://www.buzzfeed.com">BuzzFeed</a> or whatever it is you do with your spare time ..</p>
+
+<p>But if you&rsquo;re dying to know about what kind of <em>concrete</em> you might use to build an internet tube, and how all these tubes get connected together:</p>
+
+<p>Continue on to <a href="/blog/2016/10/02/deep-dive-of-what-happens-under-the-hood-when-you-open-a-web-page/">Deep Dive of What Happens Under The Hood When You Open A Web Page</a></p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -149,7 +872,7 @@ brew install influxdb grafana telegraf &hellip;">
 
 <h2>Edit telegraf conf</h2>
 
-<p>Uncomment the entire statsd server section:</p>
+<p>Open <code>/usr/local/etc/telegraf.conf</code> in your favorite text editor and uncomment the entire statsd server section:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -1596,386 +2319,6 @@ brew install influxdb grafana telegraf &hellip;">
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/11/22/running-neural-style-on-an-aws-gpu-instance/">Running Neural Style on an AWS GPU Instance</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-11-22T11:02:00-08:00" pubdate data-updated="true">Nov 22<span>nd</span>, 2015</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>These instructions will walk you through getting <a href="https://github.com/jcjohnson/neural-style">neural-style</a> up and running on an AWS GPU instance.</p>
-
-<h2>Spin up CUDA-enabled AWS instance</h2>
-
-<p>Follow these instructions to <a href="http://tleyden.github.io/blog/2015/11/22/cuda-7-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">install CUDA 7.5 on AWS GPU Instance Running Ubuntu 14.04</a>.</p>
-
-<h2>SSH into AWS instance</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ ssh ubuntu@&lt;instance-ip&gt;</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Install Docker</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get update && sudo apt-get install curl
-</span><span class='line'>$ curl -sSL https://get.docker.com/ | sh</span></code></pre></td></tr></table></div></figure>
-
-
-<p>As the post-install message suggests, enable docker for non-root users:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo usermod -aG docker ubuntu</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Verify correct install via:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run hello-world</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Mount GPU devices</h2>
-
-<p><strong>Mount</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /usr/local/cuda/samples/1_Utilities/deviceQuery
-</span><span class='line'>$ sudo make
-</span><span class='line'>$ sudo ./deviceQuery</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should see something <a href="https://gist.github.com/tleyden/58ab2eedebc9529edb76">like this</a>:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>./deviceQuery Starting...
-</span><span class='line'>
-</span><span class='line'> CUDA Device Query (Runtime API) version (CUDART static linking)
-</span><span class='line'>
-</span><span class='line'>Detected 1 CUDA Capable device(s)
-</span><span class='line'>
-</span><span class='line'>Device 0: "GRID K520"
-</span><span class='line'>  CUDA Driver Version / Runtime Version          6.5 / 6.5
-</span><span class='line'>  ... snip ...
-</span><span class='line'>
-</span><span class='line'>deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 6.5, CUDA Runtime Version = 6.5, NumDevs = 1, Device0 = GRID K520
-</span><span class='line'>Result = PASS</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Verify: Find all your nvidia devices</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ ls -la /dev | grep nvidia</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should see:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>crw-rw-rw-  1 root root    195,   0 Oct 25 19:37 nvidia0
-</span><span class='line'>crw-rw-rw-  1 root root    195, 255 Oct 25 19:37 nvidiactl
-</span><span class='line'>crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Start Docker container</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ export DOCKER_NVIDIA_DEVICES="--device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm"
-</span><span class='line'>$ sudo docker run -ti $DOCKER_NVIDIA_DEVICES kaixhin/cuda-torch /bin/bash</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Re-install CUDA 7.5 in the Docker container</h2>
-
-<p>As <a href="https://groups.google.com/d/msg/torch7/yCSNIzW590M/Af7CHXEdDQAJ">reported in the Torch7 Google Group</a> and in <a href="https://github.com/Kaixhin/dockerfiles/issues/6">Kaixhin/dockerfiles</a>, there is an API version mismatch with the docker container and the host&rsquo;s version of CUDA.</p>
-
-<p>The workaround is to re-install CUDA 7.5 via:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1404/x86_64/cuda-repo-ubuntu1404_7.5-18_amd64.deb
-</span><span class='line'>$ sudo dpkg -i cuda-repo-ubuntu1404_7.5-18_amd64.
-</span><span class='line'>deb
-</span><span class='line'>$ sudo apt-get update
-</span><span class='line'>$ sudo apt-get upgrade -y
-</span><span class='line'>$ sudo apt-get install -y opencl-headers build-essential protobuf-compiler \
-</span><span class='line'>    libprotoc-dev libboost-all-dev libleveldb-dev hdf5-tools libhdf5-serial-dev \
-</span><span class='line'>    libopencv-core-dev  libopencv-highgui-dev libsnappy-dev libsnappy1 \
-</span><span class='line'>    libatlas-base-dev cmake libstdc++6-4.8-dbg libgoogle-glog0 libgoogle-glog-dev \
-</span><span class='line'>    libgflags-dev liblmdb-dev git python-pip gfortran
-</span><span class='line'>$ sudo apt-get clean
-</span><span class='line'>$ sudo apt-get install -y linux-image-extra-`uname -r` linux-headers-`uname -r` linux-image-`uname -r`
-</span><span class='line'>$ sudo apt-get install -y cuda</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Verify CUDA inside docker container</h2>
-
-<p>Running:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ nvidia-smi </span></code></pre></td></tr></table></div></figure>
-
-
-<p>Should show info about the GPU driver and not return any errors.</p>
-
-<p>Running this torch command:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ th -e "require 'cutorch'; require 'cunn'; print(cutorch)"</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Should produce this output:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>{
-</span><span class='line'>  getStream : function: 0x4054b760
-</span><span class='line'>  getDeviceCount : function: 0x408bca58
-</span><span class='line'>  .. etc
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Install neural-style</h2>
-
-<p>The following should be run <strong>inside</strong> the docker container:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ apt-get install -y wget libpng-dev libprotobuf-dev protobuf-compiler
-</span><span class='line'>$ git clone --depth 1 https://github.com/jcjohnson/neural-style.git
-</span><span class='line'>$ /root/torch/install/bin/luarocks install loadcaffe</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Download models</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd neural-style
-</span><span class='line'>$ sh models/download_models.sh</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Run neural style</h2>
-
-<p>First, grab a few images to test with</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ mkdir images
-</span><span class='line'>$ wget https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/1280px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg -O images/vangogh.jpg
-</span><span class='line'>$ wget http://exp.cdn-hotels.com/hotels/1000000/10000/7500/7496/7496_42_z.jpg -O images/hotel_del_coronado.jpg</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Run it:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ th neural_style.lua -style_image images/vangogh.jpg -content_image images/hotel_del_coronado.jpg</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>CuDNN (optional)</h2>
-
-<p>CuDNN can potentially speed things up.</p>
-
-<p><a href="https://developer.nvidia.com/cudnn">download cuDNN</a></p>
-
-<p>Install via:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>tar -xzvf cudnn-7.0-linux-x64-v3.0-prod.tgz
-</span><span class='line'>cd cuda/
-</span><span class='line'>sudo cp lib64/libcudnn* /usr/local/cuda-7.5/lib64/
-</span><span class='line'>sudo cp include/cudnn.h /usr/local/cuda-7.5/include
-</span><span class='line'>export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-7.5/lib64/</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Install the torch bindings for cuDNN:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>luarocks install cudnn</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>References</h2>
-
-<ul>
-<li><a href="https://github.com/jcjohnson/neural-style/blob/master/INSTALL.md">Neural-Style INSTALL.md</a></li>
-<li>ami-84c787ee &mdash; this AMI has everything pre-installed, however it is installed on the host rather than under docker, which was due to time constraints.</li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/11/03/running-the-sync-gateway-amazon-ami/">Running the Sync Gateway Amazon AMI</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-11-03T11:11:00-08:00" pubdate data-updated="true">Nov 3<span>rd</span>, 2015</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>How to run the Couchbase Sync Gateway AWS AMI</p>
-
-<h2>Kick off AWS instance</h2>
-
-<ul>
-<li>Browse to the <a href="https://aws.amazon.com/marketplace/pp/B013XDO1B4">Sync Gateway AMI</a> in the AWS Marketplace</li>
-<li>Click Continue</li>
-<li>Change all ports to &ldquo;MY IP&rdquo; except for port 4984</li>
-<li>Make sure you choose a key that you have locally</li>
-</ul>
-
-
-<h2>SSH in and start Sync Gateway</h2>
-
-<ul>
-<li>Go to the AWS console, find the EC2 instance, and find the instance public ip address.  It should look like this: <code>ec2-54-161-201-224.compute-1.amazonaws.com</code>.  The rest of the instructions will refer to this as <instance public ip></li>
-<li><code>ssh ec2-user@&lt;instance public ip&gt;</code> (this should let you in without prompting you for a password.  if not, you chose a key when you launched that you don&rsquo;t have locally)</li>
-<li>Start the Sync Gateway with this command:</li>
-</ul>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>/opt/couchbase-sync-gateway/bin/sync_gateway -interface=0.0.0.0:4984 -url=http://localhost:8091 -bucket=sync_gateway -dbname=sync_gateway</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>You should see output like this:</li>
-</ul>
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>2015-11-03T19:37:05.384Z ==== Couchbase Sync Gateway/1.1.0(28;86f028c) ====
-</span><span class='line'>2015-11-03T19:37:05.384Z Opening db /sync_gateway as bucket "sync_gateway", pool "default", server &lt;http://localhost:8091&gt;
-</span><span class='line'>2015-11-03T19:37:05.384Z Opening Couchbase database sync_gateway on &lt;http://localhost:8091&gt;
-</span><span class='line'>2015/11/03 19:37:05  Trying with selected node 0
-</span><span class='line'>2015/11/03 19:37:05  Trying with selected node 0
-</span><span class='line'>2015-11-03T19:37:05.536Z Using default sync function 'channel(doc.channels)' for database "sync_gateway"
-</span><span class='line'>2015-11-03T19:37:05.536Z     Reset guest user to config
-</span><span class='line'>2015-11-03T19:37:05.536Z Starting profile server on
-</span><span class='line'>2015-11-03T19:37:05.536Z Starting admin server on 127.0.0.1:4985
-</span><span class='line'>2015-11-03T19:37:05.550Z Starting server on localhost:4984 ...</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Verify via curl</h2>
-
-<p>From your workstation:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl http://&lt;instance public ip&gt;:4984/sync_gateway/</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should get a response like:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>{"committed_update_seq":1,"compact_running":false,"db_name":"sync_gateway","disk_format_version":0,"instance_start_time":1446579479331843,"purge_seq":0,"update_seq":1}</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Customize configuration</h2>
-
-<p>For more advanced Sync Gateway configuration, you will want to create a JSON config file on the EC2 instance itself and pass that to Sync Gateway when you launch it, or host your config JSON on the internet somewhere and pass Sync Gateway the URL to the file.</p>
-
-<h2>View Couchbase Server UI</h2>
-
-<p>In order to login to the Couchbase Server UI, go to <instance public ip>:8091 and use:</p>
-
-<ul>
-<li><strong>Username:</strong> Administrator</li>
-<li><strong>Password:</strong> <code>&lt;aws instance id, eg: i-8a9f8335&gt;</code></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -2006,6 +2349,14 @@ brew install influxdb grafana telegraf &hellip;">
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/10/02/deep-dive-of-what-happens-under-the-hood-when-you-open-a-web-page/">Deep Dive of What Happens Under the Hood When You Open a Web Page</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/09/30/the-lifecycle-of-an-http-request/">What Happens Under the Hood When You Open a Web Page?</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/09/12/configuring-influxdb-and-grafana-with-go-client-library/">Configuring InfluxDB and Grafana With Go Client Library</a>
       </li>
     
@@ -2015,14 +2366,6 @@ brew install influxdb grafana telegraf &hellip;">
     
       <li class="post">
         <a href="/blog/2016/02/15/setting-up-a-self-hosted-drone-dot-io-ci-server/">Setting Up a Self-hosted drone.io CI Server</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/02/08/adding-vendoring-to-a-go-project/">Adding Vendoring to a Go Project</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/02/07/configure-emacs-as-a-go-editor-from-scratch-part-3/">Configure Emacs as a Go Editor From Scratch Part 3</a>
       </li>
     
   </ul>

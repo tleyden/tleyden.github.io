@@ -1,0 +1,508 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: http | Seven Story Rabbit Hole]]></title>
+  <link href="http://tleyden.github.io/blog/categories/http/atom.xml" rel="self"/>
+  <link href="http://tleyden.github.io/"/>
+  <updated>2016-10-02T13:45:32-07:00</updated>
+  <id>http://tleyden.github.io/</id>
+  <author>
+    <name><![CDATA[Traun Leyden]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Deep Dive of What Happens Under The Hood When You Open A Web Page]]></title>
+    <link href="http://tleyden.github.io/blog/2016/10/02/deep-dive-of-what-happens-under-the-hood-when-you-open-a-web-page/"/>
+    <updated>2016-10-02T12:50:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2016/10/02/deep-dive-of-what-happens-under-the-hood-when-you-open-a-web-page</id>
+    <content type="html"><![CDATA[<p>This is a continuation of <a href="/blog/2016/09/30/the-lifecycle-of-an-http-request/">What Happens Under The Hood When You Open A Web Page</a>, and it&rsquo;s meant to be a deeper dive.</p>
+
+<h3>Clients and Servers</h3>
+
+<p>Remember back in the day when you wanted to know what time it was, and you picked up your phone and dialed 853-1212 and it said &ldquo;At the tone, the time will be 8:53 AM?&rdquo;.</p>
+
+<p>Those days are over, but the idea lives on.  The time <em>service</em> is identical in principal to an internet <em>server</em>.  You ask it something, and it gives you an answer.</p>
+
+<p>A well designed service does one thing, and one thing well.</p>
+
+<ul>
+<li><p>With the time service, you can only ask one kind of question: &ldquo;What time is it?&rdquo;</p></li>
+<li><p>With a DNS server, you can only ask one kind of question: &ldquo;What is the IP address of organic-juice-for-dogs.io&rdquo;</p></li>
+</ul>
+
+
+<p>Clients vs Servers:</p>
+
+<ul>
+<li><p>A &ldquo;Client&rdquo; can essentially be thought of as being a &ldquo;Customer&rdquo;.  In the case of calling the time, it&rsquo;s the person dialing the phone number.  In the case of DNS, it&rsquo;s the Google Chrome browser asking for the IP address.</p></li>
+<li><p>A &ldquo;Server&rdquo; can be thought of as being a &ldquo;Service&rdquo;.  In the case of calling the time, it&rsquo;s something running at the phone company.  In the case of DNS, it&rsquo;s a service run by a combination of universities, business, and governments.</p></li>
+</ul>
+
+
+<h2>Web Browsers</h2>
+
+<p>The following programs are all web browsers, which are all technically HTTP Clients, meaning they are on the client end of the HTTP tube.</p>
+
+<ul>
+<li>Google Chrome</li>
+<li>Safari</li>
+<li>Firefox</li>
+<li>Internet Explorer</li>
+<li>Etc..</li>
+</ul>
+
+
+<p>What web browsers do:</p>
+
+<ul>
+<li>Lookup IP addresses from DNS servers over the DNS protocol (which in turn sits on top of the UDP protocol)</li>
+<li>Retrieve web pages, images, and more from web servers over the HTTP protocol (which in turn sits on top of the TCP protocol)</li>
+<li>Render HTML into formatted &ldquo;pages&rdquo;</li>
+<li>Executes JavaScript code to add a level of dynamic behavior to web pages</li>
+</ul>
+
+
+<h2>Protocols</h2>
+
+<p>In the previous post, there were a few &ldquo;protocols&rdquo; mentioned, like HTTP.</p>
+
+<p>What are protocols really?</p>
+
+<p><strong>Any protocol is something to make it possible for things that speak the same protocol to speak to each other over that protocol.</strong></p>
+
+<p>A protocol is just a <em>language</em>, and just like everyone in English-speaking countries agree to speak English and can therefore intercommunicate without issues, many things on the internet agree to speak HTTP to each other.</p>
+
+<p>Here&rsquo;s what a conversation looks like in the HTTP protocol:</p>
+
+<p><code>
+HTTP Client: GET /
+HTTP Server: &lt;html&gt;I'm a &lt;blink&gt;amazing&lt;/blink&gt; HTML web page!!&lt;/html&gt;
+</code></p>
+
+<p>Almost everything that happens on the Internet looks something like this:</p>
+
+<p>```</p>
+
+<p> ┌────────────────────┐                                         ┌────────────────────┐
+ │                    │                                         │                    │
+ │                    │                                         │                    │
+ │                    │                                         │                    │
+ │     Internet       ◀──────────────Protocol───────────────────▶    Internet        │
+ │     Thing 1        │                                         │    Thing 2         │
+ │                    │                                         │                    │
+ │                    │                                         │                    │
+ │                    │                                         │                    │
+ └────────────────────┘                                         └────────────────────┘
+```</p>
+
+<p>There are lots of different protocols, which are just &ldquo;languages&rdquo; that things on the Internet use to speak to each other.  You and I speak English.  Many things on the Internet speak protocols like HTTP, others speak different protocols like DNS.</p>
+
+<p>Let&rsquo;s look at a few, at a very high level.</p>
+
+<h3><strong>TCP</strong> and <strong>UDP</strong></h3>
+
+<p>You can think of the internet as being made up of <em>tubes</em>.  Two very common types of tubes are:</p>
+
+<ul>
+<li>TCP (Transmission Control Protocol)</li>
+<li>UDP (User Datagram Protocol)</li>
+</ul>
+
+
+<p>Here&rsquo;s what an internet tube looks like:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/internet-tube.jpg" alt="image" /></p>
+
+<h3><strong>IP</strong></h3>
+
+<p>Really, you can think of TCP and UDP as internet tubes that are built from the same kind of concrete &mdash; and that concrete is called IP (Internet Protocol)</p>
+
+<p>TCP <em>wraps</em> IP, in the sense that it is built on top of IP.  If you took a <em>slice</em> of a TCP internet tube, it would look like this:</p>
+
+<p><code>                                          
+ ┌───────────────────────────────────────────┐
+ │   TCP - (Transmission Control Protocol)   │
+ │                                           │
+ │                                           │
+ │       ┌──────────────────────────┐        │
+ │       │ IP - (Internet Protocol) │        │
+ │       │                          │        │
+ │       │                          │        │
+ │       │                          │        │
+ │       └──────────────────────────┘        │
+ │                                           │
+ └───────────────────────────────────────────┘
+</code></p>
+
+<p>Ditto for UDP &mdash; it&rsquo;s also built on top of IP.  The slice of a UDP internet tube would look like this:</p>
+
+<p><code>                                             
+ ┌───────────────────────────────────────────┐
+ │    UDP - (Universal Datagram Protocol)    │
+ │                                           │
+ │                                           │
+ │       ┌──────────────────────────┐        │
+ │       │ IP - (Internet Protocol) │        │
+ │       │                          │        │
+ │       │                          │        │
+ │       │                          │        │
+ │       └──────────────────────────┘        │
+ │                                           │
+ └───────────────────────────────────────────┘
+</code></p>
+
+<p>IP, or &ldquo;Internet Protocol&rdquo;, is fancy way of saying &ldquo;How machines on the Internet talk to each other&rdquo;, and <strong>IP addresses</strong> are their equivalent of phone numbers.</p>
+
+<p>Why do we need two types of tubes built on top of IP?  They have different properties:</p>
+
+<ul>
+<li>TCP tubes are heavy weight, they take a long time to build, and a long time to tear down, but they are super reliable.</li>
+<li>UDP tubes are light weight, and have no guarantees. They&rsquo;re like the <code>¯\_(ツ)_/¯</code> of internet tubes.  If you send something down a UDP internet tube, you actually have no idea whether it will make it down the tube or not.  It might seem useless, but it&rsquo;s not.  Pretty much all real time gaming, voice, and video transmissions go through UDP tubes.</li>
+</ul>
+
+
+<h2>HTTP tubes</h2>
+
+<p>If you take a slice of an HTTP tube, it looks like this:</p>
+
+<p><code>
+┌───────────────────────────────────────────────────────────┐
+│           HTTP - (HyperText Transfer Protocol)            │
+│                                                           │
+│       ┌───────────────────────────────────────────┐       │
+│       │   TCP - (Transmission Control Protocol)   │       │
+│       │                                           │       │
+│       │        ┌──────────────────────────┐       │       │
+│       │        │ IP - (Internet Protocol) │       │       │
+│       │        │                          │       │       │
+│       │        └──────────────────────────┘       │       │
+│       │                                           │       │
+│       └───────────────────────────────────────────┘       │
+│                                                           │
+└───────────────────────────────────────────────────────────┘
+</code></p>
+
+<p>Because HTTP <em>sits on top of</em> TCP, which in turn <em>sits on top of</em> IP.</p>
+
+<h3>DNS tubes</h3>
+
+<p>DNS tubes are very similar to HTTP tubes, except they sit on top of UDP tubes.  Here&rsquo;s what a slice might look like:</p>
+
+<p><code>
+┌───────────────────────────────────────────────────────────┐
+│                DNS - (Domain Name Service)                │
+│                                                           │
+│       ┌───────────────────────────────────────────┐       │
+│       │    UDP - (Universal Datagram Protocol)    │       │
+│       │                                           │       │
+│       │        ┌──────────────────────────┐       │       │
+│       │        │ IP - (Internet Protocol) │       │       │
+│       │        │                          │       │       │
+│       │        └──────────────────────────┘       │       │
+│       │                                           │       │
+│       └───────────────────────────────────────────┘       │
+│                                                           │
+└───────────────────────────────────────────────────────────┘
+</code></p>
+
+<h2>Actually, internet tubes are more complicated</h2>
+
+<p>So when your Google Chrome web browser gets a web page over an HTTP tube, it actually looks more like this:</p>
+
+<p>```</p>
+
+<pre><code>          ┌────────────────────┐             
+          │                    │             
+          │       Chrome       │             
+          │       Browser      │             
+          │                    │             
+          └─────────┬────▲─────┘             
+                    │    │                   
+                    │    │                   
+          ┌─────────▼────┴─────┐             
+          │                    │             
+          │   Some random      │             
+          │  computer in WA    │             
+          │                    │             
+          └─────────┬─────▲────┘             
+          ┌─────────▼─────┴────┐             
+          │                    │             
+          │   Some random      │             
+          │  computer in IL    │             
+          │                    │             
+          └────────┬───▲───────┘             
+          ┌────────▼───┴───────┐             
+          │                    │             
+          │   Some random      │             
+          │  computer in MA    │             
+          │                    │             
+          └──────────┬───▲─────┘             
+                     │   │                   
+                     │   │                   
+                     │   │                   
+ Send me the HTML    │   │ &lt;html&gt;stuff&lt;/html&gt;
+                     │   │                   
+                     │   │                   
+                     │   │                   
+                     │   │                   
+          ┌──────────▼───┴─────┐             
+          │                    │             
+          │    HTTP Server     │             
+          │                    │             
+          └────────────────────┘
+</code></pre>
+
+<p>```</p>
+
+<p>Each of these random computers in between are called <em>routers</em>, and they basically shuttle traffic across the internet.  They make it possible that any two computers on the internet can communicate with each other, without having a direct connection.</p>
+
+<p>If you&rsquo;re curious to know which computers are in the middle of your connection between you and another computer on the internet, you can run a nifty little utility called <code>traceroute</code>:</p>
+
+<p>```
+$ traceroute google.com
+traceroute to google.com (172.217.5.110), 64 hops max, 52 byte packets
+ 1  dd-wrt (192.168.11.1)  1.605 ms  1.049 ms  0.953 ms
+ 2  96.120.90.157 (96.120.90.157)  9.334 ms  8.796 ms  8.850 ms
+ 3  te-0-7-0-18-sur03.oakland.ca.sfba.comcast.net (68.87.227.209)  9.744 ms  9.416 ms  9.120 ms
+ 4  162.151.78.93 (162.151.78.93)  12.310 ms  11.559 ms  11.662 ms
+ 5  be-33651-cr01.sunnyvale.ca.ibone.comcast.net (68.86.90.93)  11.276 ms  11.187 ms  12.426 ms
+ 6  hu-0-13-0-1-pe02.529bryant.ca.ibone.comcast.net (68.86.84.14)  11.624 ms</p>
+
+<pre><code>hu-0-12-0-1-pe02.529bryant.ca.ibone.comcast.net (68.86.87.14)  11.637 ms
+hu-0-13-0-0-pe02.529bryant.ca.ibone.comcast.net (68.86.86.94)  12.404 ms
+</code></pre>
+
+<p> 7  as15169-3-c.529bryant.ca.ibone.comcast.net (23.30.206.102)  11.024 ms  11.498 ms  11.148 ms
+ 8  108.170.243.1 (108.170.243.1)  11.037 ms</p>
+
+<pre><code>108.170.242.225 (108.170.242.225)  12.246 ms
+108.170.243.1 (108.170.243.1)  11.482 ms
+</code></pre>
+
+<p>```</p>
+
+<p>So from my computer to the computer at google.com, it goes through all of those intermediate computers.  Some have DNS names, like <code>be-33651-cr01.sunnyvale.ca.ibone.comcast.net</code>, but some only have IP addresses, like <code>162.151.78.93</code></p>
+
+<p>Any one of those computers could <em>sniff</em> the traffic going through the tubes (even the <strong>IP</strong> tubes that all the other ones sit on top of!).  That&rsquo;s why you don&rsquo;t want to send your credit cards over the internet without using encryption!</p>
+
+<h2>The End</h2>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[What happens under the hood when you open a web page?]]></title>
+    <link href="http://tleyden.github.io/blog/2016/09/30/the-lifecycle-of-an-http-request/"/>
+    <updated>2016-09-30T20:25:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2016/09/30/the-lifecycle-of-an-http-request</id>
+    <content type="html"><![CDATA[<p>First, the bird&rsquo;s eye view:</p>
+
+<p>```</p>
+
+<p>┌────┐                   ┌────────────────┐               ┌────────────────┐
+│You │                   │ Google Chrome  │               │    Internet    │
+└────┘                   └────────────────┘               └────────────────┘</p>
+
+<pre><code> │                               │                                  │   
+ │    Show me the website for    │                                  │   
+ │───organic-juice-for-dogs.io──▶│       1. Hey what's the IP of    │   
+ │                               │─────organic-juice-for-dogs.io?──▶│   
+ │                               │                                  │   
+ │                               │                                  │   
+ │                               │◀───────────63.120.10.5───────────│   
+ │                               │                                  │   
+ │                               │                                  │   
+ │                               │        2. HTTP GET / to          │   
+ │                               │───────────63.120.10.5───────────▶│   
+ │                               │                                  │   
+ │                               │                                  │   
+ │                               │     HTML Content for homepage    │   
+ │                               │◀───────────────of ───────────────│   
+ │                               │     organic-juice-for-dogs.io    │   
+ │                               │                                  │   
+ │                               │                                  │   
+ │         3. Render HTML into   │                                  │   
+ │◀────────────a Web Page────────│                                  │   
+ │                               │                                  │   
+ │                               │                                  │   
+ │      Click stuff in Google    │                                  │   
+ │─────────────Chrome───────────▶│                                  │   
+ │                               │                                  │   
+ │                               │                                  │   
+ │         4. Execute JavaScript │                                  │   
+ │◀─────────and update Web Page──┤                                  │   
+ │                               │                                  │   
+ ▼                               ▼                                  ▼
+</code></pre>
+
+<p>```</p>
+
+<p>It all starts with a DNS lookup.</p>
+
+<h2>Step 1. The DNS Lookup</h2>
+
+<p>Your Google Chrome software contacts a thing on the Internet called a DNS server and asks it &ldquo;Hey what&rsquo;s the IP of organic-juice-for-dogs.io?&rdquo;.</p>
+
+<p>DNS has an official sounding acronym, and for good reason, because it&rsquo;s a very authoritative and fundamental Internet service.</p>
+
+<p>So what exactly is DNS useful for?</p>
+
+<p><strong>It transforms Domain names into IP addresses</strong></p>
+
+<p>```</p>
+
+<p> ┌────────────────────┐                                     ┌────────────────────┐
+ │                    │      What&rsquo;s the IP address of       │                    │
+ │                    │─────organic-juice-for-dogs.io?──────▶                    │
+ │                    │                                     │                    │
+ │       Chrome       │                                     │      DNS Server    │
+ │       Browser      ◀───────────63.120.10.5───────────────│                    │
+ │                    │                                     │                    │
+ │                    │                                     │                    │
+ │                    │                                     │                    │
+ └────────────────────┘                                     └────────────────────┘</p>
+
+<p>```</p>
+
+<p>A <strong>Domain name</strong>, also referred to as a &ldquo;Dot com name&rdquo;, is an easy-to-remember word or group of words, so people don&rsquo;t have to memorize a list of meaningless numbers.  You could think of it like dialing <strong>1-800-FLOWERS</strong>, which is a lot easier to remember than <strong>1-800-901-1111</strong></p>
+
+<p>The IP address <code>63.120.10.5</code> is just like a phone number.  If you are a human being and want to call someone, you might dial <code>415-555-1212</code>.  But if you&rsquo;re a thing on the internet and you want to talk to another thing on the internet, you instead dial the <strong>IP address</strong> <code>63.120.10.5</code> &mdash; same concept though.</p>
+
+<p>So, that&rsquo;s DNS in a nutshell.  Not very complicated on the surface.</p>
+
+<h2>Step 2. Contact the IP address and fetch the HTML over HTTP</h2>
+
+<p>In this step, Google Chrome sends an <code>HTTP GET /</code> HTTP request the HTTP Server software running on a computer somewhere on the Internet that has the IP address <code>63.120.10.5</code>.</p>
+
+<p>You can think of the <code>GET /</code> as &ldquo;Get me the top-most web page from the website&rdquo;.  This is known as the <em>root</em> of the website, in contrast to things deeper into the website, like <code>GET /juices/oakland</code>, which might return a list of dog juice products local to Oakland, CA.  Since the <em>root</em> is a the top, that means the tree is actually upside down, and folks tend to think of websites as being structured as <em>inverted trees</em>.</p>
+
+<p>The back-and-forth is going to look something like this:</p>
+
+<p>```</p>
+
+<p> ┌────────────────────┐                                         ┌────────────────────┐
+ │                    │          What&rsquo;s the HTML for            │                    │
+ │                    ├──────────<a href="http://63.120.10.5/?%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%96%B6">http://63.120.10.5/?%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%96%B6</a>                    │
+ │                    │                                         │                    │
+ │       Chrome       │                                         │    HTTP Server     │
+ │       Browser      ◀──────────────<html>stuff</html>─────────│                    │
+ │                    │                                         │                    │
+ │    HTTP CLIENT     │                                         │                    │
+ │                    │                                         │                    │
+ └────────────────────┘                                         └────────────────────┘</p>
+
+<p>```</p>
+
+<p>These things are speaking <strong>HTTP</strong> to each other.  What is HTTP?</p>
+
+<p>You can think of things that communicate with each other over the internet as using <strong>tubes</strong>.  There are lots of different types of tubes, and in this case it&rsquo;s an HTTP tube.  As long as the software on both ends agree on the type of tube they&rsquo;re using, everything <em>just works</em> and they can send stuff back and forth.  HTTP is a really common type of tube, but it&rsquo;s not the only one &mdash; for example the DNS lookup in the previous step used a completely <em>different</em> type of tube.</p>
+
+<p>Usually the stuff sent back from the HTTP Server is something called <strong>HTML</strong>, which stands for  <strong>H</strong>yper<strong>T</strong>ext <strong>M</strong>arkup <strong>L</strong>anguage.</p>
+
+<p>But HTML is not the only kind of stuff that can be sent through an HTTP tube.  In fact, JSON (Javascript Object Notation) and XML (eXtensible Markup Language) are also very common.  In fact there are tons of different types of things that can be sent through HTTP tubes.</p>
+
+<p>So at this point in our walk through, the Google Chrome web browser software has some HTML text, and it needs to <em>render</em> it in order for it to appear on your screen in a nice easy to view format.  That&rsquo;s the next step.</p>
+
+<h2>Step 3. Render HTML in a Web page</h2>
+
+<p>HTML is technically a <em>markup language</em>, which means that the text contains <em>formatting directives</em> which has an agreed upon standard on how it should be formatted.  You can think of HTML as being similar to a Microsoft Word document, but MS Word is obfuscated while HTML is very transparent and simple:</p>
+
+<p>For example, here is some HTML:</p>
+
+<p>```
+<html>
+   <Header>My first web page, circa, 1993!</Header>
+   <Paragraph></p>
+
+<pre><code>    I am so proud to have made my very first web page, I &lt;blink&gt;Love&lt;/blink&gt; the World Wide Web
+</code></pre>
+
+<p>   <Paragraph>
+   <Footer>Best Viewed on NCSA Mosaic</Footer>
+</html>
+```</p>
+
+<p>Which gets rendered into:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/my_first_webpage.jpg" alt="image" /></p>
+
+<p>So, you&rsquo;ll notice that the <code>&lt;Header&gt;</code> element is in a larger font.  And the <code>&lt;Paragraph&gt;</code> has spaces in between it and the other text.</p>
+
+<p>How does the Google Chrome Web Browser do the rendering?  It&rsquo;s just a piece of software, and rendering HTML is one of it&rsquo;s primary responsibilities.  There are tons of poor engineers at Google who do nothing all day but fix bugs in the Google Chrome rendering code.</p>
+
+<p> Of course, there&rsquo;s a lot more to it, but that&rsquo;s the essence of rendering HTML into a web page.</p>
+
+<h2>Step 4: Execute JavaScript in your Google Chrome Web Browser</h2>
+
+<p>So this step is <em>optional</em> because not all web pages will execute JavaScript in your web browser software, however it&rsquo;s getting more and more common these days.  When you open the Gmail website in your browser, it&rsquo;s running tons of Javascript code to make the website as fast and responsive as possible.</p>
+
+<p>Essentially, JavaScript adds another level of dynamic abilities to HTML, because when the browser is given HTML and it renders it .. that&rsquo;s it!  There&rsquo;s no more action, it just sits there &mdash; it&rsquo;s completely <em>inert</em>.</p>
+
+<p>JavaScript, on the other hand, is basically a program-within-a-program.</p>
+
+<p>```</p>
+
+<p> ┌───────────────────────────────────────────────────────────────┐
+ │                         Google Chrome                         │
+ │           (A program written in C++ you downloaded)           │
+ │                                                               │
+ │                                                               │
+ │      ┌──────────────────────────────────────────────────┐     │
+ │      │                                                  │     │
+ │      │                                                  │     │
+ │      │     JavaScript for organic-juice-for-dogs.io     │     │
+ │      │  (A program in JavaScript that snuck in via the  │     │
+ │      │                  HTML document)                  │     │
+ │      │                                                  │     │
+ │      │                                                  │     │
+ │      └──────────────────────────────────────────────────┘     │
+ │                                                               │
+ │                                                               │
+ └───────────────────────────────────────────────────────────────┘
+```</p>
+
+<p>How does the JavaScript get to the web browser?  It sneaks in over the HTML!  It&rsquo;s <em>embedded</em> in the HTML, since it&rsquo;s just another form of text, and your Web Browser (Google Chrome) executes it.</p>
+
+<p>```
+<html></p>
+
+<pre><code> &lt;Javascript&gt;
+      if (Paragraph == CLICKED) {
+          Window.Alert("YOU MAY BE INFECTED BY A VIRUS, CLICK HERE IMMEDIATELY")
+  }
+ &lt;/Javascript&gt;
+...
+</code></pre>
+
+<p></html>
+```</p>
+
+<p>What can JavaScript do exactly?  The list is really, really long.  But as a simple example, if you click a button on a webpage:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/html_button.gif" alt="html button" /></p>
+
+<p>A JavasScript program can pop up a little &ldquo;Alert Box&rdquo;, like this:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/javascript_alert.png" alt="javascript alert" /></p>
+
+<h2>Done!</h2>
+
+<p>And that&rsquo;s the World Wide Web!  You just went from typing a URL in your browser, from a shiny web page in your Google Chrome.  Soup to nuts.</p>
+
+<p>And you can finally buy some juice for your dog!</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/doge_coin_hungry_dog.png" alt="dogecoin dog" /></p>
+
+<p>So that&rsquo;s it for the high level stuff.</p>
+
+<p>For those of you who just want to be able to &ldquo;talk the talk&rdquo; but don&rsquo;t <em>really</em> care about any of this stuff, you can go back to checking the latest on <a href="http://www.buzzfeed.com">BuzzFeed</a> or whatever it is you do with your spare time ..</p>
+
+<p>But if you&rsquo;re dying to know about what kind of <em>concrete</em> you might use to build an internet tube, and how all these tubes get connected together:</p>
+
+<p>Continue on to <a href="/blog/2016/10/02/deep-dive-of-what-happens-under-the-hood-when-you-open-a-web-page/">Deep Dive of What Happens Under The Hood When You Open A Web Page</a></p>
+]]></content>
+  </entry>
+  
+</feed>

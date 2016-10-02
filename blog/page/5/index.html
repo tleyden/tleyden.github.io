@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="A channel describes a transport of sorts. You can send a thing down that transport. When using a chan chan, the thing you want to send down the &hellip;">
+  <meta name="description" content="Programming Challenge The goal is to create an Objective-C class which takes an array of NSURL&rsquo;s, downloads their contents asynchronously, and &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +72,164 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/01/13/objective-c-coding-interview-challenge-urlpuller/">Objective C Coding Interview Challenge: URLPuller</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-13T11:45:00-08:00" pubdate data-updated="true">Jan 13<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>Programming Challenge</h1>
+
+<p>The goal is to create an Objective-C class which takes an array of NSURL&rsquo;s, downloads their contents asynchronously, and writes the contents of each URL to a unique file.</p>
+
+<p>The class should be named URLPuller and should have the following instance methods:</p>
+
+<ul>
+<li><code>- (void) downloadUrlsAsync: (NSArray*)urls</code></li>
+<li><code>- (void) waitUntilAllDownloadsFinish</code></li>
+<li><code>- (NSString*) downloadedPathForURL: (NSURL*)url</code></li>
+</ul>
+
+
+<p>Here are the detailed descriptions of each method:</p>
+
+<h2>downloadUrlsAsync</h2>
+
+<p><code>- (void) downloadUrlsAsync: (NSArray*)urls</code></p>
+
+<p>The urls array will contain an array of NSURL&rsquo;s.  The method should return immediately, eg, it&rsquo;s an asynchronous API call that will run in the background.</p>
+
+<p>The downloaded files can be stored in any directory, where the filename is {sha1 hash of url}.downloaded</p>
+
+<h2>waitUntilAllDownloadsFinish</h2>
+
+<p><code>- (void) waitUntilAllDownloadsFinish</code></p>
+
+<p>Block until all of the URLs have been downloaded.</p>
+
+<p>If this is called while there is no download in progress, it should return immediately.  Otherwise, it should block until all the downloads have finished.</p>
+
+<h2>downloadedPathForURL</h2>
+
+<p><code>- (NSString*) downloadedPathForURL: (NSURL*)url</code></p>
+
+<p>Return the path where the given url was downloaded to.</p>
+
+<p>If the given url has not been downloaded yet, or was never requested to be downloaded, then it should return nil.</p>
+
+<h1>Objectives</h1>
+
+<p>Demonstrate that:</p>
+
+<ul>
+<li>You can write a program that satisfies the API methods and described behavior.</li>
+<li>You can write code that is well factored, and easy to understand.</li>
+<li>You can clearly communicate questions (if any arise) regarding this specification.</li>
+</ul>
+
+
+<h1>Deliverable</h1>
+
+<ul>
+<li>Zipped Xcode project directory or a link to github repo that contains the Xcode project.  It can be either an iOS or MacOS project.</li>
+</ul>
+
+
+<h1>Rules</h1>
+
+<ul>
+<li>You can use any available resource you can find on the Internet &mdash; eg, Stack Overflow, API docs, etc.</li>
+<li>You may not ask questions related to the problem on Stack Overflow, IRC, etc.  (eg, the Internet is &ldquo;read-only&rdquo;)</li>
+<li>You cannot use any 3rd party libraries or products, you can only use classes and API&rsquo;s in the standard iOS/Cocoa Objective-C runtime.  If in doubt, just ask.</li>
+<li>You are welcome to go above and beyond the call of duty in any way that you see fit, however with the constraint that you must provide the above methods with signatures exactly matching with the specification.</li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/12/19/how-to-downgrade-android-studio/">How to Downgrade Android Studio</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-12-19T17:01:00-08:00" pubdate data-updated="true">Dec 19<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I just tried to update to Android Studio 0.4, however was stung by <a href="https://code.google.com/p/android/issues/detail?id=61573#c14">Issue 61573: Gradle duplicate file exception when package apk file with jar dependencies that contains resources.</a></p>
+
+<p>The good news is that it&rsquo;s very easy to downgrade!  Thank Google, because there is nothing more annoying than not being able to back out of an upgrade gone bad.</p>
+
+<p>Here&rsquo;s how I did it on OSX Mavericks:</p>
+
+<ul>
+<li><p>Download 0.3.7 from <a href="http://tools.android.com/download/studio/canary/0-3-7">http://tools.android.com/download/studio/canary/0-3-7</a></p></li>
+<li><p>Unzip it by double clicking it.</p></li>
+<li><p>In a command line, run the following:</p></li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ mv /Applications/Android\ Studio.app /tmp/
+</span><span class='line'>$ mv ~/Downloads/Android\ Studio.app /Applications/
+</span><span class='line'>$ cp -R /tmp/Android\ Studio.app/sdk /Applications/Android\ Studio.app/</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The last step is necessary because the dowloaded 0.3.7 Android Studio will not have an SDK directory.  (Note: at this point you can also use <code>mv</code> instead of <code>cp</code> if you don&rsquo;t want to use the extra disk space)</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1381,231 +1539,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/09/19/java-coding-challenge/">Java Coding Challenge</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-09-19T13:42:00-07:00" pubdate data-updated="true">Sep 19<span>th</span>, 2013</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Write a server that uses tcp sockets which returns images to clients, and avoids duplicate work for concurrent requests for the same image.</p>
-
-<h1>Description</h1>
-
-<p>A server will listen for tcp client connections and generate PNG checkerboard images and return them to clients that request them.  Example checkerboard image:</p>
-
-<p><img src="/images/checkerboard.png" width="295" height="105" title="image" alt="images"></p>
-
-<p>The client will send a single parameter to the server after it opens the tcp socket connection to the server:</p>
-
-<ul>
-<li> The size of the &ldquo;checkboard image&rdquo;, which will be a single scalar value like 5, which will result in a 5x5 square, as shown above.</li>
-</ul>
-
-
-<p>The server will use the following default values when generating the checkerboard image:</p>
-
-<ul>
-<li> size: each square will be 60 x 60 pixels.</li>
-<li> color: squares will be alternating black and white, with black for the square in the 0th row and 0th column, and white for the square in the 1st row and 0th column, etc.  Exactly as shown above.</li>
-</ul>
-
-
-<h1>Basic Requirements</h1>
-
-<ul>
-<li>Written in either Java or Scala</li>
-<li>To generate the actual image, you can use anything you want.  The image format can be any popular image format (PNG, JPEG, GIF, etc..)</li>
-<li>For the data structures required by the server, you can use any existing data structures within Java itself or a 3rd party, there is no requirement to develop your own.</li>
-<li>The server will respond with the image data in PNG format, and then close the connection.</li>
-</ul>
-
-
-<h1>Advanced Requirements</h1>
-
-<ul>
-<li>In the method that generates the square, there must be a call to Thread.sleep(Y) before returning.  Y represents number of milliseconds to sleep, and will be a random number between 0 and 5000.</li>
-<li>The server can handle multiple client requests in parallel (as opposed to handling them in serial).  In other words, if client1 contacts the server, and then client2 contacts the server a few milliseconds later, there is a chance that client2 will receive a response before client1, depending on the random sleep described above.</li>
-<li>In order to avoid needlessly generating the same image twice, if the server is asked to generate a square of size X by client1, and then again asked to generate another square of size X by client2 before it has returned the square to client1, it will simply wait for the square for client1 is finished being generated and return that same square data to both client2 and client1.  Here is an example timeline to show how events would roughly be ordered:
-
-<ul>
-<li>At 12:00:00 Client1 asks for square of size 6</li>
-<li>At 12:00:01 The server starts to generate the square for client1</li>
-<li>At 12:00:01 Client2 asks for square of size 6 (the server does <em>not</em> try to generate a new square, since there is already a pending request for an identical square)</li>
-<li>At 12:00:06 The server finishes generating the square of size 6, as originally requested by client1</li>
-<li>At 12:00:07 The server returns the square to client1</li>
-<li>At 12:00:07 The server returns the same square to client2</li>
-</ul>
-</li>
-</ul>
-
-
-<h1>Deliverables</h1>
-
-<ul>
-<li>server.sh &ndash; starts the server that listens on 8000</li>
-<li>client.sh X &ndash; runs a client that:
-
-<ul>
-<li>connects to localhost:8000</li>
-<li>passes the parameter X (the size of the checkboard image) to the server</li>
-<li>reads the PNG into a file called X.png</li>
-<li>prints a message to say its finished.</li>
-</ul>
-</li>
-<li>A zip file that contains all jar file dependencies <em>or</em> a document that describes on how to download the required dependencies</li>
-</ul>
-
-
-<h1>Shortcuts</h1>
-
-<p>If this feels like too much work, take the following shortcut:</p>
-
-<ul>
-<li>Rather than return an image, just create a string which would represent the image, where X represents black and O represents white.  Eg, if it was a 2x2 square, return &ldquo;X00X&rdquo;</li>
-</ul>
-
-
-<h1>Bonus points</h1>
-
-<ul>
-<li>Record your commits in a local git repository as you work, and submit a zip file of the repository along with the other deliverables</li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/09/07/octopress-setup-part-ii/">Octopress Setup Part II</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-09-07T11:46:00-07:00" pubdate data-updated="true">Sep 7<span>th</span>, 2013</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h1>Showing my tweets on my blog</h1>
-
-<p>What&rsquo;s a blog without a few tweets to spice it up?</p>
-
-<p>Here&rsquo;s my first attempt, which didn&rsquo;t work.  I modified my _config.yml file to have:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>twitter_user: tleydn</span></code></pre></td></tr></table></div></figure>
-
-
-<p>After some desperate googling, I came across <a href="http://blog.jmac.org/blog/2013/03/30/putting-twitter-back-into-octopress/">this blog post</a> which seems to suggest that twitter support has been remoted from Octopress, with instructions on how to embed a twitter widget.</p>
-
-<p>Here&rsquo;s a few tricks to make it looks slightly less butt-ugly:</p>
-
-<ul>
-<li>In the twitter widget generator, choose the &ldquo;dark&rdquo; theme.</li>
-<li>Modify the widget class to have dimensions <code>width="300" height="350"</code> so that it is slightly less distracting when viewing content.</li>
-</ul>
-
-
-<h1>Adding an &ldquo;About&rdquo; page</h1>
-
-<p>I followed the instructions on <a href="http://octopress.org/docs/theme/template/">Theming &amp; Customization</a>, which added an About section on the top of the sidebar on the right side.</p>
-
-<h1>Enabling Disqus comments</h1>
-
-<p>This was trivial:</p>
-
-<ul>
-<li>Go to <a href="http://disqus.com">Disqus</a> and register a new site</li>
-<li>Add the &ldquo;shortname&rdquo; to the _config.yml file</li>
-</ul>
-
-
-<h1>Let&rsquo;s pimp this thing &mdash; Adding an image in the header</h1>
-
-<ul>
-<li>Open octopress/source/_includes/custom/header.html</li>
-<li>Find an image graphic and save it into octopress/source/images (in my case, it was /images/rabbit_hole_graphic.png)</li>
-<li>Add a new html table element, and in one cell add a link to the image with the appropriate size dimensions.</li>
-</ul>
-
-
-<p>Example header.html file:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>  &lt;table&gt;&lt;tr&gt;&lt;td&gt;
-</span><span class='line'>  &lt;h1&gt;&lt;a href="{{ root_url }}/"&gt;{{ site.title }}&lt;/a&gt;&lt;/h1&gt;
-</span><span class='line'>  {% if site.subtitle %}
-</span><span class='line'>    &lt;h2&gt;{{ site.subtitle }}&lt;/h2&gt;
-</span><span class='line'>  {% endif %}
-</span><span class='line'>  &lt;/td&gt;&lt;td&gt;&nbsp;&nbsp;
-</span><span class='line'>  {% img left /images/rabbit_hole_graphic.png 295 105 'image' 'images' %}
-</span><span class='line'>  &lt;/td&gt;&lt;/tr&gt;
-</span><span class='line'>  &lt;/table&gt;
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>I&rsquo;m not a hipster, it&rsquo;s just that my HTML coding skillz are stuck at about 1995.  If you are seething with the overwhelming urge to tell me how to do this in 2013 CSS style, go right ahead and add a comment.</p>
-
-<p>Anyway, the end justifies the means:</p>
-
-<p><img class="center" src="/images/ScreenShotBlogIIa.png" title="image" alt="images"></p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/6/">&larr; Older</a>
@@ -1638,6 +1571,14 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/10/02/deep-dive-of-what-happens-under-the-hood-when-you-open-a-web-page/">Deep Dive of What Happens Under the Hood When You Open a Web Page</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/09/30/the-lifecycle-of-an-http-request/">What Happens Under the Hood When You Open a Web Page?</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/09/12/configuring-influxdb-and-grafana-with-go-client-library/">Configuring InfluxDB and Grafana With Go Client Library</a>
       </li>
     
@@ -1647,14 +1588,6 @@
     
       <li class="post">
         <a href="/blog/2016/02/15/setting-up-a-self-hosted-drone-dot-io-ci-server/">Setting Up a Self-hosted drone.io CI Server</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/02/08/adding-vendoring-to-a-go-project/">Adding Vendoring to a Go Project</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/02/07/configure-emacs-as-a-go-editor-from-scratch-part-3/">Configure Emacs as a Go Editor From Scratch Part 3</a>
       </li>
     
   </ul>

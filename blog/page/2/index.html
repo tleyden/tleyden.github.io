@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Joyent has recently announced their new Triton Docker container hosting service. There are several advantages of running Docker containers on Triton &hellip;">
+  <meta name="description" content="These instructions will walk you through getting neural-style up and running on an AWS GPU instance. Spin up CUDA-enabled AWS instance Follow these &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +72,386 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/11/22/running-neural-style-on-an-aws-gpu-instance/">Running Neural Style on an AWS GPU Instance</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-11-22T11:02:00-08:00" pubdate data-updated="true">Nov 22<span>nd</span>, 2015</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>These instructions will walk you through getting <a href="https://github.com/jcjohnson/neural-style">neural-style</a> up and running on an AWS GPU instance.</p>
+
+<h2>Spin up CUDA-enabled AWS instance</h2>
+
+<p>Follow these instructions to <a href="http://tleyden.github.io/blog/2015/11/22/cuda-7-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">install CUDA 7.5 on AWS GPU Instance Running Ubuntu 14.04</a>.</p>
+
+<h2>SSH into AWS instance</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ssh ubuntu@&lt;instance-ip&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Install Docker</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get update && sudo apt-get install curl
+</span><span class='line'>$ curl -sSL https://get.docker.com/ | sh</span></code></pre></td></tr></table></div></figure>
+
+
+<p>As the post-install message suggests, enable docker for non-root users:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo usermod -aG docker ubuntu</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Verify correct install via:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run hello-world</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Mount GPU devices</h2>
+
+<p><strong>Mount</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /usr/local/cuda/samples/1_Utilities/deviceQuery
+</span><span class='line'>$ sudo make
+</span><span class='line'>$ sudo ./deviceQuery</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see something <a href="https://gist.github.com/tleyden/58ab2eedebc9529edb76">like this</a>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>./deviceQuery Starting...
+</span><span class='line'>
+</span><span class='line'> CUDA Device Query (Runtime API) version (CUDART static linking)
+</span><span class='line'>
+</span><span class='line'>Detected 1 CUDA Capable device(s)
+</span><span class='line'>
+</span><span class='line'>Device 0: "GRID K520"
+</span><span class='line'>  CUDA Driver Version / Runtime Version          6.5 / 6.5
+</span><span class='line'>  ... snip ...
+</span><span class='line'>
+</span><span class='line'>deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 6.5, CUDA Runtime Version = 6.5, NumDevs = 1, Device0 = GRID K520
+</span><span class='line'>Result = PASS</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Verify: Find all your nvidia devices</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ls -la /dev | grep nvidia</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>crw-rw-rw-  1 root root    195,   0 Oct 25 19:37 nvidia0
+</span><span class='line'>crw-rw-rw-  1 root root    195, 255 Oct 25 19:37 nvidiactl
+</span><span class='line'>crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Start Docker container</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ export DOCKER_NVIDIA_DEVICES="--device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm"
+</span><span class='line'>$ sudo docker run -ti $DOCKER_NVIDIA_DEVICES kaixhin/cuda-torch /bin/bash</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Re-install CUDA 7.5 in the Docker container</h2>
+
+<p>As <a href="https://groups.google.com/d/msg/torch7/yCSNIzW590M/Af7CHXEdDQAJ">reported in the Torch7 Google Group</a> and in <a href="https://github.com/Kaixhin/dockerfiles/issues/6">Kaixhin/dockerfiles</a>, there is an API version mismatch with the docker container and the host&rsquo;s version of CUDA.</p>
+
+<p>The workaround is to re-install CUDA 7.5 via:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1404/x86_64/cuda-repo-ubuntu1404_7.5-18_amd64.deb
+</span><span class='line'>$ sudo dpkg -i cuda-repo-ubuntu1404_7.5-18_amd64.
+</span><span class='line'>deb
+</span><span class='line'>$ sudo apt-get update
+</span><span class='line'>$ sudo apt-get upgrade -y
+</span><span class='line'>$ sudo apt-get install -y opencl-headers build-essential protobuf-compiler \
+</span><span class='line'>    libprotoc-dev libboost-all-dev libleveldb-dev hdf5-tools libhdf5-serial-dev \
+</span><span class='line'>    libopencv-core-dev  libopencv-highgui-dev libsnappy-dev libsnappy1 \
+</span><span class='line'>    libatlas-base-dev cmake libstdc++6-4.8-dbg libgoogle-glog0 libgoogle-glog-dev \
+</span><span class='line'>    libgflags-dev liblmdb-dev git python-pip gfortran
+</span><span class='line'>$ sudo apt-get clean
+</span><span class='line'>$ sudo apt-get install -y linux-image-extra-`uname -r` linux-headers-`uname -r` linux-image-`uname -r`
+</span><span class='line'>$ sudo apt-get install -y cuda</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Verify CUDA inside docker container</h2>
+
+<p>Running:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ nvidia-smi </span></code></pre></td></tr></table></div></figure>
+
+
+<p>Should show info about the GPU driver and not return any errors.</p>
+
+<p>Running this torch command:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ th -e "require 'cutorch'; require 'cunn'; print(cutorch)"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Should produce this output:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>  getStream : function: 0x4054b760
+</span><span class='line'>  getDeviceCount : function: 0x408bca58
+</span><span class='line'>  .. etc
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Install neural-style</h2>
+
+<p>The following should be run <strong>inside</strong> the docker container:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ apt-get install -y wget libpng-dev libprotobuf-dev protobuf-compiler
+</span><span class='line'>$ git clone --depth 1 https://github.com/jcjohnson/neural-style.git
+</span><span class='line'>$ /root/torch/install/bin/luarocks install loadcaffe</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Download models</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd neural-style
+</span><span class='line'>$ sh models/download_models.sh</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Run neural style</h2>
+
+<p>First, grab a few images to test with</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ mkdir images
+</span><span class='line'>$ wget https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/1280px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg -O images/vangogh.jpg
+</span><span class='line'>$ wget http://exp.cdn-hotels.com/hotels/1000000/10000/7500/7496/7496_42_z.jpg -O images/hotel_del_coronado.jpg</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Run it:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ th neural_style.lua -style_image images/vangogh.jpg -content_image images/hotel_del_coronado.jpg</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>CuDNN (optional)</h2>
+
+<p>CuDNN can potentially speed things up.</p>
+
+<p><a href="https://developer.nvidia.com/cudnn">download cuDNN</a></p>
+
+<p>Install via:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>tar -xzvf cudnn-7.0-linux-x64-v3.0-prod.tgz
+</span><span class='line'>cd cuda/
+</span><span class='line'>sudo cp lib64/libcudnn* /usr/local/cuda-7.5/lib64/
+</span><span class='line'>sudo cp include/cudnn.h /usr/local/cuda-7.5/include
+</span><span class='line'>export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-7.5/lib64/</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Install the torch bindings for cuDNN:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>luarocks install cudnn</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://github.com/jcjohnson/neural-style/blob/master/INSTALL.md">Neural-Style INSTALL.md</a></li>
+<li>ami-84c787ee &mdash; this AMI has everything pre-installed, however it is installed on the host rather than under docker, which was due to time constraints.</li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/11/03/running-the-sync-gateway-amazon-ami/">Running the Sync Gateway Amazon AMI</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-11-03T11:11:00-08:00" pubdate data-updated="true">Nov 3<span>rd</span>, 2015</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>How to run the Couchbase Sync Gateway AWS AMI</p>
+
+<h2>Kick off AWS instance</h2>
+
+<ul>
+<li>Browse to the <a href="https://aws.amazon.com/marketplace/pp/B013XDO1B4">Sync Gateway AMI</a> in the AWS Marketplace</li>
+<li>Click Continue</li>
+<li>Change all ports to &ldquo;MY IP&rdquo; except for port 4984</li>
+<li>Make sure you choose a key that you have locally</li>
+</ul>
+
+
+<h2>SSH in and start Sync Gateway</h2>
+
+<ul>
+<li>Go to the AWS console, find the EC2 instance, and find the instance public ip address.  It should look like this: <code>ec2-54-161-201-224.compute-1.amazonaws.com</code>.  The rest of the instructions will refer to this as <instance public ip></li>
+<li><code>ssh ec2-user@&lt;instance public ip&gt;</code> (this should let you in without prompting you for a password.  if not, you chose a key when you launched that you don&rsquo;t have locally)</li>
+<li>Start the Sync Gateway with this command:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>/opt/couchbase-sync-gateway/bin/sync_gateway -interface=0.0.0.0:4984 -url=http://localhost:8091 -bucket=sync_gateway -dbname=sync_gateway</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>You should see output like this:</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>2015-11-03T19:37:05.384Z ==== Couchbase Sync Gateway/1.1.0(28;86f028c) ====
+</span><span class='line'>2015-11-03T19:37:05.384Z Opening db /sync_gateway as bucket "sync_gateway", pool "default", server &lt;http://localhost:8091&gt;
+</span><span class='line'>2015-11-03T19:37:05.384Z Opening Couchbase database sync_gateway on &lt;http://localhost:8091&gt;
+</span><span class='line'>2015/11/03 19:37:05  Trying with selected node 0
+</span><span class='line'>2015/11/03 19:37:05  Trying with selected node 0
+</span><span class='line'>2015-11-03T19:37:05.536Z Using default sync function 'channel(doc.channels)' for database "sync_gateway"
+</span><span class='line'>2015-11-03T19:37:05.536Z     Reset guest user to config
+</span><span class='line'>2015-11-03T19:37:05.536Z Starting profile server on
+</span><span class='line'>2015-11-03T19:37:05.536Z Starting admin server on 127.0.0.1:4985
+</span><span class='line'>2015-11-03T19:37:05.550Z Starting server on localhost:4984 ...</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Verify via curl</h2>
+
+<p>From your workstation:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl http://&lt;instance public ip&gt;:4984/sync_gateway/</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should get a response like:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{"committed_update_seq":1,"compact_running":false,"db_name":"sync_gateway","disk_format_version":0,"instance_start_time":1446579479331843,"purge_seq":0,"update_seq":1}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Customize configuration</h2>
+
+<p>For more advanced Sync Gateway configuration, you will want to create a JSON config file on the EC2 instance itself and pass that to Sync Gateway when you launch it, or host your config JSON on the internet somewhere and pass Sync Gateway the URL to the file.</p>
+
+<h2>View Couchbase Server UI</h2>
+
+<p>In order to login to the Couchbase Server UI, go to <instance public ip>:8091 and use:</p>
+
+<ul>
+<li><strong>Username:</strong> Administrator</li>
+<li><strong>Password:</strong> <code>&lt;aws instance id, eg: i-8a9f8335&gt;</code></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1869,443 +2249,6 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/12/02/getting-started-with-go-and-protocol-buffers/">Getting Started With Go and Protocol Buffers</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-12-02T06:32:00-08:00" pubdate data-updated="true">Dec 2<span>nd</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>I found the <a href="https://github.com/golang/protobuf">official docs</a> on using Google Protocol Buffers from Go a bit confusing, and couldn&rsquo;t find any other clearly written blog posts on the subject, so I figured I&rsquo;d write my own.</p>
-
-<p>This will walk you through the following:</p>
-
-<ul>
-<li>Install golang/protobuf and required dependencies</li>
-<li>Generating Go wrappers for a test protocol buffer definition</li>
-<li>Using those Go wrappers to marshal and unmarshal an object</li>
-</ul>
-
-
-<h2>Install protoc binary</h2>
-
-<p>Since the protocol buffer compiler <code>protoc</code> is required later, we must install it.</p>
-
-<p><strong>Ubuntu 14.04</strong></p>
-
-<p>If you want to use an older version (v2.5), simply do:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ apt-get install protobuf-compiler</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Otherwise if you want the latest version (v2.6):</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ apt-get install build-essential
-</span><span class='line'>$ wget https://protobuf.googlecode.com/svn/rc/protobuf-2.6.0.tar.gz
-</span><span class='line'>$ tar xvfz protobuf-2.6.0.tar.gz
-</span><span class='line'>$ cd protobuf-2.6.0
-</span><span class='line'>$ ./configure && make install</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>OSX</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ brew install protobuf</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Install Go Protobuf library</h2>
-
-<p>This assumes you have Go 1.2+ or later already installed, and your <code>$GOPATH</code> variable set.</p>
-
-<p>In order to generate Go wrappers, we need to install the following:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ go get -u -v github.com/golang/protobuf/proto
-</span><span class='line'>$ go get -u -v github.com/golang/protobuf/protoc-gen-go</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Download a test .proto file</h2>
-
-<p>In order to generate wrappers, we need a <code>.proto</code> file with object definitions.</p>
-
-<p>This one is a slightly modified version of the one from the <a href="https://github.com/golang/protobuf">official docs</a>.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://gist.githubusercontent.com/tleyden/95de4bfe34321c79e91b/raw/f8696fe0f1462f377d6bd13c5f20cccfa182578a/test.proto</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Generate Go wrappers</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ protoc --go_out=. *.proto</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should end up with a new file generated: <code>test.pb.go</code></p>
-
-<h2>Marshalling and unmarshalling an object</h2>
-
-<p>Open a new file <code>main.go</code> in <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">emacs</a> or your favorite editor, and paste the following:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>package main
-</span><span class='line'>
-</span><span class='line'>import (
-</span><span class='line'>  "log"
-</span><span class='line'>
-</span><span class='line'>  "github.com/golang/protobuf/proto"
-</span><span class='line'>)
-</span><span class='line'>
-</span><span class='line'>func main() {
-</span><span class='line'>
-</span><span class='line'>  test := &Test{
-</span><span class='line'>      Label: proto.String("hello"),
-</span><span class='line'>      Type:  proto.Int32(17),
-</span><span class='line'>      Optionalgroup: &Test_OptionalGroup{
-</span><span class='line'>          RequiredField: proto.String("good bye"),
-</span><span class='line'>      },
-</span><span class='line'>  }
-</span><span class='line'>  data, err := proto.Marshal(test)
-</span><span class='line'>  if err != nil {
-</span><span class='line'>      log.Fatal("marshaling error: ", err)
-</span><span class='line'>  }
-</span><span class='line'>  newTest := &Test{}
-</span><span class='line'>  err = proto.Unmarshal(data, newTest)
-</span><span class='line'>  if err != nil {
-</span><span class='line'>      log.Fatal("unmarshaling error: ", err)
-</span><span class='line'>  }
-</span><span class='line'>  // Now test and newTest contain the same data.
-</span><span class='line'>  if test.GetLabel() != newTest.GetLabel() {
-</span><span class='line'>      log.Fatalf("data mismatch %q != %q", test.GetLabel(), newTest.GetLabel())
-</span><span class='line'>  }
-</span><span class='line'>
-</span><span class='line'>  log.Printf("Unmarshalled to: %+v", newTest)
-</span><span class='line'>
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Explanation:</p>
-
-<ul>
-<li>Lines 11-14: Create a new object suitable for protobuf marshalling and populate it&rsquo;s fields.  <em>Note that using <code>proto.String(..)</code> / <code>proto.Int32(..)</code> isn&rsquo;t strictly required, they are just convencience wrappers to get string / int pointers</em>.</li>
-<li>Line 18: Marshal to a byte array.</li>
-<li>Line 22: Create a new empty object.</li>
-<li>Line 23: Unmarshal previously marshalled byte array into new object</li>
-<li>Line 28: Verify that the &ldquo;label&rdquo; field made the marshal/unmarshall round trip safely</li>
-</ul>
-
-
-<p><strong>Run it via:</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ go run main.go test.pb.go</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and you should see the output:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>Unmarshalled to: label:"hello" type:17 OptionalGroup{RequiredField:"good bye" }  </span></code></pre></td></tr></table></div></figure>
-
-
-<p>Congratulations!  You are now using protocol buffers from Go.</p>
-
-<h2>References</h2>
-
-<ul>
-<li><a href="https://github.com/golang/protobuf">Official golang/protobuf repo</a></li>
-<li><a href="https://code.google.com/p/gogoprotobuf/">gogoprotobuf fork</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/11/14/running-cbfs/">Running a CBFS Cluster on CoreOS</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-11-14T06:43:00-08:00" pubdate data-updated="true">Nov 14<span>th</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>This will walk you through getting a cbfs cluster up and running.</p>
-
-<h2>What is CBFS?</h2>
-
-<p>cbfs is a distributed filesystem on top of Couchbase Server, not unlike Mongo&rsquo;s GridFS or Riak&rsquo;s CS.</p>
-
-<p>Here&rsquo;s a typical deployment architecture:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/cbfs-overview.png" alt="cbfs overview" /></p>
-
-<p>Although not shown, all cbfs daemons can communicate with all Couchbase Server instances.</p>
-
-<p>It is not required to run cbfs on the same machine as Couchbase Server, but it <em>is</em> meant to be run in the same data center as Couchbase Server.</p>
-
-<p>If you want a deeper understanding of how cbfs works, check the <a href="http://labs.couchbase.com/cbfs/">cbfs presentation</a> or this <a href="http://dustin.sallings.org/2012/09/27/cbfs.html">blog post</a>.</p>
-
-<h2>Kick off a Couchbase Cluster</h2>
-
-<p>cbfs depends on having a Couchbase cluster running.</p>
-
-<p>Follow all of the steps in <a href="http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/">Running Couchbase Cluster Under CoreOS on AWS</a> to kick off a 3 node Couchbase cluster.</p>
-
-<h2>Add security groups</h2>
-
-<p>A few ports will need to be opened up for cbfs.</p>
-
-<p>Go to the AWS console and edit the Couchbase-CoreOS-CoreOSSecurityGroup-xxxx security group and add the following rules:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>Type             Protocol  Port Range Source  
-</span><span class='line'>----             --------  ---------- ------
-</span><span class='line'>Custom TCP Rule  TCP       8484       Custom IP: sg-6e5a0d04 (copy and paste from port 4001 rule)
-</span><span class='line'>Custom TCP Rule  TCP       8423       Custom IP: sg-6e5a0d04 </span></code></pre></td></tr></table></div></figure>
-
-
-<p>At this point your security group should look like this:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/security_group_cbfs.png" alt="security group" /></p>
-
-<h1>Create a new bucket for cbfs</h1>
-
-<p><strong>Open Couchbase Server Admin UI</strong></p>
-
-<p>In the AWS EC2 console, find the public IP of one of the instances (it doesn&rsquo;t matter which)</p>
-
-<p>In your browser, go to <code>http://&lt;public_ip&gt;:8091/</code></p>
-
-<p><strong>Create Bucket</strong></p>
-
-<p>Go to Data Buckets / Create New Bucket</p>
-
-<p>Enter <strong>cbfs</strong> for the name of the bucket.</p>
-
-<p>Leave all other settings as default.</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/cbfs_create_bucket.png" alt="create bucket" /></p>
-
-<h2>ssh in</h2>
-
-<p>In the AWS EC2 console, find the public IP of one of the instances (it doesn&rsquo;t matter which)</p>
-
-<p>ssh into one of the machines:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ ssh -A core@&lt;public_ip&gt;</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Run cbfs</h2>
-
-<p><strong>Create a volume dir</strong></p>
-
-<p>Since the fileystem of a docker container is not meant for high throughput io, a volume should be used for cbfs.</p>
-
-<p>Create a directory on the host OS (i.e., on the Core OS instance)</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo mkdir -p /var/lib/cbfs/data
-</span><span class='line'>$ sudo chown -R core:core /var/lib/cbfs</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This will be mounted by the docker container in the next step.</p>
-
-<p><strong>Generate fleet unit files</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://gist.githubusercontent.com/tleyden/d70161c3827cb8b788a8/raw/8f6c81f0095b0007565e9b205e90afb132552060/cbfs_node.service.template
-</span><span class='line'>$ for i in `seq 1 3`; do cp cbfs_node.service.template cbfs_node.$i.service; done</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Start cbfs on all cluster nodes</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ fleetctl start cbfs_node.*.service</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Run <code>fleetctl list-units</code> to list the  units running in your cluster.  You should have the following:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ fleetctl list-units
-</span><span class='line'>UNIT                                            MACHINE                         ACTIVE    SUB
-</span><span class='line'>cbfs_node.1.service                             6ecff20c.../10.51.177.81        active    running
-</span><span class='line'>cbfs_node.2.service                             b8eb6653.../10.79.155.153       active    running
-</span><span class='line'>cbfs_node.3.service                             02d48afd.../10.186.172.24       active    running
-</span><span class='line'>couchbase_bootstrap_node.service                02d48afd.../10.186.172.24       active    running
-</span><span class='line'>couchbase_bootstrap_node_announce.service       02d48afd.../10.186.172.24       active    running
-</span><span class='line'>couchbase_node.1.service                        6ecff20c.../10.51.177.81        active    running
-</span><span class='line'>couchbase_node.2.service                        b8eb6653.../10.79.155.153       active    running</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>View cbfs output</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ fleetctl journal cbfs_node.1.service
-</span><span class='line'>2014/11/14 23:18:58 Connecting to couchbase bucket cbfs at http://10.51.177.81:8091/
-</span><span class='line'>2014/11/14 23:18:58 Error checking view version: MCResponse status=KEY_ENOENT, opcode=GET, opaque=0, msg: Not found
-</span><span class='line'>2014/11/14 23:18:58 Installing new version of views (old version=0)
-</span><span class='line'>2014/11/14 23:18:58 Listening to web requests on :8484 as server 10.51.177.81
-</span><span class='line'>2014/11/14 23:18:58 Error removing 10.51.177.81's task list: MCResponse status=KEY_ENOENT, opcode=DELETE, opaque=0, msg: Not found
-</span><span class='line'>2014/11/14 23:19:05 Error updating space used: Expected 1 result, got []</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Run cbfs client</h2>
-
-<p>Run a bash shell in a docker container that has <code>cbfsclient</code> pre-installed:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run -ti --net=host tleyden5iwx/cbfs /bin/bash</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Upload a file</strong></p>
-
-<p>From within the docker container launched in the previous step:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'># echo "foo" &gt; foo
-</span><span class='line'># ip=$(hostname -i | tr -d ' ')
-</span><span class='line'># cbfsclient http://$ip:8484/ upload foo /foo</span></code></pre></td></tr></table></div></figure>
-
-
-<p>There should be no errors.  If you run <code>fleetctl journal cbfs_node.1.service</code> again on the CoreOS instance, you should see log messages like:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>2014/11/14 21:51:43 Recorded myself as an owner of e242ed3bffccdf271b7fbaf34ed72d089537b42f: result=success</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>List directory</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'># cbfsclient http://$ip:8484/ ls /
-</span><span class='line'>foo</span></code></pre></td></tr></table></div></figure>
-
-
-<p>It should list the foo file we uploaded earlier.</p>
-
-<p>Congratulations!  You now have cbfs up and running.</p>
-
-<h2>References</h2>
-
-<ul>
-<li><a href="http://dustin.sallings.org/2012/09/27/cbfs.html">cbfs &ndash; a couchbase large object store</a></li>
-<li><a href="http://labs.couchbase.com/cbfs/">cbfs presentation</a></li>
-<li><a href="http://cbfs-ext.hq.couchbase.com/dist/">cbfs binary downloads</a></li>
-<li><a href="http://github.com/couchbaselabs/cbfs">cbfs github repo</a></li>
-<li><a href="https://github.com/couchbaselabs/cbfs/issues/132">cbfs question</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/3/">&larr; Older</a>
@@ -2338,6 +2281,14 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/10/02/deep-dive-of-what-happens-under-the-hood-when-you-open-a-web-page/">Deep Dive of What Happens Under the Hood When You Open a Web Page</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/09/30/the-lifecycle-of-an-http-request/">What Happens Under the Hood When You Open a Web Page?</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/09/12/configuring-influxdb-and-grafana-with-go-client-library/">Configuring InfluxDB and Grafana With Go Client Library</a>
       </li>
     
@@ -2347,14 +2298,6 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
     
       <li class="post">
         <a href="/blog/2016/02/15/setting-up-a-self-hosted-drone-dot-io-ci-server/">Setting Up a Self-hosted drone.io CI Server</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/02/08/adding-vendoring-to-a-go-project/">Adding Vendoring to a Go Project</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/02/07/configure-emacs-as-a-go-editor-from-scratch-part-3/">Configure Emacs as a Go Editor From Scratch Part 3</a>
       </li>
     
   </ul>
