@@ -4,7 +4,7 @@
   <title><![CDATA[Category: tcp | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/tcp/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-10-02T14:01:22-07:00</updated>
+  <updated>2016-10-02T16:21:19-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -343,7 +343,7 @@ hu-0-13-0-0-pe02.529bryant.ca.ibone.comcast.net (68.86.86.94)  12.404 ms
 
 <h2>Step 1. The DNS Lookup</h2>
 
-<p>Your Google Chrome software contacts a thing on the Internet called a DNS server and asks it &ldquo;Hey what&rsquo;s the IP of organic-juice-for-dogs.io?&rdquo;.</p>
+<p>Your Google Chrome software contacts a server on the Internet called a DNS server and asks it &ldquo;Hey what&rsquo;s the IP of organic-juice-for-dogs.io?&rdquo;.</p>
 
 <p>DNS has an official sounding acronym, and for good reason, because it&rsquo;s a very authoritative and fundamental Internet service.</p>
 
