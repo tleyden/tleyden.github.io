@@ -41,7 +41,7 @@ $ influx
 
 ## Edit telegraf conf
 
-Uncomment the entire statsd server section:
+Open `/usr/local/etc/telegraf.conf` in your favorite text editor and uncomment the entire statsd server section:
 
 ```
 # Statsd Server
