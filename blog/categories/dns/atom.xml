@@ -4,7 +4,7 @@
   <title><![CDATA[Category: dns | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/dns/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-10-02T16:21:19-07:00</updated>
+  <updated>2016-10-02T16:27:42-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -98,9 +98,7 @@ HTTP Server: &lt;html&gt;I'm a &lt;blink&gt;amazing&lt;/blink&gt; HTML web page!
  └────────────────────┘                                         └────────────────────┘
 ```</p>
 
-<p>There are lots of different protocols, which are just &ldquo;languages&rdquo; that things on the Internet use to speak to each other.  You and I speak English.  Many things on the Internet speak protocols like HTTP, others speak different protocols like DNS.</p>
-
-<p>Let&rsquo;s look at a few, at a very high level.</p>
+<p>Let&rsquo;s look at a few protocols.</p>
 
 <h3><strong>TCP</strong> and <strong>UDP</strong></h3>
 
@@ -112,7 +110,7 @@ HTTP Server: &lt;html&gt;I'm a &lt;blink&gt;amazing&lt;/blink&gt; HTML web page!
 </ul>
 
 
-<p>Here&rsquo;s what an internet tube looks like:</p>
+<p>Here&rsquo;s what you might imagine an internet tube looking like:</p>
 
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/internet-tube.jpg" alt="image" /></p>
 
