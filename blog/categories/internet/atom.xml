@@ -4,7 +4,7 @@
   <title><![CDATA[Category: internet | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/internet/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-10-02T16:29:20-07:00</updated>
+  <updated>2016-10-20T13:25:58-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -372,7 +372,7 @@ hu-0-13-0-0-pe02.529bryant.ca.ibone.comcast.net (68.86.86.94)  12.404 ms
 
 <h2>Step 2. Contact the IP address and fetch the HTML over HTTP</h2>
 
-<p>In this step, Google Chrome sends an <code>HTTP GET /</code> HTTP request the HTTP Server software running on a computer somewhere on the Internet that has the IP address <code>63.120.10.5</code>.</p>
+<p>In this step, Google Chrome sends an <code>HTTP GET /</code> HTTP request to the HTTP Server software running on a computer somewhere on the Internet that has the IP address <code>63.120.10.5</code>.</p>
 
 <p>You can think of the <code>GET /</code> as &ldquo;Get me the top-most web page from the website&rdquo;.  This is known as the <em>root</em> of the website, in contrast to things deeper into the website, like <code>GET /juices/oakland</code>, which might return a list of dog juice products local to Oakland, CA.  Since the <em>root</em> is a the top, that means the tree is actually upside down, and folks tend to think of websites as being structured as <em>inverted trees</em>.</p>
 
