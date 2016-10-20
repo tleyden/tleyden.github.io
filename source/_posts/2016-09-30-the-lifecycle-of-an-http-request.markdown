@@ -81,7 +81,7 @@ So, that's DNS in a nutshell.  Not very complicated on the surface.
 
 ## Step 2. Contact the IP address and fetch the HTML over HTTP
 
-In this step, Google Chrome sends an `HTTP GET /` HTTP request the HTTP Server software running on a computer somewhere on the Internet that has the IP address `63.120.10.5`.
+In this step, Google Chrome sends an `HTTP GET /` HTTP request to the HTTP Server software running on a computer somewhere on the Internet that has the IP address `63.120.10.5`.
 
 You can think of the `GET /` as "Get me the top-most web page from the website".  This is known as the *root* of the website, in contrast to things deeper into the website, like `GET /juices/oakland`, which might return a list of dog juice products local to Oakland, CA.  Since the *root* is a the top, that means the tree is actually upside down, and folks tend to think of websites as being structured as *inverted trees*.
 

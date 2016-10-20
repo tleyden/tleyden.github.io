@@ -76,9 +76,7 @@ Almost everything that happens on the Internet looks something like this:
  └────────────────────┘                                         └────────────────────┘
 ```
 
-There are lots of different protocols, which are just "languages" that things on the Internet use to speak to each other.  You and I speak English.  Many things on the Internet speak protocols like HTTP, others speak different protocols like DNS.
-
-Let's look at a few, at a very high level.
+Let's look at a few protocols.
 
 ### **TCP** and **UDP** 
 
@@ -87,7 +85,7 @@ You can think of the internet as being made up of *tubes*.  Two very common type
 * TCP (Transmission Control Protocol)
 * UDP (User Datagram Protocol) 
 
-Here's what an internet tube looks like:
+Here's what you might imagine an internet tube looking like:
 
 ![image](http://tleyden-misc.s3.amazonaws.com/blog_images/internet-tube.jpg)
 
@@ -254,7 +252,7 @@ traceroute to google.com (172.217.5.110), 64 hops max, 52 byte packets
 
 So from my computer to the computer at google.com, it goes through all of those intermediate computers.  Some have DNS names, like `be-33651-cr01.sunnyvale.ca.ibone.comcast.net`, but some only have IP addresses, like `162.151.78.93`
 
-Any one of those computers could *sniff* the traffic going through the tubes (even the **IP** tubes that all the other ones sit on top of!).  That's why you don't want to send your credit cards over the internet without using encryption!
+Any one of those computers could *sniff* the traffic going through the tubes (even the **IP** tubes that all the other ones sit on top of!).  That's one of the reasons you don't want to send your credit cards over the internet without using encryption.
 
 ## The End
 
