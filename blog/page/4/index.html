@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="First, a quick refresh of what Couchbase Sync Gateway actually is. So here&rsquo;s a birds-eye-view of the Couchbase Mobile architecture: Sync &hellip;">
+  <meta name="description" content="Debugging into the core Android source code can be useful. Here&rsquo;s how to do it in Android Studio 0.8.2. Starting out, if we hit a breakpoint &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +72,62 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/09/10/debugging-into-android-source/">Debugging Into Android Source</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-09-10T15:57:00-07:00" pubdate data-updated="true">Sep 10<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Debugging into the core Android source code can be useful.  Here&rsquo;s how to do it in Android Studio 0.8.2.</p>
+
+<p>Starting out, if we hit a breakpoint where we have a sqlite database object:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/outside_db_breakpoint.png" alt="screenshot" /></p>
+
+<p>And if you step in, you get this, which isn&rsquo;t very useful:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/inside_db_breakpoint.png" alt="screenshot" /></p>
+
+<p>To fix that, go to Android SDK, find the API level you are using, and check the Sources for Android SDK box.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/android_sdk.png" alt="screenshot" /></p>
+
+<p><strong>You must restart Android Studio at this point</strong></p>
+
+<p>Did you restart Android Studio?  Now re-run your app in the debugger, and when you try to step into the <code>database.execSQL()</code> method, you should see this:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/db_source_breakpoint.png" alt="screenshot" /></p>
+
+<p>It worked!  Now you can debug into any Android code.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1513,70 +1569,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/01/31/a-stubbed-out-gradle-multi-project-hierarchy-using-git-submodules/">A Stubbed Out Gradle Multi-project Hierarchy Using Git Submodules</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-01-31T10:50:00-08:00" pubdate data-updated="true">Jan 31<span>st</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>I&rsquo;m about to split up the <a href="https://github.com/couchbase/couchbase-lite-android">couchbase-lite</a> android library into two parts: a pure-java and an android specific library.  The android library will depend on the pure-java library.</p>
-
-<p>Before going down this project refactoring rabbit hole for the real project, I decided to stub out a complete project hierarchy to validate that it was going to actually work.  (I&rsquo;m calling this project hierarchy &ldquo;stubworld&rdquo; for lack of a sillier name)</p>
-
-<p>There are five projects in total, here are the two top-level projects</p>
-
-<p><a href="https://github.com/tleyden/stubworld-app-android">https://github.com/tleyden/stubworld-app-android</a>  (an Android app)</p>
-
-<p><img src="http://cl.ly/image/3O31321l0b0n/stubworld_architecture_android.png" alt="" /></p>
-
-<p><a href="https://github.com/tleyden/stubworld-app-cmdline">https://github.com/tleyden/stubworld-app-cmdline</a>  (a pure java Command Line application)</p>
-
-<p><img src="http://cl.ly/image/1M2C333S2s0u/stubworld_architecture_desktop.png" alt="" /></p>
-
-<p>The projects are all self contained gradle projects and can be imported in either Android Studio or IntelliJ CE 13, and the dependencies on lower level projects are done via git submodules (and even git sub-submodules, <em>gulp</em>).   In either top level project you can easily debug and edit the code in the lower level projects, since they use source level dependencies.</p>
-
-<p>The biggest sticking point I ran into was that initially I tried to include a dependency via:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>compile project(':libraries:stubworld-corelib-java')</span></code></pre></td></tr></table></div></figure>
-
-
-<p>which totally broke when trying to embed this project into another parent project. The fix was to change it to use a relative path by removing the leading colon:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>compile project('libraries:stubworld-corelib-java')</span></code></pre></td></tr></table></div></figure>
-
-
-<p>I&rsquo;m posting this in case it&rsquo;s useful to anyone who needs to do something similar, or if any Gradle / Android Studio Jedi masters have any feedback like &ldquo;why did you do X, when you just could have done Y?&rdquo;</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/5/">&larr; Older</a>
@@ -1605,6 +1597,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/10/31/install-couchbase-server-plus-mobile-on-docker-cloud/">Install Couchbase Server + Mobile on Docker Cloud</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/10/02/deep-dive-of-what-happens-under-the-hood-when-you-open-a-web-page/">Deep Dive of What Happens Under the Hood When You Open a Web Page</a>
       </li>
     
@@ -1618,10 +1614,6 @@
     
       <li class="post">
         <a href="/blog/2016/05/19/go-race-detector-gotcha-with-value-receivers/">Go Race Detector Gotcha With Value Receivers</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/02/15/setting-up-a-self-hosted-drone-dot-io-ci-server/">Setting Up a Self-hosted drone.io CI Server</a>
       </li>
     
   </ul>

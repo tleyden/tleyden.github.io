@@ -9,7 +9,9 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="These instructions will walk you through getting neural-style up and running on an AWS GPU instance. Spin up CUDA-enabled AWS instance Follow these &hellip;">
+  <meta name="description" content="Launch stock Ubuntu AMI Launch ami-d05e75b8
+Choose a GPU instance type: g2.2xlarge or g2.8xlarge
+Increase the size of the storage (this depends on &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +74,170 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/11/22/cuda-7-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">CUDA 7.5 on AWS GPU Instance Running Ubuntu 14.04</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-11-22T17:32:00-08:00" pubdate data-updated="true">Nov 22<span>nd</span>, 2015</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>Launch stock Ubuntu AMI</h2>
+
+<ul>
+<li>Launch <strong>ami-d05e75b8</strong></li>
+<li>Choose a GPU instance type: <strong>g2.2xlarge</strong> or <strong>g2.8xlarge</strong></li>
+<li>Increase the size of the storage (this depends on what else you plan to install, I&rsquo;d suggest at least 20 GB)</li>
+</ul>
+
+
+<h2>SSH in</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ssh ubuntu@&lt;instance ip&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Install CUDA repository</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1404/x86_64/cuda-repo-ubuntu1404_7.5-18_amd64.deb
+</span><span class='line'>$ sudo dpkg -i cuda-repo-ubuntu1404_7.5-18_amd64.deb</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Update APT</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get update
+</span><span class='line'>$ sudo apt-get upgrade -y
+</span><span class='line'>$ sudo apt-get install -y opencl-headers build-essential protobuf-compiler \
+</span><span class='line'>    libprotoc-dev libboost-all-dev libleveldb-dev hdf5-tools libhdf5-serial-dev \
+</span><span class='line'>    libopencv-core-dev  libopencv-highgui-dev libsnappy-dev libsnappy1 \
+</span><span class='line'>    libatlas-base-dev cmake libstdc++6-4.8-dbg libgoogle-glog0 libgoogle-glog-dev \
+</span><span class='line'>    libgflags-dev liblmdb-dev git python-pip gfortran</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You will get a dialog regarding the <code>menu.lst</code> file, just choose the default option it gives you.</p>
+
+<p>Do some cleanup:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get clean</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>DRM module workaround</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get install -y linux-image-extra-`uname -r` linux-headers-`uname -r` linux-image-`uname -r`</span></code></pre></td></tr></table></div></figure>
+
+
+<p>For an explanation of why this is needed, see <a href="https://github.com/BVLC/caffe/wiki/Caffe-on-EC2-Ubuntu-14.04-Cuda-7">Caffe on EC2 Ubuntu 14.04 Cuda 7</a> and search for this command.</p>
+
+<h2>Install CUDA</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get install -y cuda
+</span><span class='line'>$ sudo apt-get clean</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Verify CUDA</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ nvidia-smi</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>+------------------------------------------------------+
+</span><span class='line'>| NVIDIA-SMI 352.63     Driver Version: 352.63         |
+</span><span class='line'>|-------------------------------+----------------------+----------------------+
+</span><span class='line'>| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+</span><span class='line'>| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+</span><span class='line'>|===============================+======================+======================|
+</span><span class='line'>|   0  GRID K520           Off  | 0000:00:03.0     Off |                  N/A |
+</span><span class='line'>| N/A   30C    P0    36W / 125W |     11MiB /  4095MiB |      0%      Default |
+</span><span class='line'>+-------------------------------+----------------------+----------------------+
+</span><span class='line'>
+</span><span class='line'>+-----------------------------------------------------------------------------+
+</span><span class='line'>| Processes:                                                       GPU Memory |
+</span><span class='line'>|  GPU       PID  Type  Process name                               Usage      |
+</span><span class='line'>|=============================================================================|
+</span><span class='line'>|  No running processes found                                                 |
+</span><span class='line'>+-----------------------------------------------------------------------------+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Make sure kernel module and devices are present:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ubuntu@ip-10-33-135-228:~$ lsmod | grep -i nvidia
+</span><span class='line'>nvidia               8642880  0
+</span><span class='line'>drm                   303102  1 nvidia
+</span><span class='line'>ubuntu@ip-10-33-135-228:~$ ls -alh /dev | grep -i nvidia
+</span><span class='line'>crw-rw-rw-  1 root root    195,   0 Nov 23 01:59 nvidia0
+</span><span class='line'>crw-rw-rw-  1 root root    195, 255 Nov 23 01:58 nvidiactl</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://github.com/BVLC/caffe/wiki/Caffe-on-EC2-Ubuntu-14.04-Cuda-7">Caffe on EC2 Ubuntu 14.04 Cuda 7</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1984,271 +2150,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/12/11/up-and-running-with-couchbase-lite-phonegap/">Up and Running With Couchbase Lite Phonegap Android on OSX</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-12-11T12:48:00-08:00" pubdate data-updated="true">Dec 11<span>th</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>This will walk you through the steps to install the TodoLite-Phonegap sample app that uses Couchbase Lite Android.  After you&rsquo;re finished, you&rsquo;ll end up with <a href="http://tleyden-misc.s3.amazonaws.com/blog_images/TodoLitePhonegap.png">this app</a>.</p>
-
-<h1>Install Homebrew</h1>
-
-<ul>
-<li>Install <a href="http://brew.sh/">homebrew</a></li>
-</ul>
-
-
-<h2>Install Android Studio</h2>
-
-<ul>
-<li><p>Install <a href="https://developer.android.com/sdk/index.html">Android Studio 1.0</a></p></li>
-<li><p>Setup an AVD + emulator &mdash; in my case I&rsquo;m using the <a href="https://www.genymotion.com/">Genymotion emulator</a>, with a Google Nexus 4 &ndash; 4.4.4 API 19</p></li>
-<li><p>At this point you should verify your setup by deploying <a href="https://github.com/couchbaselabs/ToDoLite-Android">TodoLite-Android</a> to your emulator</p></li>
-</ul>
-
-
-<h1>Install Phonegap</h1>
-
-<h2>Install Node.js</h2>
-
-<p>Phonegap is installed with the Node Package Manager (npm), so we need to get Node.js first.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>brew install node</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Install Phonegap</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo npm install -g phonegap</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should see <a href="https://gist.github.com/tleyden/94bf77d084fa9a6cca0c">this output</a></p>
-
-<p>Check your version with:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ phonegap -v
-</span><span class='line'>4.1.2-0.22.9</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Install Ant</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ brew install ant</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Check your Ant version with:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ ant -version
-</span><span class='line'>Apache Ant(TM) version 1.9.4 compiled on April 29 2014</span></code></pre></td></tr></table></div></figure>
-
-
-<p><em>Note: according to <a href="http://superuser.com/questions/610157/how-do-i-install-ant-on-os-x-mavericks">Stack Overflow</a> you may have to install XCode and the Command Line Tools for this to work</em></p>
-
-<h2>Create new Phonegap App</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ phonegap create todo-lite com.couchbase.TodoLite TodoLite
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should see the following output:</p>
-
-<pre><code>Creating a new cordova project with name "TodoLite" and id "com.couchbase.TodoLite" at location "/Users/tleyden/Development/todo-lite"
-Using custom www assets from https://github.com/phonegap/phonegap-app-hello-world/archive/master.tar.gz
-Downloading com.phonegap.hello-world library for www...
-Download complete
-</code></pre>
-
-<p>cd into the newly created directory:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd todo-lite</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Add the Couchbase Lite plugin</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ phonegap local plugin add https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin.git</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should see the following output:</p>
-
-<pre><code>[warning] The command `phonegap local &lt;command&gt;` has been DEPRECATED.
-[warning] The command has been delegated to `phonegap &lt;command&gt;`.
-[warning] The command `phonegap local &lt;command&gt;` will soon be removed.
-Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin.git" via git clone
-</code></pre>
-
-<h2>Add additional plugins required by TodoLite-Phonegap</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ phonegap local plugin add https://git-wip-us.apache.org/repos/asf/cordova-plugin-camera.git
-</span><span class='line'>$ phonegap local plugin add https://github.com/apache/cordova-plugin-inappbrowser.git 
-</span><span class='line'>$ phonegap local plugin add https://git-wip-us.apache.org/repos/asf/cordova-plugin-network-information.git</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Clone the example app source code</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ rm -rf www
-</span><span class='line'>$ git clone https://github.com/couchbaselabs/TodoLite-PhoneGap.git www</span></code></pre></td></tr></table></div></figure>
-
-
-<h1>Verify ANDROID_HOME environment variable</h1>
-
-<p>If you don&rsquo;t already have it set, you will need to set your ANDROID_HOME environment variable:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ export ANDROID_HOME="/Applications/Android Studio.app/sdk"
-</span><span class='line'>$ export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Run app</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ phonegap run android</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should see the following output:</p>
-
-<pre><code>[phonegap] executing 'cordova platform add android'...
-[phonegap] completed 'cordova platform add android'
-[phonegap] executing 'cordova run android'...
-[phonegap] completed 'cordova run android'
-</code></pre>
-
-<h2>Verify app</h2>
-
-<p>TodoLite-Phonegap should launch on the emulator and look like this:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/TodoLitePhonegap.png" alt="screenshot" /></p>
-
-<h2>Facebook login</h2>
-
-<p>Hit the happy face in the top right, and it will prompt you to login via Facebook.</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/TodoLitePhoneGapFacebook.png" alt="Screenshot" /></p>
-
-<h2>View data</h2>
-
-<p>After logging in, it will sync any data for your user stored on the Couchbase Mobile <a href="https://github.com/couchbaselabs/TodoLite-PhoneGap/blob/aa8bc5a6b35ce8d49ec089ec79952f1a50e207a2/js/index.js#L30">demo cluster</a>.</p>
-
-<p>For example, if you&rsquo;ve previously used <a href="https://github.com/couchbaselabs/ToDoLite-iOS">TodoLite-iOS</a> or <a href="https://github.com/couchbaselabs/ToDoLite-Android">TodoLite-Android</a>, your data should appear here.</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/TodoLitePhoneGapData.png" alt="screenshot" /></p>
-
-<h2>Test Sync via single device</h2>
-
-<ul>
-<li>Login with Facebook as described above</li>
-<li>Add a new Todo List</li>
-<li>Add an item to your Todo List</li>
-<li>Uninstall the app</li>
-<li>Re-install the app by running <code>phonegap run android</code> again</li>
-<li>Login with Facebook</li>
-<li>Your Todo List and item added above should now appear</li>
-</ul>
-
-
-<h2>Test Sync via 2 apps</h2>
-
-<ul>
-<li>Install <a href="https://github.com/couchbaselabs/ToDoLite-Android">TodoLite-Android</a></li>
-<li>Login with Facebook</li>
-<li>Add / edit / delete items on <a href="https://github.com/couchbaselabs/ToDoLite-Android">TodoLite-Android</a></li>
-<li>Verify the changes appear in TodoLite-Phonegap</li>
-</ul>
-
-
-<p><em>Note: you could also setup two emulators and run the apps separately</em></p>
-
-<h2>Appendix A: using a more recent build of the Phonegap Plugin</h2>
-
-<h2>Reset state</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd .. 
-</span><span class='line'>$ rm -rf todo-lite</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Create another phonegap app</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ phonegap create todo-lite com.couchbase.TodoLite TodoLite
-</span><span class='line'>$ cd todo-lite</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Download zip file</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ mkdir Couchbase-Lite-PhoneGap-Plugin && cd Couchbase-Lite-PhoneGap-Plugin
-</span><span class='line'>$ wget http://cbfs-ext.hq.couchbase.com/builds/Couchbase-Lite-PhoneGap-Plugin_1.0.4-41.zip
-</span><span class='line'>$ unzip Couchbase-Lite-PhoneGap-Plugin_1.0.4-41.zip</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Add local plugin</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ phonegap local plugin add Couchbase-Lite-PhoneGap-Plugin</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should see output:</p>
-
-<p> [warning] The command <code>phonegap local &lt;command&gt;</code> has been DEPRECATED.
- [warning] The command has been delegated to <code>phonegap &lt;command&gt;</code>.
- [warning] The command <code>phonegap local &lt;command&gt;</code> will soon be removed.</p>
-
-<p>Now just follow the rest of the steps above ..</p>
-
-<h1>References</h1>
-
-<ul>
-<li><a href="http://developer.couchbase.com/mobile/get-started/get-started-mobile/phonegap/prepare/index.html">http://developer.couchbase.com/mobile/get-started/get-started-mobile/phonegap/prepare/index.html</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/3/">&larr; Older</a>
@@ -2277,6 +2178,10 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/10/31/install-couchbase-server-plus-mobile-on-docker-cloud/">Install Couchbase Server + Mobile on Docker Cloud</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/10/02/deep-dive-of-what-happens-under-the-hood-when-you-open-a-web-page/">Deep Dive of What Happens Under the Hood When You Open a Web Page</a>
       </li>
     
@@ -2290,10 +2195,6 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
     
       <li class="post">
         <a href="/blog/2016/05/19/go-race-detector-gotcha-with-value-receivers/">Go Race Detector Gotcha With Value Receivers</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/02/15/setting-up-a-self-hosted-drone-dot-io-ci-server/">Setting Up a Self-hosted drone.io CI Server</a>
       </li>
     
   </ul>

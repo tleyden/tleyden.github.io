@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="This is a continuation of What Happens Under The Hood When You Open A Web Page, and it&rsquo;s meant to be a deeper dive. Clients and Servers &hellip;">
+  <meta name="description" content="Deploy Couchbase Server and Sync Gateway on Docker Cloud behind a load balancer. Also available as a screencast Launch node cluster Launch a node &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +72,300 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/10/31/install-couchbase-server-plus-mobile-on-docker-cloud/">Install Couchbase Server + Mobile on Docker Cloud</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-10-31T16:28:00-07:00" pubdate data-updated="true">Oct 31<span>st</span>, 2016</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Deploy Couchbase Server and Sync Gateway on Docker Cloud behind a load balancer.</p>
+
+<p>Also available as a <a href="https://www.youtube.com/watch?v=hPmSGGLJmw8&amp;feature=youtu.be">screencast</a></p>
+
+<h2>Launch node cluster</h2>
+
+<p>Launch a node cluster with the following settings:</p>
+
+<ul>
+<li>Provider: AWS</li>
+<li>Region: us-east-1 (or whatever region makes sense for you)</li>
+<li>VPC: Auto (if you don&rsquo;t choose auto, you will need to customize your security group)</li>
+<li>Type/Size: m3.medium or greater</li>
+<li>IAM Roles: None</li>
+</ul>
+
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/docker_cloud_launch_nodecluster.png" alt="" /></p>
+
+<h2>Create Couchbase Server service</h2>
+
+<p>Go to <strong>Services</strong> and hit the <strong>Create</strong> button:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/docker_cloud_service_create.png" alt="" /></p>
+
+<p>Click the globe icon and <strong>Search Docker Hub</strong> for <code>couchbase/server</code>.  You should select the <code>couchbase/server</code> image:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/docker_cloud_create_cbs_service.png" alt="" /></p>
+
+<p>Hit the <strong>Select</strong> button and fill out the following values on the Services Wizard:</p>
+
+<ul>
+<li>Service Name: couchbaseserver</li>
+<li>Containers: 2</li>
+<li>Deployment strategy: High Availability</li>
+<li>Autorestart: On failure</li>
+<li>Network: bridge</li>
+</ul>
+
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/docker_cloud_create_cbs_service2.png" alt="" /></p>
+
+<p>In the Ports section: Enable <strong>published</strong> on each port and set the Node Port to match the Container Port</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/docker_cloud_create_cbs_service3.png" alt="" /></p>
+
+<p>Hit the <strong>Create and Deploy</strong> button.  After a few minutes, you should see the Couchbase Server vervice running:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/docker_cloud_couchbase_server_running.png" alt="" /></p>
+
+<h2>Configure Couchbase Server Container 1 + Create Buckets</h2>
+
+<p>Go to the <strong>Container</strong> section and choose <strong>couchbaseserver-1</strong>.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/docker_cloud_couchbase_container1.png" alt="" /></p>
+
+<p>Copy and paste the domain name (<code>eca0fe88-7fee-446b-b006-99e8cae0dabf.node.dockerapp.io</code>) into your browser, adding 8091 at the end (<code>eca0fe88-7fee-446b-b006-99e8cae0dabf.node.dockerapp.io:8091</code>)</p>
+
+<p>You should now see the Couchbase Server setup screen:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/docker_cloud_couchbase_setup.png" alt="" /></p>
+
+<p>You will need to find the <em>container IP</em> of Couchbase Server in order to configure it.  To do that, go to the <strong>Terminal</strong> section of <strong>Containers/couchbaseserver-1</strong>, and enter <code>ifconfig</code>.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/docker_cloud_couchbase_container_terminal.png" alt="" /></p>
+
+<p>Look for the <code>ethwe1</code> interface and make a note of the ip: <code>10.7.0.2</code> &mdash; you will need it in the next step.</p>
+
+<p>Switch back to the browser on the Couchbase Server setup screen.  Leave the <strong>Start a new cluster</strong> button checked.  Enter the <code>10.7.0.2</code> ip address (or whatever was returned for your <code>ethwe1</code> interface) under the <strong>Hostname</strong> field.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/docker_cloud_couchbase_server_hostname.png" alt="" /></p>
+
+<p>and hit the <strong>Next</strong> button.</p>
+
+<p>For the rest of the wizard, you can:</p>
+
+<ul>
+<li>skip adding the samples</li>
+<li>skip adding the default bucket</li>
+<li>uncheck <strong>Update Notifications</strong></li>
+<li>leave Product Registration fields blank</li>
+<li>check &ldquo;I agree ..&rdquo;</li>
+<li>make sure to write down your password somewhere, otherwise you will be locked out of the web interface</li>
+</ul>
+
+
+<p>Create a new bucket for your application:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/docker_cloud_create_bucket.png" alt="" /></p>
+
+<h2>Configure Couchbase Server Container 2</h2>
+
+<p>Go to the <strong>Container</strong> section and choose <strong>couchbaseserver-2</strong>.</p>
+
+<p>As in the previous step, copy and paste the domain name (<code>4d8c7be0-3f47-471b-85df-d2471336af75.node.dockerapp.io</code>) into your browser, adding 8091 at the end (<code>4d8c7be0-3f47-471b-85df-d2471336af75.node.dockerapp.io:8091</code>)</p>
+
+<p>Hit <strong>Setup</strong> and choose <strong>Join a cluster now</strong> with settings:</p>
+
+<ul>
+<li>IP Address: 10.7.0.2 (the IP address you setup the first Couchbase Server node with)</li>
+<li>Username: Administrator (unless you used a different username in the previous step)</li>
+<li>Password: enter the password you used in the previous step</li>
+<li>Configure Server Hostname: 10.7.0.3 (you can double check this by going to the <strong>Terminal</strong> for <strong>Containers/couchbaseserver-2</strong> and running <code>ifconfig</code> and looking for the ip of the <code>ethwe1</code> interface)</li>
+</ul>
+
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/docker_cloud_join_couchbase_cluster.png" alt="" /></p>
+
+<p>Trigger a rebalance by hitting the <strong>Rebalance</strong> button:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/docker_cloud_trigger_rebalance.png" alt="" /></p>
+
+<h2>Sync Gateway Service</h2>
+
+<p>Now create a Sync Gateway service.</p>
+
+<p>Before going through the steps in the Docker Cloud web UI, you will need to have a Sync Gateway configuration somewhere on the publicly accessible internet.</p>
+
+<p><em>Warning: This is not a secure solution!  Do not use any sensitive passwords if you follow these steps</em></p>
+
+<p>To make it more secure, you could:</p>
+
+<ul>
+<li>Use a Volume mount and have Sync Gateway read the configuration from the container filesystem</li>
+<li>Use a HTTPS + Basic Auth for the URL that hosts the Sync Gateway configuration</li>
+</ul>
+
+
+<p>Create a Sync Gateway configuration on a <a href="https://gist.github.com/tleyden/f260b2d9b2ef828fadfad462f0014aed">github gist</a> and get the <a href="https://gist.githubusercontent.com/tleyden/f260b2d9b2ef828fadfad462f0014aed/raw/8f544be6b265c0b57848b2ba36fb3e0f958ddcc9/gistfile1.txt">raw url</a> for the gist.</p>
+
+<ul>
+<li>Make sure to set the <code>server</code> value to <code>http://couchbaseserver:8091</code> so that it can connect to the Couchbase Service setup in a previous step.</li>
+<li>Use the bucket created in the Couchbase Server setup step above</li>
+</ul>
+
+
+<p>In the Docker Cloud web UI, go to <strong>Services</strong> and hit the <strong>Create</strong> button again.</p>
+
+<p>Click the globe icon and <strong>Search Docker Hub</strong> for <code>couchbase/sync-gateway</code>.  You should select the <code>couchbase/sync-gateway</code> image.</p>
+
+<p>Hit the <strong>Select</strong> button and fill out the following values on the Services Wizard:</p>
+
+<ul>
+<li>Service Name: sync-gateway</li>
+<li>Containers: 2</li>
+<li>Deployment strategy: High Availability</li>
+<li>Autorestart: On failure</li>
+<li>Network: bridge</li>
+</ul>
+
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/docker_cloud_sync_gateway_service.png" alt="" /></p>
+
+<p>In the <strong>Container Configuration</strong> section, customize the <strong>Run Command</strong> to use the raw URL of your gist, eg: <code>https://gist.githubusercontent.com/tleyden/f260b2d9b2ef828fadfad462f0014aed/raw/8f544be6b265c0b57848</code></p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/docker_cloud_configure_sg_service.png" alt="" /></p>
+
+<p>In the <strong>Ports</strong> section, use the following values:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/docker_cloud_configure_sg_service_ports.png" alt="" /></p>
+
+<p>In the <strong>Links</strong> section, choose <strong>couchbaseserver</strong> and hit the <strong>Plus</strong> button</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/docker_cloud_sg_service_links.png" alt="" /></p>
+
+<p>Click the <strong>Create and Deploy</strong> button.</p>
+
+<h2>Verify Sync Gateway</h2>
+
+<p>Click the <strong>Containers</strong> section and you should have two Couchbase Server and two Sync Gateway containers running.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/docker_cloud_cbs_sg_containers.png" alt="" /></p>
+
+<p>Click the <strong>sync-gateway-1</strong> container and get the domain name (<code>eca0fe88-7fee-446b-b006-99e8cae0dabf.node.dockerapp.io</code>) and paste it in your browser with a trailing <code>:4984</code>, eg <code>eca0fe88-7fee-446b-b006-99e8cae0dabf.node.dockerapp.io:4984</code></p>
+
+<p>You should see the following JSON response:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>   "couchdb":"Welcome",
+</span><span class='line'>   "vendor":{
+</span><span class='line'>      "name":"Couchbase Sync Gateway",
+</span><span class='line'>      "version":1.3
+</span><span class='line'>   },
+</span><span class='line'>   "version":"Couchbase Sync Gateway/1.3.1(16;f18e833)"
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Setup Load Balancer</h2>
+
+<p>Click the <strong>Services</strong> section and hit the <strong>Create</strong> button.  In the bottom right hand corner look for <strong>Proxies</strong> and choose <strong>dockercloud/haproxy</strong></p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/docker_cloud_create_load_balancer_service1.png" alt="" /></p>
+
+<p>General Settings:</p>
+
+<ul>
+<li>Service Name: sgloadbalancer</li>
+<li>Containers: 1</li>
+<li>Deployment Strategy: High Availability</li>
+<li>Autorestart: Always</li>
+<li>Network: Bridge</li>
+</ul>
+
+
+<p>Ports:</p>
+
+<ul>
+<li>Port 80 should be <strong>Published</strong> and the <strong>Node Port</strong> should be set to <code>80</code></li>
+</ul>
+
+
+<p>Links:</p>
+
+<ul>
+<li>Choose <strong>sync-gateway</strong> and hit the <strong>Plus</strong> button</li>
+</ul>
+
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/docker_cloud_haproxy_ports_links.png" alt="" /></p>
+
+<p>Hit the <strong>Create and Deploy</strong> button</p>
+
+<h2>Verify Load Balancer</h2>
+
+<p>Click the <strong>Containers</strong> section and choose <strong>sgloadbalancer-1</strong>.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/docker_cloud_sgloadbalancer_container.png" alt="" /></p>
+
+<p>Copy and paste the domain name (eg, <code>eca0fe88-7fee-446b-b006-99e8cae0dabf.node.dockerapp.io</code>) into your browser.</p>
+
+<p>You should see the following JSON response:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>   "couchdb":"Welcome",
+</span><span class='line'>   "vendor":{
+</span><span class='line'>      "name":"Couchbase Sync Gateway",
+</span><span class='line'>      "version":1.3
+</span><span class='line'>   },
+</span><span class='line'>   "version":"Couchbase Sync Gateway/1.3.1(16;f18e833)"
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Congratulations!  You have just setup a Couchbase Server + Sync Gateway cluster on Docker Cloud.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -2149,170 +2443,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/11/22/cuda-7-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">CUDA 7.5 on AWS GPU Instance Running Ubuntu 14.04</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-11-22T17:32:00-08:00" pubdate data-updated="true">Nov 22<span>nd</span>, 2015</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>Launch stock Ubuntu AMI</h2>
-
-<ul>
-<li>Launch <strong>ami-d05e75b8</strong></li>
-<li>Choose a GPU instance type: <strong>g2.2xlarge</strong> or <strong>g2.8xlarge</strong></li>
-<li>Increase the size of the storage (this depends on what else you plan to install, I&rsquo;d suggest at least 20 GB)</li>
-</ul>
-
-
-<h2>SSH in</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ ssh ubuntu@&lt;instance ip&gt;</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Install CUDA repository</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1404/x86_64/cuda-repo-ubuntu1404_7.5-18_amd64.deb
-</span><span class='line'>$ sudo dpkg -i cuda-repo-ubuntu1404_7.5-18_amd64.deb</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Update APT</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get update
-</span><span class='line'>$ sudo apt-get upgrade -y
-</span><span class='line'>$ sudo apt-get install -y opencl-headers build-essential protobuf-compiler \
-</span><span class='line'>    libprotoc-dev libboost-all-dev libleveldb-dev hdf5-tools libhdf5-serial-dev \
-</span><span class='line'>    libopencv-core-dev  libopencv-highgui-dev libsnappy-dev libsnappy1 \
-</span><span class='line'>    libatlas-base-dev cmake libstdc++6-4.8-dbg libgoogle-glog0 libgoogle-glog-dev \
-</span><span class='line'>    libgflags-dev liblmdb-dev git python-pip gfortran</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You will get a dialog regarding the <code>menu.lst</code> file, just choose the default option it gives you.</p>
-
-<p>Do some cleanup:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get clean</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>DRM module workaround</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get install -y linux-image-extra-`uname -r` linux-headers-`uname -r` linux-image-`uname -r`</span></code></pre></td></tr></table></div></figure>
-
-
-<p>For an explanation of why this is needed, see <a href="https://github.com/BVLC/caffe/wiki/Caffe-on-EC2-Ubuntu-14.04-Cuda-7">Caffe on EC2 Ubuntu 14.04 Cuda 7</a> and search for this command.</p>
-
-<h2>Install CUDA</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get install -y cuda
-</span><span class='line'>$ sudo apt-get clean</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Verify CUDA</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ nvidia-smi</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should see:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>+------------------------------------------------------+
-</span><span class='line'>| NVIDIA-SMI 352.63     Driver Version: 352.63         |
-</span><span class='line'>|-------------------------------+----------------------+----------------------+
-</span><span class='line'>| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
-</span><span class='line'>| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
-</span><span class='line'>|===============================+======================+======================|
-</span><span class='line'>|   0  GRID K520           Off  | 0000:00:03.0     Off |                  N/A |
-</span><span class='line'>| N/A   30C    P0    36W / 125W |     11MiB /  4095MiB |      0%      Default |
-</span><span class='line'>+-------------------------------+----------------------+----------------------+
-</span><span class='line'>
-</span><span class='line'>+-----------------------------------------------------------------------------+
-</span><span class='line'>| Processes:                                                       GPU Memory |
-</span><span class='line'>|  GPU       PID  Type  Process name                               Usage      |
-</span><span class='line'>|=============================================================================|
-</span><span class='line'>|  No running processes found                                                 |
-</span><span class='line'>+-----------------------------------------------------------------------------+</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Make sure kernel module and devices are present:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>ubuntu@ip-10-33-135-228:~$ lsmod | grep -i nvidia
-</span><span class='line'>nvidia               8642880  0
-</span><span class='line'>drm                   303102  1 nvidia
-</span><span class='line'>ubuntu@ip-10-33-135-228:~$ ls -alh /dev | grep -i nvidia
-</span><span class='line'>crw-rw-rw-  1 root root    195,   0 Nov 23 01:59 nvidia0
-</span><span class='line'>crw-rw-rw-  1 root root    195, 255 Nov 23 01:58 nvidiactl</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>References</h2>
-
-<ul>
-<li><a href="https://github.com/BVLC/caffe/wiki/Caffe-on-EC2-Ubuntu-14.04-Cuda-7">Caffe on EC2 Ubuntu 14.04 Cuda 7</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -2339,6 +2469,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/10/31/install-couchbase-server-plus-mobile-on-docker-cloud/">Install Couchbase Server + Mobile on Docker Cloud</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/10/02/deep-dive-of-what-happens-under-the-hood-when-you-open-a-web-page/">Deep Dive of What Happens Under the Hood When You Open a Web Page</a>
       </li>
     
@@ -2352,10 +2486,6 @@
     
       <li class="post">
         <a href="/blog/2016/05/19/go-race-detector-gotcha-with-value-receivers/">Go Race Detector Gotcha With Value Receivers</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/02/15/setting-up-a-self-hosted-drone-dot-io-ci-server/">Setting Up a Self-hosted drone.io CI Server</a>
       </li>
     
   </ul>

@@ -9,7 +9,8 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Write a server that uses tcp sockets which returns images to clients, and avoids duplicate work for concurrent requests for the same image. &hellip;">
+  <meta name="description" content="While trying to use couch-go and looking at the source, I&rsquo;ve come across some things I don&rsquo;t understand. Is function wrapper needed? 1
+2 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +73,252 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/09/20/deciphering-some-go-code/">Deciphering Some Go Code</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-09-20T11:11:00-07:00" pubdate data-updated="true">Sep 20<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>While trying to use <a href="http://godoc.org/code.google.com/p/dsallings-couch-go">couch-go</a> and looking at the source, I&rsquo;ve come across some things I don&rsquo;t understand.</p>
+
+<h1>Is function wrapper needed?</h1>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>resp, err := client.Get(full_url)
+</span><span class='line'>log.Printf("resp: %v err: %v", resp, err)
+</span><span class='line'>if err == nil {
+</span><span class='line'>    func() {
+</span><span class='line'>        defer resp.Body.Close()
+</span><span class='line'>        defer conn.Close()
+</span><span class='line'>
+</span><span class='line'>        tc := timeoutClient{resp.Body, conn, timeout}
+</span><span class='line'>        largest = handler(&tc)
+</span><span class='line'>    }()
+</span><span class='line'>} else {
+</span><span class='line'>    log.Printf("Error in stream: %v", err)
+</span><span class='line'>    time.Sleep(time.Second * 1)
+</span><span class='line'>}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Why the separate function wrapper here?  Why not just call:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>defer resp.Body.Close()
+</span><span class='line'>defer conn.Close()
+</span><span class='line'>tc := timeoutClient{resp.Body, conn, timeout}
+</span><span class='line'>largest = handler(&tc)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>directly?</p>
+
+<h1>How to elegantly dump a request body?</h1>
+
+<p>I was trying to debug something, and I wanted to print out the json string before it was being parsed, and here&rsquo;s what I ended up doing:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>body, err0 := ioutil.ReadAll(r.Body)
+</span><span class='line'>bodyStr := string(body)
+</span><span class='line'>log.Printf("body: %v err: %v", bodyStr, err0)
+</span><span class='line'>newBody := bytes.NewBuffer(body)
+</span><span class='line'>d := json.NewDecoder(newBody)
+</span><span class='line'>// d := json.NewDecoder(r.Body) &lt;-- orig code
+</span><span class='line'>if err := d.Decode(results); err != nil {
+</span><span class='line'>    log.Printf("Decode err: %v", err)
+</span><span class='line'>    return err
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>it seems like there should be a slicker way, like maybe rewinding the r.Body Reader?</p>
+
+<p><strong>Answer</strong>: yes, there is a <em>much</em> slicker way, <code>io.TeeReader</code></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>d := json.NewDecoder(io.TeeReader(r.Body, os.Stdout))</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>Using new() with a map &mdash; does this look right?</h1>
+
+<p>According to &ldquo;The Way To Go&rdquo; (book), you are not supposed to be using new() with maps.  However I did this in one case:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>type Document map[string]interface{}
+</span><span class='line'>
+</span><span class='line'>func (game Game) fetchLatestGameDoc() (doc Document, err error) {
+</span><span class='line'>        fetchedDoc := new(Document)
+</span><span class='line'>        err = game.db.Retrieve(GAME_DOC_ID, fetchedDoc)
+</span><span class='line'>        if err == nil {
+</span><span class='line'>     doc = *fetchedDoc
+</span><span class='line'>        }
+</span><span class='line'>        return
+</span><span class='line'>}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>is there a better way?  When I tried using make(), I got the error <code>err: json: Unmarshal(non-pointer checkerlution.Document)</code>.  Using make() followed by &amp; didn&rsquo;t work either.</p>
+
+<h1>Type Assertion hell</h1>
+
+<p>I&rsquo;m trying to get some data that&rsquo;s fairly deep in some json, and ended up doing a lot of awkward feeling type assertions:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func (game Game) checkGameDocInChanges(changes Changes) bool {
+</span><span class='line'>        foundGameDoc := false
+</span><span class='line'>        changeResultsRaw := changes["results"]
+</span><span class='line'>        changeResults := changeResultsRaw.([]interface{})
+</span><span class='line'>        for _, changeResultRaw := range changeResults {
+</span><span class='line'>                changeResult := changeResultRaw.(map[string]interface{})
+</span><span class='line'>                docIdRaw := changeResult["id"]
+</span><span class='line'>                docId := docIdRaw.(string)
+</span><span class='line'>                if strings.Contains(docId, GAME_DOC_ID) {
+</span><span class='line'>                        foundGameDoc = true
+</span><span class='line'>              }
+</span><span class='line'>        }
+</span><span class='line'>        return foundGameDoc
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>there must be a better way?</p>
+
+<p>Also I didn&rsquo;t get why this didn&rsquo;t work:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>type ChangeItem map[string]interface{}
+</span><span class='line'>...
+</span><span class='line'>changeResult := changeResultRaw.(ChangeItem)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>to make it work I had to change it to:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>changeResult := changeResultRaw.(map[string]interface{})</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>Getting unexpected float64 back from JSON, had to do awkward type conversions</h1>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func (game Game) isOurTurn(gameDoc Document) bool {
+</span><span class='line'>        activeTeamRaw := gameDoc["activeTeam"]
+</span><span class='line'>        activeTeam := int(activeTeamRaw.(float64))
+</span><span class='line'>        return activeTeam == game.ourTeamId
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Json snippet:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{"_id":"game:checkers","activeTeam":0}</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>Can&rsquo;t check for nil</h1>
+
+<p>I have these structs:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>type Game struct {
+</span><span class='line'>    gameState            GameState
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>type GameState struct {
+</span><span class='line'>   ...
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and in a loop, I set the gameState field of the Game object to value.  I&rsquo;m trying to detect if it&rsquo;s the first pass through the loop with this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>isFirstGame := (game.gameState == nil)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>but I get the error <code>cannot convert nil to type GameState</code></p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -520,6 +767,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/10/31/install-couchbase-server-plus-mobile-on-docker-cloud/">Install Couchbase Server + Mobile on Docker Cloud</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/10/02/deep-dive-of-what-happens-under-the-hood-when-you-open-a-web-page/">Deep Dive of What Happens Under the Hood When You Open a Web Page</a>
       </li>
     
@@ -533,10 +784,6 @@
     
       <li class="post">
         <a href="/blog/2016/05/19/go-race-detector-gotcha-with-value-receivers/">Go Race Detector Gotcha With Value Receivers</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/02/15/setting-up-a-self-hosted-drone-dot-io-ci-server/">Setting Up a Self-hosted drone.io CI Server</a>
       </li>
     
   </ul>
