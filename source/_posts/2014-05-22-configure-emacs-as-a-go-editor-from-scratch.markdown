@@ -149,7 +149,9 @@ In order to add godef key bindings, add these to your `~/.emacs.d/init.el`:
   ; Call Gofmt before saving                                                    
   (add-hook 'before-save-hook 'gofmt-before-save)
   ; Godef jump key binding                                                      
-  (local-set-key (kbd "M-.") 'godef-jump))
+  (local-set-key (kbd "M-.") 'godef-jump)
+  (local-set-key (kbd "M-*") 'pop-tag-mark)
+  )
 (add-hook 'go-mode-hook 'my-go-mode-hook)
 ```
 
@@ -223,7 +225,9 @@ To do that, edit your `~/.emacs.d/init.el` and replace your go-mode hook with:
       (set (make-local-variable 'compile-command)
            "go build -v && go test -v && go vet"))
   ; Godef jump key binding
-  (local-set-key (kbd "M-.") 'godef-jump))
+  (local-set-key (kbd "M-.") 'godef-jump)
+  (local-set-key (kbd "M-*") 'pop-tag-mark)
+)
 (add-hook 'go-mode-hook 'my-go-mode-hook)
 ```
 

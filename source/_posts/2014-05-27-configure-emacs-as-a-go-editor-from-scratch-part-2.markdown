@@ -31,7 +31,9 @@ Continuing on previous .emacs in [Part 1](http://tleyden.github.io/blog/2014/05/
       (set (make-local-variable 'compile-command)
            "go build -v && go test -v && go vet"))
   ; Godef jump key binding
-  (local-set-key (kbd "M-.") 'godef-jump))
+  (local-set-key (kbd "M-.") 'godef-jump)
+  (local-set-key (kbd "M-*") 'pop-tag-mark)
+)
 (add-hook 'go-mode-hook 'my-go-mode-hook)
 ```
 
@@ -76,7 +78,9 @@ Update your `~/.emacs.d/init.el` to:
   ; Go oracle
   (load-file "$GOPATH/src/golang.org/x/tools/cmd/oracle/oracle.el")
   ; Godef jump key binding
-  (local-set-key (kbd "M-.") 'godef-jump))
+  (local-set-key (kbd "M-.") 'godef-jump)
+  (local-set-key (kbd "M-*") 'pop-tag-mark)
+)
 (add-hook 'go-mode-hook 'my-go-mode-hook)
 ```
 
