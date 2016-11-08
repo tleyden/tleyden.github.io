@@ -4,7 +4,7 @@
   <title><![CDATA[Category: emacs | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/emacs/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-10-31T16:51:03-07:00</updated>
+  <updated>2016-11-08T09:04:02-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -99,7 +99,9 @@ $ go get golang.org/x/tools/cmd/goimports
 </code></pre>
 
 <p>  ; Godef jump key binding
-  (local-set-key (kbd &ldquo;M-.&rdquo;) &lsquo;godef-jump))
+  (local-set-key (kbd &ldquo;M-.&rdquo;) &lsquo;godef-jump)
+  (local-set-key (kbd &ldquo;M-*&rdquo;) 'pop-tag-mark)
+)
 (add-hook 'go-mode-hook 'my-go-mode-hook)
 ```</p>
 
@@ -150,7 +152,9 @@ go get golang.org/x/tools/cmd/oracle
 <p>  ; Go oracle
   (load-file &ldquo;$GOPATH/src/golang.org/x/tools/cmd/oracle/oracle.el&rdquo;)
   ; Godef jump key binding
-  (local-set-key (kbd &ldquo;M-.&rdquo;) &lsquo;godef-jump))
+  (local-set-key (kbd &ldquo;M-.&rdquo;) &lsquo;godef-jump)
+  (local-set-key (kbd &ldquo;M-*&rdquo;) 'pop-tag-mark)
+)
 (add-hook 'go-mode-hook 'my-go-mode-hook)
 ```</p>
 
@@ -398,7 +402,9 @@ go get github.com/rogpeppe/godef
   ; Call Gofmt before saving                                                    
   (add-hook 'before-save-hook 'gofmt-before-save)
   ; Godef jump key binding                                                      
-  (local-set-key (kbd "M-.") 'godef-jump))
+  (local-set-key (kbd "M-.") 'godef-jump)
+  (local-set-key (kbd "M-*") 'pop-tag-mark)
+  )
 (add-hook 'go-mode-hook 'my-go-mode-hook)
 </code></p>
 
@@ -475,7 +481,9 @@ go get -u github.com/nsf/gocode
 </code></pre>
 
 <p>  ; Godef jump key binding
-  (local-set-key (kbd &ldquo;M-.&rdquo;) &lsquo;godef-jump))
+  (local-set-key (kbd &ldquo;M-.&rdquo;) &lsquo;godef-jump)
+  (local-set-key (kbd &ldquo;M-*&rdquo;) 'pop-tag-mark)
+)
 (add-hook 'go-mode-hook 'my-go-mode-hook)
 ```</p>
 

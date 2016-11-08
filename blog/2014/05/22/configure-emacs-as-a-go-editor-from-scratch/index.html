@@ -270,11 +270,15 @@
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>(defun my-go-mode-hook ()
 </span><span class='line'>  ; Call Gofmt before saving                                                    
 </span><span class='line'>  (add-hook 'before-save-hook 'gofmt-before-save)
 </span><span class='line'>  ; Godef jump key binding                                                      
-</span><span class='line'>  (local-set-key (kbd "M-.") 'godef-jump))
+</span><span class='line'>  (local-set-key (kbd "M-.") 'godef-jump)
+</span><span class='line'>  (local-set-key (kbd "M-*") 'pop-tag-mark)
+</span><span class='line'>  )
 </span><span class='line'>(add-hook 'go-mode-hook 'my-go-mode-hook)</span></code></pre></td></tr></table></div></figure>
 
 
@@ -354,6 +358,8 @@
 <span class='line-number'>8</span>
 <span class='line-number'>9</span>
 <span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>(defun my-go-mode-hook ()
 </span><span class='line'>  ; Call Gofmt before saving
 </span><span class='line'>  (add-hook 'before-save-hook 'gofmt-before-save)
@@ -362,7 +368,9 @@
 </span><span class='line'>      (set (make-local-variable 'compile-command)
 </span><span class='line'>           "go build -v && go test -v && go vet"))
 </span><span class='line'>  ; Godef jump key binding
-</span><span class='line'>  (local-set-key (kbd "M-.") 'godef-jump))
+</span><span class='line'>  (local-set-key (kbd "M-.") 'godef-jump)
+</span><span class='line'>  (local-set-key (kbd "M-*") 'pop-tag-mark)
+</span><span class='line'>)
 </span><span class='line'>(add-hook 'go-mode-hook 'my-go-mode-hook)</span></code></pre></td></tr></table></div></figure>
 
 
