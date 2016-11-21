@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-11-21T13:31:15-08:00</updated>
+  <updated>2016-11-21T13:40:31-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -157,7 +157,7 @@
 
 <p>So what&rsquo;s going on here?  Your first reaction might be to think that we&rsquo;ve forgotten to close the sockets &mdash; but that&rsquo;s not the case.</p>
 
-<p>What&rsquo;s happening is that we are creating lots of short lived TCP connections, and the Linux kernel networking statck is keeping tabs on the closed connections to prevent certain problems.</p>
+<p>What&rsquo;s happening is that we are creating lots of short lived TCP connections, and the Linux kernel networking stack is keeping tabs on the closed connections to prevent certain problems.</p>
 
 <p>From <a href="http://www.isi.edu/touch/pubs/infocomm99/infocomm99-web/">The TIME-WAIT state in TCP and Its Effect on Busy Servers</a>:</p>
 
@@ -165,9 +165,9 @@
 
 <h2>Why so many TIME_WAIT sockets?  What about connection re-use?</h2>
 
-<p>By default, the Golang HTTP client will do connection pooling.  Meaning, rather than closing a socket connection after an HTTP request, it will add it to an idle connection pool, and if you try to make another HTTP request before the idle connection timeout (90 seconds by default), then it will re-use that existing connection rather than creating a new one.</p>
+<p>By default, the Golang HTTP client will do connection pooling.  Rather than closing a socket connection after an HTTP request, it will add it to an idle connection pool, and if you try to make another HTTP request before the idle connection timeout (90 seconds by default), then it will re-use that existing connection rather than creating a new one.</p>
 
-<p>Unless the <strong>pool is full</strong>, in which case, it will just create a new socket connection, rather than block until one is available.  If it blocked rather than creating a new socket connection, then it would become a huge bottleneck and drastically affect throughput, so it makes sense that the connection pooling is done on a <em>best effort</em> basis rather than enforcing tight limits.</p>
+<p>This will keep the number of total socket connections low, as long as the pool doesn&rsquo;t fill up.  If the pool is full of established socket connections, then it will just create a new socket connection for the HTTP request and use that.</p>
 
 <p>So how big is the connection pool?  A quick look into <a href="https://golang.org/src/net/http/transport.go">transport.go</a> tells us:</p>
 
@@ -215,7 +215,7 @@
 
 <p>The <code>MaxIdleConns: 100</code> setting sets the size of the connection pool to 100 connections, but <em>with one major caveat</em>.</p>
 
-<p>Note the <code>DefaultMaxIdleConnsPerHost = 2</code> setting below it.  What this means is that even though the entire connection pool is set to 100, there is a <em>per-host</em> cap of only 2 connections!  What this means is that if you are creating a lot of HTTP requests against a single host in a short amount of time, it&rsquo;s very likely this small pool of only 2 connections won&rsquo;t prevent you from having to open a lot of new short lived socket connections.</p>
+<p>Note the <code>DefaultMaxIdleConnsPerHost = 2</code> setting below it.  What this means is that even though the entire connection pool is set to 100, there is a <em>per-host</em> cap of only 2 connections!  If you are creating a lot of HTTP requests against a single host in a short amount of time, it&rsquo;s very likely this small pool of only 2 connections won&rsquo;t prevent you from having to open a lot of new short lived socket connections.</p>
 
 <p>Once those short lived socket connections for the &ldquo;out-of-pool&rdquo; HTTP requests are closed, they will end up in the <code>TIME_WAIT</code> state.</p>
 
