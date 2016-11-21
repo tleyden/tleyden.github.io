@@ -4,7 +4,7 @@
   <title><![CDATA[Category: http | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/http/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-11-21T13:40:31-08:00</updated>
+  <updated>2016-11-21T13:41:39-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -164,16 +164,10 @@ const DefaultMaxIdleConnsPerHost = 2
 <pre><code>// In order to fix issues observed in https://github.com/couchbaselabs/sgload/issues/23
 // bump up the max idle connections per host to 100
 tr := &amp;http.Transport{
-    Proxy: http.ProxyFromEnvironment,
-    DialContext: (&amp;net.Dialer{
-        Timeout:   30 * time.Second,
-        KeepAlive: 30 * time.Second,
-    }).DialContext,
+        ... other default settings  
     MaxIdleConns:          1000,
     MaxIdleConnsPerHost:   100,
-    IdleConnTimeout:       90 * time.Second,
-    TLSHandshakeTimeout:   10 * time.Second,
-    ExpectContinueTimeout: 1 * time.Second,
+    ... other default settings  
 }
 
 myClient = &amp;http.Client{Transport: tr}

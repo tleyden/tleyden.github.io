@@ -313,25 +313,13 @@
 <span class='line-number'>8</span>
 <span class='line-number'>9</span>
 <span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>// In order to fix issues observed in https://github.com/couchbaselabs/sgload/issues/23
 </span><span class='line'>// bump up the max idle connections per host to 100
 </span><span class='line'>tr := &http.Transport{
-</span><span class='line'>  Proxy: http.ProxyFromEnvironment,
-</span><span class='line'>  DialContext: (&net.Dialer{
-</span><span class='line'>      Timeout:   30 * time.Second,
-</span><span class='line'>      KeepAlive: 30 * time.Second,
-</span><span class='line'>  }).DialContext,
+</span><span class='line'>        ... other default settings  
 </span><span class='line'>  MaxIdleConns:          1000,
 </span><span class='line'>  MaxIdleConnsPerHost:   100,
-</span><span class='line'>  IdleConnTimeout:       90 * time.Second,
-</span><span class='line'>  TLSHandshakeTimeout:   10 * time.Second,
-</span><span class='line'>  ExpectContinueTimeout: 1 * time.Second,
+</span><span class='line'>  ... other default settings  
 </span><span class='line'>}
 </span><span class='line'>
 </span><span class='line'>myClient = &http.Client{Transport: tr}
