@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-11-21T13:28:59-08:00</updated>
+  <updated>2016-11-21T13:31:15-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -221,7 +221,7 @@
 
 <h2>Tuning the http client to fix the issue</h2>
 
-<p>The good <a href="news:">news:</a> this is easily fixable!  If you create a create a custom http client and use that instead of the default http client, you can tweak the maximum idle connections per host.  For example:</p>
+<p>The good news is that this is easily fixable!  If you create a create a custom http client and use that instead of the default http client, you can tweak the maximum idle connections per host.  For example:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
