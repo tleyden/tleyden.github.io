@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-11-21T13:44:33-08:00</updated>
+  <updated>2016-11-21T15:35:48-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -20,11 +20,166 @@
     <id>http://tleyden.github.io/blog/2016/11/21/tuning-the-go-http-client-library-for-load-testing</id>
     <content type="html"><![CDATA[<p>While working on a <a href="http://www.github.com/couchbaselabs/sgload">product-specific load testing tool</a> in Go, I ran into a situation where I was seeing tens of thousands of sockets in the <code>TIME_WAIT</code> state.</p>
 
-<p>The fix involved tuning the golang http client settings.</p>
+<p>Here are a few ways to get into this situation and how to fix each one.</p>
 
-<h2>Steps to reproduce the problem</h2>
+<h2>Create excessive TIME_WAIT connections by forgetting to read the response body</h2>
 
 <p>Run the following code on a linux machine:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>package main
+</span><span class='line'>
+</span><span class='line'>import (
+</span><span class='line'>  "fmt"
+</span><span class='line'>  "html"
+</span><span class='line'>  "log"
+</span><span class='line'>  "net"
+</span><span class='line'>  "net/http"
+</span><span class='line'>  "time"
+</span><span class='line'>)
+</span><span class='line'>
+</span><span class='line'>func startWebserver() {
+</span><span class='line'>
+</span><span class='line'>  http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+</span><span class='line'>      fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
+</span><span class='line'>  })
+</span><span class='line'>
+</span><span class='line'>  go http.ListenAndServe(":8080", nil)
+</span><span class='line'>
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>func startLoadTest() {
+</span><span class='line'>  count := 0
+</span><span class='line'>  for {
+</span><span class='line'>      resp, err := http.Get("http://localhost:8080/")
+</span><span class='line'>      if err != nil {
+</span><span class='line'>          panic(fmt.Sprintf("Got error: %v", err))
+</span><span class='line'>      }
+</span><span class='line'>      resp.Body.Close()
+</span><span class='line'>      log.Printf("Finished GET request #%v", count)
+</span><span class='line'>      count += 1
+</span><span class='line'>  }
+</span><span class='line'>
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>func main() {
+</span><span class='line'>
+</span><span class='line'>  // start a webserver in a goroutine
+</span><span class='line'>  startWebserver()
+</span><span class='line'>
+</span><span class='line'>  startLoadTest()
+</span><span class='line'>
+</span><span class='line'>}
+</span><span class='line'>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and in a separate terminal while the program is running, run:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>netstat -n | grep -i 8080 | grep -i time_wait | wc -l</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and you will see this number constantly growing:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>root@14952c2356a7:/# netstat -n | grep -i 8080 | grep -i time_wait | wc -l
+</span><span class='line'>166
+</span><span class='line'>root@14952c2356a7:/# netstat -n | grep -i 8080 | grep -i time_wait | wc -l
+</span><span class='line'>231
+</span><span class='line'>root@14952c2356a7:/# netstat -n | grep -i 8080 | grep -i time_wait | wc -l
+</span><span class='line'>293
+</span><span class='line'>root@14952c2356a7:/# netstat -n | grep -i 8080 | grep -i time_wait | wc -l
+</span><span class='line'>349
+</span><span class='line'>... </span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Fix: Read Response Body</h2>
+
+<p>Update the <code>startLoadTest()</code> method to add the following line of code (and related imports):</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>func startLoadTest() {
+</span><span class='line'>  for {
+</span><span class='line'>          ...
+</span><span class='line'>      if err != nil {
+</span><span class='line'>          panic(fmt.Sprintf("Got error: %v", err))
+</span><span class='line'>      }
+</span><span class='line'>      io.Copy(ioutil.Discard, resp.Body)  // &lt;-- add this line
+</span><span class='line'>      resp.Body.Close()
+</span><span class='line'>                ...
+</span><span class='line'>  }
+</span><span class='line'>
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now when you re-run it, calling <code>netstat -n | grep -i 8080 | grep -i time_wait | wc -l</code> while it&rsquo;s running will return 0.</p>
+
+<h2>Create excessive TIME_WAIT connections by exceeding connection pool</h2>
+
+<p>Here&rsquo;s some code which starts up 100 goroutines which are all trying to make requests concurrently, and each request has a 50 ms delay:</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -74,11 +229,19 @@
 <span class='line-number'>46</span>
 <span class='line-number'>47</span>
 <span class='line-number'>48</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>package main
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>package main
 </span><span class='line'>
 </span><span class='line'>import (
 </span><span class='line'>  "fmt"
 </span><span class='line'>  "html"
+</span><span class='line'>  "io"
+</span><span class='line'>  "io/ioutil"
 </span><span class='line'>  "log"
 </span><span class='line'>  "net/http"
 </span><span class='line'>  "time"
@@ -88,8 +251,7 @@
 </span><span class='line'>
 </span><span class='line'>  http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 </span><span class='line'>
-</span><span class='line'>      // Simulate some network latency
-</span><span class='line'>      time.Sleep(time.Millisecond * 10)
+</span><span class='line'>      time.Sleep(time.Millisecond * 50)
 </span><span class='line'>
 </span><span class='line'>      fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
 </span><span class='line'>  })
@@ -99,17 +261,16 @@
 </span><span class='line'>}
 </span><span class='line'>
 </span><span class='line'>func startLoadTest() {
+</span><span class='line'>  count := 0
 </span><span class='line'>  for {
-</span><span class='line'>      func() {
-</span><span class='line'>          resp, err := http.Get("http://localhost:8080/")
-</span><span class='line'>          if err != nil {
-</span><span class='line'>              panic(fmt.Sprintf("Got error: %v", err))
-</span><span class='line'>          }
-</span><span class='line'>          defer resp.Body.Close()
-</span><span class='line'>          log.Printf("Made GET request")
-</span><span class='line'>
-</span><span class='line'>      }()
-</span><span class='line'>
+</span><span class='line'>      resp, err := http.Get("http://localhost:8080/")
+</span><span class='line'>      if err != nil {
+</span><span class='line'>          panic(fmt.Sprintf("Got error: %v", err))
+</span><span class='line'>      }
+</span><span class='line'>      io.Copy(ioutil.Discard, resp.Body)
+</span><span class='line'>      resp.Body.Close()
+</span><span class='line'>      log.Printf("Finished GET request #%v", count)
+</span><span class='line'>      count += 1
 </span><span class='line'>  }
 </span><span class='line'>
 </span><span class='line'>}
@@ -119,19 +280,17 @@
 </span><span class='line'>  // start a webserver in a goroutine
 </span><span class='line'>  startWebserver()
 </span><span class='line'>
-</span><span class='line'>  startLoadTest()
+</span><span class='line'>  for i := 0; i &lt; 100; i++ {
+</span><span class='line'>      go startLoadTest()
+</span><span class='line'>  }
+</span><span class='line'>
+</span><span class='line'>  time.Sleep(time.Second * 2400)
 </span><span class='line'>
 </span><span class='line'>}
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>and in a separate terminal while the program is running, run:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>netstat -n | grep -i time_wait | wc -l</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and you will see this number constantly growing:</p>
+<p>In another shell run <code>netstat</code>, note that the number of connections in the <code>TIME_WAIT</code> state is growing again, <em>even though the response is being read</em></p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -142,20 +301,22 @@
 <span class='line-number'>7</span>
 <span class='line-number'>8</span>
 <span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>root@14952c2356a7:/# netstat -n | grep -i time_wait | wc -l
+</pre></td><td class='code'><pre><code class=''><span class='line'>root@14952c2356a7:/# netstat -n | grep -i 8080 | grep -i time_wait | wc -l
 </span><span class='line'>166
-</span><span class='line'>root@14952c2356a7:/# netstat -n | grep -i time_wait | wc -l
+</span><span class='line'>root@14952c2356a7:/# netstat -n | grep -i 8080 | grep -i time_wait | wc -l
 </span><span class='line'>231
-</span><span class='line'>root@14952c2356a7:/# netstat -n | grep -i time_wait | wc -l
+</span><span class='line'>root@14952c2356a7:/# netstat -n | grep -i 8080 | grep -i time_wait | wc -l
 </span><span class='line'>293
-</span><span class='line'>root@14952c2356a7:/# netstat -n | grep -i time_wait | wc -l
+</span><span class='line'>root@14952c2356a7:/# netstat -n | grep -i 8080 | grep -i time_wait | wc -l
 </span><span class='line'>349
 </span><span class='line'>... </span></code></pre></td></tr></table></div></figure>
 
 
+<p>To understand what&rsquo;s going on, we&rsquo;ll need to dig in a little deeper into the <code>TIME_WAIT</code> state.</p>
+
 <h2>What is the socket <code>TIME_WAIT</code> state anyway?</h2>
 
-<p>So what&rsquo;s going on here?  Your first reaction might be to think that we&rsquo;ve forgotten to close the sockets &mdash; but that&rsquo;s not the case.</p>
+<p>So what&rsquo;s going on here?</p>
 
 <p>What&rsquo;s happening is that we are creating lots of short lived TCP connections, and the Linux kernel networking stack is keeping tabs on the closed connections to prevent certain problems.</p>
 
@@ -182,30 +343,12 @@
 <span class='line-number'>9</span>
 <span class='line-number'>10</span>
 <span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>// DefaultTransport is the default implementation of Transport and is
-</span><span class='line'>// used by DefaultClient. It establishes network connections as needed
-</span><span class='line'>// and caches them for reuse by subsequent calls. It uses HTTP proxies
-</span><span class='line'>// as directed by the $HTTP_PROXY and $NO_PROXY (or $http_proxy and
-</span><span class='line'>// $no_proxy) environment variables.
+</pre></td><td class='code'><pre><code class=''><span class='line'>
 </span><span class='line'>var DefaultTransport RoundTripper = &Transport{
-</span><span class='line'>  Proxy: ProxyFromEnvironment,
-</span><span class='line'>  DialContext: (&net.Dialer{
-</span><span class='line'>      Timeout:   30 * time.Second,
-</span><span class='line'>      KeepAlive: 30 * time.Second,
-</span><span class='line'>  }).DialContext,
+</span><span class='line'>        ... 
 </span><span class='line'>  MaxIdleConns:          100,
 </span><span class='line'>  IdleConnTimeout:       90 * time.Second,
-</span><span class='line'>  TLSHandshakeTimeout:   10 * time.Second,
-</span><span class='line'>  ExpectContinueTimeout: 1 * time.Second,
+</span><span class='line'>        ... 
 </span><span class='line'>}
 </span><span class='line'>
 </span><span class='line'>// DefaultMaxIdleConnsPerHost is the default value of Transport's
@@ -213,15 +356,20 @@
 </span><span class='line'>const DefaultMaxIdleConnsPerHost = 2</span></code></pre></td></tr></table></div></figure>
 
 
-<p>The <code>MaxIdleConns: 100</code> setting sets the size of the connection pool to 100 connections, but <em>with one major caveat</em>.</p>
+<ul>
+<li>The <code>MaxIdleConns: 100</code> setting sets the size of the connection pool to 100 connections, but <em>with one major caveat</em>: this is on a per-host basis.  See the comments on the <code>DefaultMaxIdleConnsPerHost</code> below for more details on the implications of this.</li>
+<li>The <code>IdleConnTimeout</code> is set to 90 seconds, meaning that after a connection stays in the pool and is unused for 90 seconds, it will be removed from the pool and closed.</li>
+<li>The <code>DefaultMaxIdleConnsPerHost = 2</code> setting below it.  What this means is that even though the entire connection pool is set to 100, there is a <em>per-host</em> cap of only 2 connections!</li>
+</ul>
 
-<p>Note the <code>DefaultMaxIdleConnsPerHost = 2</code> setting below it.  What this means is that even though the entire connection pool is set to 100, there is a <em>per-host</em> cap of only 2 connections!  If you are creating a lot of HTTP requests against a single host in a short amount of time, it&rsquo;s very likely this small pool of only 2 connections won&rsquo;t prevent you from having to open a lot of new short lived socket connections.</p>
 
-<p>Once those short lived socket connections for the &ldquo;out-of-pool&rdquo; HTTP requests are closed, they will end up in the <code>TIME_WAIT</code> state.</p>
+<p>In the above example, there are 100 goroutines trying to concurrently make requests to the same host, but the connection pool can only hold 2 sockets.  So in the first &ldquo;round&rdquo; of the goroutines finishing their http request, 2 of the sockets will remain open in the pool, while the remaining 98 connections will be closed and end up in the <code>TIME_WAIT</code> state.</p>
+
+<p>Since this is happening in a loop, you will quickly accumulate thousands or tens of thousands of connections in the <code>TIME_WAIT</code> state.  Eventually, for that particular host at least, you will run out of ephemeral ports and not be able to open new client connections.  For a load testing tool, this is <em>bad news</em>.</p>
 
 <h2>Tuning the http client to fix the issue</h2>
 
-<p>The good news is that this is easily fixable!  If you create a create a custom http client and use that instead of the default http client, you can tweak the maximum idle connections per host.  For example:</p>
+<p>Here&rsquo;s how to fix this issue.</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -233,33 +381,116 @@
 <span class='line-number'>8</span>
 <span class='line-number'>9</span>
 <span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>// In order to fix issues observed in https://github.com/couchbaselabs/sgload/issues/23
-</span><span class='line'>// bump up the max idle connections per host to 100
-</span><span class='line'>tr := &http.Transport{
-</span><span class='line'>        ... other default settings  
-</span><span class='line'>  MaxIdleConns:          1000,
-</span><span class='line'>  MaxIdleConnsPerHost:   100,
-</span><span class='line'>  ... other default settings  
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>package main
+</span><span class='line'>
+</span><span class='line'>import (
+</span><span class='line'>     .. 
+</span><span class='line'>)
+</span><span class='line'>
+</span><span class='line'>var myClient *http.Client
+</span><span class='line'>
+</span><span class='line'>func startWebserver() {
+</span><span class='line'>      ... same code as before
+</span><span class='line'>
 </span><span class='line'>}
 </span><span class='line'>
-</span><span class='line'>myClient = &http.Client{Transport: tr}
+</span><span class='line'>func startLoadTest() {
+</span><span class='line'>        ... 
+</span><span class='line'>  for {
+</span><span class='line'>      resp, err := myClient.Get("http://localhost:8080/")  // &lt;-- use a custom client with custom *http.Transport
+</span><span class='line'>                ... everything else is the same
+</span><span class='line'>  }
+</span><span class='line'>
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>func main() {
+</span><span class='line'>
+</span><span class='line'>      // Customize the Transport to have larger connection pool
+</span><span class='line'>  defaultRoundTripper := http.DefaultTransport
+</span><span class='line'>  defaultTransportPointer, ok := defaultRoundTripper.(*http.Transport)
+</span><span class='line'>  if !ok {
+</span><span class='line'>      panic(fmt.Sprintf("defaultRoundTripper not an *http.Transport"))
+</span><span class='line'>  }
+</span><span class='line'>  defaultTransport := *defaultTransportPointer // dereference it to get a copy of the struct that the pointer points to
+</span><span class='line'>  defaultTransport.MaxIdleConns = 100
+</span><span class='line'>  defaultTransport.MaxIdleConnsPerHost = 100
+</span><span class='line'>
+</span><span class='line'>  myClient = &http.Client{Transport: &defaultTransport}
+</span><span class='line'>
+</span><span class='line'>  // start a webserver in a goroutine
+</span><span class='line'>  startWebserver()
+</span><span class='line'>
+</span><span class='line'>  for i := 0; i &lt; 100; i++ {
+</span><span class='line'>      go startLoadTest()
+</span><span class='line'>  }
+</span><span class='line'>
+</span><span class='line'>  time.Sleep(time.Second * 2400)
+</span><span class='line'>
+</span><span class='line'>}
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>This bumps the total maximum idle connections (connection pool size) to 1000, and the per-host connection pool size to 100.</p>
+<p>This bumps the total maximum idle connections (connection pool size) and the per-host connection pool size to 100.</p>
 
-<p>Depending on your actual usage, this should drop the number of connections that end up in the <code>TIME_WAIT</code> state to a dramatically lower number.  In my case it went from tens of thousands down to zero.</p>
+<p>Now when you run this and check the <code>netstat</code> output, the number of <code>TIME_WAIT</code> connections stays at 0</p>
 
-<p>Unfortunately, when I tested those changes in the the above repro scenario, it didn&rsquo;t fix it!  I will update this blog post if I can figure out what the subtle difference between the scenarios.</p>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>root@bbe9a95545ae:/# netstat -n | grep -i 8080 | grep -i time_wait | wc -l
+</span><span class='line'>0
+</span><span class='line'>root@bbe9a95545ae:/# netstat -n | grep -i 8080 | grep -i time_wait | wc -l
+</span><span class='line'>0
+</span><span class='line'>root@bbe9a95545ae:/# netstat -n | grep -i 8080 | grep -i time_wait | wc -l
+</span><span class='line'>0
+</span><span class='line'>root@bbe9a95545ae:/# netstat -n | grep -i 8080 | grep -i time_wait | wc -l
+</span><span class='line'>0</span></code></pre></td></tr></table></div></figure>
 
-<h2>Open Questions</h2>
 
-<ul>
-<li>Best way to create a transport?</li>
-</ul>
+<p>The problem is now fixed!</p>
 
-
-<p>I couldn&rsquo;t figure out the best way to create an <code>http.Transport</code> with all of the default settings <em>except</em> the <code>`MaxIdleConns</code> and <code>MaxIdleConnsPerHost</code>.  Any tips would be awesome!</p>
+<p>If you have higher concurrency requirements, you may want to bump this number to something higher than 100.</p>
 ]]></content>
   </entry>
   
