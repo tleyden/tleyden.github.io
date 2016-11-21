@@ -283,12 +283,18 @@
         <lastmod>2016-10-31T16:50:25-07:00</lastmod>
     </url>
     <url>
+        <loc>
+            http://tleyden.github.io/blog/2016/11/21/tuning-the-go-http-client-library-for-load-testing/
+        </loc>
+        <lastmod>2016-11-21T13:27:04-08:00</lastmod>
+    </url>
+    <url>
         <loc>http://tleyden.github.io/blog/archives/</loc>
-        <lastmod>2016-11-08T09:02:51-08:00</lastmod>
+        <lastmod>2016-11-21T13:27:04-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/</loc>
-        <lastmod>2016-11-08T09:02:51-08:00</lastmod>
+        <lastmod>2016-11-21T13:27:04-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/robots.txt</loc>

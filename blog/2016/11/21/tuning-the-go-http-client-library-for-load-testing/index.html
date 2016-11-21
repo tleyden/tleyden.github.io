@@ -1,0 +1,536 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Tuning the Go HTTP client library for load testing - Seven Story Rabbit Hole</title>
+  <meta name="author" content="Traun Leyden">
+
+  
+  <meta name="description" content="While working on a product-specific load testing tool in Go, I ran into a situation where I was seeing tens of thousands of sockets in the TIME_WAIT &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://tleyden.github.io/blog/2016/11/21/tuning-the-go-http-client-library-for-load-testing">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+
+  <table><tr><td>
+  <h1><a href="/">Seven Story Rabbit Hole</a></h1>
+  
+    <h2>Sometimes awesome things happen in deep rabbit holes.  Or not.</h2>
+  
+  </td><td>&nbsp;&nbsp;
+  <img class="left" src="/images/rabbit_hole_graphic.png" width="132" height="105" title="image" alt="images">
+  </td></tr>
+  </table>
+
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:tleyden.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Tuning the Go HTTP Client Library for Load Testing</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-11-21T10:37:00-08:00" pubdate data-updated="true">Nov 21<span>st</span>, 2016</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>While working on a <a href="http://www.github.com/couchbaselabs/sgload">product-specific load testing tool</a> in Go, I ran into a situation where I was seeing tens of thousands of sockets in the <code>TIME_WAIT</code> state.</p>
+
+<p>The fix involved tuning the golang http client settings, and this is useful to anyone writing something that uses the http client in a high throughput scenario.</p>
+
+<h2>Steps to reproduce the problem</h2>
+
+<p>Run the following code on a linux machine:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>package main
+</span><span class='line'>
+</span><span class='line'>import (
+</span><span class='line'>  "fmt"
+</span><span class='line'>  "html"
+</span><span class='line'>  "log"
+</span><span class='line'>  "net/http"
+</span><span class='line'>  "time"
+</span><span class='line'>)
+</span><span class='line'>
+</span><span class='line'>func startWebserver() {
+</span><span class='line'>
+</span><span class='line'>  http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+</span><span class='line'>
+</span><span class='line'>      // Simulate some network latency
+</span><span class='line'>      time.Sleep(time.Millisecond * 10)
+</span><span class='line'>
+</span><span class='line'>      fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
+</span><span class='line'>  })
+</span><span class='line'>
+</span><span class='line'>  go http.ListenAndServe(":8080", nil)
+</span><span class='line'>
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>func startLoadTest() {
+</span><span class='line'>  for {
+</span><span class='line'>      func() {
+</span><span class='line'>          resp, err := http.Get("http://localhost:8080/")
+</span><span class='line'>          if err != nil {
+</span><span class='line'>              panic(fmt.Sprintf("Got error: %v", err))
+</span><span class='line'>          }
+</span><span class='line'>          defer resp.Body.Close()
+</span><span class='line'>          log.Printf("Made GET request")
+</span><span class='line'>
+</span><span class='line'>      }()
+</span><span class='line'>
+</span><span class='line'>  }
+</span><span class='line'>
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>func main() {
+</span><span class='line'>
+</span><span class='line'>  // start a webserver in a goroutine
+</span><span class='line'>  startWebserver()
+</span><span class='line'>
+</span><span class='line'>  startLoadTest()
+</span><span class='line'>
+</span><span class='line'>}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and in a separate terminal while the program is running, run:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>netstat -n | grep -i time_wait | wc -l</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and you will see this number constantly growing:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>root@14952c2356a7:/# netstat -n | grep -i time_wait | wc -l
+</span><span class='line'>166
+</span><span class='line'>root@14952c2356a7:/# netstat -n | grep -i time_wait | wc -l
+</span><span class='line'>231
+</span><span class='line'>root@14952c2356a7:/# netstat -n | grep -i time_wait | wc -l
+</span><span class='line'>293
+</span><span class='line'>root@14952c2356a7:/# netstat -n | grep -i time_wait | wc -l
+</span><span class='line'>349
+</span><span class='line'>... </span></code></pre></td></tr></table></div></figure>
+
+
+<h2>What is the socket <code>TIME_WAIT</code> state anyway?</h2>
+
+<p>So what&rsquo;s going on here?  Your first reaction might be to think that we&rsquo;ve forgotten to close the sockets &mdash; but that&rsquo;s not the case.</p>
+
+<p>What&rsquo;s happening is that we are creating lots of short lived TCP connections, and the Linux kernel networking statck is keeping tabs on the closed connections to prevent certain problems.</p>
+
+<p>From <a href="http://www.isi.edu/touch/pubs/infocomm99/infocomm99-web/">The TIME-WAIT state in TCP and Its Effect on Busy Servers</a>:</p>
+
+<blockquote><p>The purpose of TIME-WAIT is to prevent delayed packets from one connection being accepted by a later connection. Concurrent connections are isolated by other mechanisms, primarily by addresses, ports, and sequence numbers[1].</p></blockquote>
+
+<h2>Why so many TIME_WAIT sockets?  What about connection re-use?</h2>
+
+<p>By default, the Golang HTTP client will do connection pooling.  Meaning, rather than closing a socket connection after an HTTP request, it will add it to an idle connection pool, and if you try to make another HTTP request before the idle connection timeout (90 seconds by default), then it will re-use that existing connection rather than creating a new one.</p>
+
+<p>Unless the <strong>pool is full</strong>, in which case, it will just create a new socket connection, rather than block until one is available.  If it blocked rather than creating a new socket connection, then it would become a huge bottleneck and drastically affect throughput, so it makes sense that the connection pooling is done on a <em>best effort</em> basis rather than enforcing tight limits.</p>
+
+<p>So how big is the connection pool?  A quick look into <a href="https://golang.org/src/net/http/transport.go">transport.go</a> tells us:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>// DefaultTransport is the default implementation of Transport and is
+</span><span class='line'>// used by DefaultClient. It establishes network connections as needed
+</span><span class='line'>// and caches them for reuse by subsequent calls. It uses HTTP proxies
+</span><span class='line'>// as directed by the $HTTP_PROXY and $NO_PROXY (or $http_proxy and
+</span><span class='line'>// $no_proxy) environment variables.
+</span><span class='line'>var DefaultTransport RoundTripper = &Transport{
+</span><span class='line'>  Proxy: ProxyFromEnvironment,
+</span><span class='line'>  DialContext: (&net.Dialer{
+</span><span class='line'>      Timeout:   30 * time.Second,
+</span><span class='line'>      KeepAlive: 30 * time.Second,
+</span><span class='line'>  }).DialContext,
+</span><span class='line'>  MaxIdleConns:          100,
+</span><span class='line'>  IdleConnTimeout:       90 * time.Second,
+</span><span class='line'>  TLSHandshakeTimeout:   10 * time.Second,
+</span><span class='line'>  ExpectContinueTimeout: 1 * time.Second,
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>// DefaultMaxIdleConnsPerHost is the default value of Transport's
+</span><span class='line'>// MaxIdleConnsPerHost.
+</span><span class='line'>const DefaultMaxIdleConnsPerHost = 2</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The <code>MaxIdleConns: 100</code> setting sets the size of the connection pool to 100 connections, but <em>with one major caveat</em>.</p>
+
+<p>Note the <code>DefaultMaxIdleConnsPerHost = 2</code> setting below it.  What this means is that even though the entire connection pool is set to 100, there is a <em>per-host</em> cap of only 2 connections!  What this means is that if you are creating a lot of HTTP requests against a single host in a short amount of time, it&rsquo;s very likely this small pool of only 2 connections won&rsquo;t prevent you from having to open a lot of new short lived socket connections.</p>
+
+<p>Once those short lived socket connections for the &ldquo;out-of-pool&rdquo; HTTP requests are closed, they will end up in the <code>TIME_WAIT</code> state.</p>
+
+<h2>Tuning the http client to fix the issue</h2>
+
+<p>The good <a href="news:">news:</a> this is easily fixable!  If you create a create a custom http client and use that instead of the default http client, you can tweak the maximum idle connections per host.  For example:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>// In order to fix issues observed in https://github.com/couchbaselabs/sgload/issues/23
+</span><span class='line'>// bump up the max idle connections per host to 100
+</span><span class='line'>tr := &http.Transport{
+</span><span class='line'>  Proxy: http.ProxyFromEnvironment,
+</span><span class='line'>  DialContext: (&net.Dialer{
+</span><span class='line'>      Timeout:   30 * time.Second,
+</span><span class='line'>      KeepAlive: 30 * time.Second,
+</span><span class='line'>  }).DialContext,
+</span><span class='line'>  MaxIdleConns:          1000,
+</span><span class='line'>  MaxIdleConnsPerHost:   100,
+</span><span class='line'>  IdleConnTimeout:       90 * time.Second,
+</span><span class='line'>  TLSHandshakeTimeout:   10 * time.Second,
+</span><span class='line'>  ExpectContinueTimeout: 1 * time.Second,
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>myClient = &http.Client{Transport: tr}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This bumps the total maximum idle connections (connection pool size) to 1000, and the per-host connection pool size to 100.</p>
+
+<p>Unfortunately, when I tested the above repro scenario, it didn&rsquo;t fix!</p>
+
+<p>However in the actual real world use case, it made a huge positive impact, so I know it works.  I will update this blog post if I can figure out what the subtle difference of the scenarios is all about.</p>
+
+<h2>Open Questions</h2>
+
+<ul>
+<li>Best way to create a transport?</li>
+</ul>
+
+
+<p>I couldn&rsquo;t figure out the best way to create an <code>http.Transport</code> with all of the default settings <em>except</em> the <code>`MaxIdleConns</code> and <code>MaxIdleConnsPerHost</code>.  Any tips would be awesome!</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Traun Leyden</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-11-21T10:37:00-08:00" pubdate data-updated="true">Nov 21<span>st</span>, 2016</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/golang/'>golang</a>, <a class='category' href='/blog/categories/http/'>http</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2016/11/21/tuning-the-go-http-client-library-for-load-testing/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2016/11/21/tuning-the-go-http-client-library-for-load-testing/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/10/31/install-couchbase-server-plus-mobile-on-docker-cloud/" title="Previous Post: Install Couchbase Server + Mobile on Docker Cloud">&laquo; Install Couchbase Server + Mobile on Docker Cloud</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>About Me</h1>
+  <p>
+  Currently: software engineer at Couchbase.   Previously: technical co-founder at a startup.
+  </p>
+
+  <p>
+  Follow me on twitter: <a href="https://twitter.com/tleydn">@tleydn</a>
+  </p>
+
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/11/21/tuning-the-go-http-client-library-for-load-testing/">Tuning the Go HTTP Client Library for Load Testing</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/10/31/install-couchbase-server-plus-mobile-on-docker-cloud/">Install Couchbase Server + Mobile on Docker Cloud</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/10/02/deep-dive-of-what-happens-under-the-hood-when-you-open-a-web-page/">Deep Dive of What Happens Under the Hood When You Open a Web Page</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/09/30/the-lifecycle-of-an-http-request/">What Happens Under the Hood When You Open a Web Page?</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/09/12/configuring-influxdb-and-grafana-with-go-client-library/">Configuring InfluxDB and Grafana With Go Client Library</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/tleyden">@tleyden</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'tleyden',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Traun Leyden -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'sevenstoryrabbithole';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://tleyden.github.io/blog/2016/11/21/tuning-the-go-http-client-library-for-load-testing/';
+        var disqus_url = 'http://tleyden.github.io/blog/2016/11/21/tuning-the-go-http-client-library-for-load-testing/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

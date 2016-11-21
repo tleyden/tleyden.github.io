@@ -4,7 +4,7 @@
   <title><![CDATA[Category: http | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/http/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-11-08T09:04:02-08:00</updated>
+  <updated>2016-11-21T13:28:59-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,191 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Tuning the Go HTTP client library for load testing]]></title>
+    <link href="http://tleyden.github.io/blog/2016/11/21/tuning-the-go-http-client-library-for-load-testing/"/>
+    <updated>2016-11-21T10:37:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2016/11/21/tuning-the-go-http-client-library-for-load-testing</id>
+    <content type="html"><![CDATA[<p>While working on a <a href="http://www.github.com/couchbaselabs/sgload">product-specific load testing tool</a> in Go, I ran into a situation where I was seeing tens of thousands of sockets in the <code>TIME_WAIT</code> state.</p>
+
+<p>The fix involved tuning the golang http client settings, and this is useful to anyone writing something that uses the http client in a high throughput scenario.</p>
+
+<h2>Steps to reproduce the problem</h2>
+
+<p>Run the following code on a linux machine:</p>
+
+<p>```
+package main</p>
+
+<p>import (</p>
+
+<pre><code>"fmt"
+"html"
+"log"
+"net/http"
+"time"
+</code></pre>
+
+<p>)</p>
+
+<p>func startWebserver() {</p>
+
+<pre><code>http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+
+    // Simulate some network latency
+    time.Sleep(time.Millisecond * 10)
+
+    fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
+})
+
+go http.ListenAndServe(":8080", nil)
+</code></pre>
+
+<p>}</p>
+
+<p>func startLoadTest() {</p>
+
+<pre><code>for {
+    func() {
+        resp, err := http.Get("http://localhost:8080/")
+        if err != nil {
+            panic(fmt.Sprintf("Got error: %v", err))
+        }
+        defer resp.Body.Close()
+        log.Printf("Made GET request")
+
+    }()
+
+}
+</code></pre>
+
+<p>}</p>
+
+<p>func main() {</p>
+
+<pre><code>// start a webserver in a goroutine
+startWebserver()
+
+startLoadTest()
+</code></pre>
+
+<p>}</p>
+
+<p>```</p>
+
+<p>and in a separate terminal while the program is running, run:</p>
+
+<p><code>
+netstat -n | grep -i time_wait | wc -l
+</code></p>
+
+<p>and you will see this number constantly growing:</p>
+
+<p><code>
+root@14952c2356a7:/# netstat -n | grep -i time_wait | wc -l
+166
+root@14952c2356a7:/# netstat -n | grep -i time_wait | wc -l
+231
+root@14952c2356a7:/# netstat -n | grep -i time_wait | wc -l
+293
+root@14952c2356a7:/# netstat -n | grep -i time_wait | wc -l
+349
+...
+</code></p>
+
+<h2>What is the socket <code>TIME_WAIT</code> state anyway?</h2>
+
+<p>So what&rsquo;s going on here?  Your first reaction might be to think that we&rsquo;ve forgotten to close the sockets &mdash; but that&rsquo;s not the case.</p>
+
+<p>What&rsquo;s happening is that we are creating lots of short lived TCP connections, and the Linux kernel networking statck is keeping tabs on the closed connections to prevent certain problems.</p>
+
+<p>From <a href="http://www.isi.edu/touch/pubs/infocomm99/infocomm99-web/">The TIME-WAIT state in TCP and Its Effect on Busy Servers</a>:</p>
+
+<blockquote><p>The purpose of TIME-WAIT is to prevent delayed packets from one connection being accepted by a later connection. Concurrent connections are isolated by other mechanisms, primarily by addresses, ports, and sequence numbers[1].</p></blockquote>
+
+<h2>Why so many TIME_WAIT sockets?  What about connection re-use?</h2>
+
+<p>By default, the Golang HTTP client will do connection pooling.  Meaning, rather than closing a socket connection after an HTTP request, it will add it to an idle connection pool, and if you try to make another HTTP request before the idle connection timeout (90 seconds by default), then it will re-use that existing connection rather than creating a new one.</p>
+
+<p>Unless the <strong>pool is full</strong>, in which case, it will just create a new socket connection, rather than block until one is available.  If it blocked rather than creating a new socket connection, then it would become a huge bottleneck and drastically affect throughput, so it makes sense that the connection pooling is done on a <em>best effort</em> basis rather than enforcing tight limits.</p>
+
+<p>So how big is the connection pool?  A quick look into <a href="https://golang.org/src/net/http/transport.go">transport.go</a> tells us:</p>
+
+<p>```
+// DefaultTransport is the default implementation of Transport and is
+// used by DefaultClient. It establishes network connections as needed
+// and caches them for reuse by subsequent calls. It uses HTTP proxies
+// as directed by the $HTTP_PROXY and $NO_PROXY (or $http_proxy and
+// $no_proxy) environment variables.
+var DefaultTransport RoundTripper = &amp;Transport{</p>
+
+<pre><code>Proxy: ProxyFromEnvironment,
+DialContext: (&amp;net.Dialer{
+    Timeout:   30 * time.Second,
+    KeepAlive: 30 * time.Second,
+}).DialContext,
+MaxIdleConns:          100,
+IdleConnTimeout:       90 * time.Second,
+TLSHandshakeTimeout:   10 * time.Second,
+ExpectContinueTimeout: 1 * time.Second,
+</code></pre>
+
+<p>}</p>
+
+<p>// DefaultMaxIdleConnsPerHost is the default value of Transport&rsquo;s
+// MaxIdleConnsPerHost.
+const DefaultMaxIdleConnsPerHost = 2
+```</p>
+
+<p>The <code>MaxIdleConns: 100</code> setting sets the size of the connection pool to 100 connections, but <em>with one major caveat</em>.</p>
+
+<p>Note the <code>DefaultMaxIdleConnsPerHost = 2</code> setting below it.  What this means is that even though the entire connection pool is set to 100, there is a <em>per-host</em> cap of only 2 connections!  What this means is that if you are creating a lot of HTTP requests against a single host in a short amount of time, it&rsquo;s very likely this small pool of only 2 connections won&rsquo;t prevent you from having to open a lot of new short lived socket connections.</p>
+
+<p>Once those short lived socket connections for the &ldquo;out-of-pool&rdquo; HTTP requests are closed, they will end up in the <code>TIME_WAIT</code> state.</p>
+
+<h2>Tuning the http client to fix the issue</h2>
+
+<p>The good <a href="news:">news:</a> this is easily fixable!  If you create a create a custom http client and use that instead of the default http client, you can tweak the maximum idle connections per host.  For example:</p>
+
+<p>```</p>
+
+<pre><code>// In order to fix issues observed in https://github.com/couchbaselabs/sgload/issues/23
+// bump up the max idle connections per host to 100
+tr := &amp;http.Transport{
+    Proxy: http.ProxyFromEnvironment,
+    DialContext: (&amp;net.Dialer{
+        Timeout:   30 * time.Second,
+        KeepAlive: 30 * time.Second,
+    }).DialContext,
+    MaxIdleConns:          1000,
+    MaxIdleConnsPerHost:   100,
+    IdleConnTimeout:       90 * time.Second,
+    TLSHandshakeTimeout:   10 * time.Second,
+    ExpectContinueTimeout: 1 * time.Second,
+}
+
+myClient = &amp;http.Client{Transport: tr}
+</code></pre>
+
+<p>```</p>
+
+<p>This bumps the total maximum idle connections (connection pool size) to 1000, and the per-host connection pool size to 100.</p>
+
+<p>Unfortunately, when I tested the above repro scenario, it didn&rsquo;t fix!</p>
+
+<p>However in the actual real world use case, it made a huge positive impact, so I know it works.  I will update this blog post if I can figure out what the subtle difference of the scenarios is all about.</p>
+
+<h2>Open Questions</h2>
+
+<ul>
+<li>Best way to create a transport?</li>
+</ul>
+
+
+<p>I couldn&rsquo;t figure out the best way to create an <code>http.Transport</code> with all of the default settings <em>except</em> the <code>`MaxIdleConns</code> and <code>MaxIdleConnsPerHost</code>.  Any tips would be awesome!</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Deep Dive of What Happens Under The Hood When You Open A Web Page]]></title>

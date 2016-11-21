@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-11-08T09:04:02-08:00</updated>
+  <updated>2016-11-21T13:28:59-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,268 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Tuning the Go HTTP client library for load testing]]></title>
+    <link href="http://tleyden.github.io/blog/2016/11/21/tuning-the-go-http-client-library-for-load-testing/"/>
+    <updated>2016-11-21T10:37:00-08:00</updated>
+    <id>http://tleyden.github.io/blog/2016/11/21/tuning-the-go-http-client-library-for-load-testing</id>
+    <content type="html"><![CDATA[<p>While working on a <a href="http://www.github.com/couchbaselabs/sgload">product-specific load testing tool</a> in Go, I ran into a situation where I was seeing tens of thousands of sockets in the <code>TIME_WAIT</code> state.</p>
+
+<p>The fix involved tuning the golang http client settings, and this is useful to anyone writing something that uses the http client in a high throughput scenario.</p>
+
+<h2>Steps to reproduce the problem</h2>
+
+<p>Run the following code on a linux machine:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>package main
+</span><span class='line'>
+</span><span class='line'>import (
+</span><span class='line'>  "fmt"
+</span><span class='line'>  "html"
+</span><span class='line'>  "log"
+</span><span class='line'>  "net/http"
+</span><span class='line'>  "time"
+</span><span class='line'>)
+</span><span class='line'>
+</span><span class='line'>func startWebserver() {
+</span><span class='line'>
+</span><span class='line'>  http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+</span><span class='line'>
+</span><span class='line'>      // Simulate some network latency
+</span><span class='line'>      time.Sleep(time.Millisecond * 10)
+</span><span class='line'>
+</span><span class='line'>      fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
+</span><span class='line'>  })
+</span><span class='line'>
+</span><span class='line'>  go http.ListenAndServe(":8080", nil)
+</span><span class='line'>
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>func startLoadTest() {
+</span><span class='line'>  for {
+</span><span class='line'>      func() {
+</span><span class='line'>          resp, err := http.Get("http://localhost:8080/")
+</span><span class='line'>          if err != nil {
+</span><span class='line'>              panic(fmt.Sprintf("Got error: %v", err))
+</span><span class='line'>          }
+</span><span class='line'>          defer resp.Body.Close()
+</span><span class='line'>          log.Printf("Made GET request")
+</span><span class='line'>
+</span><span class='line'>      }()
+</span><span class='line'>
+</span><span class='line'>  }
+</span><span class='line'>
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>func main() {
+</span><span class='line'>
+</span><span class='line'>  // start a webserver in a goroutine
+</span><span class='line'>  startWebserver()
+</span><span class='line'>
+</span><span class='line'>  startLoadTest()
+</span><span class='line'>
+</span><span class='line'>}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and in a separate terminal while the program is running, run:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>netstat -n | grep -i time_wait | wc -l</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and you will see this number constantly growing:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>root@14952c2356a7:/# netstat -n | grep -i time_wait | wc -l
+</span><span class='line'>166
+</span><span class='line'>root@14952c2356a7:/# netstat -n | grep -i time_wait | wc -l
+</span><span class='line'>231
+</span><span class='line'>root@14952c2356a7:/# netstat -n | grep -i time_wait | wc -l
+</span><span class='line'>293
+</span><span class='line'>root@14952c2356a7:/# netstat -n | grep -i time_wait | wc -l
+</span><span class='line'>349
+</span><span class='line'>... </span></code></pre></td></tr></table></div></figure>
+
+
+<h2>What is the socket <code>TIME_WAIT</code> state anyway?</h2>
+
+<p>So what&rsquo;s going on here?  Your first reaction might be to think that we&rsquo;ve forgotten to close the sockets &mdash; but that&rsquo;s not the case.</p>
+
+<p>What&rsquo;s happening is that we are creating lots of short lived TCP connections, and the Linux kernel networking statck is keeping tabs on the closed connections to prevent certain problems.</p>
+
+<p>From <a href="http://www.isi.edu/touch/pubs/infocomm99/infocomm99-web/">The TIME-WAIT state in TCP and Its Effect on Busy Servers</a>:</p>
+
+<blockquote><p>The purpose of TIME-WAIT is to prevent delayed packets from one connection being accepted by a later connection. Concurrent connections are isolated by other mechanisms, primarily by addresses, ports, and sequence numbers[1].</p></blockquote>
+
+<h2>Why so many TIME_WAIT sockets?  What about connection re-use?</h2>
+
+<p>By default, the Golang HTTP client will do connection pooling.  Meaning, rather than closing a socket connection after an HTTP request, it will add it to an idle connection pool, and if you try to make another HTTP request before the idle connection timeout (90 seconds by default), then it will re-use that existing connection rather than creating a new one.</p>
+
+<p>Unless the <strong>pool is full</strong>, in which case, it will just create a new socket connection, rather than block until one is available.  If it blocked rather than creating a new socket connection, then it would become a huge bottleneck and drastically affect throughput, so it makes sense that the connection pooling is done on a <em>best effort</em> basis rather than enforcing tight limits.</p>
+
+<p>So how big is the connection pool?  A quick look into <a href="https://golang.org/src/net/http/transport.go">transport.go</a> tells us:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>// DefaultTransport is the default implementation of Transport and is
+</span><span class='line'>// used by DefaultClient. It establishes network connections as needed
+</span><span class='line'>// and caches them for reuse by subsequent calls. It uses HTTP proxies
+</span><span class='line'>// as directed by the $HTTP_PROXY and $NO_PROXY (or $http_proxy and
+</span><span class='line'>// $no_proxy) environment variables.
+</span><span class='line'>var DefaultTransport RoundTripper = &Transport{
+</span><span class='line'>  Proxy: ProxyFromEnvironment,
+</span><span class='line'>  DialContext: (&net.Dialer{
+</span><span class='line'>      Timeout:   30 * time.Second,
+</span><span class='line'>      KeepAlive: 30 * time.Second,
+</span><span class='line'>  }).DialContext,
+</span><span class='line'>  MaxIdleConns:          100,
+</span><span class='line'>  IdleConnTimeout:       90 * time.Second,
+</span><span class='line'>  TLSHandshakeTimeout:   10 * time.Second,
+</span><span class='line'>  ExpectContinueTimeout: 1 * time.Second,
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>// DefaultMaxIdleConnsPerHost is the default value of Transport's
+</span><span class='line'>// MaxIdleConnsPerHost.
+</span><span class='line'>const DefaultMaxIdleConnsPerHost = 2</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The <code>MaxIdleConns: 100</code> setting sets the size of the connection pool to 100 connections, but <em>with one major caveat</em>.</p>
+
+<p>Note the <code>DefaultMaxIdleConnsPerHost = 2</code> setting below it.  What this means is that even though the entire connection pool is set to 100, there is a <em>per-host</em> cap of only 2 connections!  What this means is that if you are creating a lot of HTTP requests against a single host in a short amount of time, it&rsquo;s very likely this small pool of only 2 connections won&rsquo;t prevent you from having to open a lot of new short lived socket connections.</p>
+
+<p>Once those short lived socket connections for the &ldquo;out-of-pool&rdquo; HTTP requests are closed, they will end up in the <code>TIME_WAIT</code> state.</p>
+
+<h2>Tuning the http client to fix the issue</h2>
+
+<p>The good <a href="news:">news:</a> this is easily fixable!  If you create a create a custom http client and use that instead of the default http client, you can tweak the maximum idle connections per host.  For example:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>// In order to fix issues observed in https://github.com/couchbaselabs/sgload/issues/23
+</span><span class='line'>// bump up the max idle connections per host to 100
+</span><span class='line'>tr := &http.Transport{
+</span><span class='line'>  Proxy: http.ProxyFromEnvironment,
+</span><span class='line'>  DialContext: (&net.Dialer{
+</span><span class='line'>      Timeout:   30 * time.Second,
+</span><span class='line'>      KeepAlive: 30 * time.Second,
+</span><span class='line'>  }).DialContext,
+</span><span class='line'>  MaxIdleConns:          1000,
+</span><span class='line'>  MaxIdleConnsPerHost:   100,
+</span><span class='line'>  IdleConnTimeout:       90 * time.Second,
+</span><span class='line'>  TLSHandshakeTimeout:   10 * time.Second,
+</span><span class='line'>  ExpectContinueTimeout: 1 * time.Second,
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>myClient = &http.Client{Transport: tr}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This bumps the total maximum idle connections (connection pool size) to 1000, and the per-host connection pool size to 100.</p>
+
+<p>Unfortunately, when I tested the above repro scenario, it didn&rsquo;t fix!</p>
+
+<p>However in the actual real world use case, it made a huge positive impact, so I know it works.  I will update this blog post if I can figure out what the subtle difference of the scenarios is all about.</p>
+
+<h2>Open Questions</h2>
+
+<ul>
+<li>Best way to create a transport?</li>
+</ul>
+
+
+<p>I couldn&rsquo;t figure out the best way to create an <code>http.Transport</code> with all of the default settings <em>except</em> the <code>`MaxIdleConns</code> and <code>MaxIdleConnsPerHost</code>.  Any tips would be awesome!</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Install Couchbase Server + Mobile on Docker Cloud]]></title>
@@ -3904,17 +4166,6 @@
 <p>and point the sync url at your server instead of the default.  Now should be able to sync data through your own Sync Gateway.</p>
 
 <p>If you are on Phonegap, check our <a href="http://developer.couchbase.com/mobile/develop/samples/samples/index.html">sample apps</a> listing which has a link to the TodoLite-Phonegap app.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Running a Sync Gateway Cluster Under CoreOS on AWS]]></title>
-    <link href="http://tleyden.github.io/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws/"/>
-    <updated>2014-12-15T19:22:00-08:00</updated>
-    <id>http://tleyden.github.io/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws</id>
-    <content type="html"><![CDATA[<p>The content in this blog post has <strong>moved</strong>.</p>
-
-<p>Please go <a href="https://github.com/couchbaselabs/couchbase-server-coreos">HERE</a> to view the updated content.</p>
 ]]></content>
   </entry>
   

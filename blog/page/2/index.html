@@ -9,9 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Launch stock Ubuntu AMI Launch ami-d05e75b8
-Choose a GPU instance type: g2.2xlarge or g2.8xlarge
-Increase the size of the storage (this depends on &hellip;">
+  <meta name="description" content="This walks you through running Uniqush in the cloud (under Docker) and setting up an iOS app to receive messages via APNS (Apple Push Notification &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -74,6 +72,402 @@ Increase the size of the storage (this depends on &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/02/03/setting-up-uniqush-with-apns/">Setting Up Uniqush With APNS</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-02-03T08:47:00-08:00" pubdate data-updated="true">Feb 3<span>rd</span>, 2016</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>This walks you through running <a href="http://uniqush.org/index.html">Uniqush</a> in the cloud (under Docker) and setting up an iOS app to receive messages via APNS (Apple Push Notification Service).</p>
+
+<h2>Run Uniqush under Docker</h2>
+
+<h3>Install Docker components</h3>
+
+<ul>
+<li><a href="https://docs.docker.com/v1.8/installation/mac/">Install docker</a></li>
+<li><a href="https://docs.docker.com/compose/install/">Install docker-compose</a></li>
+</ul>
+
+
+<h3>Config</h3>
+
+<ul>
+<li><code>mkdir -p volumes/uniqush</code></li>
+<li><code>wget https://git.io/vgSYM -O volumes/uniqush/uniqush-push.conf</code></li>
+</ul>
+
+
+<p>Security note: the above config has Uniqush listening on all interfaces, but depending on your setup you probably want to change that to <code>localhost</code> or something more restrictive.</p>
+
+<h3>Docker compose file</h3>
+
+<p>Copy and paste this content into <code>docker-compose.yml</code></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>version: '2'
+</span><span class='line'>
+</span><span class='line'>services:
+</span><span class='line'>  uniqush:
+</span><span class='line'>    container_name: uniqush
+</span><span class='line'>    ports:
+</span><span class='line'>      - "9898:9898"
+</span><span class='line'>    image: tleyden5iwx/uniqush
+</span><span class='line'>    entrypoint: uniqush-push
+</span><span class='line'>    links:
+</span><span class='line'>      - redis
+</span><span class='line'>    volumes:
+</span><span class='line'>      - ~/docker/volumes/uniqush/uniqush-push.conf:/etc/uniqush/uniqush-push.conf
+</span><span class='line'>  redis:
+</span><span class='line'>    container_name: redis
+</span><span class='line'>    image: redis
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Start docker containers</h3>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker compose up -d</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Verify Uniqush is running</h3>
+
+<p>Run this <code>curl</code> command outside of the docker container to verify that Uniqush is responding to HTTP requests:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl localhost:9898/version
+</span><span class='line'>uniqush-push 1.5.2</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Create APNS certificate</h2>
+
+<p>In my case, I already had an app id for my app (<code>com.couchbase.todolite</code>), but push notifications are not enabled, so I needed to enable them:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/todolite_app_settings.png" alt="screenshot" /></p>
+
+<p>Create a new push cert:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/create_new_push_cert.png" alt="screenshot" /></p>
+
+<p>Choose the correct app id:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/choose_app_id.png" alt="screenshot" /></p>
+
+<p>Generate CSR according to instructions in keychain:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/create_csr.png" alt="screenshot" /></p>
+
+<p>This will save a CSR on your file system, and the next wizard step will ask you to upload this CSSR and generate the certificate.  Now you can download it:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/download_cert.png" alt="screenshot" /></p>
+
+<p>Double click the downloaded cert and it will be added to your keychain.</p>
+
+<p>This is where I got a bit confused, since I had to <em>also</em> download the cert from the app id section &mdash; go to the app id and hit &ldquo;Edit&rdquo;, then download the cert and double click it to add to your keychain.  (I&rsquo;m confused because I thought these were the same certs and this second step felt redundant)</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/download_app_id_cert.png" alt="screenshot" /></p>
+
+<h2>Create and use provisioning profile</h2>
+
+<p>Go to the <strong>Provisioning Profiles / Development</strong> section and hit the &ldquo;+&rdquo; button:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/create_provisioning_profile.png" alt="screenshot" /></p>
+
+<p>Choose all certs and all devices, and then give your provisioning profile an easy to remember name.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/create_provisioning_profile_2.png" alt="screenshot" /></p>
+
+<p>Download this provisioning profile and double click it to install it.</p>
+
+<p>In xcode under <strong>Build Settings</strong>, choose this provisioning profile:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/xcode_choose_provisioning_profile.png" alt="screenshot" /></p>
+
+<h2>Register for push notifications in your app</h2>
+
+<p>Add the following code to your <code>didFinishLaunchingWithOptions:</code>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+</span><span class='line'>    
+</span><span class='line'>    // Register for push notifications
+</span><span class='line'>    if ([application respondsToSelector:@selector(isRegisteredForRemoteNotifications)])
+</span><span class='line'>    {
+</span><span class='line'>        // iOS 8 Notifications
+</span><span class='line'>        [application registerUserNotificationSettings:[UIUserNotificationSettings settingsForTypes:(UIUserNotificationTypeSound | UIUserNotificationTypeAlert | UIUserNotificationTypeBadge) categories:nil]];
+</span><span class='line'>        
+</span><span class='line'>        [application registerForRemoteNotifications];
+</span><span class='line'>    }
+</span><span class='line'>    else
+</span><span class='line'>    {
+</span><span class='line'>        // iOS &lt; 8 Notifications
+</span><span class='line'>        [application registerForRemoteNotificationTypes:
+</span><span class='line'>         (UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeSound)];
+</span><span class='line'>    }
+</span><span class='line'>
+</span><span class='line'>    // rest of your code goes here ...
+</span><span class='line'>
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And the following callback methods which will be called if remote notification is successful:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)application:(UIApplication *)app didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
+</span><span class='line'>{
+</span><span class='line'>    
+</span><span class='line'>    NSString *deviceTokenStr = [NSString stringWithFormat:@"%@",deviceToken];
+</span><span class='line'>    NSLog(@"didRegisterForRemoteNotificationsWithDeviceToken, Device token: %@", deviceTokenStr);
+</span><span class='line'>    
+</span><span class='line'>    NSString* deviceTokenCleaned = [[[[deviceToken description]
+</span><span class='line'>                                      stringByReplacingOccurrencesOfString: @"&lt;" withString: @""]
+</span><span class='line'>                                     stringByReplacingOccurrencesOfString: @"&gt;" withString: @""]
+</span><span class='line'>                                    stringByReplacingOccurrencesOfString: @" " withString: @""];
+</span><span class='line'>    
+</span><span class='line'>     NSLog(@"didRegisterForRemoteNotificationsWithDeviceToken, Cleaned device token token: %@", deviceTokenCleaned);
+</span><span class='line'>
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and this callback which will be called if it&rsquo;s not unsuccessful:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)application:(UIApplication *)app didFailToRegisterForRemoteNotificationsWithError:(NSError *)err
+</span><span class='line'>{
+</span><span class='line'>    NSString *str = [NSString stringWithFormat: @"Error: %@", err];
+</span><span class='line'>    NSLog(@"Error registering device token.  Push notifications will not work%@", str);
+</span><span class='line'>}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If you now run this app on a simulator, you can expect an error like <code>Error registering device token.  Push notifications will not workError</code>.</p>
+
+<p>Run the app on a device you should see a popup dialog in the app asking if it&rsquo;s OK to receive push notifications, and the following log messages in the xcode console:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>didRegisterForRemoteNotificationsWithDeviceToken, Device token: &lt;281c8710 1b029fdb 16c8e134 39436336 116001ce bf6519e6 8edefab5 23dab4e9&gt;
+</span><span class='line'>didRegisterForRemoteNotificationsWithDeviceToken, Cleaned device token token: 281c87101b029fdb16c8e13439436336116001cebf6519e68edefab523dab4e9</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Export APNS keys to .PEM format</h2>
+
+<p>Open keychain, select the <code>login</code> keychain and the <code>My Certificates</code> category:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/export_cert_keychain.png" alt="screenshot" /></p>
+
+<ul>
+<li>Right click on the certificate (not the private key) “Apple Development Push Services: (your app id)”</li>
+<li>Choose Export “Apple Development Push Services: (your app id)″.</li>
+<li>Save this as <code>apns-prod-cert.p12</code> file somewhere you can access it.</li>
+<li>When it prompts you for a password, leave it blank (or add one if you want, but this tutorial will assume it was left blank)</li>
+<li>Repeat with the private key (in this case, TodoLite Push Notification Cert) and save it as <code>apns-prod-key.p12</code>.</li>
+</ul>
+
+
+<p>Now they need to be converted from <code>.p12</code> to <code>.pem</code> format.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ openssl pkcs12 -clcerts -nokeys -out apns-prod-cert.pem -in apns-prod-cert.p12
+</span><span class='line'>Enter Import Password: &lt;return&gt;
+</span><span class='line'>MAC verified OK</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ openssl pkcs12 -nocerts -out apns-prod-key.pem -in apns-prod-key.p12
+</span><span class='line'>Enter Import Password:
+</span><span class='line'>MAC verified OK
+</span><span class='line'>Enter PEM pass phrase: hello &lt;return&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Remove the PEM passphrase:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ openssl rsa -in apns-prod-key.pem -out apns-prod-key-noenc.pem
+</span><span class='line'>Enter pass phrase for apns-prod-key.pem: hello
+</span><span class='line'>writing RSA key</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Add PEM files to Uniqush docker container</h2>
+
+<p>When you call the Uniqush REST API to add a Push Service Provider, it expects to find the PEM files on it&rsquo;s local file system.  Use the following commands to get these files into the running container in the <code>/tmp</code> directory:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ `container=$(docker ps | grep -i uniqush-push | awk '{print $1}')`
+</span><span class='line'>$ docker cp /tmp/apns-prod-cert.pem $container:/tmp/apns-prod-cert.pem
+</span><span class='line'>$ docker cp /tmp/apns-prod-key-noenc.pem $container:/tmp/apns-prod-key-noenc.pem</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Create APNS provider in Uniqush via REST API</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -v http://localhost:9898/addpsp -d service=myservice \
+</span><span class='line'>                             -d pushservicetype=apns \
+</span><span class='line'>                     -d cert=/tmp/apns-prod-cert.pem \
+</span><span class='line'>                     -d key=/tmp/apns-prod-key-noenc.pem \
+</span><span class='line'>                     -d sandbox=true</span></code></pre></td></tr></table></div></figure>
+
+
+<p>(Note: I&rsquo;m using a development cert, but if this was a distribution cert you&rsquo;d want to use <code>sandbox=false</code>)</p>
+
+<p>You should get a <code>200 OK</code> response with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[AddPushServiceProvider][Info] 2016/02/03 20:35:29 From=24.23.246.59:59447 Service=myservice PushServiceProvider=apns:9f49c9c618c97bebe21bea159d3c7a8577934bdf00 Success!</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Add Uniqush subscriber</h2>
+
+<p>Using the cleaned up device token from the previous step <code>281c87101b029fdb16c8e13439436336116001cebf6519e68edefab523dab1e9</code>, create a subscriber with the name <code>mytestsubscriber</code> via:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -v http://localhost:9898/subscribe -d service=myservice \
+</span><span class='line'>                                             -d subscriber=mytestsubscriber \
+</span><span class='line'>                       -d pushservicetype=apns \
+</span><span class='line'>                       -d devtoken=281c87101b029fdb16c8e13439436336116001cebf6519e68edefab523dab1e9 </span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should receive a <code>200 OK</code> response with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[Subscribe][Info] 2016/02/03 20:43:21 From=24.23.246.59:60299 Service=myservice Subscriber=mytestsubscriber PushServiceProvider=apns:9f49c9c618c97bebe21bea159d3c7a8577934bdf00 DeliveryPoint=apns:2cbecd0798cc6731d96d5b0fb01d813c7c9a83af00 Success!</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Push a test message</h2>
+
+<p>The moment of truth!</p>
+
+<p>First, you need to either <strong>background your app</strong> by pressing the home button, or add <a href="https://gist.github.com/tleyden/97434117ad53757106ad">some code like this</a> so that an alert will be shown if the app is foregrounded.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -v http://localhost:9898/push -d service=myservice \
+</span><span class='line'>                                        -d subscriber=mytestsubscriber \
+</span><span class='line'>                  -d msg=HelloWorld</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should get a <code>200 OK</code> response with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[Push][Info] 2016/02/03 20:46:08 RequestId=56b26710-INbW8UWMUONtH8Ttddd2Qg== From=24.23.246.59:60634 Service=myservice NrSubscribers=1 Subscribers="[mytestsubscriber]"
+</span><span class='line'>[Push][Info] 2016/02/03 20:46:09 RequestID=56b26710-INbW8UWMUONtH8Ttddd2Qg== Service=myservice Subscriber=mytestsubscriber PushServiceProvider=apns:9f49c9c618c97bebe21bea159d3c7a8577934bdf00 DeliveryPoint=apns:2cbecd0798cc6731d96d5b0fb01d813c7c9a83af MsgId=apns:apns:9f49c9c618c97bebe21bea159d3c7a8577934bdf-1 Success!</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And a push notification on the device!</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/push_notification_device.png" alt="screenshot" /></p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="http://uniqush.org/documentation/usage.html">Uniqush docs</a></li>
+<li><a href="http://quickblox.com/developers/How_to_create_APNS_certificates">How to create APNS certificates</a></li>
+<li><a href="https://blog.serverdensity.com/how-to-renew-your-apple-push-notification-push-ssl-certificate/">How to renew your Apple Push Notification Push SSL Certificate</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -2112,44 +2506,6 @@ Increase the size of the storage (this depends on &hellip;">
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws/">Running a Sync Gateway Cluster Under CoreOS on AWS</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-12-15T19:22:00-08:00" pubdate data-updated="true">Dec 15<span>th</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>The content in this blog post has <strong>moved</strong>.</p>
-
-<p>Please go <a href="https://github.com/couchbaselabs/couchbase-server-coreos">HERE</a> to view the updated content.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/3/">&larr; Older</a>
@@ -2178,6 +2534,10 @@ Increase the size of the storage (this depends on &hellip;">
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/11/21/tuning-the-go-http-client-library-for-load-testing/">Tuning the Go HTTP Client Library for Load Testing</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/10/31/install-couchbase-server-plus-mobile-on-docker-cloud/">Install Couchbase Server + Mobile on Docker Cloud</a>
       </li>
     
@@ -2191,10 +2551,6 @@ Increase the size of the storage (this depends on &hellip;">
     
       <li class="post">
         <a href="/blog/2016/09/12/configuring-influxdb-and-grafana-with-go-client-library/">Configuring InfluxDB and Grafana With Go Client Library</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/05/19/go-race-detector-gotcha-with-value-receivers/">Go Race Detector Gotcha With Value Receivers</a>
       </li>
     
   </ul>

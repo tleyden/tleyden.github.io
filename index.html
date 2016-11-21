@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Deploy Couchbase Server and Sync Gateway on Docker Cloud behind a load balancer. Also available as a screencast Launch node cluster Launch a node &hellip;">
+  <meta name="description" content="While working on a product-specific load testing tool in Go, I ran into a situation where I was seeing tens of thousands of sockets in the TIME_WAIT &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +72,295 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/11/21/tuning-the-go-http-client-library-for-load-testing/">Tuning the Go HTTP Client Library for Load Testing</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-11-21T10:37:00-08:00" pubdate data-updated="true">Nov 21<span>st</span>, 2016</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>While working on a <a href="http://www.github.com/couchbaselabs/sgload">product-specific load testing tool</a> in Go, I ran into a situation where I was seeing tens of thousands of sockets in the <code>TIME_WAIT</code> state.</p>
+
+<p>The fix involved tuning the golang http client settings, and this is useful to anyone writing something that uses the http client in a high throughput scenario.</p>
+
+<h2>Steps to reproduce the problem</h2>
+
+<p>Run the following code on a linux machine:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>package main
+</span><span class='line'>
+</span><span class='line'>import (
+</span><span class='line'>  "fmt"
+</span><span class='line'>  "html"
+</span><span class='line'>  "log"
+</span><span class='line'>  "net/http"
+</span><span class='line'>  "time"
+</span><span class='line'>)
+</span><span class='line'>
+</span><span class='line'>func startWebserver() {
+</span><span class='line'>
+</span><span class='line'>  http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+</span><span class='line'>
+</span><span class='line'>      // Simulate some network latency
+</span><span class='line'>      time.Sleep(time.Millisecond * 10)
+</span><span class='line'>
+</span><span class='line'>      fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
+</span><span class='line'>  })
+</span><span class='line'>
+</span><span class='line'>  go http.ListenAndServe(":8080", nil)
+</span><span class='line'>
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>func startLoadTest() {
+</span><span class='line'>  for {
+</span><span class='line'>      func() {
+</span><span class='line'>          resp, err := http.Get("http://localhost:8080/")
+</span><span class='line'>          if err != nil {
+</span><span class='line'>              panic(fmt.Sprintf("Got error: %v", err))
+</span><span class='line'>          }
+</span><span class='line'>          defer resp.Body.Close()
+</span><span class='line'>          log.Printf("Made GET request")
+</span><span class='line'>
+</span><span class='line'>      }()
+</span><span class='line'>
+</span><span class='line'>  }
+</span><span class='line'>
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>func main() {
+</span><span class='line'>
+</span><span class='line'>  // start a webserver in a goroutine
+</span><span class='line'>  startWebserver()
+</span><span class='line'>
+</span><span class='line'>  startLoadTest()
+</span><span class='line'>
+</span><span class='line'>}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and in a separate terminal while the program is running, run:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>netstat -n | grep -i time_wait | wc -l</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and you will see this number constantly growing:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>root@14952c2356a7:/# netstat -n | grep -i time_wait | wc -l
+</span><span class='line'>166
+</span><span class='line'>root@14952c2356a7:/# netstat -n | grep -i time_wait | wc -l
+</span><span class='line'>231
+</span><span class='line'>root@14952c2356a7:/# netstat -n | grep -i time_wait | wc -l
+</span><span class='line'>293
+</span><span class='line'>root@14952c2356a7:/# netstat -n | grep -i time_wait | wc -l
+</span><span class='line'>349
+</span><span class='line'>... </span></code></pre></td></tr></table></div></figure>
+
+
+<h2>What is the socket <code>TIME_WAIT</code> state anyway?</h2>
+
+<p>So what&rsquo;s going on here?  Your first reaction might be to think that we&rsquo;ve forgotten to close the sockets &mdash; but that&rsquo;s not the case.</p>
+
+<p>What&rsquo;s happening is that we are creating lots of short lived TCP connections, and the Linux kernel networking statck is keeping tabs on the closed connections to prevent certain problems.</p>
+
+<p>From <a href="http://www.isi.edu/touch/pubs/infocomm99/infocomm99-web/">The TIME-WAIT state in TCP and Its Effect on Busy Servers</a>:</p>
+
+<blockquote><p>The purpose of TIME-WAIT is to prevent delayed packets from one connection being accepted by a later connection. Concurrent connections are isolated by other mechanisms, primarily by addresses, ports, and sequence numbers[1].</p></blockquote>
+
+<h2>Why so many TIME_WAIT sockets?  What about connection re-use?</h2>
+
+<p>By default, the Golang HTTP client will do connection pooling.  Meaning, rather than closing a socket connection after an HTTP request, it will add it to an idle connection pool, and if you try to make another HTTP request before the idle connection timeout (90 seconds by default), then it will re-use that existing connection rather than creating a new one.</p>
+
+<p>Unless the <strong>pool is full</strong>, in which case, it will just create a new socket connection, rather than block until one is available.  If it blocked rather than creating a new socket connection, then it would become a huge bottleneck and drastically affect throughput, so it makes sense that the connection pooling is done on a <em>best effort</em> basis rather than enforcing tight limits.</p>
+
+<p>So how big is the connection pool?  A quick look into <a href="https://golang.org/src/net/http/transport.go">transport.go</a> tells us:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>// DefaultTransport is the default implementation of Transport and is
+</span><span class='line'>// used by DefaultClient. It establishes network connections as needed
+</span><span class='line'>// and caches them for reuse by subsequent calls. It uses HTTP proxies
+</span><span class='line'>// as directed by the $HTTP_PROXY and $NO_PROXY (or $http_proxy and
+</span><span class='line'>// $no_proxy) environment variables.
+</span><span class='line'>var DefaultTransport RoundTripper = &Transport{
+</span><span class='line'>  Proxy: ProxyFromEnvironment,
+</span><span class='line'>  DialContext: (&net.Dialer{
+</span><span class='line'>      Timeout:   30 * time.Second,
+</span><span class='line'>      KeepAlive: 30 * time.Second,
+</span><span class='line'>  }).DialContext,
+</span><span class='line'>  MaxIdleConns:          100,
+</span><span class='line'>  IdleConnTimeout:       90 * time.Second,
+</span><span class='line'>  TLSHandshakeTimeout:   10 * time.Second,
+</span><span class='line'>  ExpectContinueTimeout: 1 * time.Second,
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>// DefaultMaxIdleConnsPerHost is the default value of Transport's
+</span><span class='line'>// MaxIdleConnsPerHost.
+</span><span class='line'>const DefaultMaxIdleConnsPerHost = 2</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The <code>MaxIdleConns: 100</code> setting sets the size of the connection pool to 100 connections, but <em>with one major caveat</em>.</p>
+
+<p>Note the <code>DefaultMaxIdleConnsPerHost = 2</code> setting below it.  What this means is that even though the entire connection pool is set to 100, there is a <em>per-host</em> cap of only 2 connections!  What this means is that if you are creating a lot of HTTP requests against a single host in a short amount of time, it&rsquo;s very likely this small pool of only 2 connections won&rsquo;t prevent you from having to open a lot of new short lived socket connections.</p>
+
+<p>Once those short lived socket connections for the &ldquo;out-of-pool&rdquo; HTTP requests are closed, they will end up in the <code>TIME_WAIT</code> state.</p>
+
+<h2>Tuning the http client to fix the issue</h2>
+
+<p>The good <a href="news:">news:</a> this is easily fixable!  If you create a create a custom http client and use that instead of the default http client, you can tweak the maximum idle connections per host.  For example:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>// In order to fix issues observed in https://github.com/couchbaselabs/sgload/issues/23
+</span><span class='line'>// bump up the max idle connections per host to 100
+</span><span class='line'>tr := &http.Transport{
+</span><span class='line'>  Proxy: http.ProxyFromEnvironment,
+</span><span class='line'>  DialContext: (&net.Dialer{
+</span><span class='line'>      Timeout:   30 * time.Second,
+</span><span class='line'>      KeepAlive: 30 * time.Second,
+</span><span class='line'>  }).DialContext,
+</span><span class='line'>  MaxIdleConns:          1000,
+</span><span class='line'>  MaxIdleConnsPerHost:   100,
+</span><span class='line'>  IdleConnTimeout:       90 * time.Second,
+</span><span class='line'>  TLSHandshakeTimeout:   10 * time.Second,
+</span><span class='line'>  ExpectContinueTimeout: 1 * time.Second,
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>myClient = &http.Client{Transport: tr}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This bumps the total maximum idle connections (connection pool size) to 1000, and the per-host connection pool size to 100.</p>
+
+<p>Unfortunately, when I tested the above repro scenario, it didn&rsquo;t fix!</p>
+
+<p>However in the actual real world use case, it made a huge positive impact, so I know it works.  I will update this blog post if I can figure out what the subtle difference of the scenarios is all about.</p>
+
+<h2>Open Questions</h2>
+
+<ul>
+<li>Best way to create a transport?</li>
+</ul>
+
+
+<p>I couldn&rsquo;t figure out the best way to create an <code>http.Transport</code> with all of the default settings <em>except</em> the <code>`MaxIdleConns</code> and <code>MaxIdleConnsPerHost</code>.  Any tips would be awesome!</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -2047,402 +2336,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/02/03/setting-up-uniqush-with-apns/">Setting Up Uniqush With APNS</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2016-02-03T08:47:00-08:00" pubdate data-updated="true">Feb 3<span>rd</span>, 2016</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>This walks you through running <a href="http://uniqush.org/index.html">Uniqush</a> in the cloud (under Docker) and setting up an iOS app to receive messages via APNS (Apple Push Notification Service).</p>
-
-<h2>Run Uniqush under Docker</h2>
-
-<h3>Install Docker components</h3>
-
-<ul>
-<li><a href="https://docs.docker.com/v1.8/installation/mac/">Install docker</a></li>
-<li><a href="https://docs.docker.com/compose/install/">Install docker-compose</a></li>
-</ul>
-
-
-<h3>Config</h3>
-
-<ul>
-<li><code>mkdir -p volumes/uniqush</code></li>
-<li><code>wget https://git.io/vgSYM -O volumes/uniqush/uniqush-push.conf</code></li>
-</ul>
-
-
-<p>Security note: the above config has Uniqush listening on all interfaces, but depending on your setup you probably want to change that to <code>localhost</code> or something more restrictive.</p>
-
-<h3>Docker compose file</h3>
-
-<p>Copy and paste this content into <code>docker-compose.yml</code></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>
-</span><span class='line'>version: '2'
-</span><span class='line'>
-</span><span class='line'>services:
-</span><span class='line'>  uniqush:
-</span><span class='line'>    container_name: uniqush
-</span><span class='line'>    ports:
-</span><span class='line'>      - "9898:9898"
-</span><span class='line'>    image: tleyden5iwx/uniqush
-</span><span class='line'>    entrypoint: uniqush-push
-</span><span class='line'>    links:
-</span><span class='line'>      - redis
-</span><span class='line'>    volumes:
-</span><span class='line'>      - ~/docker/volumes/uniqush/uniqush-push.conf:/etc/uniqush/uniqush-push.conf
-</span><span class='line'>  redis:
-</span><span class='line'>    container_name: redis
-</span><span class='line'>    image: redis
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Start docker containers</h3>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker compose up -d</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Verify Uniqush is running</h3>
-
-<p>Run this <code>curl</code> command outside of the docker container to verify that Uniqush is responding to HTTP requests:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl localhost:9898/version
-</span><span class='line'>uniqush-push 1.5.2</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Create APNS certificate</h2>
-
-<p>In my case, I already had an app id for my app (<code>com.couchbase.todolite</code>), but push notifications are not enabled, so I needed to enable them:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/todolite_app_settings.png" alt="screenshot" /></p>
-
-<p>Create a new push cert:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/create_new_push_cert.png" alt="screenshot" /></p>
-
-<p>Choose the correct app id:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/choose_app_id.png" alt="screenshot" /></p>
-
-<p>Generate CSR according to instructions in keychain:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/create_csr.png" alt="screenshot" /></p>
-
-<p>This will save a CSR on your file system, and the next wizard step will ask you to upload this CSSR and generate the certificate.  Now you can download it:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/download_cert.png" alt="screenshot" /></p>
-
-<p>Double click the downloaded cert and it will be added to your keychain.</p>
-
-<p>This is where I got a bit confused, since I had to <em>also</em> download the cert from the app id section &mdash; go to the app id and hit &ldquo;Edit&rdquo;, then download the cert and double click it to add to your keychain.  (I&rsquo;m confused because I thought these were the same certs and this second step felt redundant)</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/download_app_id_cert.png" alt="screenshot" /></p>
-
-<h2>Create and use provisioning profile</h2>
-
-<p>Go to the <strong>Provisioning Profiles / Development</strong> section and hit the &ldquo;+&rdquo; button:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/create_provisioning_profile.png" alt="screenshot" /></p>
-
-<p>Choose all certs and all devices, and then give your provisioning profile an easy to remember name.</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/create_provisioning_profile_2.png" alt="screenshot" /></p>
-
-<p>Download this provisioning profile and double click it to install it.</p>
-
-<p>In xcode under <strong>Build Settings</strong>, choose this provisioning profile:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/xcode_choose_provisioning_profile.png" alt="screenshot" /></p>
-
-<h2>Register for push notifications in your app</h2>
-
-<p>Add the following code to your <code>didFinishLaunchingWithOptions:</code>:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-</span><span class='line'>    
-</span><span class='line'>    // Register for push notifications
-</span><span class='line'>    if ([application respondsToSelector:@selector(isRegisteredForRemoteNotifications)])
-</span><span class='line'>    {
-</span><span class='line'>        // iOS 8 Notifications
-</span><span class='line'>        [application registerUserNotificationSettings:[UIUserNotificationSettings settingsForTypes:(UIUserNotificationTypeSound | UIUserNotificationTypeAlert | UIUserNotificationTypeBadge) categories:nil]];
-</span><span class='line'>        
-</span><span class='line'>        [application registerForRemoteNotifications];
-</span><span class='line'>    }
-</span><span class='line'>    else
-</span><span class='line'>    {
-</span><span class='line'>        // iOS &lt; 8 Notifications
-</span><span class='line'>        [application registerForRemoteNotificationTypes:
-</span><span class='line'>         (UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeSound)];
-</span><span class='line'>    }
-</span><span class='line'>
-</span><span class='line'>    // rest of your code goes here ...
-</span><span class='line'>
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>And the following callback methods which will be called if remote notification is successful:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)application:(UIApplication *)app didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
-</span><span class='line'>{
-</span><span class='line'>    
-</span><span class='line'>    NSString *deviceTokenStr = [NSString stringWithFormat:@"%@",deviceToken];
-</span><span class='line'>    NSLog(@"didRegisterForRemoteNotificationsWithDeviceToken, Device token: %@", deviceTokenStr);
-</span><span class='line'>    
-</span><span class='line'>    NSString* deviceTokenCleaned = [[[[deviceToken description]
-</span><span class='line'>                                      stringByReplacingOccurrencesOfString: @"&lt;" withString: @""]
-</span><span class='line'>                                     stringByReplacingOccurrencesOfString: @"&gt;" withString: @""]
-</span><span class='line'>                                    stringByReplacingOccurrencesOfString: @" " withString: @""];
-</span><span class='line'>    
-</span><span class='line'>     NSLog(@"didRegisterForRemoteNotificationsWithDeviceToken, Cleaned device token token: %@", deviceTokenCleaned);
-</span><span class='line'>
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and this callback which will be called if it&rsquo;s not unsuccessful:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>- (void)application:(UIApplication *)app didFailToRegisterForRemoteNotificationsWithError:(NSError *)err
-</span><span class='line'>{
-</span><span class='line'>    NSString *str = [NSString stringWithFormat: @"Error: %@", err];
-</span><span class='line'>    NSLog(@"Error registering device token.  Push notifications will not work%@", str);
-</span><span class='line'>}
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If you now run this app on a simulator, you can expect an error like <code>Error registering device token.  Push notifications will not workError</code>.</p>
-
-<p>Run the app on a device you should see a popup dialog in the app asking if it&rsquo;s OK to receive push notifications, and the following log messages in the xcode console:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>didRegisterForRemoteNotificationsWithDeviceToken, Device token: &lt;281c8710 1b029fdb 16c8e134 39436336 116001ce bf6519e6 8edefab5 23dab4e9&gt;
-</span><span class='line'>didRegisterForRemoteNotificationsWithDeviceToken, Cleaned device token token: 281c87101b029fdb16c8e13439436336116001cebf6519e68edefab523dab4e9</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Export APNS keys to .PEM format</h2>
-
-<p>Open keychain, select the <code>login</code> keychain and the <code>My Certificates</code> category:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/export_cert_keychain.png" alt="screenshot" /></p>
-
-<ul>
-<li>Right click on the certificate (not the private key) “Apple Development Push Services: (your app id)”</li>
-<li>Choose Export “Apple Development Push Services: (your app id)″.</li>
-<li>Save this as <code>apns-prod-cert.p12</code> file somewhere you can access it.</li>
-<li>When it prompts you for a password, leave it blank (or add one if you want, but this tutorial will assume it was left blank)</li>
-<li>Repeat with the private key (in this case, TodoLite Push Notification Cert) and save it as <code>apns-prod-key.p12</code>.</li>
-</ul>
-
-
-<p>Now they need to be converted from <code>.p12</code> to <code>.pem</code> format.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ openssl pkcs12 -clcerts -nokeys -out apns-prod-cert.pem -in apns-prod-cert.p12
-</span><span class='line'>Enter Import Password: &lt;return&gt;
-</span><span class='line'>MAC verified OK</span></code></pre></td></tr></table></div></figure>
-
-
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ openssl pkcs12 -nocerts -out apns-prod-key.pem -in apns-prod-key.p12
-</span><span class='line'>Enter Import Password:
-</span><span class='line'>MAC verified OK
-</span><span class='line'>Enter PEM pass phrase: hello &lt;return&gt;</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Remove the PEM passphrase:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ openssl rsa -in apns-prod-key.pem -out apns-prod-key-noenc.pem
-</span><span class='line'>Enter pass phrase for apns-prod-key.pem: hello
-</span><span class='line'>writing RSA key</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Add PEM files to Uniqush docker container</h2>
-
-<p>When you call the Uniqush REST API to add a Push Service Provider, it expects to find the PEM files on it&rsquo;s local file system.  Use the following commands to get these files into the running container in the <code>/tmp</code> directory:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ `container=$(docker ps | grep -i uniqush-push | awk '{print $1}')`
-</span><span class='line'>$ docker cp /tmp/apns-prod-cert.pem $container:/tmp/apns-prod-cert.pem
-</span><span class='line'>$ docker cp /tmp/apns-prod-key-noenc.pem $container:/tmp/apns-prod-key-noenc.pem</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Create APNS provider in Uniqush via REST API</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -v http://localhost:9898/addpsp -d service=myservice \
-</span><span class='line'>                             -d pushservicetype=apns \
-</span><span class='line'>                     -d cert=/tmp/apns-prod-cert.pem \
-</span><span class='line'>                     -d key=/tmp/apns-prod-key-noenc.pem \
-</span><span class='line'>                     -d sandbox=true</span></code></pre></td></tr></table></div></figure>
-
-
-<p>(Note: I&rsquo;m using a development cert, but if this was a distribution cert you&rsquo;d want to use <code>sandbox=false</code>)</p>
-
-<p>You should get a <code>200 OK</code> response with:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>[AddPushServiceProvider][Info] 2016/02/03 20:35:29 From=24.23.246.59:59447 Service=myservice PushServiceProvider=apns:9f49c9c618c97bebe21bea159d3c7a8577934bdf00 Success!</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Add Uniqush subscriber</h2>
-
-<p>Using the cleaned up device token from the previous step <code>281c87101b029fdb16c8e13439436336116001cebf6519e68edefab523dab1e9</code>, create a subscriber with the name <code>mytestsubscriber</code> via:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -v http://localhost:9898/subscribe -d service=myservice \
-</span><span class='line'>                                             -d subscriber=mytestsubscriber \
-</span><span class='line'>                       -d pushservicetype=apns \
-</span><span class='line'>                       -d devtoken=281c87101b029fdb16c8e13439436336116001cebf6519e68edefab523dab1e9 </span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should receive a <code>200 OK</code> response with:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>[Subscribe][Info] 2016/02/03 20:43:21 From=24.23.246.59:60299 Service=myservice Subscriber=mytestsubscriber PushServiceProvider=apns:9f49c9c618c97bebe21bea159d3c7a8577934bdf00 DeliveryPoint=apns:2cbecd0798cc6731d96d5b0fb01d813c7c9a83af00 Success!</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Push a test message</h2>
-
-<p>The moment of truth!</p>
-
-<p>First, you need to either <strong>background your app</strong> by pressing the home button, or add <a href="https://gist.github.com/tleyden/97434117ad53757106ad">some code like this</a> so that an alert will be shown if the app is foregrounded.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -v http://localhost:9898/push -d service=myservice \
-</span><span class='line'>                                        -d subscriber=mytestsubscriber \
-</span><span class='line'>                  -d msg=HelloWorld</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should get a <code>200 OK</code> response with:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>[Push][Info] 2016/02/03 20:46:08 RequestId=56b26710-INbW8UWMUONtH8Ttddd2Qg== From=24.23.246.59:60634 Service=myservice NrSubscribers=1 Subscribers="[mytestsubscriber]"
-</span><span class='line'>[Push][Info] 2016/02/03 20:46:09 RequestID=56b26710-INbW8UWMUONtH8Ttddd2Qg== Service=myservice Subscriber=mytestsubscriber PushServiceProvider=apns:9f49c9c618c97bebe21bea159d3c7a8577934bdf00 DeliveryPoint=apns:2cbecd0798cc6731d96d5b0fb01d813c7c9a83af MsgId=apns:apns:9f49c9c618c97bebe21bea159d3c7a8577934bdf-1 Success!</span></code></pre></td></tr></table></div></figure>
-
-
-<p>And a push notification on the device!</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/push_notification_device.png" alt="screenshot" /></p>
-
-<h2>References</h2>
-
-<ul>
-<li><a href="http://uniqush.org/documentation/usage.html">Uniqush docs</a></li>
-<li><a href="http://quickblox.com/developers/How_to_create_APNS_certificates">How to create APNS certificates</a></li>
-<li><a href="https://blog.serverdensity.com/how-to-renew-your-apple-push-notification-push-ssl-certificate/">How to renew your Apple Push Notification Push SSL Certificate</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -2469,6 +2362,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/11/21/tuning-the-go-http-client-library-for-load-testing/">Tuning the Go HTTP Client Library for Load Testing</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/10/31/install-couchbase-server-plus-mobile-on-docker-cloud/">Install Couchbase Server + Mobile on Docker Cloud</a>
       </li>
     
@@ -2482,10 +2379,6 @@
     
       <li class="post">
         <a href="/blog/2016/09/12/configuring-influxdb-and-grafana-with-go-client-library/">Configuring InfluxDB and Grafana With Go Client Library</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/05/19/go-race-detector-gotcha-with-value-receivers/">Go Race Detector Gotcha With Value Receivers</a>
       </li>
     
   </ul>
