@@ -452,7 +452,7 @@
 
 <p>Since this is happening in a loop, you will quickly accumulate thousands or tens of thousands of connections in the <code>TIME_WAIT</code> state.  Eventually, for that particular host at least, you will run out of ephemeral ports and not be able to open new client connections.  For a load testing tool, this is <em>bad news</em>.</p>
 
-<h2>Tuning the http client to fix the issue</h2>
+<h2>Fix: Tuning the http client to increase connection pool size</h2>
 
 <p>Here&rsquo;s how to fix this issue.</p>
 
