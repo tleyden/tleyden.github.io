@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-11-21T13:41:39-08:00</updated>
+  <updated>2016-11-21T13:43:41-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -248,9 +248,9 @@
 
 <p>This bumps the total maximum idle connections (connection pool size) to 1000, and the per-host connection pool size to 100.</p>
 
-<p>Unfortunately, when I tested the above repro scenario, it didn&rsquo;t fix!</p>
+<p>Depending on your actual usage, this should drop the number of connections that end up in the <code>TIME_WAIT</code> state to a dramatically lower number.  In my case it went from tens of thousands down to zero.</p>
 
-<p>However in the actual real world use case, it made a huge positive impact, so I know it works.  I will update this blog post if I can figure out what the subtle difference of the scenarios is all about.</p>
+<p>Unfortunately, when I tested those changes in the the above repro scenario, it didn&rsquo;t fix it!  I will update this blog post if I can figure out what the subtle difference between the scenarios.</p>
 
 <h2>Open Questions</h2>
 
