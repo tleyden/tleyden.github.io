@@ -102,7 +102,7 @@
 
 <p>Here are a few ways to get into this situation and how to fix each one.</p>
 
-<h2>Create excessive TIME_WAIT connections by forgetting to read the response body</h2>
+<h2>Repro #1: Create excessive TIME_WAIT connections by forgetting to read the response body</h2>
 
 <p>Run the following code on a linux machine:</p>
 
@@ -257,7 +257,9 @@
 
 <p>Now when you re-run it, calling <code>netstat -n | grep -i 8080 | grep -i time_wait | wc -l</code> while it&rsquo;s running will return 0.</p>
 
-<h2>Create excessive TIME_WAIT connections by exceeding connection pool</h2>
+<h2>Repro #2: Create excessive TIME_WAIT connections by exceeding connection pool</h2>
+
+<p>Another way to end up with excessive connections in the <code>TIME_WAIT</code> state is to consistently exceed the connnection pool and cause many short-lived connections to be opened.</p>
 
 <p>Here&rsquo;s some code which starts up 100 goroutines which are all trying to make requests concurrently, and each request has a 50 ms delay:</p>
 
