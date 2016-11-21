@@ -4,7 +4,7 @@
   <title><![CDATA[Category: http | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/http/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-11-21T15:51:20-08:00</updated>
+  <updated>2016-11-21T15:57:52-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -14,11 +14,11 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Tuning the Go HTTP client library for load testing]]></title>
+    <title type="html"><![CDATA[Tuning the Go HTTP client settings for load testing]]></title>
     <link href="http://tleyden.github.io/blog/2016/11/21/tuning-the-go-http-client-library-for-load-testing/"/>
     <updated>2016-11-21T10:37:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2016/11/21/tuning-the-go-http-client-library-for-load-testing</id>
-    <content type="html"><![CDATA[<p>While working on a <a href="http://www.github.com/couchbaselabs/sgload">product-specific load testing tool</a> in Go, I ran into a situation where I was seeing tens of thousands of sockets in the <code>TIME_WAIT</code> state.</p>
+    <content type="html"><![CDATA[<p>While working on a load testing tool in Go, I ran into a situation where I was seeing tens of thousands of sockets in the <code>TIME_WAIT</code> state.</p>
 
 <p>Here are a few ways to get into this situation and how to fix each one.</p>
 
