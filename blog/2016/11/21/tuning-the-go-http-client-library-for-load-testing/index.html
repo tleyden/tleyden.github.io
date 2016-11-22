@@ -498,10 +498,7 @@
 <span class='line-number'>43</span>
 <span class='line-number'>44</span>
 <span class='line-number'>45</span>
-<span class='line-number'>46</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>package main
-</span><span class='line'>
-</span><span class='line'>import (
+</pre></td><td class='code'><pre><code class=''><span class='line'>import (
 </span><span class='line'>     .. 
 </span><span class='line'>)
 </span><span class='line'>
@@ -521,9 +518,10 @@
 </span><span class='line'>
 </span><span class='line'>}
 </span><span class='line'>
+</span><span class='line'>
 </span><span class='line'>func main() {
 </span><span class='line'>
-</span><span class='line'>      // Customize the Transport to have larger connection pool
+</span><span class='line'>  // Customize the Transport to have larger connection pool
 </span><span class='line'>  defaultRoundTripper := http.DefaultTransport
 </span><span class='line'>  defaultTransportPointer, ok := defaultRoundTripper.(*http.Transport)
 </span><span class='line'>  if !ok {
