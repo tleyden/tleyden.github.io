@@ -289,12 +289,16 @@
         <lastmod>2016-11-21T16:50:43-08:00</lastmod>
     </url>
     <url>
+        <loc>http://tleyden.github.io/blog/2016/12/20/understanding-function-closures-in-go/</loc>
+        <lastmod>2016-12-20T20:14:44-08:00</lastmod>
+    </url>
+    <url>
         <loc>http://tleyden.github.io/blog/archives/</loc>
-        <lastmod>2016-11-21T16:50:43-08:00</lastmod>
+        <lastmod>2016-12-20T20:14:44-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/</loc>
-        <lastmod>2016-11-21T16:50:43-08:00</lastmod>
+        <lastmod>2016-12-20T20:14:44-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/robots.txt</loc>
