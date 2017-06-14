@@ -163,7 +163,7 @@ func main() {
 
 ```
 
-Which will work -- but there's a catch.  Now that you've changed the method function signature of `sendLoop()` to take a second argument, all of the code that consumes `sendLoop()` will now be broken.  If this were an exported function, it would be even worse problem.
+Which will work -- but there's a catch.  Now that you've changed the method function signature of `sendLoop()` to take a second argument, all of the code that consumes `sendLoop()` will now be broken.  If this were an exported function, it would be an even worse problem.
 
 Luckily there is a much better way.
 
@@ -193,8 +193,8 @@ func sendLoop(sender SenderFunc) {
 
 func main() {
 
-	counter := 0
-	maxNumAttempts := 10
+	counter := 0              // internal state closed over and mutated by mySender function
+	maxNumAttempts := 10      // internal state closed over and read by mySender function
 
 	mySender := func() bool {
 		sentSuccessfully := rand.Intn(5)
