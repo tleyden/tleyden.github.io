@@ -6,7 +6,10 @@ comments: true
 categories: postgresql docker
 ---
 
-This walks you through running Postgres in a docker container using docker networking rather than the deprecated container links functionality.
+This walks you through:
+
+1. Running Postgres locally in a docker container using docker networking (rather than the deprecated container links functionality that is mentioned in the [Postgres Docker instructions](https://hub.docker.com/_/postgres/).
+1. Deploying to Docker Cloud
 
 # Basic Postgres container with docker networking
 
@@ -56,7 +59,7 @@ $ cd /tmp
 Launch a container and use `/tmp/pgdata` as the host directory to mount as a volume mount, which will be mounted in the container in `/var/lib/postgresql/data`, which is the default location where Postgres stores it's data.  The `/tmp/pgdata` directory will be created on the host if it doesn't already exist.
 
 ```
-$ docker run --name postgres1 --network postgres-network -v /tmp/pgdata:/var/lib/postgresql/data -e POSTGRES_PASSWORD=mysecretpassword -d postgres
+$ docker run --name postgres1 --network postgres-network -v /tmp/pgdata:/var/lib/postgresql/data -e POSTGRES_PASSWORD=*************** -d postgres
 ```
 
 List the contents of `/tmp/pgdata` and you should see several Postgres files:
