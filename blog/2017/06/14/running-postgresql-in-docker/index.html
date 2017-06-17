@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="This walks you through running Postgres in a docker container using docker networking rather than the deprecated container links functionality. Basic &hellip;">
+  <meta name="description" content="This walks you through: Running Postgres locally in a docker container using docker networking (rather than the deprecated container links &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -98,7 +98,13 @@
   </header>
 
 
-<div class="entry-content"><p>This walks you through running Postgres in a docker container using docker networking rather than the deprecated container links functionality.</p>
+<div class="entry-content"><p>This walks you through:</p>
+
+<ol>
+<li>Running Postgres locally in a docker container using docker networking (rather than the deprecated container links functionality that is mentioned in the <a href="https://hub.docker.com/_/postgres/">Postgres Docker instructions</a>.</li>
+<li>Deploying to Docker Cloud</li>
+</ol>
+
 
 <h1>Basic Postgres container with docker networking</h1>
 
@@ -153,7 +159,7 @@
 <p>Launch a container and use <code>/tmp/pgdata</code> as the host directory to mount as a volume mount, which will be mounted in the container in <code>/var/lib/postgresql/data</code>, which is the default location where Postgres stores it&rsquo;s data.  The <code>/tmp/pgdata</code> directory will be created on the host if it doesn&rsquo;t already exist.</p>
 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run --name postgres1 --network postgres-network -v /tmp/pgdata:/var/lib/postgresql/data -e POSTGRES_PASSWORD=mysecretpassword -d postgres</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run --name postgres1 --network postgres-network -v /tmp/pgdata:/var/lib/postgresql/data -e POSTGRES_PASSWORD=*************** -d postgres</span></code></pre></td></tr></table></div></figure>
 
 
 <p>List the contents of <code>/tmp/pgdata</code> and you should see several Postgres files:</p>
@@ -338,7 +344,7 @@
     <section>
   <h1>About Me</h1>
   <p>
-  Currently: software engineer at Couchbase.   Previously: technical co-founder at a startup.
+  Currently: software engineer at <a href="http://www.couchbase.com">Couchbase</a> - web scale distributed data platform. 
   </p>
 
   <p>
