@@ -38,7 +38,7 @@ Type "help" for help.
 postgres=#
 ```
 
-You now have a working postgres database servrer.
+You now have a working postgres database server.
 
 # Using a mounted volume for persistence
 
