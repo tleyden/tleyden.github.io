@@ -290,15 +290,19 @@
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/2016/12/20/understanding-function-closures-in-go/</loc>
-        <lastmod>2016-12-20T20:14:44-08:00</lastmod>
+        <lastmod>2016-12-20T22:46:16-08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://tleyden.github.io/blog/2017/06/14/running-postgresql-in-docker/</loc>
+        <lastmod>2017-06-17T08:42:52-07:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/archives/</loc>
-        <lastmod>2016-12-20T20:14:44-08:00</lastmod>
+        <lastmod>2017-06-17T08:42:52-07:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/</loc>
-        <lastmod>2016-12-20T20:14:44-08:00</lastmod>
+        <lastmod>2017-06-17T08:42:52-07:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/robots.txt</loc>

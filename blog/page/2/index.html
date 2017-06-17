@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="I&rsquo;m setting up a clean install of El Capitan, and want to get my Octopress blog going. However, I don&rsquo;t want to install it directly on my &hellip;">
+  <meta name="description" content="This is a continuation from a previous blog post. In this post I&rsquo;m going to focus on making emacs look a bit better. Currently: Install a nicer &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +72,90 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/02/07/configure-emacs-as-a-go-editor-from-scratch-part-3/">Configure Emacs as a Go Editor From Scratch Part 3</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-02-07T04:25:00-08:00" pubdate data-updated="true">Feb 7<span>th</span>, 2016</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>This is a continuation from <a href="http://tleyden.github.io/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2/">a previous blog post</a>.  In this post I&rsquo;m going to focus on making emacs look a bit better.</p>
+
+<p>Currently:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/emacs_ugly.png" alt="screenshot" /></p>
+
+<h2>Install a nicer theme</h2>
+
+<p>I like the <code>taming-mr-arneson-theme</code>, so let&rsquo;s install that one.  Feel free to browse the emacs themes and find one that you like more.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ `mkdir ~/.emacs.d/color-themes`
+</span><span class='line'>$ `wget https://raw.githubusercontent.com/emacs-jp/replace-colorthemes/d23b086141019c76ea81881bda00fb385f795048/taming-mr-arneson-theme.el`</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Update your <code>~/emacs.d/init.el</code> to add the following lines to the top of the file:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>(add-to-list 'custom-theme-load-path "/Users/tleyden/.emacs.d/color-themes/")
+</span><span class='line'>(load-theme 'taming-mr-arneson t)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now when you restart emacs it should look like this:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/emacs_taming_mr_arneson.png" alt="screenshot" /></p>
+
+<p> ## Directory Tree</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd ~/DevLibraries
+</span><span class='line'>$ git clone https://github.com/jaypei/emacs-neotree.git neotree</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Update your <code>~/emacs.d/init.el</code> to add the following lines:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>(add-to-list 'load-path "/some/path/neotree")
+</span><span class='line'>(require 'neotree)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Open a <code>.go</code> file and the enter <code>M-x neotree-dir</code> to show a directory browser:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/emacs-neotree.png" alt="screnshot" /></p>
+
+<p>Ref: <a href="http://www.emacswiki.org/emacs/NeoTree">NeoTree</a></p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -2202,160 +2286,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/03/03/graphing-time-series-data-with-seriesly-and-cubism/">Graphing Time Series Data With Seriesly and Cubism</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-03-03T16:53:00-08:00" pubdate data-updated="true">Mar 3<span>rd</span>, 2015</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>This will walk you through the basics of putting data into <a href="https://github.com/dustin/seriesly">seriesly</a> and visualizing it with <a href="https://square.github.io/cubism/">cubism</a>.</p>
-
-<p>You will end up with this in your browser:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/seriesly-cubism.png" alt="screenshot" /></p>
-
-<h2>Install seriesly</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>go get -u -v -t github.com/dustin/seriesly</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Run seriesly</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>seriesly -flushDelay=1s -root=/tmp/seriesly-data</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and leave it running in the background.</p>
-
-<h2>Create a db</h2>
-
-<p>In another shell:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>curl -X PUT http://localhost:3133/testdb</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Write docs to db</h2>
-
-<p>This script will write json docs with random values for the purpose of visualization.</p>
-
-<p>Copy the following to <code>add_seriesly_docs.rb</code></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>#!/usr/bin/env ruby
-</span><span class='line'>
-</span><span class='line'>6000.times do |count|
-</span><span class='line'>  randomNumber = rand() # random number between 0 and 1
-</span><span class='line'>  cmd = "curl -X POST -d '{\"index\":#{randomNumber}}' http://localhost:3133/testdb"
-</span><span class='line'>  puts cmd
-</span><span class='line'>  system(cmd)
-</span><span class='line'>  system("sleep 1")
-</span><span class='line'>end</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and then run it</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>chmod +x add_seriesly_docs.rb && ./add_seriesly_docs.rb</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and let it continue running in the background.</p>
-
-<h2>Create a webserver</h2>
-
-<p>Create a directory:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>mkdir /tmp/seriesly-http/
-</span><span class='line'>cd /tmp/seriesly-http/</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Create <code>fileserver.go</code>:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>package main
-</span><span class='line'>import "net/http"
-</span><span class='line'>func main() {
-</span><span class='line'>        panic(http.ListenAndServe(":8080", http.FileServer(http.Dir("/tmp/seriesly-http/"))))
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Run webserver:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>go run fileserver.go</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Download seriesly.html file</h2>
-
-<p>This is a file I wrote which uses seriesly as a metric data source for cubism.</p>
-
-<p>It&rsquo;s a quick hack, since I couldn&rsquo;t manage to get <a href="https://github.com/dustin/seriesly/blob/master/cubism/seriesism.js">seriesism.js</a> working.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>cd /tmp/seriesly-http/
-</span><span class='line'>wget https://gist.githubusercontent.com/tleyden/ec0c9be5786e0c0bd9ba/raw/1c08ea13b8ce46e08a49df19ad44c8e6a0ade896/seriesly.html</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Open seriesly.html</h2>
-
-<p>In your browser, point to <a href="http://localhost:8080/seriesly.html">http://localhost:8080/seriesly.html</a></p>
-
-<p>At this point, you should see the screenshot at the beginning of the blog post.</p>
-
-<h2>References</h2>
-
-<ul>
-<li><a href="https://github.com/dustin/seriesly">seriesly</a></li>
-<li><a href="http://dustin.sallings.org/2012/09/09/seriesly.html">seriesly blog post</a></li>
-<li><a href="https://sakamotomsh.wordpress.com/2014/05/12/the-simplest-example-of-cubism-js/">The simplest example of cubism</a></li>
-<li><a href="https://github.com/couchbaselabs/perfrunner-visualizer">perfrunner-visualizer</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/3/">&larr; Older</a>
@@ -2384,6 +2314,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2017/06/14/running-postgresql-in-docker/">Running PostgreSQL in Docker</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/12/20/understanding-function-closures-in-go/">Understanding Function Closures in Go</a>
       </li>
     
@@ -2397,10 +2331,6 @@
     
       <li class="post">
         <a href="/blog/2016/10/02/deep-dive-of-what-happens-under-the-hood-when-you-open-a-web-page/">Deep Dive of What Happens Under the Hood When You Open a Web Page</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/09/30/the-lifecycle-of-an-http-request/">What Happens Under the Hood When You Open a Web Page?</a>
       </li>
     
   </ul>
@@ -2442,7 +2372,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2016 - Traun Leyden -
+  Copyright &copy; 2017 - Traun Leyden -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: postgresql | Seven Story Rabbit Hole]]></title>
+  <link href="http://tleyden.github.io/blog/categories/postgresql/atom.xml" rel="self"/>
+  <link href="http://tleyden.github.io/"/>
+  <updated>2017-06-17T08:44:50-07:00</updated>
+  <id>http://tleyden.github.io/</id>
+  <author>
+    <name><![CDATA[Traun Leyden]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Running PostgreSQL in Docker]]></title>
+    <link href="http://tleyden.github.io/blog/2017/06/14/running-postgresql-in-docker/"/>
+    <updated>2017-06-14T08:01:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2017/06/14/running-postgresql-in-docker</id>
+    <content type="html"><![CDATA[<p>This walks you through running Postgres in a docker container using docker networking rather than the deprecated container links functionality.</p>
+
+<h1>Basic Postgres container with docker networking</h1>
+
+<h2>Create a user defined network</h2>
+
+<p><code>
+$ docker network create --driver bridge postgres-network
+</code></p>
+
+<h2>Launch Postgres in that network</h2>
+
+<p>The main parameter you will need to provide to postgres is a root db password.  Replace <code>*********</code> with a good password and run this command:</p>
+
+<p><code>
+$ docker run --name postgres1 --network postgres-network -e POSTGRES_PASSWORD=********* -d postgres
+</code></p>
+
+<h2>Launch psql and connect to Postgres</h2>
+
+<p>```
+$ docker run -it &mdash;rm &mdash;network postgres-network postgres psql -h postgres1 -U postgres
+Password for user postgres: <enter password used earlier>
+psql (9.6.3)
+Type &ldquo;help&rdquo; for help.</p>
+
+<p>postgres=#
+```</p>
+
+<p>You now have a working postgres database servrer.</p>
+
+<h1>Using a mounted volume for persistence</h1>
+
+<p>When running postgres under docker, most likely want to persist the database files on the host, rather than having them in the container.</p>
+
+<p>First, remove the previous container with:</p>
+
+<p><code>
+$ docker stop postgres1 &amp;&amp; docker rm postgres1
+</code></p>
+
+<p>Go into the <code>/tmp</code> directory:</p>
+
+<p><code>
+$ cd /tmp
+</code></p>
+
+<p>Launch a container and use <code>/tmp/pgdata</code> as the host directory to mount as a volume mount, which will be mounted in the container in <code>/var/lib/postgresql/data</code>, which is the default location where Postgres stores it&rsquo;s data.  The <code>/tmp/pgdata</code> directory will be created on the host if it doesn&rsquo;t already exist.</p>
+
+<p><code>
+$ docker run --name postgres1 --network postgres-network -v /tmp/pgdata:/var/lib/postgresql/data -e POSTGRES_PASSWORD=mysecretpassword -d postgres
+</code></p>
+
+<p>List the contents of <code>/tmp/pgdata</code> and you should see several Postgres files:</p>
+
+<p><code>
+$ ls pgdata/
+PG_VERSION      pg_hba.conf     pg_serial       pg_twophase ...
+</code></p>
+
+<h1>Launch phppgadmin Container</h1>
+
+<h2>First create a user</h2>
+
+<p><code>
+$ docker run -it --rm --network postgres-network postgres /bin/bash
+</code></p>
+
+<p>Now you will be in a shell inside the docker container</p>
+
+<p>```</p>
+
+<h1>createuser testuser -P &mdash;createdb -h postgres1 -U postgres</h1>
+
+<p>Enter password for new role: <strong><strong><strong>*
+Enter it again: </strong></strong></strong>
+Password: <enter postgres password from earlier>
+```</p>
+
+<h2>Launch pgpadmin</h2>
+
+<p><code>
+ $ docker run --name phppgadmin --network postgres-network -ti -d -p 8080:80 -e DB_HOST=postgres1 keepitcool/phppgadmin
+</code></p>
+
+<h2>Login</h2>
+
+<p>In your browser, open <a href="http://localhost:8080/">http://localhost:8080/</a> and you should see the phpadmin login screen:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/phppgadmin.png" alt="loginscreen" /></p>
+
+<p>Login with user/pass credentials created earlier:</p>
+
+<ul>
+<li><strong>username</strong>: <code>testuser</code></li>
+<li><strong>password</strong>: <code>**********</code></li>
+</ul>
+
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/phpadmin_post_login.png" alt="postlogin" /></p>
+
+<h1>Deploying to Docker Cloud</h1>
+
+<h2>Deploy Stack</h2>
+
+<p>Create a new stack and paste it into the box</p>
+
+<p>```
+postgres-server:
+  autoredeploy: true
+  environment:</p>
+
+<pre><code>- POSTGRES_PASSWORD=***************
+</code></pre>
+
+<p>  image: &lsquo;postgres:latest&rsquo;
+  volumes:</p>
+
+<pre><code>- '/var/lib/postgresql/data:/var/lib/postgresql/data'
+</code></pre>
+
+<p>phppgadmin:
+  autoredeploy: true
+  environment:</p>
+
+<pre><code>- DB_HOST=postgres-server
+</code></pre>
+
+<p>  image: &lsquo;keepitcool/phppgadmin:latest&rsquo;
+  ports:</p>
+
+<pre><code>- '8085:80'
+</code></pre>
+
+<p>```</p>
+
+<p>For example:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/docker_cloud_create_stack.png" alt="Docker Cloud" /></p>
+
+<h2>Create user</h2>
+
+<p>Find the postgres-server container and hit the <strong>Terminal</strong> menu to get a shell on that container.</p>
+
+<p>Enter:</p>
+
+<p>```</p>
+
+<h1>createuser testuser -P &mdash;createdb -h localhost -U postgres</h1>
+
+<p>Enter password for new role: <strong><strong><strong><em>
+Enter it again: </em></strong></strong></strong>**
+```</p>
+
+<h2>Login to Web UI</h2>
+
+<p>Find the phppgadmin service in the Docker Cloud Web UI, and look for the service endpoint, which should look something like this:</p>
+
+<p><a href="http://phppgadmin.postgres.071a32d40.svc.dockerapp.io:8085/">http://phppgadmin.postgres.071a32d40.svc.dockerapp.io:8085/</a></p>
+
+<p>Login with user/pass credentials created earlier:</p>
+
+<ul>
+<li><strong>username</strong>: <code>testuser</code></li>
+<li><strong>password</strong>: <code>**********</code></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>

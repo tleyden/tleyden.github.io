@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Architecture After going through the steps in this blog post, you&rsquo;ll end up with this: Setup host Before you can start your docker container, &hellip;">
+  <meta name="description" content="This is a tutorial to help you get the Caffe deep learning framework up and running on a GPU-powered AWS instance running inside a Docker container. &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +72,176 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker/">Running Caffe on AWS GPU Instance via Docker</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-10-25T20:42:00-07:00" pubdate data-updated="true">Oct 25<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>This is a tutorial to help you get the <a href="http://caffe.berkeleyvision.org/">Caffe deep learning framework</a> up and running on a GPU-powered AWS instance running inside a Docker container.</p>
+
+<h2>Architecture</h2>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/caffe_docker_aws_onion.png" alt="architecture diagram" /></p>
+
+<h2>Setup host</h2>
+
+<p>Before you can start your docker container, you will need to go <strong>deeper down the rabbit hole</strong>.</p>
+
+<p>You&rsquo;ll first need to complete the steps here:</p>
+
+<p><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">Setting up an Ubuntu 14.04 box running on a GPU-enabled AWS instance</a></p>
+
+<p>After you&rsquo;re done, you&rsquo;ll end up with a host OS with the following properties:</p>
+
+<ul>
+<li>A GPU enabled AWS instance running Ubuntu 14.04</li>
+<li>Nvidia kernel module</li>
+<li>Nvidia device drivers</li>
+<li>CUDA 6.5 installed and verified</li>
+</ul>
+
+
+<h2>Install Docker</h2>
+
+<p>Once your host OS is setup, you&rsquo;re ready to install docker.  (version 1.3 at the time of this writing)</p>
+
+<p>Setup the key for the docker repo:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Add the docker repo:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo sh -c "echo deb https://get.docker.com/ubuntu docker main &gt; /etc/apt/sources.list.d/docker.list"
+</span><span class='line'>$ sudo apt-get update</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Install docker:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get install lxc-docker</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Run the docker container</h2>
+
+<p><strong>Find your nvidia devices</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ls -la /dev | grep nvidia</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>crw-rw-rw-  1 root root    195,   0 Oct 25 19:37 nvidia0
+</span><span class='line'>crw-rw-rw-  1 root root    195, 255 Oct 25 19:37 nvidiactl
+</span><span class='line'>crw-rw-rw-  1 root root    251,   0 Oct 25 19:37 nvidia-uvm</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You&rsquo;ll have to adapt the <code>DOCKER_NVIDIA_DEVICES</code> variable below to match your particular devices.</p>
+
+<p>Here&rsquo;s how to start the docker container:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ DOCKER_NVIDIA_DEVICES="--device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm"
+</span><span class='line'>$ sudo docker run -ti $DOCKER_NVIDIA_DEVICES tleyden5iwx/caffe-gpu-master /bin/bash</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It&rsquo;s a large docker image, so this might take a few minutes, depending on your network connection.</p>
+
+<h2>Run caffe test suite</h2>
+
+<p>After the above <code>docker run</code> command completes, your shell will now be inside a docker container that has Caffe installed.</p>
+
+<p>You&rsquo;ll want run the Caffe test suite and make sure it passes.  This will validate your environment, including your GPU drivers.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /opt/caffe
+</span><span class='line'>$ make test && make runtest</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Expected Result:</strong> <code>... [  PASSED  ] 838 tests.</code></p>
+
+<h2>Run the MNIST LeNet example</h2>
+
+<p>A more comprehensive way to verify your environment is to train the MNIST LeNet example:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /opt/caffe/data/mnist
+</span><span class='line'>$ ./get_mnist.sh
+</span><span class='line'>$ cd /opt/caffe
+</span><span class='line'>$ ./examples/mnist/create_mnist.sh
+</span><span class='line'>$ ./examples/mnist/train_lenet.sh</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This will take a few minutes.</p>
+
+<p><strong>Expected output:</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>libdc1394 error: Failed to initialize libdc1394 
+</span><span class='line'>I1018 17:02:23.552733    66 caffe.cpp:90] Starting Optimization 
+</span><span class='line'>I1018 17:02:23.553583    66 solver.cpp:32] Initializing solver from parameters:
+</span><span class='line'>... lots of output ...
+</span><span class='line'>I1018 17:17:58.684598    66 caffe.cpp:102] Optimization Done.</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Congratulations, you&rsquo;ve got GPU-powered Caffe running in a docker container &mdash; celebrate with a cup of <a href="http://www.yelp.com/biz/philz-coffee-berkeley-2">Philz</a>!</p>
+
+<h1>References</h1>
+
+<ul>
+<li><a href="https://registry.hub.docker.com/u/tleyden5iwx/caffe-gpu-master">tleyden5iwx/caffe-gpu-master</a> Caffe Docker image (GPU)</li>
+<li><a href="https://registry.hub.docker.com/u/tleyden5iwx/caffe-cpu-master">tleyden5iwx/caffe-cpu-master</a> Caffe Docker image (CPU-only)</li>
+<li><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5</a></li>
+<li><a href="http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/">CUDA 6.5 on AWS GPU Instance Running Ubuntu 14.04</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1760,120 +1930,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/03/18/a-slight-tweak-on-a-successful-git-branching-model/">A Slight Tweak on a Successful Git Branching Model</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-03-18T10:32:00-07:00" pubdate data-updated="true">Mar 18<span>th</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>A great &ldquo;best practices&rdquo; for juggling git branches in a release cycle is <a href="http://nvie.com/posts/a-successful-git-branching-model/">A successful git branching model</a>.  It is also accompanied with a tool called <a href="https://github.com/nvie/gitflow">git flow</a> that makes it easy to implement in practice.</p>
-
-<p>It does however have one major issue: many people use a different naming scheme.</p>
-
-<p>Instead of:</p>
-
-<ul>
-<li><strong>Master</strong> &ndash; the latest &ldquo;stable&rdquo; branch</li>
-<li><strong>Development</strong> &ndash; bleeding edge development branch</li>
-</ul>
-
-
-<p>a slightly more common naming pattern is:</p>
-
-<ul>
-<li><strong>Master</strong> &ndash; bleeding edge development branch</li>
-<li><strong>Stable</strong> &ndash; the latest &ldquo;stable&rdquo; branch</li>
-</ul>
-
-
-<p>To that end, I&rsquo;ve tweaked the original diagram to be.</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/proposed_couchbaselite_branchingmodel.png" alt="diagram" /></p>
-
-<h2>Every branch solves a problem</h2>
-
-<p>The natural reaction to most people seeing this diagram is <em>dude, that&rsquo;s way too many branches, this is way more complicated than it needs to be</em>.  Actually, I&rsquo;d argue that it&rsquo;s minimally complex to solve the problems that these branches are designed to solve.  In other words, each type of branch justifies it&rsquo;s existence by the problem it&rsquo;s designed to solve.</p>
-
-<p>From the perspective of a library developer (in my case, <a href="https://github.com/couchbase/couchbase-lite-android">Couchbase Lite for Android</a>), here are the problems each branch is intended to solve.</p>
-
-<h3>Permanent and External Facing Branches</h3>
-
-<p><em>These branches are permanent, in the sense they have a continuous lifetime.  They are also external, and consumers of the library would typically depend on one or both of these branches</em></p>
-
-<p><strong>Master</strong></p>
-
-<ul>
-<li>A home for the latest &ldquo;feature complete&rdquo; / reviewed code.</li>
-<li>Anyone internal or external who wants to stay up to date with latest project developments needs this branch.</li>
-</ul>
-
-
-<p><strong>Stable</strong></p>
-
-<ul>
-<li>A home for the code that corresponds to the latest tagged release.</li>
-<li>This branch would be the basis for post-release bugfixes, eg an external developer who finds a bug in the latest release would send a pull request against this branch.</li>
-<li>Developers depending on this code directly in their app would likely point to this branch on their own stable branch.</li>
-</ul>
-
-
-<h3>Ephemeral and Internal Only Branches</h3>
-
-<p><em>These branches are emphemeral in nature, and are thrown away once they are no longer useful.  Developers consuming the library would typically ignore these</em></p>
-
-<p><strong>FeatureX</strong></p>
-
-<ul>
-<li>A place for in progress features to live without de-stabilizing the master branch.  Can be many of these.</li>
-</ul>
-
-
-<p><strong>Hotfix</strong></p>
-
-<ul>
-<li>An in progress fix would go here, where that fix is destined to be merged back into latest stable but not part of a new release that is branched off of master.</li>
-<li>While this hotfix is in progress, since these commits are not part of a tagged release, they cannot go on stable (yet), otherwise it would be a violation of the stable branch contract that says that stable reflects the latest tagged release.</li>
-<li>They could go directly on a &ldquo;local stable&rdquo; branch, which is only on the developers workstation, but that prevents sharing the branch or running CI unit tests against it, so it&rsquo;s not a good solution.</li>
-<li>NOTE: when hotfix merged, new release tagged simultaneously with a merge to stable, so the stable branch contract stays satisfied.</li>
-</ul>
-
-
-<p><strong>Release</strong></p>
-
-<ul>
-<li>During QA release process, need a place to QA and apply bugfixes, while isolated from destabilizing changes such as merging feature branches.</li>
-<li>Release branch allows feature branch merging to happen concurrently on master branch, which is especially crucial if release gets delayed.</li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/5/">&larr; Older</a>
@@ -1902,6 +1958,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2017/06/14/running-postgresql-in-docker/">Running PostgreSQL in Docker</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/12/20/understanding-function-closures-in-go/">Understanding Function Closures in Go</a>
       </li>
     
@@ -1915,10 +1975,6 @@
     
       <li class="post">
         <a href="/blog/2016/10/02/deep-dive-of-what-happens-under-the-hood-when-you-open-a-web-page/">Deep Dive of What Happens Under the Hood When You Open a Web Page</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/09/30/the-lifecycle-of-an-http-request/">What Happens Under the Hood When You Open a Web Page?</a>
       </li>
     
   </ul>
@@ -1960,7 +2016,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2016 - Traun Leyden -
+  Copyright &copy; 2017 - Traun Leyden -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

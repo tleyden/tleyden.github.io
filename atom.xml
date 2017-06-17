@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-12-20T20:17:21-08:00</updated>
+  <updated>2017-06-17T08:44:50-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,189 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Running PostgreSQL in Docker]]></title>
+    <link href="http://tleyden.github.io/blog/2017/06/14/running-postgresql-in-docker/"/>
+    <updated>2017-06-14T08:01:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2017/06/14/running-postgresql-in-docker</id>
+    <content type="html"><![CDATA[<p>This walks you through running Postgres in a docker container using docker networking rather than the deprecated container links functionality.</p>
+
+<h1>Basic Postgres container with docker networking</h1>
+
+<h2>Create a user defined network</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker network create --driver bridge postgres-network</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Launch Postgres in that network</h2>
+
+<p>The main parameter you will need to provide to postgres is a root db password.  Replace <code>*********</code> with a good password and run this command:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run --name postgres1 --network postgres-network -e POSTGRES_PASSWORD=********* -d postgres</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Launch psql and connect to Postgres</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run -it --rm --network postgres-network postgres psql -h postgres1 -U postgres
+</span><span class='line'>Password for user postgres: &lt;enter password used earlier&gt;
+</span><span class='line'>psql (9.6.3)
+</span><span class='line'>Type "help" for help.
+</span><span class='line'>
+</span><span class='line'>postgres=#</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You now have a working postgres database servrer.</p>
+
+<h1>Using a mounted volume for persistence</h1>
+
+<p>When running postgres under docker, most likely want to persist the database files on the host, rather than having them in the container.</p>
+
+<p>First, remove the previous container with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker stop postgres1 && docker rm postgres1</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Go into the <code>/tmp</code> directory:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /tmp</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Launch a container and use <code>/tmp/pgdata</code> as the host directory to mount as a volume mount, which will be mounted in the container in <code>/var/lib/postgresql/data</code>, which is the default location where Postgres stores it&rsquo;s data.  The <code>/tmp/pgdata</code> directory will be created on the host if it doesn&rsquo;t already exist.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run --name postgres1 --network postgres-network -v /tmp/pgdata:/var/lib/postgresql/data -e POSTGRES_PASSWORD=mysecretpassword -d postgres</span></code></pre></td></tr></table></div></figure>
+
+
+<p>List the contents of <code>/tmp/pgdata</code> and you should see several Postgres files:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ls pgdata/
+</span><span class='line'>PG_VERSION        pg_hba.conf     pg_serial       pg_twophase ...</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>Launch phppgadmin Container</h1>
+
+<h2>First create a user</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run -it --rm --network postgres-network postgres /bin/bash</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now you will be in a shell inside the docker container</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># createuser testuser -P --createdb -h postgres1 -U postgres
+</span><span class='line'>Enter password for new role: *******
+</span><span class='line'>Enter it again: ******
+</span><span class='line'>Password: &lt;enter postgres password from earlier&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Launch pgpadmin</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> $ docker run --name phppgadmin --network postgres-network -ti -d -p 8080:80 -e DB_HOST=postgres1 keepitcool/phppgadmin</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Login</h2>
+
+<p>In your browser, open <a href="http://localhost:8080/">http://localhost:8080/</a> and you should see the phpadmin login screen:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/phppgadmin.png" alt="loginscreen" /></p>
+
+<p>Login with user/pass credentials created earlier:</p>
+
+<ul>
+<li><strong>username</strong>: <code>testuser</code></li>
+<li><strong>password</strong>: <code>**********</code></li>
+</ul>
+
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/phpadmin_post_login.png" alt="postlogin" /></p>
+
+<h1>Deploying to Docker Cloud</h1>
+
+<h2>Deploy Stack</h2>
+
+<p>Create a new stack and paste it into the box</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>postgres-server:
+</span><span class='line'>  autoredeploy: true
+</span><span class='line'>  environment:
+</span><span class='line'>    - POSTGRES_PASSWORD=***************
+</span><span class='line'>  image: 'postgres:latest'
+</span><span class='line'>  volumes:
+</span><span class='line'>    - '/var/lib/postgresql/data:/var/lib/postgresql/data'
+</span><span class='line'>phppgadmin:
+</span><span class='line'>  autoredeploy: true
+</span><span class='line'>  environment:
+</span><span class='line'>    - DB_HOST=postgres-server
+</span><span class='line'>  image: 'keepitcool/phppgadmin:latest'
+</span><span class='line'>  ports:
+</span><span class='line'>    - '8085:80'</span></code></pre></td></tr></table></div></figure>
+
+
+<p>For example:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/docker_cloud_create_stack.png" alt="Docker Cloud" /></p>
+
+<h2>Create user</h2>
+
+<p>Find the postgres-server container and hit the <strong>Terminal</strong> menu to get a shell on that container.</p>
+
+<p>Enter:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># createuser testuser -P --createdb -h localhost -U postgres 
+</span><span class='line'>Enter password for new role: *******
+</span><span class='line'>Enter it again: *********</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Login to Web UI</h2>
+
+<p>Find the phppgadmin service in the Docker Cloud Web UI, and look for the service endpoint, which should look something like this:</p>
+
+<p><a href="http://phppgadmin.postgres.071a32d40.svc.dockerapp.io:8085/">http://phppgadmin.postgres.071a32d40.svc.dockerapp.io:8085/</a></p>
+
+<p>Login with user/pass credentials created earlier:</p>
+
+<ul>
+<li><strong>username</strong>: <code>testuser</code></li>
+<li><strong>password</strong>: <code>**********</code></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Understanding function closures in Go]]></title>
@@ -276,7 +459,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>Which will work &mdash; but there&rsquo;s a catch.  Now that you&rsquo;ve changed the method function signature of <code>sendLoop()</code> to take a second argument, all of the code that consumes <code>sendLoop()</code> will now be broken.  If this were an exported function, it would be even worse problem.</p>
+<p>Which will work &mdash; but there&rsquo;s a catch.  Now that you&rsquo;ve changed the method function signature of <code>sendLoop()</code> to take a second argument, all of the code that consumes <code>sendLoop()</code> will now be broken.  If this were an exported function, it would be an even worse problem.</p>
 
 <p>Luckily there is a much better way.</p>
 
@@ -341,8 +524,8 @@
 </span><span class='line'>
 </span><span class='line'>func main() {
 </span><span class='line'>
-</span><span class='line'>  counter := 0
-</span><span class='line'>  maxNumAttempts := 10
+</span><span class='line'>  counter := 0              // internal state closed over and mutated by mySender function
+</span><span class='line'>  maxNumAttempts := 10      // internal state closed over and read by mySender function
 </span><span class='line'>
 </span><span class='line'>  mySender := func() bool {
 </span><span class='line'>      sentSuccessfully := rand.Intn(5)
@@ -4389,133 +4572,6 @@
 
 <ul>
 <li><a href="http://blog.dixo.net/2015/02/load-balancing-with-coreos">http://blog.dixo.net/2015/02/load-balancing-with-coreos</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Graphing time series data with Seriesly and Cubism]]></title>
-    <link href="http://tleyden.github.io/blog/2015/03/03/graphing-time-series-data-with-seriesly-and-cubism/"/>
-    <updated>2015-03-03T16:53:00-08:00</updated>
-    <id>http://tleyden.github.io/blog/2015/03/03/graphing-time-series-data-with-seriesly-and-cubism</id>
-    <content type="html"><![CDATA[<p>This will walk you through the basics of putting data into <a href="https://github.com/dustin/seriesly">seriesly</a> and visualizing it with <a href="https://square.github.io/cubism/">cubism</a>.</p>
-
-<p>You will end up with this in your browser:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/seriesly-cubism.png" alt="screenshot" /></p>
-
-<h2>Install seriesly</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>go get -u -v -t github.com/dustin/seriesly</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Run seriesly</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>seriesly -flushDelay=1s -root=/tmp/seriesly-data</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and leave it running in the background.</p>
-
-<h2>Create a db</h2>
-
-<p>In another shell:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>curl -X PUT http://localhost:3133/testdb</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Write docs to db</h2>
-
-<p>This script will write json docs with random values for the purpose of visualization.</p>
-
-<p>Copy the following to <code>add_seriesly_docs.rb</code></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>#!/usr/bin/env ruby
-</span><span class='line'>
-</span><span class='line'>6000.times do |count|
-</span><span class='line'>  randomNumber = rand() # random number between 0 and 1
-</span><span class='line'>  cmd = "curl -X POST -d '{\"index\":#{randomNumber}}' http://localhost:3133/testdb"
-</span><span class='line'>  puts cmd
-</span><span class='line'>  system(cmd)
-</span><span class='line'>  system("sleep 1")
-</span><span class='line'>end</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and then run it</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>chmod +x add_seriesly_docs.rb && ./add_seriesly_docs.rb</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and let it continue running in the background.</p>
-
-<h2>Create a webserver</h2>
-
-<p>Create a directory:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>mkdir /tmp/seriesly-http/
-</span><span class='line'>cd /tmp/seriesly-http/</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Create <code>fileserver.go</code>:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>package main
-</span><span class='line'>import "net/http"
-</span><span class='line'>func main() {
-</span><span class='line'>        panic(http.ListenAndServe(":8080", http.FileServer(http.Dir("/tmp/seriesly-http/"))))
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Run webserver:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>go run fileserver.go</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Download seriesly.html file</h2>
-
-<p>This is a file I wrote which uses seriesly as a metric data source for cubism.</p>
-
-<p>It&rsquo;s a quick hack, since I couldn&rsquo;t manage to get <a href="https://github.com/dustin/seriesly/blob/master/cubism/seriesism.js">seriesism.js</a> working.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>cd /tmp/seriesly-http/
-</span><span class='line'>wget https://gist.githubusercontent.com/tleyden/ec0c9be5786e0c0bd9ba/raw/1c08ea13b8ce46e08a49df19ad44c8e6a0ade896/seriesly.html</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Open seriesly.html</h2>
-
-<p>In your browser, point to <a href="http://localhost:8080/seriesly.html">http://localhost:8080/seriesly.html</a></p>
-
-<p>At this point, you should see the screenshot at the beginning of the blog post.</p>
-
-<h2>References</h2>
-
-<ul>
-<li><a href="https://github.com/dustin/seriesly">seriesly</a></li>
-<li><a href="http://dustin.sallings.org/2012/09/09/seriesly.html">seriesly blog post</a></li>
-<li><a href="https://sakamotomsh.wordpress.com/2014/05/12/the-simplest-example-of-cubism-js/">The simplest example of cubism</a></li>
-<li><a href="https://github.com/couchbaselabs/perfrunner-visualizer">perfrunner-visualizer</a></li>
 </ul>
 
 ]]></content>

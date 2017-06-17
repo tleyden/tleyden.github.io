@@ -356,7 +356,7 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>Which will work &mdash; but there&rsquo;s a catch.  Now that you&rsquo;ve changed the method function signature of <code>sendLoop()</code> to take a second argument, all of the code that consumes <code>sendLoop()</code> will now be broken.  If this were an exported function, it would be even worse problem.</p>
+<p>Which will work &mdash; but there&rsquo;s a catch.  Now that you&rsquo;ve changed the method function signature of <code>sendLoop()</code> to take a second argument, all of the code that consumes <code>sendLoop()</code> will now be broken.  If this were an exported function, it would be an even worse problem.</p>
 
 <p>Luckily there is a much better way.</p>
 
@@ -421,8 +421,8 @@
 </span><span class='line'>
 </span><span class='line'>func main() {
 </span><span class='line'>
-</span><span class='line'>  counter := 0
-</span><span class='line'>  maxNumAttempts := 10
+</span><span class='line'>  counter := 0              // internal state closed over and mutated by mySender function
+</span><span class='line'>  maxNumAttempts := 10      // internal state closed over and read by mySender function
 </span><span class='line'>
 </span><span class='line'>  mySender := func() bool {
 </span><span class='line'>      sentSuccessfully := rand.Intn(5)
@@ -502,6 +502,8 @@
         <a class="basic-alignment left" href="/blog/2016/11/21/tuning-the-go-http-client-library-for-load-testing/" title="Previous Post: Tuning the Go HTTP client settings for load testing">&laquo; Tuning the Go HTTP client settings for load testing</a>
       
       
+        <a class="basic-alignment right" href="/blog/2017/06/14/running-postgresql-in-docker/" title="Next Post: Running PostgreSQL in Docker">Running PostgreSQL in Docker &raquo;</a>
+      
     </p>
   </footer>
 </article>
@@ -532,6 +534,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2017/06/14/running-postgresql-in-docker/">Running PostgreSQL in Docker</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/12/20/understanding-function-closures-in-go/">Understanding Function Closures in Go</a>
       </li>
     
@@ -545,10 +551,6 @@
     
       <li class="post">
         <a href="/blog/2016/10/02/deep-dive-of-what-happens-under-the-hood-when-you-open-a-web-page/">Deep Dive of What Happens Under the Hood When You Open a Web Page</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/09/30/the-lifecycle-of-an-http-request/">What Happens Under the Hood When You Open a Web Page?</a>
       </li>
     
   </ul>
@@ -591,7 +593,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2016 - Traun Leyden -
+  Copyright &copy; 2017 - Traun Leyden -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

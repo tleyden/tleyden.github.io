@@ -4,7 +4,7 @@
   <title><![CDATA[Category: golang | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/golang/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2016-12-20T20:17:21-08:00</updated>
+  <updated>2017-06-17T08:44:50-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -194,7 +194,7 @@ sendLoop(mySender, 10)
 
 <p>```</p>
 
-<p>Which will work &mdash; but there&rsquo;s a catch.  Now that you&rsquo;ve changed the method function signature of <code>sendLoop()</code> to take a second argument, all of the code that consumes <code>sendLoop()</code> will now be broken.  If this were an exported function, it would be even worse problem.</p>
+<p>Which will work &mdash; but there&rsquo;s a catch.  Now that you&rsquo;ve changed the method function signature of <code>sendLoop()</code> to take a second argument, all of the code that consumes <code>sendLoop()</code> will now be broken.  If this were an exported function, it would be an even worse problem.</p>
 
 <p>Luckily there is a much better way.</p>
 
@@ -227,8 +227,8 @@ type SenderFunc func() bool</p>
 
 <p>func main() {</p>
 
-<pre><code>counter := 0
-maxNumAttempts := 10
+<pre><code>counter := 0              // internal state closed over and mutated by mySender function
+maxNumAttempts := 10      // internal state closed over and read by mySender function
 
 mySender := func() bool {
     sentSuccessfully := rand.Intn(5)
