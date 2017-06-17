@@ -4,7 +4,7 @@
   <title><![CDATA[Category: postgresql | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/postgresql/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2017-06-17T08:52:29-07:00</updated>
+  <updated>2017-06-17T08:59:21-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -53,7 +53,7 @@ Type &ldquo;help&rdquo; for help.</p>
 <p>postgres=#
 ```</p>
 
-<p>You now have a working postgres database servrer.</p>
+<p>You now have a working postgres database server.</p>
 
 <h1>Using a mounted volume for persistence</h1>
 
