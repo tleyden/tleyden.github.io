@@ -107,6 +107,8 @@ Login with user/pass credentials created earlier:
 
 # Deploying to Docker Cloud
 
+Security warning!  This is not a secure deployment and it's not recommended to run this in production without a thorough audit by a security specialist.  
+
 ## Deploy Stack
 
 Create a new stack and paste it into the box
