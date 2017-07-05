@@ -222,7 +222,7 @@ Build and package into docker image, and push up to docker hub
 ```
 $ env GOOS=linux GOARCH=amd64 go build -o exec main.go
 $ docker build -t you/fetch-aws-keys .
-$ docker push tleyden5iwx/openwhisk-exec-test
+$ docker push you/fetch-aws-keys
 ```
 
 Create an OpenWhisk action:
@@ -246,7 +246,7 @@ $ wsk action invoke fetch_aws_keys --blocking --result
                 "PasswordLastUsed": "2017-06-07T17:41:08Z",
                 "Path": "/",
                 "UserId": "AIDAHGJJK87878KKW",
-                "UserName": "ome.user@yourcompany.co"
+                "UserName": "some.user@yourcompany.co"
             },
         ...
     ]
