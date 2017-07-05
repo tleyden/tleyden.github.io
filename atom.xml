@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2017-07-04T17:49:22-07:00</updated>
+  <updated>2017-07-05T07:18:10-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -349,7 +349,7 @@
 <span class='line-number'>3</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ env GOOS=linux GOARCH=amd64 go build -o exec main.go
 </span><span class='line'>$ docker build -t you/fetch-aws-keys .
-</span><span class='line'>$ docker push tleyden5iwx/openwhisk-exec-test</span></code></pre></td></tr></table></div></figure>
+</span><span class='line'>$ docker push you/fetch-aws-keys</span></code></pre></td></tr></table></div></figure>
 
 
 <p>Create an OpenWhisk action:</p>
@@ -389,7 +389,7 @@
 </span><span class='line'>                "PasswordLastUsed": "2017-06-07T17:41:08Z",
 </span><span class='line'>                "Path": "/",
 </span><span class='line'>                "UserId": "AIDAHGJJK87878KKW",
-</span><span class='line'>                "UserName": "ome.user@yourcompany.co"
+</span><span class='line'>                "UserName": "some.user@yourcompany.co"
 </span><span class='line'>            },
 </span><span class='line'>        ...
 </span><span class='line'>    ]
