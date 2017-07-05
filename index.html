@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="This walks you through: Running Postgres locally in a docker container using docker networking (rather than the deprecated container links &hellip;">
+  <meta name="description" content="This will walk you through getting up and running from scratch with Apache OpenWhisk on OSX, and setting up an Action Sequence where the output of &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +72,675 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2017/07/02/openwhisk-action-sequences/">OpenWhisk Action Sequences</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2017-07-02T11:30:00-07:00" pubdate data-updated="true">Jul 2<span>nd</span>, 2017</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>This will walk you through getting up and running from scratch with Apache OpenWhisk on OSX, and setting up an Action Sequence where the output of one OpenWhisk Action is fed into the input of the next Action.</p>
+
+<h2>Install OpenWhisk via Vagrant</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># Clone openwhisk
+</span><span class='line'>git clone --depth=1 https://github.com/apache/incubator-openwhisk.git openwhisk
+</span><span class='line'>
+</span><span class='line'># Change directory to tools/vagrant
+</span><span class='line'>cd openwhisk/tools/vagrant
+</span><span class='line'>
+</span><span class='line'># Run script to create vm and run hello action
+</span><span class='line'>./hello</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You should see reams of output, followed by:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>==&gt; default: ++ wsk action invoke /whisk.system/utils/echo -p message hello --result
+</span><span class='line'>==&gt; default: {
+</span><span class='line'>==&gt; default:     "message": "hello"
+</span><span class='line'>==&gt; default: }</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>SSH into Vagrant machine and run OpenWhisk CLI</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ vagrant ssh</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now you can access the OpenWhisk CLI:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wsk
+</span><span class='line'>
+</span><span class='line'>        ____      ___                   _    _ _     _     _
+</span><span class='line'>       /\   \    / _ \ _ __   ___ _ __ | |  | | |__ (_)___| | __
+</span><span class='line'>  /\  /__\   \  | | | | '_ \ / _ \ '_ \| |  | | '_ \| / __| |/ /
+</span><span class='line'> /  \____ \  /  | |_| | |_) |  __/ | | | |/\| | | | | \__ \   &lt;
+</span><span class='line'> \   \  /  \/    \___/| .__/ \___|_| |_|__/\__|_| |_|_|___/_|\_\
+</span><span class='line'>  \___\/ tm           |_|
+</span><span class='line'>
+</span><span class='line'>Usage:
+</span><span class='line'>  wsk [command]</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Re-run the &ldquo;Hello world&rdquo; via:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wsk action invoke /whisk.system/utils/echo -p message hello --result
+</span><span class='line'>{
+</span><span class='line'>    "message": "hello"
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Hello Go/Docker</h2>
+
+<p>I tried following the <a href="http://jamesthom.as/blog/2017/01/17/openwhisk-and-go/">instructions on James Thomas&#8217; blog</a> for running Go within Docker, but ran into an error (see Disqus comment), and so here&rsquo;s how I worked around it.</p>
+
+<p>First create a simple Go program and cross compile it.  Save the following to <code>exec.go</code>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>package main
+</span><span class='line'>
+</span><span class='line'>import "encoding/json"
+</span><span class='line'>import "fmt"
+</span><span class='line'>import "os"
+</span><span class='line'>
+</span><span class='line'>func main() {
+</span><span class='line'>  // native actions receive one argument, the JSON object as a string
+</span><span class='line'>  arg := os.Args[1]
+</span><span class='line'>
+</span><span class='line'>  // unmarshal the string to a JSON object
+</span><span class='line'>  var obj map[string]interface{}
+</span><span class='line'>  json.Unmarshal([]byte(arg), &obj)
+</span><span class='line'>  name, ok := obj["name"].(string)
+</span><span class='line'>  if !ok {
+</span><span class='line'>      name = "Stranger"
+</span><span class='line'>  }
+</span><span class='line'>  msg := map[string]string{"msg": ("Hello, " + name + "!")}
+</span><span class='line'>  res, _ := json.Marshal(msg)
+</span><span class='line'>  fmt.Println(string(res))
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Cross compile it for Linux:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>env GOOS=linux GOARCH=amd64 go build exec.go</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Pull the upstream Docker image:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>docker pull openwhisk/dockerskeleton</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Create a custom docker image based on <code>openwhisk/dockerskeleton</code>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>FROM openwhisk/dockerskeleton
+</span><span class='line'>
+</span><span class='line'>COPY exec /action/exec</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Build and test:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker build -t you/openwhisk-exec-test .
+</span><span class='line'>$ docker run you/openwhisk-exec-test /action/exec '{"name": "James"}'
+</span><span class='line'>{"msg":"Hello, James!"}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>OpenWhisk Hello Go/Docker</h2>
+
+<p>Push up the docker image to dockerhub:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>docker push you/openwhisk-exec-test</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Create the OpenWhisk action:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>wsk action create go_test --docker you/openwhisk-exec-test</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Invoke the action to verify it works:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wsk action invoke go_test --blocking --result
+</span><span class='line'>{
+</span><span class='line'>    "msg": "Hello, Stranger!"
+</span><span class='line'>}
+</span><span class='line'>$ wsk action invoke go_test --blocking --result --param name James
+</span><span class='line'>{
+</span><span class='line'>    "msg": "Hello, James!"
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Define custom actions</h2>
+
+<h3>Get a list of AWS users using aws-go-sdk</h3>
+
+<p>Save this to <code>main.go</code></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>package main
+</span><span class='line'>
+</span><span class='line'>import (
+</span><span class='line'>  "github.com/aws/aws-sdk-go/service/iam"
+</span><span class='line'>  "github.com/aws/aws-sdk-go/aws/session"
+</span><span class='line'>  "fmt"
+</span><span class='line'>  "encoding/json"
+</span><span class='line'>  "os"
+</span><span class='line'>  "github.com/aws/aws-sdk-go/aws"
+</span><span class='line'>  "github.com/aws/aws-sdk-go/aws/credentials"
+</span><span class='line'>)
+</span><span class='line'>
+</span><span class='line'>type Params struct {
+</span><span class='line'>  AwsAccessKeyId string
+</span><span class='line'>  AwsSecretAccessKey string
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>type Result struct {
+</span><span class='line'>  Doc interface{} `json:"doc"`
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>func main() {
+</span><span class='line'>
+</span><span class='line'>  // native actions receive one argument, the JSON object as a string
+</span><span class='line'>  arg := os.Args[1]
+</span><span class='line'>
+</span><span class='line'>  // unmarshal the string to a JSON object
+</span><span class='line'>  var params Params
+</span><span class='line'>  json.Unmarshal([]byte(arg), &params)
+</span><span class='line'>
+</span><span class='line'>  sess, err := session.NewSession(&aws.Config{
+</span><span class='line'>      Credentials: credentials.NewCredentials(
+</span><span class='line'>          &credentials.StaticProvider{Value: credentials.Value{
+</span><span class='line'>              AccessKeyID:     params.AwsAccessKeyId,
+</span><span class='line'>              SecretAccessKey: params.AwsSecretAccessKey,
+</span><span class='line'>          }},
+</span><span class='line'>      ),
+</span><span class='line'>  })
+</span><span class='line'>
+</span><span class='line'>  // Create the service's client with the session.
+</span><span class='line'>  svc := iam.New(sess)
+</span><span class='line'>
+</span><span class='line'>  listUsersInput := &iam.ListUsersInput{}
+</span><span class='line'>
+</span><span class='line'>  listUsersOutput, err := svc.ListUsers(listUsersInput)
+</span><span class='line'>  if err != nil {
+</span><span class='line'>      panic(fmt.Sprintf("Error listing users: %v", err))
+</span><span class='line'>  }
+</span><span class='line'>
+</span><span class='line'>  result := Result{
+</span><span class='line'>      Doc: listUsersOutput,
+</span><span class='line'>  }
+</span><span class='line'>
+</span><span class='line'>  outputBytes, err := json.Marshal(result)
+</span><span class='line'>  if err != nil {
+</span><span class='line'>      panic(fmt.Sprintf("Error marshalling outputBytes: %v", err))
+</span><span class='line'>  }
+</span><span class='line'>
+</span><span class='line'>  fmt.Printf("%s", string(outputBytes))
+</span><span class='line'>
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Build and package into docker image, and push up to docker hub</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ env GOOS=linux GOARCH=amd64 go build -o exec main.go
+</span><span class='line'>$ docker build -t you/fetch-aws-keys .
+</span><span class='line'>$ docker push tleyden5iwx/openwhisk-exec-test</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Create an OpenWhisk action:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>wsk action create fetch_aws_keys --docker you/fetch-aws-keys --param AwsAccessKeyId "YOURKEY" --param AwsSecretAccessKey "YOURSECRET"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Invoke it:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wsk action invoke fetch_aws_keys --blocking --result
+</span><span class='line'>{
+</span><span class='line'>    "doc": {
+</span><span class='line'>        "IsTruncated": false,
+</span><span class='line'>        "Marker": null,
+</span><span class='line'>        "Users": [
+</span><span class='line'>            {
+</span><span class='line'>                "Arn": "arn:aws:iam::9798798:user/some.user@yourcompany.co",
+</span><span class='line'>                "CreateDate": "2016-01-11T23:49:40Z",
+</span><span class='line'>                "PasswordLastUsed": "2017-06-07T17:41:08Z",
+</span><span class='line'>                "Path": "/",
+</span><span class='line'>                "UserId": "AIDAHGJJK87878KKW",
+</span><span class='line'>                "UserName": "ome.user@yourcompany.co"
+</span><span class='line'>            },
+</span><span class='line'>        ...
+</span><span class='line'>    ]
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Write to a CloudantDB</h3>
+
+<h4>Cloudant Setup</h4>
+
+<p>Create a Cloudant database via the Bluemix web admin.</p>
+
+<p>Under the <strong>Permissions</strong> control panel section for the database, choose <strong>Generate a new API key</strong>.</p>
+
+<p>Check the <strong>_writer</strong> permission and make a note of the <strong>Key</strong> and <strong>Password</strong></p>
+
+<p>Verify connectivity by making a curl request:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -u "yourkey:yourpassword" http://67687-818ca382-081d--bluemix.cloudant.com/yourdb/_all_docs
+</span><span class='line'>{"total_rows":0,"offset":0,"rows":[
+</span><span class='line'>
+</span><span class='line'>]}</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>OpenWhisk + Cloudant</h4>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>wsk package bind /whisk.system/cloudant myCloudant -p username MYUSERNAME -p password MYPASSWORD -p host MYCLOUDANTACCOUNT.cloudant.com</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I&rsquo;m currently getting this error:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>error: Binding creation failed: The supplied authentication is not authorized to access this resource. (code 751)</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Switch to BlueMix</h3>
+
+<p>At this point I swiched to the OpenWhisk on Bluemix, and downloaded the <code>wsk</code> cli from the Bluemix website, and configure it with my api key per the instructions.  Then I re-installed the action via:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>wsk action create fetch_aws_keys --docker you/fetch-aws-keys --param AwsAccessKeyId "YOURKEY" --param AwsSecretAccessKey "YOURSECRET"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and made sure it worked by running:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wsk action invoke fetch_aws_keys --blocking --result</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>Cloudant Setup</h4>
+
+<p>Following <a href="https://github.com/apache/incubator-openwhisk-package-cloudant/blob/master/README.md#setting-up-a-cloudant-database-in-bluemix">these instructions</a>:</p>
+
+<p>You can get your Bluemix Org name (maybe the first part of your email address by default) and BlueMix space (dev by default) from the Bluemix web admin.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wsk property set --namespace myBluemixOrg_myBluemixSpace
+</span><span class='line'>ok: whisk namespace set to myBluemixOrg_myBluemixSpace</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Refresh packages:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wsk package refresh
+</span><span class='line'>myBluemixOrg_myBluemixSpace refreshed successfully
+</span><span class='line'>created bindings:
+</span><span class='line'>updated bindings:
+</span><span class='line'>deleted bindings:</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It didn&rsquo;t work according to the docs, and no bindings were created even though I had created a Cloudant database in the Bluemix admin earlier.</p>
+
+<p>I retried the <code>package bind</code> command that had failed earlier:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>wsk package bind /whisk.system/cloudant myCloudant -p username MYUSERNAME -p password MYPASSWORD -p host MYCLOUDANTACCOUNT.cloudant.com</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and this time success!!</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ok: created binding myCloudant</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Try writing to the db with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wsk action invoke /yournamespace/myCloudant/write --blocking --result --param dbname yourdb --param doc "{\"_id\":\"heisenberg\",\"name\":\"Walter White\"}"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and you should get a response like:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>{
+</span><span class='line'>    "id": "heisenberg",
+</span><span class='line'>    "ok": true,
+</span><span class='line'>    "rev": "1-f413f4b74a724e391fa5dd2e9c8e9d3f"
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Connect them in a sequence</h2>
+
+<h3>Create a new package binding pinned to a particular db</h3>
+
+<p>The <code>/yournamespace/myCloudant/write</code> action expects a <code>dbname</code> parameter, but the upstream <code>fetch_aws_keys</code> doesn&rsquo;t contain that parameter.  (and it&rsquo;s better that it doesn&rsquo;t, to reduce decoupling).  So if you try to connect the two actions in a sequence at this point, it will fail.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wsk package bind /whisk.system/cloudant myCloudantTestDb -p username MYUSERNAME -p password MYPASSWORD -p host MYCLOUDANTACCOUNT.cloudant.com -p dbname testdb</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Create sequence action</h3>
+
+<p>Create a sequence that will invoke these actions in sequence:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wsk action create fetch_and_write_aws_keys --sequence fetch_aws_keys,/namespace/myCloudantTestDb/write</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li>Fetch the AWS keys</li>
+<li>Write the doc containing the AWS keys to the <code>testdb</code> database bound to the myCloudantTestDb package</li>
+</ol>
+
+
+<p>Try it out:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wsk action invoke fetch_and_write_aws_keys --blocking --result
+</span><span class='line'>{
+</span><span class='line'>    "id": "d80f24dc270208191c07c802bee4e58d",
+</span><span class='line'>    "ok": true,
+</span><span class='line'>    "rev": "1-ff66b6a20f50ea36d9019481276aa0bb"
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To view the resulting document:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>wsk action invoke /traun.leyden_dev/cloudantKeynuker/read --blocking --result --param id d80f24dc270208191c07c802bee4e58d
+</span><span class='line'>{
+</span><span class='line'>    "IsTruncated": false,
+</span><span class='line'>    "Marker": null,
+</span><span class='line'>    "Users": [
+</span><span class='line'>        {
+</span><span class='line'>            "Arn": "arn:aws:iam::9798798:user/some.user@yourcompany.co",
+</span><span class='line'>            "CreateDate": "2016-01-11T23:49:40Z",
+</span><span class='line'>            "PasswordLastUsed": "2017-06-07T17:41:08Z",
+</span><span class='line'>            "Path": "/",
+</span><span class='line'>            "UserId": "AIDAHGJJK87878KKW",
+</span><span class='line'>            "UserName": "ome.user@yourcompany.co"
+</span><span class='line'>        },</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Drive with a scheduler</h2>
+
+<p>Let&rsquo;s say we wanted this to run every minute.</p>
+
+<p>First create an alarm trigger that will fire every minute:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wsk trigger create everyMinute --feed /whisk.system/alarms/alarm -p cron '* * * * *'</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now create a rule that will invoke the <code>fetch_and_write_aws_keys</code> action (which is a sequence action) whenever the <code>everyMinute</code> feed is triggered:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wsk rule create fetch_and_write_aws_keys_every_minute everyMinute fetch_and_write_aws_keys</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To verify that it is working, check your cloudant database to look for new docs:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -u "yourkey:yourpassword" http://67687-818ca382-081d--bluemix.cloudant.com/yourdb/_all_docs</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Or you can also monitor the activations:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ wsk activation poll
+</span><span class='line'>Activation: everyMinute (f454e74ae4254657b0c920d14ea0d078)
+</span><span class='line'>[]
+</span><span class='line'>
+</span><span class='line'>Activation: write (5d0e5c2a5af449efa1063b8dab71ba40)
+</span><span class='line'>[
+</span><span class='line'>    "2017-07-04T18:49:01.820736174Z stdout: success { ok: true,",
+</span><span class='line'>    "2017-07-04T18:49:01.820773215Z stdout: id: '6a3e007478278726c5ecd7c85a9fe845',",
+</span><span class='line'>    "2017-07-04T18:49:01.820781052Z stdout: rev: '1-25dae194be45260756aa43454fa28e60' }"
+</span><span class='line'>]
+</span><span class='line'>
+</span><span class='line'>Activation: fetch_aws_keys (5d3a343b5a224130b4ea4bcb82517dc3)
+</span><span class='line'>[
+</span><span class='line'>    "2017-07-04T18:49:01.748729114Z stdout: XXX_THE_END_OF_A_WHISK_ACTIVATION_XXX",
+</span><span class='line'>    "2017-07-04T18:49:01.748801169Z stderr: XXX_THE_END_OF_A_WHISK_ACTIVATION_XXX"
+</span><span class='line'>]
+</span><span class='line'>
+</span><span class='line'>Activation: fetch_and_write_aws_keys (14619d5125a247f983a6d1e840820bb4)
+</span><span class='line'>[
+</span><span class='line'>    "5d3a343b5a224130b4ea4bcb82517dc3",
+</span><span class='line'>    "5d0e5c2a5af449efa1063b8dab71ba40"
+</span><span class='line'>]
+</span><span class='line'>
+</span><span class='line'>Activation: fetch_and_write_aws_keys_every_minute (de37f6b2bbaa407eb343b3859d9b3f74)
+</span><span class='line'>[]
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -216,6 +885,8 @@
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/phpadmin_post_login.png" alt="postlogin" /></p>
 
 <h1>Deploying to Docker Cloud</h1>
+
+<p>Security warning!  This is not a secure deployment and it&rsquo;s not recommended to run this in production without a thorough audit by a security specialist.</p>
 
 <h2>Deploy Stack</h2>
 
@@ -2788,188 +3459,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/02/08/adding-vendoring-to-a-go-project/">Adding Vendoring to a Go Project</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2016-02-08T22:49:00-08:00" pubdate data-updated="true">Feb 8<span>th</span>, 2016</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>Install gvt</h2>
-
-<p>After doing some research, I decided to try <code>gvt</code> since it seemed simple and well documented, and integrated well with exiting tools like <code>go get</code>.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ export GO15VENDOREXPERIMENT=1
-</span><span class='line'>$ go get -u github.com/FiloSottile/gvt</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Go get target project to be updated</h2>
-
-<p>I&rsquo;m going to update <a href="https://github.com/tleyden/todolite-appserver">todolite-appserver</a> to use vendored dependencies for <em>some</em> of it&rsquo;s dependencies, just to see how things go.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ go get -u github.com/tleyden/todolite-appserver</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Vendor dependencies</h2>
-
-<p>I&rsquo;m going to vendor the dependency on <a href="github.com/alecthomas/kingpin">kingpin</a> since it has transitive dependencies of it&rsquo;s own (github.com/alecthomas/units, etc).  <code>gvt</code> handles this by automatically pulling all of the transitive dependencies.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ gvt fetch github.com/alecthomas/kingpin</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Now my directory structure looks like this:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>├── main.go
-</span><span class='line'>└── vendor
-</span><span class='line'>    ├── github.com
-</span><span class='line'>    │   └── alecthomas
-</span><span class='line'>    ├── gopkg.in
-</span><span class='line'>    │   └── alecthomas
-</span><span class='line'>    └── manifest</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Here is the <a href="https://gist.github.com/tleyden/60328c7e0fd778970314">manifest</a></p>
-
-<p><code>gvt list</code> shows the following:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$  gvt list
-</span><span class='line'>github.com/alecthomas/kingpin  https://github.com/alecthomas/kingpin  master 46aba6af542541c54c5b7a71a9dfe8f2ab95b93a
-</span><span class='line'>github.com/alecthomas/template https://github.com/alecthomas/template master 14fd436dd20c3cc65242a9f396b61bfc8a3926fc
-</span><span class='line'>github.com/alecthomas/units    https://github.com/alecthomas/units    master 2efee857e7cfd4f3d0138cc3cbb1b4966962b93a
-</span><span class='line'>gopkg.in/alecthomas/kingpin.v2 https://gopkg.in/alecthomas/kingpin.v2 master 24b74030480f0aa98802b51ff4622a7eb09dfddd</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Verify it&rsquo;s using the vendor folder</h2>
-
-<p>I opened up the <code>vendor/github.com/alecthomas/kingpin/global.go</code> and made the following change:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>// Errorf prints an error message to stderr.
-</span><span class='line'>func Errorf(format string, args ...interface{}) {
-</span><span class='line'>  fmt.Println("CALLED IT!!")
-</span><span class='line'>  CommandLine.Errorf(format, args...)
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Now verify that code is getting compiled and run:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ go run main.go changesfollower
-</span><span class='line'>CALLED IT!!
-</span><span class='line'>main: error: URL is empty</span></code></pre></td></tr></table></div></figure>
-
-
-<p>(note: <code>export GO15VENDOREXPERIMENT=1</code> is still in effect in my shell)</p>
-
-<h2>Restore the dependency</h2>
-
-<p>Before I check in the <code>vendor</code> directory to git, I want to reset it to it&rsquo;s previous state before I made the above change to the <code>global.go</code> source file.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ gvt restore</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Now if I open <code>global.go</code> again, it&rsquo;s back to it&rsquo;s original state.  Nice!</p>
-
-<h2>Add the vendor folder and push</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ git add vendor
-</span><span class='line'>$ git commit -m "..."
-</span><span class='line'>$ git push origin master</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Also, I updated the README to tell users to set the <code>GO15VENDOREXPERIMENT=1</code> variable:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ export GO15VENDOREXPERIMENT=1
-</span><span class='line'>$ go get -u github.com/tleyden/todolite-appserver
-</span><span class='line'>$ todolite-appserver --help</span></code></pre></td></tr></table></div></figure>
-
-
-<p>but the instructions otherwise remained the same.  If someone tries to use this but forgets to set <code>GO15VENDOREXPERIMENT=1</code> in Go 1.5, it will still work, it will just use the kingpin dependency in the <code>$GOPATH</code> rather than the <code>vendor/</code> directory.  Ditto for someone using go 1.4 or earlier.</p>
-
-<h2>Removing a vendored dependency</h2>
-
-<p>As it turns out, I don&rsquo;t even need kingpin in this project, since I&rsquo;m using <a href="https://github.com/spf13/cobra">cobra</a>.  The kingpin dependency was caused by some leftover code I forgot to cleanup.</p>
-
-<p>To remove it, I ran:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ gvt delete github.com/alecthomas/kingpin
-</span><span class='line'>$ gvt delete github.com/alecthomas/template
-</span><span class='line'>$ gvt delete github.com/alecthomas/units
-</span><span class='line'>$ gvt delete gopkg.in/alecthomas/kingpin.v2</span></code></pre></td></tr></table></div></figure>
-
-
-<p>In this case, since it was my only dependency, it was easy to identify the transitive dependencies.  In general though it looks like it&rsquo;s up to you as a user to track down which ones to remove.  I filed <a href="https://github.com/FiloSottile/gvt/issues/16">gvt issue 16</a> to hopefully address that.</p>
-
-<h2>Editor annoyances</h2>
-
-<p>I have emacs setup using the <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">steps in this blog post</a>, and I&rsquo;m running into the following annoyances:</p>
-
-<ul>
-<li>When I use <code>godef</code> to jump into the code of vendored dependency, it takes me to source code that lives in the <code>GOPATH</code>, which might be <em>different</em> than what&rsquo;s under <code>vendor/</code>.  Also, if I edit it there, my changes won&rsquo;t be reflected when I rebuild.</li>
-<li>I usually search for things in the project via <code>M-x rgrep</code>, but now it&rsquo;s searching through every repo under <code>vendor/</code> and returning things I&rsquo;m not interested in .. since most of the time I only want to search within my project.</li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -2996,6 +3485,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2017/07/02/openwhisk-action-sequences/">OpenWhisk Action Sequences</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2017/06/14/running-postgresql-in-docker/">Running PostgreSQL in Docker</a>
       </li>
     
@@ -3009,10 +3502,6 @@
     
       <li class="post">
         <a href="/blog/2016/10/31/install-couchbase-server-plus-mobile-on-docker-cloud/">Install Couchbase Server + Mobile on Docker Cloud</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/10/02/deep-dive-of-what-happens-under-the-hood-when-you-open-a-web-page/">Deep Dive of What Happens Under the Hood When You Open a Web Page</a>
       </li>
     
   </ul>

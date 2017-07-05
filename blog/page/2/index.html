@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="This is a continuation from a previous blog post. In this post I&rsquo;m going to focus on making emacs look a bit better. Currently: Install a nicer &hellip;">
+  <meta name="description" content="Install gvt After doing some research, I decided to try gvt since it seemed simple and well documented, and integrated well with exiting tools like &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +72,188 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/02/08/adding-vendoring-to-a-go-project/">Adding Vendoring to a Go Project</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-02-08T22:49:00-08:00" pubdate data-updated="true">Feb 8<span>th</span>, 2016</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>Install gvt</h2>
+
+<p>After doing some research, I decided to try <code>gvt</code> since it seemed simple and well documented, and integrated well with exiting tools like <code>go get</code>.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ export GO15VENDOREXPERIMENT=1
+</span><span class='line'>$ go get -u github.com/FiloSottile/gvt</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Go get target project to be updated</h2>
+
+<p>I&rsquo;m going to update <a href="https://github.com/tleyden/todolite-appserver">todolite-appserver</a> to use vendored dependencies for <em>some</em> of it&rsquo;s dependencies, just to see how things go.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go get -u github.com/tleyden/todolite-appserver</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Vendor dependencies</h2>
+
+<p>I&rsquo;m going to vendor the dependency on <a href="github.com/alecthomas/kingpin">kingpin</a> since it has transitive dependencies of it&rsquo;s own (github.com/alecthomas/units, etc).  <code>gvt</code> handles this by automatically pulling all of the transitive dependencies.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ gvt fetch github.com/alecthomas/kingpin</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now my directory structure looks like this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>├── main.go
+</span><span class='line'>└── vendor
+</span><span class='line'>    ├── github.com
+</span><span class='line'>    │   └── alecthomas
+</span><span class='line'>    ├── gopkg.in
+</span><span class='line'>    │   └── alecthomas
+</span><span class='line'>    └── manifest</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Here is the <a href="https://gist.github.com/tleyden/60328c7e0fd778970314">manifest</a></p>
+
+<p><code>gvt list</code> shows the following:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$  gvt list
+</span><span class='line'>github.com/alecthomas/kingpin  https://github.com/alecthomas/kingpin  master 46aba6af542541c54c5b7a71a9dfe8f2ab95b93a
+</span><span class='line'>github.com/alecthomas/template https://github.com/alecthomas/template master 14fd436dd20c3cc65242a9f396b61bfc8a3926fc
+</span><span class='line'>github.com/alecthomas/units    https://github.com/alecthomas/units    master 2efee857e7cfd4f3d0138cc3cbb1b4966962b93a
+</span><span class='line'>gopkg.in/alecthomas/kingpin.v2 https://gopkg.in/alecthomas/kingpin.v2 master 24b74030480f0aa98802b51ff4622a7eb09dfddd</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Verify it&rsquo;s using the vendor folder</h2>
+
+<p>I opened up the <code>vendor/github.com/alecthomas/kingpin/global.go</code> and made the following change:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>// Errorf prints an error message to stderr.
+</span><span class='line'>func Errorf(format string, args ...interface{}) {
+</span><span class='line'>  fmt.Println("CALLED IT!!")
+</span><span class='line'>  CommandLine.Errorf(format, args...)
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now verify that code is getting compiled and run:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go run main.go changesfollower
+</span><span class='line'>CALLED IT!!
+</span><span class='line'>main: error: URL is empty</span></code></pre></td></tr></table></div></figure>
+
+
+<p>(note: <code>export GO15VENDOREXPERIMENT=1</code> is still in effect in my shell)</p>
+
+<h2>Restore the dependency</h2>
+
+<p>Before I check in the <code>vendor</code> directory to git, I want to reset it to it&rsquo;s previous state before I made the above change to the <code>global.go</code> source file.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ gvt restore</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now if I open <code>global.go</code> again, it&rsquo;s back to it&rsquo;s original state.  Nice!</p>
+
+<h2>Add the vendor folder and push</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ git add vendor
+</span><span class='line'>$ git commit -m "..."
+</span><span class='line'>$ git push origin master</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Also, I updated the README to tell users to set the <code>GO15VENDOREXPERIMENT=1</code> variable:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ export GO15VENDOREXPERIMENT=1
+</span><span class='line'>$ go get -u github.com/tleyden/todolite-appserver
+</span><span class='line'>$ todolite-appserver --help</span></code></pre></td></tr></table></div></figure>
+
+
+<p>but the instructions otherwise remained the same.  If someone tries to use this but forgets to set <code>GO15VENDOREXPERIMENT=1</code> in Go 1.5, it will still work, it will just use the kingpin dependency in the <code>$GOPATH</code> rather than the <code>vendor/</code> directory.  Ditto for someone using go 1.4 or earlier.</p>
+
+<h2>Removing a vendored dependency</h2>
+
+<p>As it turns out, I don&rsquo;t even need kingpin in this project, since I&rsquo;m using <a href="https://github.com/spf13/cobra">cobra</a>.  The kingpin dependency was caused by some leftover code I forgot to cleanup.</p>
+
+<p>To remove it, I ran:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ gvt delete github.com/alecthomas/kingpin
+</span><span class='line'>$ gvt delete github.com/alecthomas/template
+</span><span class='line'>$ gvt delete github.com/alecthomas/units
+</span><span class='line'>$ gvt delete gopkg.in/alecthomas/kingpin.v2</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In this case, since it was my only dependency, it was easy to identify the transitive dependencies.  In general though it looks like it&rsquo;s up to you as a user to track down which ones to remove.  I filed <a href="https://github.com/FiloSottile/gvt/issues/16">gvt issue 16</a> to hopefully address that.</p>
+
+<h2>Editor annoyances</h2>
+
+<p>I have emacs setup using the <a href="http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/">steps in this blog post</a>, and I&rsquo;m running into the following annoyances:</p>
+
+<ul>
+<li>When I use <code>godef</code> to jump into the code of vendored dependency, it takes me to source code that lives in the <code>GOPATH</code>, which might be <em>different</em> than what&rsquo;s under <code>vendor/</code>.  Also, if I edit it there, my changes won&rsquo;t be reflected when I rebuild.</li>
+<li>I usually search for things in the project via <code>M-x rgrep</code>, but now it&rsquo;s searching through every repo under <code>vendor/</code> and returning things I&rsquo;m not interested in .. since most of the time I only want to search within my project.</li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -2104,188 +2286,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/03/21/nginx-proxy-for-sync-gateway-using-confd/">Nginx Proxy for Sync Gateway Using Confd</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-03-21T15:25:00-07:00" pubdate data-updated="true">Mar 21<span>st</span>, 2015</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>This will walk you through setting up Sync Gateway behind nginx.  The nginx conf will be auto generated based on Sync Gateway status.</p>
-
-<h3>Launch CoreOS instances on EC2</h3>
-
-<p><a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#cstack=sn%7ECouchbase-CoreOS%7Cturl%7Ehttp://tleyden-misc.s3.amazonaws.com/couchbase-coreos/sync_gateway.template"><img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"></a></p>
-
-<p>Recommended values:</p>
-
-<ul>
-<li><strong>ClusterSize</strong>: 3 nodes (default)</li>
-<li><strong>Discovery URL</strong>:  as it says, you need to grab a new token from <a href="https://discovery.etcd.io/new">https://discovery.etcd.io/new</a> and paste it in the box.</li>
-<li><strong>KeyPair</strong>: the name of the AWS keypair you want to use.  If you haven&rsquo;t already, you&rsquo;ll want to upload your local ssh key into AWS and create a named keypair.</li>
-</ul>
-
-
-<h3>Wait until instances are up</h3>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/cloud-formation-create-complete.png" alt="screenshot" /></p>
-
-<h3>ssh into a CoreOS instance</h3>
-
-<p>Go to the AWS console under EC2 instances and find the public ip of one of your newly launched CoreOS instances.</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/ec2-instances-coreos.png" alt="screenshot" /></p>
-
-<p>Choose any one of them (it doesn&rsquo;t matter which), and ssh into it as the <strong>core</strong> user with the cert provided in the previous step:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ ssh -i aws.cer -A core@ec2-54-83-80-161.compute-1.amazonaws.com</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Spin up Sync Gateway containers</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ etcdctl set /couchbase.com/enable-code-refresh true
-</span><span class='line'>$ sudo docker run --net=host tleyden5iwx/couchbase-cluster-go update-wrapper sync-gw-cluster launch-sgw --num-nodes=2 --config-url=http://git.io/hFwa --in-memory-db</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Verify etcd entries</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ etcdctl ls --recursive /
-</span><span class='line'>...
-</span><span class='line'>/couchbase.com/sync-gw-node-state
-</span><span class='line'>/couchbase.com/sync-gw-node-state/10.169.70.114
-</span><span class='line'>/couchbase.com/sync-gw-node-state/10.231.220.110</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Create data volume container</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://raw.githubusercontent.com/lordelph/confd-demo/master/confdata.service
-</span><span class='line'>$ fleetctl start confdata.service</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Launch sync-gateway-nginx-confd.service</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://raw.githubusercontent.com/lordelph/confd-demo/master/confd.service
-</span><span class='line'>$ sed -i -e 's/lordelph\/confd-demo/tleyden5iwx\/sync-gateway-nginx-confd/' confd.service
-</span><span class='line'>$ fleetctl start confd.service</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Launch nginx service</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://raw.githubusercontent.com/lordelph/confd-demo/master/nginx.service
-</span><span class='line'>$ fleetctl start nginx.service</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Verify</h2>
-
-<p>Try a basic http get.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ nginx_ip=`fleetctl list-units | grep -i nginx | awk '{print $2}' | awk -F/ '{print $2}'`
-</span><span class='line'>$ curl $nginx_ip
-</span><span class='line'>{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":1},"version":"Couchbase Sync Gateway/master(a47a17f)"}</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Add &lsquo;-v&rsquo; flag to see which Sync Gateway server is servicing the request</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -v $nginx_ip
-</span><span class='line'>...
-</span><span class='line'>X-Handler: 10.231.220.110:4984
-</span><span class='line'>...</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If you repeat that a few more times, you should see different ip addresses for the handler.</p>
-
-<p><strong>Take a sync gateway out of rotation</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ fleetctl stop sync_gw_node@1.service sync_gw_sidekick@1.service</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Now try hitting nginx again, and should not see the Sync Gw that you just shutdown as a handler.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -v $nginx_ip
-</span><span class='line'>...
-</span><span class='line'>X-Handler: 10.231.220.114:4984
-</span><span class='line'>...</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Put sync gateway back into rotation</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ fleetctl start sync_gw_node@1.service sync_gw_sidekick@1.service</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Now try hitting nginx again, and should again see the Sync Gw that you just restarted as being a handler.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -v $nginx_ip
-</span><span class='line'>...
-</span><span class='line'>X-Handler: 10.231.220.110:4984
-</span><span class='line'>...</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>References</h2>
-
-<ul>
-<li><a href="http://blog.dixo.net/2015/02/load-balancing-with-coreos">http://blog.dixo.net/2015/02/load-balancing-with-coreos</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/3/">&larr; Older</a>
@@ -2314,6 +2314,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2017/07/02/openwhisk-action-sequences/">OpenWhisk Action Sequences</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2017/06/14/running-postgresql-in-docker/">Running PostgreSQL in Docker</a>
       </li>
     
@@ -2327,10 +2331,6 @@
     
       <li class="post">
         <a href="/blog/2016/10/31/install-couchbase-server-plus-mobile-on-docker-cloud/">Install Couchbase Server + Mobile on Docker Cloud</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/10/02/deep-dive-of-what-happens-under-the-hood-when-you-open-a-web-page/">Deep Dive of What Happens Under the Hood When You Open a Web Page</a>
       </li>
     
   </ul>

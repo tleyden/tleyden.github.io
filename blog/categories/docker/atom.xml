@@ -4,7 +4,7 @@
   <title><![CDATA[Category: docker | Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/blog/categories/docker/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2017-06-17T08:59:21-07:00</updated>
+  <updated>2017-07-04T17:49:22-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -126,6 +126,8 @@ Password: <enter postgres password from earlier>
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/phpadmin_post_login.png" alt="postlogin" /></p>
 
 <h1>Deploying to Docker Cloud</h1>
+
+<p>Security warning!  This is not a secure deployment and it&rsquo;s not recommended to run this in production without a thorough audit by a security specialist.</p>
 
 <h2>Deploy Stack</h2>
 

@@ -1,0 +1,520 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: serverless | Seven Story Rabbit Hole]]></title>
+  <link href="http://tleyden.github.io/blog/categories/serverless/atom.xml" rel="self"/>
+  <link href="http://tleyden.github.io/"/>
+  <updated>2017-07-04T17:49:22-07:00</updated>
+  <id>http://tleyden.github.io/</id>
+  <author>
+    <name><![CDATA[Traun Leyden]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[OpenWhisk Action Sequences]]></title>
+    <link href="http://tleyden.github.io/blog/2017/07/02/openwhisk-action-sequences/"/>
+    <updated>2017-07-02T11:30:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2017/07/02/openwhisk-action-sequences</id>
+    <content type="html"><![CDATA[<p>This will walk you through getting up and running from scratch with Apache OpenWhisk on OSX, and setting up an Action Sequence where the output of one OpenWhisk Action is fed into the input of the next Action.</p>
+
+<h2>Install OpenWhisk via Vagrant</h2>
+
+<p>```</p>
+
+<h1>Clone openwhisk</h1>
+
+<p>git clone &mdash;depth=1 <a href="https://github.com/apache/incubator-openwhisk.git">https://github.com/apache/incubator-openwhisk.git</a> openwhisk</p>
+
+<h1>Change directory to tools/vagrant</h1>
+
+<p>cd openwhisk/tools/vagrant</p>
+
+<h1>Run script to create vm and run hello action</h1>
+
+<p>./hello
+```</p>
+
+<p>You should see reams of output, followed by:</p>
+
+<p><code>
+==&gt; default: ++ wsk action invoke /whisk.system/utils/echo -p message hello --result
+==&gt; default: {
+==&gt; default:     "message": "hello"
+==&gt; default: }
+</code></p>
+
+<h2>SSH into Vagrant machine and run OpenWhisk CLI</h2>
+
+<p><code>
+$ vagrant ssh
+</code></p>
+
+<p>Now you can access the OpenWhisk CLI:</p>
+
+<p>```
+$ wsk</p>
+
+<pre><code>    ____      ___                   _    _ _     _     _
+   /\   \    / _ \ _ __   ___ _ __ | |  | | |__ (_)___| | __
+</code></pre>
+
+<p>  /\  /<strong>\   \  | | | | &lsquo;<em> \ / _ \ &rsquo;</em> \| |  | | &lsquo;_ \| / </strong>| |/ /
+ /  _<strong><em> \  /  | |</em>| | |_) |  </strong>/ | | | |/\| | | | | _<em> \   &lt;
+ \   \  /  \/    _<strong>/| .</strong>/ ___|</em>| |<em>|__/_</em>|<em>| |</em>|<em>|</em><strong>/_|_\
+  _</strong>\/ tm           |_|</p>
+
+<p>Usage:
+  wsk [command]
+```</p>
+
+<p>Re-run the &ldquo;Hello world&rdquo; via:</p>
+
+<p>```
+$ wsk action invoke /whisk.system/utils/echo -p message hello &mdash;result
+{</p>
+
+<pre><code>"message": "hello"
+</code></pre>
+
+<p>}
+```</p>
+
+<h2>Hello Go/Docker</h2>
+
+<p>I tried following the <a href="http://jamesthom.as/blog/2017/01/17/openwhisk-and-go/">instructions on James Thomas' blog</a> for running Go within Docker, but ran into an error (see Disqus comment), and so here&rsquo;s how I worked around it.</p>
+
+<p>First create a simple Go program and cross compile it.  Save the following to <code>exec.go</code>:</p>
+
+<p>```
+package main</p>
+
+<p>import &ldquo;encoding/json&rdquo;
+import &ldquo;fmt&rdquo;
+import &ldquo;os&rdquo;</p>
+
+<p>func main() {
+  // native actions receive one argument, the JSON object as a string
+  arg := os.Args[1]</p>
+
+<p>  // unmarshal the string to a JSON object
+  var obj map[string]interface{}
+  json.Unmarshal([]byte(arg), &amp;obj)
+  name, ok := obj[&ldquo;name&rdquo;].(string)
+  if !ok {</p>
+
+<pre><code>  name = "Stranger"
+</code></pre>
+
+<p>  }
+  msg := map[string]string{&ldquo;msg&rdquo;: (&ldquo;Hello, &rdquo; + name + &ldquo;!&rdquo;)}
+  res, _ := json.Marshal(msg)
+  fmt.Println(string(res))
+}
+```</p>
+
+<p>Cross compile it for Linux:</p>
+
+<p><code>
+env GOOS=linux GOARCH=amd64 go build exec.go
+</code></p>
+
+<p>Pull the upstream Docker image:</p>
+
+<p><code>
+docker pull openwhisk/dockerskeleton
+</code></p>
+
+<p>Create a custom docker image based on <code>openwhisk/dockerskeleton</code>:</p>
+
+<p>```
+FROM openwhisk/dockerskeleton</p>
+
+<p>COPY exec /action/exec
+```</p>
+
+<p>Build and test:</p>
+
+<p><code>
+$ docker build -t you/openwhisk-exec-test .
+$ docker run you/openwhisk-exec-test /action/exec '{"name": "James"}'
+{"msg":"Hello, James!"}
+</code></p>
+
+<h2>OpenWhisk Hello Go/Docker</h2>
+
+<p>Push up the docker image to dockerhub:</p>
+
+<p><code>
+docker push you/openwhisk-exec-test
+</code></p>
+
+<p>Create the OpenWhisk action:</p>
+
+<p><code>
+wsk action create go_test --docker you/openwhisk-exec-test
+</code></p>
+
+<p>Invoke the action to verify it works:</p>
+
+<p>```
+$ wsk action invoke go_test &mdash;blocking &mdash;result
+{</p>
+
+<pre><code>"msg": "Hello, Stranger!"
+</code></pre>
+
+<p>}
+$ wsk action invoke go_test &mdash;blocking &mdash;result &mdash;param name James
+{</p>
+
+<pre><code>"msg": "Hello, James!"
+</code></pre>
+
+<p>}
+```</p>
+
+<h2>Define custom actions</h2>
+
+<h3>Get a list of AWS users using aws-go-sdk</h3>
+
+<p>Save this to <code>main.go</code></p>
+
+<p>```
+package main</p>
+
+<p>import (</p>
+
+<pre><code>"github.com/aws/aws-sdk-go/service/iam"
+"github.com/aws/aws-sdk-go/aws/session"
+"fmt"
+"encoding/json"
+"os"
+"github.com/aws/aws-sdk-go/aws"
+"github.com/aws/aws-sdk-go/aws/credentials"
+</code></pre>
+
+<p>)</p>
+
+<p>type Params struct {</p>
+
+<pre><code>AwsAccessKeyId string
+AwsSecretAccessKey string
+</code></pre>
+
+<p>}</p>
+
+<p>type Result struct {</p>
+
+<pre><code>Doc interface{} `json:"doc"`
+</code></pre>
+
+<p>}</p>
+
+<p>func main() {</p>
+
+<pre><code>// native actions receive one argument, the JSON object as a string
+arg := os.Args[1]
+
+// unmarshal the string to a JSON object
+var params Params
+json.Unmarshal([]byte(arg), &amp;params)
+
+sess, err := session.NewSession(&amp;aws.Config{
+    Credentials: credentials.NewCredentials(
+        &amp;credentials.StaticProvider{Value: credentials.Value{
+            AccessKeyID:     params.AwsAccessKeyId,
+            SecretAccessKey: params.AwsSecretAccessKey,
+        }},
+    ),
+})
+
+// Create the service's client with the session.
+svc := iam.New(sess)
+
+listUsersInput := &amp;iam.ListUsersInput{}
+
+listUsersOutput, err := svc.ListUsers(listUsersInput)
+if err != nil {
+    panic(fmt.Sprintf("Error listing users: %v", err))
+}
+
+result := Result{
+    Doc: listUsersOutput,
+}
+
+outputBytes, err := json.Marshal(result)
+if err != nil {
+    panic(fmt.Sprintf("Error marshalling outputBytes: %v", err))
+}
+
+fmt.Printf("%s", string(outputBytes))
+</code></pre>
+
+<p>}
+```</p>
+
+<p>Build and package into docker image, and push up to docker hub</p>
+
+<p><code>
+$ env GOOS=linux GOARCH=amd64 go build -o exec main.go
+$ docker build -t you/fetch-aws-keys .
+$ docker push tleyden5iwx/openwhisk-exec-test
+</code></p>
+
+<p>Create an OpenWhisk action:</p>
+
+<p><code>
+wsk action create fetch_aws_keys --docker you/fetch-aws-keys --param AwsAccessKeyId "YOURKEY" --param AwsSecretAccessKey "YOURSECRET"
+</code></p>
+
+<p>Invoke it:</p>
+
+<p>```
+$ wsk action invoke fetch_aws_keys &mdash;blocking &mdash;result
+{</p>
+
+<pre><code>"doc": {
+    "IsTruncated": false,
+    "Marker": null,
+    "Users": [
+        {
+            "Arn": "arn:aws:iam::9798798:user/some.user@yourcompany.co",
+            "CreateDate": "2016-01-11T23:49:40Z",
+            "PasswordLastUsed": "2017-06-07T17:41:08Z",
+            "Path": "/",
+            "UserId": "AIDAHGJJK87878KKW",
+            "UserName": "ome.user@yourcompany.co"
+        },
+    ...
+]
+</code></pre>
+
+<p>}
+```</p>
+
+<h3>Write to a CloudantDB</h3>
+
+<h4>Cloudant Setup</h4>
+
+<p>Create a Cloudant database via the Bluemix web admin.</p>
+
+<p>Under the <strong>Permissions</strong> control panel section for the database, choose <strong>Generate a new API key</strong>.</p>
+
+<p>Check the <strong>_writer</strong> permission and make a note of the <strong>Key</strong> and <strong>Password</strong></p>
+
+<p>Verify connectivity by making a curl request:</p>
+
+<p>```
+$ curl -u &ldquo;yourkey:yourpassword&rdquo; <a href="http://67687-818ca382-081d--bluemix.cloudant.com/yourdb/_all_docs">http://67687-818ca382-081d--bluemix.cloudant.com/yourdb/_all_docs</a>
+{&ldquo;total_rows&rdquo;:0,&ldquo;offset&rdquo;:0,&ldquo;rows&rdquo;:[</p>
+
+<p>]}
+```</p>
+
+<h4>OpenWhisk + Cloudant</h4>
+
+<p><code>
+wsk package bind /whisk.system/cloudant myCloudant -p username MYUSERNAME -p password MYPASSWORD -p host MYCLOUDANTACCOUNT.cloudant.com
+</code></p>
+
+<p>I&rsquo;m currently getting this error:</p>
+
+<p><code>
+error: Binding creation failed: The supplied authentication is not authorized to access this resource. (code 751)
+</code></p>
+
+<h3>Switch to BlueMix</h3>
+
+<p>At this point I swiched to the OpenWhisk on Bluemix, and downloaded the <code>wsk</code> cli from the Bluemix website, and configure it with my api key per the instructions.  Then I re-installed the action via:</p>
+
+<p><code>
+wsk action create fetch_aws_keys --docker you/fetch-aws-keys --param AwsAccessKeyId "YOURKEY" --param AwsSecretAccessKey "YOURSECRET"
+</code></p>
+
+<p>and made sure it worked by running:</p>
+
+<p><code>
+$ wsk action invoke fetch_aws_keys --blocking --result
+</code></p>
+
+<h4>Cloudant Setup</h4>
+
+<p>Following <a href="https://github.com/apache/incubator-openwhisk-package-cloudant/blob/master/README.md#setting-up-a-cloudant-database-in-bluemix">these instructions</a>:</p>
+
+<p>You can get your Bluemix Org name (maybe the first part of your email address by default) and BlueMix space (dev by default) from the Bluemix web admin.</p>
+
+<p><code>
+$ wsk property set --namespace myBluemixOrg_myBluemixSpace
+ok: whisk namespace set to myBluemixOrg_myBluemixSpace
+</code></p>
+
+<p>Refresh packages:</p>
+
+<p><code>
+$ wsk package refresh
+myBluemixOrg_myBluemixSpace refreshed successfully
+created bindings:
+updated bindings:
+deleted bindings:
+</code></p>
+
+<p>It didn&rsquo;t work according to the docs, and no bindings were created even though I had created a Cloudant database in the Bluemix admin earlier.</p>
+
+<p>I retried the <code>package bind</code> command that had failed earlier:</p>
+
+<p><code>
+wsk package bind /whisk.system/cloudant myCloudant -p username MYUSERNAME -p password MYPASSWORD -p host MYCLOUDANTACCOUNT.cloudant.com
+</code></p>
+
+<p>and this time success!!</p>
+
+<p><code>
+ok: created binding myCloudant
+</code></p>
+
+<p>Try writing to the db with:</p>
+
+<p><code>
+$ wsk action invoke /yournamespace/myCloudant/write --blocking --result --param dbname yourdb --param doc "{\"_id\":\"heisenberg\",\"name\":\"Walter White\"}"
+</code></p>
+
+<p>and you should get a response like:</p>
+
+<p>```
+{</p>
+
+<pre><code>"id": "heisenberg",
+"ok": true,
+"rev": "1-f413f4b74a724e391fa5dd2e9c8e9d3f"
+</code></pre>
+
+<p>}
+```</p>
+
+<h2>Connect them in a sequence</h2>
+
+<h3>Create a new package binding pinned to a particular db</h3>
+
+<p>The <code>/yournamespace/myCloudant/write</code> action expects a <code>dbname</code> parameter, but the upstream <code>fetch_aws_keys</code> doesn&rsquo;t contain that parameter.  (and it&rsquo;s better that it doesn&rsquo;t, to reduce decoupling).  So if you try to connect the two actions in a sequence at this point, it will fail.</p>
+
+<p><code>
+$ wsk package bind /whisk.system/cloudant myCloudantTestDb -p username MYUSERNAME -p password MYPASSWORD -p host MYCLOUDANTACCOUNT.cloudant.com -p dbname testdb
+</code></p>
+
+<h3>Create sequence action</h3>
+
+<p>Create a sequence that will invoke these actions in sequence:</p>
+
+<p><code>
+$ wsk action create fetch_and_write_aws_keys --sequence fetch_aws_keys,/namespace/myCloudantTestDb/write
+</code></p>
+
+<ol>
+<li>Fetch the AWS keys</li>
+<li>Write the doc containing the AWS keys to the <code>testdb</code> database bound to the myCloudantTestDb package</li>
+</ol>
+
+
+<p>Try it out:</p>
+
+<p>```
+$ wsk action invoke fetch_and_write_aws_keys &mdash;blocking &mdash;result
+{</p>
+
+<pre><code>"id": "d80f24dc270208191c07c802bee4e58d",
+"ok": true,
+"rev": "1-ff66b6a20f50ea36d9019481276aa0bb"
+</code></pre>
+
+<p>}
+```</p>
+
+<p>To view the resulting document:</p>
+
+<p>```
+wsk action invoke /traun.leyden_dev/cloudantKeynuker/read &mdash;blocking &mdash;result &mdash;param id d80f24dc270208191c07c802bee4e58d
+{</p>
+
+<pre><code>"IsTruncated": false,
+"Marker": null,
+"Users": [
+    {
+        "Arn": "arn:aws:iam::9798798:user/some.user@yourcompany.co",
+        "CreateDate": "2016-01-11T23:49:40Z",
+        "PasswordLastUsed": "2017-06-07T17:41:08Z",
+        "Path": "/",
+        "UserId": "AIDAHGJJK87878KKW",
+        "UserName": "ome.user@yourcompany.co"
+    },
+</code></pre>
+
+<p>```</p>
+
+<h2>Drive with a scheduler</h2>
+
+<p>Let&rsquo;s say we wanted this to run every minute.</p>
+
+<p>First create an alarm trigger that will fire every minute:</p>
+
+<p><code>
+$ wsk trigger create everyMinute --feed /whisk.system/alarms/alarm -p cron '* * * * *'
+</code></p>
+
+<p>Now create a rule that will invoke the <code>fetch_and_write_aws_keys</code> action (which is a sequence action) whenever the <code>everyMinute</code> feed is triggered:</p>
+
+<p><code>
+$ wsk rule create fetch_and_write_aws_keys_every_minute everyMinute fetch_and_write_aws_keys
+</code></p>
+
+<p>To verify that it is working, check your cloudant database to look for new docs:</p>
+
+<p><code>
+$ curl -u "yourkey:yourpassword" http://67687-818ca382-081d--bluemix.cloudant.com/yourdb/_all_docs
+</code></p>
+
+<p>Or you can also monitor the activations:</p>
+
+<p>```
+$ wsk activation poll
+Activation: everyMinute (f454e74ae4254657b0c920d14ea0d078)
+[]</p>
+
+<p>Activation: write (5d0e5c2a5af449efa1063b8dab71ba40)
+[</p>
+
+<pre><code>"2017-07-04T18:49:01.820736174Z stdout: success { ok: true,",
+"2017-07-04T18:49:01.820773215Z stdout: id: '6a3e007478278726c5ecd7c85a9fe845',",
+"2017-07-04T18:49:01.820781052Z stdout: rev: '1-25dae194be45260756aa43454fa28e60' }"
+</code></pre>
+
+<p>]</p>
+
+<p>Activation: fetch_aws_keys (5d3a343b5a224130b4ea4bcb82517dc3)
+[</p>
+
+<pre><code>"2017-07-04T18:49:01.748729114Z stdout: XXX_THE_END_OF_A_WHISK_ACTIVATION_XXX",
+"2017-07-04T18:49:01.748801169Z stderr: XXX_THE_END_OF_A_WHISK_ACTIVATION_XXX"
+</code></pre>
+
+<p>]</p>
+
+<p>Activation: fetch_and_write_aws_keys (14619d5125a247f983a6d1e840820bb4)
+[</p>
+
+<pre><code>"5d3a343b5a224130b4ea4bcb82517dc3",
+"5d0e5c2a5af449efa1063b8dab71ba40"
+</code></pre>
+
+<p>]</p>
+
+<p>Activation: fetch_and_write_aws_keys_every_minute (de37f6b2bbaa407eb343b3859d9b3f74)
+[]</p>
+
+<p>```</p>
+]]></content>
+  </entry>
+  
+</feed>
