@@ -124,6 +124,16 @@ $ rake generate
 $ rake deploy
 ```
 
+NOTE: if you get this error:
+
+```
+cd _deploy
+rake aborted!
+No such file or directory - _deploy
+```
+
+Then the fix is to just `mkdir _deploy`, and re-run `rake deploy`
+
 ## Step 11: revel in it's beauty
 
 ![screenshot](http://cl.ly/image/1e2x3I293X3w/Screen%20Shot%202013-09-07%20at%2012.21.57%20AM.png)
