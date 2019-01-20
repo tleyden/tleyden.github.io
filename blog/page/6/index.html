@@ -1166,7 +1166,13 @@
 </span><span class='line'>No such file or directory - _deploy</span></code></pre></td></tr></table></div></figure>
 
 
-<p>Then the fix is to just <code>mkdir _deploy</code>, and re-run <code>rake deploy</code></p>
+<p>Then the fix is to git clone the repo into a subdirectory called <code>_deploy</code> (sibling dir of <code>public</code>), and then re-run <code>rake deploy</code>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ git clone git@github.com:tleyden/tleyden.github.io.git _deploy
+</span><span class='line'>$ rake deploy</span></code></pre></td></tr></table></div></figure>
+
 
 <h2>Step 11: revel in it&rsquo;s beauty</h2>
 
