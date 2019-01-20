@@ -2,314 +2,314 @@
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
         <loc>http://tleyden.github.io/blog/2013/09/07/octopress-setup-part-i/</loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/2013/09/07/octopress-setup-part-ii/</loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/2013/09/19/java-coding-challenge/</loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/2013/09/20/deciphering-some-go-code/</loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/2013/11/12/docker-on-osx/</loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2013/11/14/investigating-an-android-sqlite-threading-deadlock/
         </loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2013/11/14/running-couchbase-cluster-under-docker/
         </loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2013/11/20/debugging-http-traffic-in-android-apps-with-a-proxy/
         </loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2013/11/21/a-simple-data-race-in-go-and-how-to-fix-it/
         </loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2013/11/22/android-studio-plus-genymotion-emulator/
         </loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/2013/11/23/understanding-chan-chans-in-go/</loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/2013/12/19/how-to-downgrade-android-studio/</loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2014/01/13/objective-c-coding-interview-challenge-urlpuller/
         </loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2014/01/31/a-stubbed-out-gradle-multi-project-hierarchy-using-git-submodules/
         </loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2014/02/06/why-use-go-when-you-can-just-use-c-plus-plus/
         </loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/2014/02/08/playing-with-go-and-opengl/</loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2014/03/18/a-slight-tweak-on-a-successful-git-branching-model/
         </loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2014/04/09/a-successful-git-branching-model-with-enterprise-support/
         </loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2014/05/21/what-is-couchbase-mobile-and-why-should-you-care/
         </loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/
         </loc>
-        <lastmod>2016-11-08T09:02:31-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2014/05/27/configure-emacs-as-a-go-editor-from-scratch-part-2/
         </loc>
-        <lastmod>2016-11-08T09:02:51-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/2014/06/22/running-couchbase-server-on-gce/</loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/2014/06/22/running-couchbase-sync-gateway-on-gce/</loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/2014/09/10/debugging-into-android-source/</loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2014/10/25/cuda-6-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/
         </loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5/
         </loc>
-        <lastmod>2015-11-22T11:16:48-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2014/10/25/running-caffe-on-aws-gpu-instance-via-docker/
         </loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/2014/10/30/goroutines-vs-threads/</loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/
         </loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/2014/11/04/coreos-with-nvidia-cuda-gpu-drivers/</loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/2014/11/12/an-example-of-using-nsq-from-go/</loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/2014/11/14/running-cbfs/</loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2014/12/02/getting-started-with-go-and-protocol-buffers/
         </loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2014/12/11/up-and-running-with-couchbase-lite-phonegap/
         </loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2014/12/15/running-a-sync-gateway-cluster-under-coreos-on-aws/
         </loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2015/01/23/running-a-walrus-backed-sync-gateway-on-aws/
         </loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2015/03/03/graphing-time-series-data-with-seriesly-and-cubism/
         </loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2015/03/21/nginx-proxy-for-sync-gateway-using-confd/
         </loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io/
         </loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/2015/04/25/setting-up-octopress-under-docker/</loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2015/05/05/running-couchbase-server-under-docker-on-joyent/
         </loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/2015/11/03/running-the-sync-gateway-amazon-ami/</loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2015/11/22/running-neural-style-on-an-aws-gpu-instance/
         </loc>
-        <lastmod>2016-02-03T13:07:35-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2015/11/22/cuda-7-dot-5-on-aws-gpu-instance-running-ubuntu-14-dot-04/
         </loc>
-        <lastmod>2015-11-22T18:01:07-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/2016/02/03/setting-up-uniqush-with-apns/</loc>
-        <lastmod>2016-02-14T11:07:12-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/2016/02/06/octopress-under-docker/</loc>
-        <lastmod>2016-02-05T21:57:28-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2016/02/07/configure-emacs-as-a-go-editor-from-scratch-part-3/
         </loc>
-        <lastmod>2016-02-07T09:17:54-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/2016/02/08/adding-vendoring-to-a-go-project/</loc>
-        <lastmod>2016-02-09T10:04:57-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2016/02/15/setting-up-a-self-hosted-drone-dot-io-ci-server/
         </loc>
-        <lastmod>2016-02-16T16:57:06-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2016/05/19/go-race-detector-gotcha-with-value-receivers/
         </loc>
-        <lastmod>2016-05-19T16:17:39-07:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2016/09/12/configuring-influxdb-and-grafana-with-go-client-library/
         </loc>
-        <lastmod>2016-09-30T09:12:22-07:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/2016/09/30/the-lifecycle-of-an-http-request/</loc>
-        <lastmod>2016-10-04T09:27:46-07:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2016/10/02/deep-dive-of-what-happens-under-the-hood-when-you-open-a-web-page/
         </loc>
-        <lastmod>2016-10-02T16:29:09-07:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2016/10/31/install-couchbase-server-plus-mobile-on-docker-cloud/
         </loc>
-        <lastmod>2016-10-31T16:50:25-07:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://tleyden.github.io/blog/2016/11/21/tuning-the-go-http-client-library-for-load-testing/
         </loc>
-        <lastmod>2016-11-21T16:50:43-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/2016/12/20/understanding-function-closures-in-go/</loc>
-        <lastmod>2016-12-20T22:46:16-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/2017/06/14/running-postgresql-in-docker/</loc>
-        <lastmod>2017-06-17T09:07:50-07:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/blog/2017/07/02/openwhisk-action-sequences/</loc>
-        <lastmod>2017-07-05T07:15:19-07:00</lastmod>
-    </url>
-    <url>
-        <loc>http://tleyden.github.io/blog/archives/</loc>
-        <lastmod>2017-07-05T07:15:19-07:00</lastmod>
-    </url>
-    <url>
-        <loc>http://tleyden.github.io/</loc>
-        <lastmod>2017-07-05T07:15:19-07:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
     <url>
         <loc>http://tleyden.github.io/robots.txt</loc>
-        <lastmod>2015-11-03T12:07:24-08:00</lastmod>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://tleyden.github.io/blog/archives/</loc>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://tleyden.github.io/</loc>
+        <lastmod>2019-01-19T16:35:46-08:00</lastmod>
     </url>
 </urlset>

@@ -240,6 +240,18 @@
 </span><span class='line'>$ rake deploy</span></code></pre></td></tr></table></div></figure>
 
 
+<p>NOTE: if you get this error:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>cd _deploy
+</span><span class='line'>rake aborted!
+</span><span class='line'>No such file or directory - _deploy</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then the fix is to just <code>mkdir _deploy</code>, and re-run <code>rake deploy</code></p>
+
 <h2>Step 11: revel in it&rsquo;s beauty</h2>
 
 <p><img src="http://cl.ly/image/1e2x3I293X3w/Screen%20Shot%202013-09-07%20at%2012.21.57%20AM.png" alt="screenshot" /></p>
@@ -396,7 +408,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2017 - Traun Leyden -
+  Copyright &copy; 2019 - Traun Leyden -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 
