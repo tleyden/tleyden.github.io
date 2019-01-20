@@ -132,7 +132,12 @@ rake aborted!
 No such file or directory - _deploy
 ```
 
-Then the fix is to just `mkdir _deploy`, and re-run `rake deploy`
+Then the fix is to git clone the repo into a subdirectory called `_deploy` (sibling dir of `public`), and then re-run `rake deploy`:
+
+```
+$ git clone git@github.com:tleyden/tleyden.github.io.git _deploy
+$ rake deploy
+```
 
 ## Step 11: revel in it's beauty
 
