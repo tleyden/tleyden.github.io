@@ -10,6 +10,7 @@ Here are my requirements for a Ghost blogging platform backend:
 
 * Cheap - ideally under $5 / month
 * Ability to setup multiple blogs if I later want to add a new blog hosted on a different domain: so blog1.domainA.com + and blog2.domainB.com, without increasing cost.
+* Easy to manage and backup
 
 Non-requirements:
 
@@ -19,7 +20,7 @@ Non-requirements:
 And here is the tech stack:
 
 * AWS Lightsail instance running Ubuntu
-* SQLite database(s)
+* SQLite database(s) - this is one less "moving part" and slightly easier to manage.  (see [this blog post](https://stanislas.blog/2018/03/migrating-ghost-from-mysql-to-sqlite/) for rationale) 
 * Ghost
 
 ### Step 1: Launch a Lightsail instance
@@ -97,13 +98,13 @@ $ ghost install --db sqlite3
 
 Here is how I answered the setup questions, but you can customize to your needs:
 
-Enter your blog URL: http://blog1.domainA.com
-Do you wish to setup Nginx?: Yes
-Do you wish to setup SSL?: No
-Do you wish to setup Systemd?: Yes
-Do you want to start Ghost?: Yes 
+* **Enter your blog URL:** http://blog1.domainA.com
+* **Do you wish to setup Nginx?:** Yes
+* **Do you wish to setup SSL?:** No
+* **Do you wish to setup Systemd?:** Yes
+* **Do you want to start Ghost?:** Yes 
 
-I decided to setup SSL in a separate step rather than initially, but the more secure approach would be to use **https://blog1.domainA.com** for the blog URL, which will trigger SSL setup initially.
+I decided to setup SSL in a separate step rather than initially, but the more secure approach would be to use **https** instead, eg https://blog1.domainA.com for the blog URL, which will trigger SSL setup initially.
 
 ### Step 4: Create Ghost admin user
 
@@ -142,3 +143,4 @@ You now have two separate Ghost blogging sites setup on a single $5 / mo AWS Lig
 
 * https://ghost.org/docs/install/ubuntu/
 * https://forum.ghost.org/t/cannot-run-ghost-install-on-ubuntu-using-sqlite3/10129
+* https://stanislas.blog/2018/03/migrating-ghost-from-mysql-to-sqlite/
