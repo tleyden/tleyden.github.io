@@ -122,11 +122,15 @@ Ability to setup multiple blogs if I later &hellip;">
 <p>And here is the tech stack:</p>
 
 <ul>
-<li>AWS Lightsail instance running Ubuntu</li>
-<li>SQLite database(s) &ndash; this is one less &ldquo;moving part&rdquo; and slightly easier to manage.  (see <a href="https://stanislas.blog/2018/03/migrating-ghost-from-mysql-to-sqlite/">this blog post</a> for rationale)</li>
-<li>Ghost</li>
+<li>AWS Lightsail instance running Ubuntu 18</li>
+<li>SQLite</li>
+<li>Nginx</li>
+<li>Node.js</li>
+<li>Ghost Node.js module(s)</li>
 </ul>
 
+
+<p>SQLite was chosen over MySQL since this is one less &ldquo;moving part&rdquo; and slightly easier to manage.  See <a href="https://stanislas.blog/2018/03/migrating-ghost-from-mysql-to-sqlite/">this blog post</a> for the rationale.</p>
 
 <h3>Step 1: Launch a Lightsail instance</h3>
 
