@@ -19,9 +19,13 @@ Non-requirements:
 
 And here is the tech stack:
 
-* AWS Lightsail instance running Ubuntu
-* SQLite database(s) - this is one less "moving part" and slightly easier to manage.  (see [this blog post](https://stanislas.blog/2018/03/migrating-ghost-from-mysql-to-sqlite/) for rationale) 
-* Ghost
+* AWS Lightsail instance running Ubuntu 18
+* SQLite
+* Nginx
+* Node.js
+* Ghost Node.js module(s)
+
+SQLite was chosen over MySQL since this is one less "moving part" and slightly easier to manage.  See [this blog post](https://stanislas.blog/2018/03/migrating-ghost-from-mysql-to-sqlite/) for the rationale.
 
 ### Step 1: Launch a Lightsail instance
 
