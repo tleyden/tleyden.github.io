@@ -104,6 +104,7 @@ Ability to setup multiple blogs if I later &hellip;">
 <ul>
 <li>Cheap &ndash; ideally under $5 / month</li>
 <li>Ability to setup multiple blogs if I later want to add a new blog hosted on a different domain: so blog1.domainA.com + and blog2.domainB.com, without increasing cost.</li>
+<li>Easy to manage and backup</li>
 </ul>
 
 
@@ -119,7 +120,7 @@ Ability to setup multiple blogs if I later &hellip;">
 
 <ul>
 <li>AWS Lightsail instance running Ubuntu</li>
-<li>SQLite database(s)</li>
+<li>SQLite database(s) &ndash; this is one less &ldquo;moving part&rdquo; and slightly easier to manage.  (see <a href="https://stanislas.blog/2018/03/migrating-ghost-from-mysql-to-sqlite/">this blog post</a> for rationale)</li>
 <li>Ghost</li>
 </ul>
 
@@ -210,13 +211,16 @@ Ability to setup multiple blogs if I later &hellip;">
 
 <p>Here is how I answered the setup questions, but you can customize to your needs:</p>
 
-<p>Enter your blog URL: <a href="http://blog1.domainA.com">http://blog1.domainA.com</a>
-Do you wish to setup Nginx?: Yes
-Do you wish to setup SSL?: No
-Do you wish to setup Systemd?: Yes
-Do you want to start Ghost?: Yes</p>
+<ul>
+<li><strong>Enter your blog URL:</strong> <a href="http://blog1.domainA.com">http://blog1.domainA.com</a></li>
+<li><strong>Do you wish to setup Nginx?:</strong> Yes</li>
+<li><strong>Do you wish to setup SSL?:</strong> No</li>
+<li><strong>Do you wish to setup Systemd?:</strong> Yes</li>
+<li><strong>Do you want to start Ghost?:</strong> Yes</li>
+</ul>
 
-<p>I decided to setup SSL in a separate step rather than initially, but the more secure approach would be to use **<a href="https://blog1.domainA.com**">https://blog1.domainA.com**</a> for the blog URL, which will trigger SSL setup initially.</p>
+
+<p>I decided to setup SSL in a separate step rather than initially, but the more secure approach would be to use <strong>https</strong> instead, eg <a href="https://blog1.domainA.com">https://blog1.domainA.com</a> for the blog URL, which will trigger SSL setup initially.</p>
 
 <h3>Step 4: Create Ghost admin user</h3>
 
@@ -261,6 +265,7 @@ Do you want to start Ghost?: Yes</p>
 <ul>
 <li><a href="https://ghost.org/docs/install/ubuntu/">https://ghost.org/docs/install/ubuntu/</a></li>
 <li><a href="https://forum.ghost.org/t/cannot-run-ghost-install-on-ubuntu-using-sqlite3/10129">https://forum.ghost.org/t/cannot-run-ghost-install-on-ubuntu-using-sqlite3/10129</a></li>
+<li><a href="https://stanislas.blog/2018/03/migrating-ghost-from-mysql-to-sqlite/">https://stanislas.blog/2018/03/migrating-ghost-from-mysql-to-sqlite/</a></li>
 </ul>
 
 </div>
