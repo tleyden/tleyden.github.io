@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2019-01-19T16:49:57-08:00</updated>
+  <updated>2020-06-27T12:27:01-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -12,6 +12,178 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Installing Ghost on AWS Lightsail with SQLite]]></title>
+    <link href="http://tleyden.github.io/blog/2020/06/27/installing-ghost-on-aws-lightsail-with-sqlite/"/>
+    <updated>2020-06-27T09:59:00-07:00</updated>
+    <id>http://tleyden.github.io/blog/2020/06/27/installing-ghost-on-aws-lightsail-with-sqlite</id>
+    <content type="html"><![CDATA[<p>Here are my requirements for a Ghost blogging platform backend:</p>
+
+<ul>
+<li>Cheap &ndash; ideally under $5 / month</li>
+<li>Ability to setup multiple blogs if I later want to add a new blog hosted on a different domain: so blog1.domainA.com + and blog2.domainB.com, without increasing cost.</li>
+</ul>
+
+
+<p>Non-requirements:</p>
+
+<ul>
+<li>High traffic</li>
+<li>Avoiding CLI or some server management (would be nice, but does that exist for &lt; $5 month?)</li>
+</ul>
+
+
+<p>And here is the tech stack:</p>
+
+<ul>
+<li>AWS Lightsail instance running Ubuntu</li>
+<li>SQLite database(s)</li>
+<li>Ghost</li>
+</ul>
+
+
+<h3>Step 1: Launch a Lightsail instance</h3>
+
+<p>Lightsail seems like a good value since you can get a decent sized instance and a static IP for $5.</p>
+
+<p>Login to the AWS console and create a Lightsail instance with the following specs:</p>
+
+<ul>
+<li>Blueprint: OS Only Ubuntu 18.04 LTS</li>
+<li>SSH key: upload your <code>~/.ssh/id_rsa.pub</code> (maybe make a copy and rename it with a better name to easily find it in the AWS console later)</li>
+<li>Instance Plan: $5/mo with 1GB or RAM, 1 vCPU, 40 GB SSD and 2 TB of transfer.  Ghost recommends at least 1 GB of RAM, so it&rsquo;s probably better to use this instance size or greater.</li>
+<li>Identify your instance: rabbit (or whatever you wanna call it!)</li>
+</ul>
+
+
+<p>You should see the following:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/LightSail_Instance.png" alt="LightSailInstance.png" /></p>
+
+<h3>Step: Add DNS A record</h3>
+
+<p>Go to your DNS register where you registered your blog domain name (eg, Namecheap), and add a new A record as follows:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/AddDNSARecord.png" alt="DNSARecord.png" /></p>
+
+<ul>
+<li>Use &ldquo;blog&rdquo; for the host if you want the blog named &ldquo;blog.yourdomain.com&rdquo;, but you could also name it something else.</li>
+<li>Use the public static ip address from the Lightsail AWS console.</li>
+</ul>
+
+
+<h3>Step 2: Install Ghost dependencies</h3>
+
+<p>ssh in via <code>ssh ubuntu@&lt;your ligthsail instance ip&gt;</code></p>
+
+<p>Update the apt package list:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get update</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Install nginx:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo apt-get install -y nginx
+</span><span class='line'>$ sudo ufw allow 'Nginx Full'</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Install nodejs:</p>
+
+<p>Add the NodeSource APT repository for Node 12, then install nodejs</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash
+</span><span class='line'>$ sudo apt-get install -y nodejs</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Install Ghost-CLI</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo npm install ghost-cli@latest -g</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Step 3: Create ghost blog</h3>
+
+<p>Create a directory to hold the blog:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo mkdir -p /var/www/ghost/blog1
+</span><span class='line'>$ sudo chown ubuntu:ubuntu /var/www/ghost/blog1
+</span><span class='line'>$ sudo chmod 775 /var/www/ghost/blog1/
+</span><span class='line'>$ cd /var/www/ghost/blog1/</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Install Ghost:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ghost install --db sqlite3</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Here is how I answered the setup questions, but you can customize to your needs:</p>
+
+<p>Enter your blog URL: <a href="http://blog1.domainA.com">http://blog1.domainA.com</a>
+Do you wish to setup Nginx?: Yes
+Do you wish to setup SSL?: No
+Do you wish to setup Systemd?: Yes
+Do you want to start Ghost?: Yes</p>
+
+<p>I decided to setup SSL in a separate step rather than initially, but the more secure approach would be to use **<a href="https://blog1.domainA.com**">https://blog1.domainA.com**</a> for the blog URL, which will trigger SSL setup initially.</p>
+
+<h3>Step 4: Create Ghost admin user</h3>
+
+<p>This part is a little scary, (and ghosts are scary), but Ghost basically puts your blog unprotected to the world without an admin user.  The first person that stumbles across it gets to become the admin user.  You want that to be you!</p>
+
+<p>Quickly go to <a href="http://blog1.domainA.com">http://blog1.domainA.com</a> and create the Ghost admin user.</p>
+
+<h3>Step 5: Configure blog2 and map it&rsquo;s DNS</h3>
+
+<p>Go to your DNS register where you registered your blog domain name (eg, Namecheap), and add a new A record as follows:</p>
+
+<ul>
+<li>Use &ldquo;blog&rdquo; for the host if you want the blog named &ldquo;blog.domainB.com&rdquo;, but you could also name it something else.</li>
+<li>Use the public static ip address from the Lightsail AWS console.</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo mkdir -p /var/www/ghost/blog2
+</span><span class='line'>$ sudo chown ubuntu:ubuntu /var/www/ghost/blog2
+</span><span class='line'>$ sudo chmod 775 /var/www/ghost/blog2/
+</span><span class='line'>$ cd /var/www/ghost/blog2/</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Install Ghost:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ghost install --db sqlite3</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Use the same steps above, except for the blog URL use: <a href="http://blog.domainB.com">http://blog.domainB.com</a></p>
+
+<h3>Congrats!</h3>
+
+<p>You now have two separate Ghost blogging sites setup on a single $5 / mo AWS Lightsail instance.</p>
+
+<h3>References</h3>
+
+<ul>
+<li><a href="https://ghost.org/docs/install/ubuntu/">https://ghost.org/docs/install/ubuntu/</a></li>
+<li><a href="https://forum.ghost.org/t/cannot-run-ghost-install-on-ubuntu-using-sqlite3/10129">https://forum.ghost.org/t/cannot-run-ghost-install-on-ubuntu-using-sqlite3/10129</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[OpenWhisk Action Sequences]]></title>
@@ -4912,161 +5084,6 @@
 
 <ul>
 <li><a href="https://github.com/imathis/octopress/issues/1344">https://github.com/imathis/octopress/issues/1344</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Test coverage for Go with drone.io and coveralls.io]]></title>
-    <link href="http://tleyden.github.io/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io/"/>
-    <updated>2015-03-31T07:26:00-07:00</updated>
-    <id>http://tleyden.github.io/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io</id>
-    <content type="html"><![CDATA[<p>This will walk you through setting up a test coverage report on coveralls.io which will be updated every time a new build happens on drone.io (a continuous integration server similar to TavisCI).</p>
-
-<p>I&rsquo;m going to use the <a href="https://github.com/couchbaselabs/sg-replicate">couchbaselabs/sg-replicate</a> repo as an example, since it currently does not have any test coverage statistics.  The goal is to end up with a badge in the README that points to a test coverage report hosted on coveralls.io.</p>
-
-<h2>Clone the repo</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ git clone https://github.com/couchbaselabs/sg-replicate.git
-</span><span class='line'>$ cd sg-replicate</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Test coverage command line stats</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ go test -cover
-</span><span class='line'>go tool: no such tool "cover"; to install:
-</span><span class='line'>  go get golang.org/x/tools/cmd/cover
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Try again:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ go get golang.org/x/tools/cmd/cover && go test -cover
-</span><span class='line'>PASS
-</span><span class='line'>coverage: 69.4% of statements
-</span><span class='line'>ok    github.com/couchbaselabs/sg-replicate   0.156s</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Ouch, 69.4% is barely a C-. (if you round up!)</p>
-
-<h2>Coverage breakdown</h2>
-
-<p>Text report:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ go test -coverprofile=coverage.out 
-</span><span class='line'>$ go tool cover -func=coverage.out
-</span><span class='line'>github.com/couchbaselabs/sg-replicate/attachment.go:15:           NewAttachment           84.6%
-</span><span class='line'>github.com/couchbaselabs/sg-replicate/changes_feed_parameters.go:20:  NewChangesFeedParams        100.0%
-</span><span class='line'>github.com/couchbaselabs/sg-replicate/changes_feed_parameters.go:30:  FeedType            100.0%
-</span><span class='line'>github.com/couchbaselabs/sg-replicate/changes_feed_parameters.go:34:  Limit               100.0%</span></code></pre></td></tr></table></div></figure>
-
-
-<p>HTML report:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ go test -coverprofile=coverage.out 
-</span><span class='line'>$ go tool cover -html=coverage.out</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This should open up the following report in your default browser:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_coverage_html.png" alt="html report" /></p>
-
-<h2>Coveralls.io setup</h2>
-
-<ul>
-<li>Login to coveralls.io</li>
-<li>Create a new repo</li>
-<li>Get the repo token from the <strong>SET UP COVERALLS</strong> section</li>
-</ul>
-
-
-<p>At this point, your empty coveralls repo will look something like this:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/coveralls_empty_repo.png" alt="empty coveralls repo" /></p>
-
-<h2>Configure Drone.io + Goveralls</h2>
-
-<p>If you have not already done so, setup a drone.io build for your repo.</p>
-
-<p>On the drone.io <strong>Settings</strong> page, make the following changes:</p>
-
-<p><strong>Environment Variables</strong></p>
-
-<p>In the Environment Variables section of the web ui, add:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>COVERALLS_TOKEN=&lt;coveralls_repo_token&gt;</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Commands</strong></p>
-
-<p>In the commands section, you can replace your existing <code>go test</code> call with:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>go get github.com/axw/gocov/gocov
-</span><span class='line'>go get github.com/mattn/goveralls
-</span><span class='line'>goveralls -service drone.io -repotoken $COVERALLS_TOKEN</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Here&rsquo;s what it should look like:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/drone_io_coverage.png" alt="drone io ui" /></p>
-
-<h2>Kick off a build</h2>
-
-<p>Go to the drone.io project page for your repo, and hit <strong>Build Now</strong></p>
-
-<p>At the bottom of the build output, you should see:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>Job #1.1
-</span><span class='line'>https://coveralls.io/jobs/5189501</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If you follow the link, you should see something like:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/coveralls_sgreplicate.png" alt="coveralls report" /></p>
-
-<p>Looks like we just went from a C- to a B!  I have no idea why the coverage improved, but I&rsquo;ll take it.</p>
-
-<h2>Add a badge, call it a day</h2>
-
-<p>On the coveralls.io project page for your repo, you should see a button near the top called <strong>Badge URLS</strong>.  Click and copy/paste the markdown, which should look something like this:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>[![Coverage Status](https://coveralls.io/repos/couchbaselabs/sg-replicate/badge.svg?branch=master)](https://coveralls.io/r/couchbaselabs/sg-replicate?branch=master)</span></code></pre></td></tr></table></div></figure>
-
-
-<p>And add it to your project&rsquo;s README.</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/sg_replicate_badges.png" alt="badges" /></p>
-
-<h2>References</h2>
-
-<ul>
-<li><a href="https://blog.golang.org/cover">https://blog.golang.org/cover</a></li>
-<li><a href="https://github.com/mattn/goveralls">https://github.com/mattn/goveralls</a></li>
 </ul>
 
 ]]></content>

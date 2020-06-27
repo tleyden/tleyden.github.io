@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="This will walk you through setting up Sync Gateway behind nginx. The nginx conf will be auto generated based on Sync Gateway status. Launch CoreOS &hellip;">
+  <meta name="description" content="This will walk you through setting up a test coverage report on coveralls.io which will be updated every time a new build happens on drone.io (a &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +72,188 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/03/31/test-coverage-for-go-with-drone-dot-io-and-coveralls-dot-io/">Test Coverage for Go With drone.io and coveralls.io</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-03-31T07:26:00-07:00" pubdate data-updated="true">Mar 31<span>st</span>, 2015</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>This will walk you through setting up a test coverage report on coveralls.io which will be updated every time a new build happens on drone.io (a continuous integration server similar to TavisCI).</p>
+
+<p>I&rsquo;m going to use the <a href="https://github.com/couchbaselabs/sg-replicate">couchbaselabs/sg-replicate</a> repo as an example, since it currently does not have any test coverage statistics.  The goal is to end up with a badge in the README that points to a test coverage report hosted on coveralls.io.</p>
+
+<h2>Clone the repo</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ git clone https://github.com/couchbaselabs/sg-replicate.git
+</span><span class='line'>$ cd sg-replicate</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Test coverage command line stats</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go test -cover
+</span><span class='line'>go tool: no such tool "cover"; to install:
+</span><span class='line'>  go get golang.org/x/tools/cmd/cover
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Try again:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go get golang.org/x/tools/cmd/cover && go test -cover
+</span><span class='line'>PASS
+</span><span class='line'>coverage: 69.4% of statements
+</span><span class='line'>ok    github.com/couchbaselabs/sg-replicate   0.156s</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ouch, 69.4% is barely a C-. (if you round up!)</p>
+
+<h2>Coverage breakdown</h2>
+
+<p>Text report:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go test -coverprofile=coverage.out 
+</span><span class='line'>$ go tool cover -func=coverage.out
+</span><span class='line'>github.com/couchbaselabs/sg-replicate/attachment.go:15:           NewAttachment           84.6%
+</span><span class='line'>github.com/couchbaselabs/sg-replicate/changes_feed_parameters.go:20:  NewChangesFeedParams        100.0%
+</span><span class='line'>github.com/couchbaselabs/sg-replicate/changes_feed_parameters.go:30:  FeedType            100.0%
+</span><span class='line'>github.com/couchbaselabs/sg-replicate/changes_feed_parameters.go:34:  Limit               100.0%</span></code></pre></td></tr></table></div></figure>
+
+
+<p>HTML report:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ go test -coverprofile=coverage.out 
+</span><span class='line'>$ go tool cover -html=coverage.out</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This should open up the following report in your default browser:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/go_coverage_html.png" alt="html report" /></p>
+
+<h2>Coveralls.io setup</h2>
+
+<ul>
+<li>Login to coveralls.io</li>
+<li>Create a new repo</li>
+<li>Get the repo token from the <strong>SET UP COVERALLS</strong> section</li>
+</ul>
+
+
+<p>At this point, your empty coveralls repo will look something like this:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/coveralls_empty_repo.png" alt="empty coveralls repo" /></p>
+
+<h2>Configure Drone.io + Goveralls</h2>
+
+<p>If you have not already done so, setup a drone.io build for your repo.</p>
+
+<p>On the drone.io <strong>Settings</strong> page, make the following changes:</p>
+
+<p><strong>Environment Variables</strong></p>
+
+<p>In the Environment Variables section of the web ui, add:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>COVERALLS_TOKEN=&lt;coveralls_repo_token&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Commands</strong></p>
+
+<p>In the commands section, you can replace your existing <code>go test</code> call with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>go get github.com/axw/gocov/gocov
+</span><span class='line'>go get github.com/mattn/goveralls
+</span><span class='line'>goveralls -service drone.io -repotoken $COVERALLS_TOKEN</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Here&rsquo;s what it should look like:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/drone_io_coverage.png" alt="drone io ui" /></p>
+
+<h2>Kick off a build</h2>
+
+<p>Go to the drone.io project page for your repo, and hit <strong>Build Now</strong></p>
+
+<p>At the bottom of the build output, you should see:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Job #1.1
+</span><span class='line'>https://coveralls.io/jobs/5189501</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If you follow the link, you should see something like:</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/coveralls_sgreplicate.png" alt="coveralls report" /></p>
+
+<p>Looks like we just went from a C- to a B!  I have no idea why the coverage improved, but I&rsquo;ll take it.</p>
+
+<h2>Add a badge, call it a day</h2>
+
+<p>On the coveralls.io project page for your repo, you should see a button near the top called <strong>Badge URLS</strong>.  Click and copy/paste the markdown, which should look something like this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[![Coverage Status](https://coveralls.io/repos/couchbaselabs/sg-replicate/badge.svg?branch=master)](https://coveralls.io/r/couchbaselabs/sg-replicate?branch=master)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And add it to your project&rsquo;s README.</p>
+
+<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/sg_replicate_badges.png" alt="badges" /></p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://blog.golang.org/cover">https://blog.golang.org/cover</a></li>
+<li><a href="https://github.com/mattn/goveralls">https://github.com/mattn/goveralls</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1910,44 +2092,6 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/11/01/running-couchbase-cluster-under-coreos-on-aws/">Running Couchbase Cluster Under CoreOS on AWS</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-11-01T12:16:00-07:00" pubdate data-updated="true">Nov 1<span>st</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>The content in this blog post has <strong>moved</strong>.</p>
-
-<p>Please go <a href="https://github.com/couchbaselabs/couchbase-server-coreos">HERE</a> to view the updated content.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/4/">&larr; Older</a>
@@ -1963,7 +2107,7 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
     <section>
   <h1>About Me</h1>
   <p>
-  Sr. Software engineer at <a href="http://www.databricks.com">Databricks</a> - Apache Spark as a service for distributed analytics compution and machine learning.  We&#8217;re hiring.
+  Sr. Software engineer at <a href="http://www.databricks.com">Databricks</a> - Apache Spark as a service for distributed analytics and machine learning.  We&#8217;re hiring.
   </p>
 
   </p>
@@ -1981,6 +2125,10 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2020/06/27/installing-ghost-on-aws-lightsail-with-sqlite/">Installing Ghost on AWS Lightsail With SQLite</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2017/07/02/openwhisk-action-sequences/">OpenWhisk Action Sequences</a>
       </li>
     
@@ -1994,10 +2142,6 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
     
       <li class="post">
         <a href="/blog/2016/11/21/tuning-the-go-http-client-library-for-load-testing/">Tuning the Go HTTP Client Settings for Load Testing</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/10/31/install-couchbase-server-plus-mobile-on-docker-cloud/">Install Couchbase Server + Mobile on Docker Cloud</a>
       </li>
     
   </ul>
@@ -2039,7 +2183,7 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2019 - Traun Leyden -
+  Copyright &copy; 2020 - Traun Leyden -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 
