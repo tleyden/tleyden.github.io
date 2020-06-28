@@ -27,7 +27,7 @@ And here is the tech stack:
 
 SQLite was chosen over MySQL since this is one less "moving part" and slightly easier to manage.  See [this blog post](https://stanislas.blog/2018/03/migrating-ghost-from-mysql-to-sqlite/) for the rationale.
 
-### Step 1: Launch a Lightsail instance
+### Launch a Lightsail instance
 
 Lightsail seems like a good value since you can get a decent sized instance and a static IP for $5.
 
@@ -42,16 +42,20 @@ You should see the following:
 
 ![LightSailInstance.png](http://tleyden-misc.s3.amazonaws.com/blog_images/LightSail_Instance.png)
 
-### Step: Add DNS A record
+### Create a static ip
+
+Go to the Lightsail **Networking** section, and choose "Attach static ip".  Associate the static ip with the lightsail instance, and make a note of it as you will need in the next step.
+
+### Add DNS A record
 
 Go to your DNS register where you registered your blog domain name (eg, Namecheap), and add a new A record as follows:
 
 ![DNSARecord.png](http://tleyden-misc.s3.amazonaws.com/blog_images/AddDNSARecord.png)
 
 * Use "blog" for the host if you want the blog named "blog.yourdomain.com", but you could also name it something else.
-* Use the public static ip address from the Lightsail AWS console.
+* Use the public static ip address created in the previous step.
 
-### Step 2: Install Ghost dependencies
+### Install Ghost dependencies
 
 ssh in via `ssh ubuntu@<your ligthsail instance ip>`
 
@@ -83,7 +87,7 @@ Install Ghost-CLI
 $ sudo npm install ghost-cli@latest -g
 ```
 
-### Step 3: Create ghost blog
+### Create ghost blog
 
 Create a directory to hold the blog:
 
@@ -110,13 +114,13 @@ Here is how I answered the setup questions, but you can customize to your needs:
 
 I decided to setup SSL in a separate step rather than initially, but the more secure approach would be to use **https** instead, eg https://blog1.domainA.com for the blog URL, which will trigger SSL setup initially.
 
-### Step 4: Create Ghost admin user
+### Create Ghost admin user
 
 This part is a little scary, (and ghosts are scary), but Ghost basically puts your blog unprotected to the world without an admin user.  The first person that stumbles across it gets to become the admin user.  You want that to be you!
 
 Quickly go to http://blog1.domainA.com and create the Ghost admin user.
 
-### Step 5: Configure blog2 and map it's DNS
+### Configure blog2 and map it's DNS
 
 Go to your DNS register where you registered your blog domain name (eg, Namecheap), and add a new A record as follows:
 
