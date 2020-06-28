@@ -132,7 +132,7 @@ Ability to setup multiple blogs if I later &hellip;">
 
 <p>SQLite was chosen over MySQL since this is one less &ldquo;moving part&rdquo; and slightly easier to manage.  See <a href="https://stanislas.blog/2018/03/migrating-ghost-from-mysql-to-sqlite/">this blog post</a> for the rationale.</p>
 
-<h3>Step 1: Launch a Lightsail instance</h3>
+<h3>Launch a Lightsail instance</h3>
 
 <p>Lightsail seems like a good value since you can get a decent sized instance and a static IP for $5.</p>
 
@@ -150,7 +150,11 @@ Ability to setup multiple blogs if I later &hellip;">
 
 <p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/LightSail_Instance.png" alt="LightSailInstance.png" /></p>
 
-<h3>Step: Add DNS A record</h3>
+<h3>Create a static ip</h3>
+
+<p>Go to the Lightsail <strong>Networking</strong> section, and choose &ldquo;Attach static ip&rdquo;.  Associate the static ip with the lightsail instance, and make a note of it as you will need in the next step.</p>
+
+<h3>Add DNS A record</h3>
 
 <p>Go to your DNS register where you registered your blog domain name (eg, Namecheap), and add a new A record as follows:</p>
 
@@ -158,11 +162,11 @@ Ability to setup multiple blogs if I later &hellip;">
 
 <ul>
 <li>Use &ldquo;blog&rdquo; for the host if you want the blog named &ldquo;blog.yourdomain.com&rdquo;, but you could also name it something else.</li>
-<li>Use the public static ip address from the Lightsail AWS console.</li>
+<li>Use the public static ip address created in the previous step.</li>
 </ul>
 
 
-<h3>Step 2: Install Ghost dependencies</h3>
+<h3>Install Ghost dependencies</h3>
 
 <p>ssh in via <code>ssh ubuntu@&lt;your ligthsail instance ip&gt;</code></p>
 
@@ -196,7 +200,7 @@ Ability to setup multiple blogs if I later &hellip;">
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo npm install ghost-cli@latest -g</span></code></pre></td></tr></table></div></figure>
 
 
-<h3>Step 3: Create ghost blog</h3>
+<h3>Create ghost blog</h3>
 
 <p>Create a directory to hold the blog:</p>
 
@@ -229,13 +233,13 @@ Ability to setup multiple blogs if I later &hellip;">
 
 <p>I decided to setup SSL in a separate step rather than initially, but the more secure approach would be to use <strong>https</strong> instead, eg <a href="https://blog1.domainA.com">https://blog1.domainA.com</a> for the blog URL, which will trigger SSL setup initially.</p>
 
-<h3>Step 4: Create Ghost admin user</h3>
+<h3>Create Ghost admin user</h3>
 
 <p>This part is a little scary, (and ghosts are scary), but Ghost basically puts your blog unprotected to the world without an admin user.  The first person that stumbles across it gets to become the admin user.  You want that to be you!</p>
 
 <p>Quickly go to <a href="http://blog1.domainA.com">http://blog1.domainA.com</a> and create the Ghost admin user.</p>
 
-<h3>Step 5: Configure blog2 and map it&rsquo;s DNS</h3>
+<h3>Configure blog2 and map it&rsquo;s DNS</h3>
 
 <p>Go to your DNS register where you registered your blog domain name (eg, Namecheap), and add a new A record as follows:</p>
 
