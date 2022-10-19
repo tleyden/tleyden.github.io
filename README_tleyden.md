@@ -1,26 +1,26 @@
 
-== Install
+## Install
 
 See http://tleyden.github.io/blog/2013/09/07/octopress-setup-part-i/
 
-== New Post
+## New Post
 
 ```
 $ rake new_post["title"]
 ```
 
-== Preview
+## Preview
 
 ```
 $ rake preview
 ```
 
-=== Deploy
+### Deploy
 
 ```
 $ ./push_master.sh
 ```
 
-=== Update source
+### Update source
 
 Commit code and then call `./push_source.sh`
