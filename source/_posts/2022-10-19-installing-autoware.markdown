@@ -12,6 +12,41 @@ As a warning, this blog post is pretty messy because of all those stumbling bloc
 
 Good luck!!
 
+<!-- TOC start: generated with https://derlin.github.io/bitdowntoc/ -->
+  * [My system](#my-system)
+- [Pre-install steps](#pre-install-steps)
+  * [Choose Ubuntu Linux version](#choose-ubuntu-linux-version)
+  * [Docker vs source install](#docker-vs-source-install)
+  * [Clean out old ros installs](#clean-out-old-ros-installs)
+- [Installation (docker-based)](#installation-docker-based)
+  * [Install docker engine](#install-docker-engine)
+  * [Nvidia container toolkit](#nvidia-container-toolkit)
+  * [Rocker](#rocker)
+  * [Start autoware docker container](#start-autoware-docker-container)
+    + [Error workaround](#error-workaround)
+  * [Install vcstool](#install-vcstool)
+  * [Setup workspace (from within container)](#setup-workspace-from-within-container)
+- [Run a planning simulation](#run-a-planning-simulation)
+  * [Install the gdown utility](#install-the-gdown-utility)
+    + [Download maps](#download-maps)
+    + [Launch autoware - take 1](#launch-autoware-take-1)
+    + [Upgrade to CUDA 11.6](#upgrade-to-cuda-116)
+    + [Upgrade to CUDA 11.6 - take 2](#upgrade-to-cuda-116-take-2)
+      - [Fixing nvidia-smi error](#fixing-nvidia-smi-error)
+  * [Start autoware docker container take 2](#start-autoware-docker-container-take-2)
+  * [Install Nvidia container toolkit](#install-nvidia-container-toolkit)
+  * [Install cuDNN](#install-cudnn)
+  * [Install TensorRT](#install-tensorrt)
+  * [Start autoware docker container take 3](#start-autoware-docker-container-take-3)
+    + [Launch autoware take 2](#launch-autoware-take-2)
+    + [Fix rviz2 errors](#fix-rviz2-errors)
+  * [Start autoware docker container take 4](#start-autoware-docker-container-take-4)
+    + [Launch autoware take 3](#launch-autoware-take-3)
+- [References](#references)
+<!-- TOC end -->
+
+
+<!-- TOC --><a name="my-system"></a>
 ## My system
 
 * Ubuntu 20.04
@@ -20,8 +55,10 @@ Good luck!!
 * Nvidia Driver Version: 470.141.03   CUDA Version: 11.4  (upgraded during this blog post to Driver Version: 510.73.05    CUDA Version: 11.6)
 
 
+<!-- TOC --><a name="pre-install-steps"></a>
 # Pre-install steps
 
+<!-- TOC --><a name="choose-ubuntu-linux-version"></a>
 ## Choose Ubuntu Linux version
 
 Autoware currently supports both 20.04 and 22.04 (but not 18.04), and I decided to go with 20.04 since it was the next LTS version after the version I had installed (18.04).
@@ -31,10 +68,12 @@ I noticed that autoware recommended cuda version of 11.6, which only has officia
 Here are the steps to upgrade to Ubuntu 20.04: [official instructions](https://ubuntu.com/blog/how-to-upgrade-from-ubuntu-18-04-lts-to-20-04-lts-today).
 
 
+<!-- TOC --><a name="docker-vs-source-install"></a>
 ## Docker vs source install
 
 I decided to go with the easier docker install until I had a need to use the source install.
 
+<!-- TOC --><a name="clean-out-old-ros-installs"></a>
 ## Clean out old ros installs
 
 ```
@@ -43,12 +82,15 @@ $ apt-get remove ros-melodic-*
 $ apt-get autoremove
 ```
 
+<!-- TOC --><a name="installation-docker-based"></a>
 # Installation (docker-based)
 
+<!-- TOC --><a name="install-docker-engine"></a>
 ## Install docker engine
 
 Install docker engine based on [these instructions](https://github.com/autowarefoundation/autoware/tree/0423b84ee8d763879bbbf910d249728410b16943/ansible/roles/docker_engine#manual-installation).  This links to the snapshot of the instructions that I used (as do below links).  If you want to use the latest instructions, change the `0423b84ee8d763879bbbf910d249728410b16943` commit hash in the URL to `main`.
 
+<!-- TOC --><a name="nvidia-container-toolkit"></a>
 ## Nvidia container toolkit
 
 Install the nvidia container toolkit based on [these instructions](https://github.com/autowarefoundation/autoware/tree/0423b84ee8d763879bbbf910d249728410b16943/ansible/roles/nvidia_docker#manual-installation).
@@ -79,6 +121,7 @@ Thu Oct 20 05:28:27 2022
 
 ```
 
+<!-- TOC --><a name="rocker"></a>
 ## Rocker
 
 Rocker is an alternative to Docker compose used by Autoware.
@@ -87,6 +130,7 @@ Installed rocker based on [these instructions](https://github.com/autowarefounda
 
 After this step, running `rocker` shows the rocker help.
 
+<!-- TOC --><a name="start-autoware-docker-container"></a>
 ## Start autoware docker container
 
 I ran:
@@ -105,6 +149,7 @@ nvidia-container-cli: requirement error: unsatisfied condition: cuda>=11.6, plea
 
 ```
 
+<!-- TOC --><a name="error-workaround"></a>
 ### Error workaround
 
 Using the approach suggested in [this github post](https://github.com/NVIDIA/nvidia-docker/issues/1409#issuecomment-1154910556) to add `-e NVIDIA_DISABLE_REQUIRE=true`, I ran the new command:
@@ -123,6 +168,7 @@ bash: docker: command not found
 
 Based on the response from the super helpful folks at Autoware in [this discussion](https://github.com/autowarefoundation/autoware/discussions/2961) I determined I needed to upgrade my Cuda version based on [these instructions](https://github.com/autowarefoundation/autoware/tree/0423b84ee8d763879bbbf910d249728410b16943/ansible/roles/cuda#manual-installation).  (see later step below)
 
+<!-- TOC --><a name="install-vcstool"></a>
 ## Install vcstool
 
 In the source instructions, it mentions that autoware depends on vcstool, which is a tool that makes it easy to manage code from multiple repos.
@@ -134,6 +180,7 @@ curl -s https://packagecloud.io/install/repositories/dirk-thomas/vcstool/script.
 sudo apt-get update
 sudo apt-get install python3-vcstool
 ```
+<!-- TOC --><a name="setup-workspace-from-within-container"></a>
 ## Setup workspace (from within container)
 
 In the container shell (started above):
@@ -156,10 +203,12 @@ Summary: 238 packages finished [39min 59s]
 
 ```
 
+<!-- TOC --><a name="run-a-planning-simulation"></a>
 # Run a planning simulation
 
 According to the docs: "Ad hoc simulation is a flexible method for running basic simulations on your local machine, and is the recommended method for anyone new to Autoware.", but there are no docs on how to do run an ad hoc simulation, so I am going to try a planning simulation based on the [planning simulation docs](https://autowarefoundation.github.io/autoware-documentation/main/tutorials/ad-hoc-simulation/planning-simulation/)
 
+<!-- TOC --><a name="install-the-gdown-utility"></a>
 ## Install the gdown utility
 
 This tool is needed to download the map data.
@@ -168,6 +217,7 @@ This tool is needed to download the map data.
 pip3 install gdown
 ```
 
+<!-- TOC --><a name="download-maps"></a>
 ### Download maps
 
 In the container started above:
@@ -178,6 +228,7 @@ gdown -O ~/autoware_map/ 'https://docs.google.com/uc?export=download&id=1499_nsb
 unzip -d ~/autoware_map ~/autoware_map/sample-map-planning.zip
 ```
 
+<!-- TOC --><a name="launch-autoware-take-1"></a>
 ### Launch autoware - take 1
 
 From inside the container:
@@ -223,6 +274,7 @@ The same error was reported in https://github.com/ros2/rviz/issues/753 and https
 
 I will update my nvidia driver as alluded to above, remove the `-e NVIDIA_DISABLE_REQUIRE=true` workaround, and retry.
 
+<!-- TOC --><a name="upgrade-to-cuda-116"></a>
 ### Upgrade to CUDA 11.6
 
 I erroneously used the [official nvidia instructions](https://developer.nvidia.com/cuda-11-6-0-download-archive?target_os=Linux&target_arch=x86_64&Distribution=Ubuntu&target_version=20.04&target_type=deb_local) for installing cuda, so instead use the official [autoware instructions](https://github.com/autowarefoundation/autoware/tree/0423b84ee8d763879bbbf910d249728410b16943/ansible/roles/cuda) to install cuda rather than the steps below.
@@ -288,6 +340,7 @@ and now I'm running nvidia 515.65.01:
 
 ```
 
+<!-- TOC --><a name="upgrade-to-cuda-116-take-2"></a>
 ### Upgrade to CUDA 11.6 - take 2
 
 Again for this step I erroneously used the [official nvidia instructions](https://developer.nvidia.com/cuda-11-6-0-download-archive?target_os=Linux&target_arch=x86_64&Distribution=Ubuntu&target_version=20.04&target_type=deb_local) for installing cuda, so instead use the official [autoware instructions](https://github.com/autowarefoundation/autoware/tree/0423b84ee8d763879bbbf910d249728410b16943/ansible/roles/cuda) to install cuda rather than the steps below.
@@ -319,6 +372,7 @@ echo 'export PATH=/usr/local/cuda/bin${PATH:+:${PATH}}' >> ~/.bashrc
 echo 'export LD_LIBRARY_PATH=/usr/local/cuda/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}' >> ~/.bashrc
 ```
 
+<!-- TOC --><a name="fixing-nvidia-smi-error"></a>
 #### Fixing nvidia-smi error
 
 I simply rebooted, and now nvidia-smi works.  Note that the cuda version went from 11.7 to 11.6.  The strange thing is that previously I idn't have the cuda packages installed.
@@ -332,6 +386,7 @@ Fri Oct 21 13:56:48 2022
 
 ```
 
+<!-- TOC --><a name="start-autoware-docker-container-take-2"></a>
 ## Start autoware docker container take 2
 
 ```
@@ -351,6 +406,7 @@ I realized I'm still missing several requirements:
 1. [Nvidia container toolkit](https://github.com/autowarefoundation/autoware/tree/main/ansible/roles/nvidia_docker#manual-installation) - I had this previously, but it was uninstalled.
 2. [TensorRT and cuDNN](https://github.com/autowarefoundation/autoware/tree/main/ansible/roles/tensorrt#manual-installation) - ditto
 
+<!-- TOC --><a name="install-nvidia-container-toolkit"></a>
 ## Install Nvidia container toolkit
 
 I installed nvidia container toolkit based on these [autoware instructions](https://github.com/autowarefoundation/autoware/tree/0423b84ee8d763879bbbf910d249728410b16943/ansible/roles/nvidia_docker#manual-installation)
@@ -366,6 +422,7 @@ Fri Oct 21 21:08:28 2022
 
 ```
 
+<!-- TOC --><a name="install-cudnn"></a>
 ## Install cuDNN
 
 ```
@@ -406,6 +463,7 @@ sudo apt-mark hold libcudnn8 libcudnn8-dev
 ```
 
 
+<!-- TOC --><a name="install-tensorrt"></a>
 ## Install TensorRT
 
 Using [these instructions](https://github.com/autowarefoundation/autoware/tree/0423b84ee8d763879bbbf910d249728410b16943/ansible/roles/tensorrt):
@@ -416,6 +474,7 @@ sudo apt-get install libnvinfer8=${tensorrt_version} libnvonnxparsers8=${tensorr
 sudo apt-mark hold libnvinfer8 libnvonnxparsers8 libnvparsers8 libnvinfer-plugin8 libnvinfer-dev libnvonnxparsers-dev libnvparsers-dev libnvinfer-plugin-dev
 ```
 
+<!-- TOC --><a name="start-autoware-docker-container-take-3"></a>
 ## Start autoware docker container take 3
 
 ```
@@ -445,6 +504,7 @@ $ ros2 topic list
 you will see meaningful output, whereas if you run that on your host, you will most likely see `ros2: command not found`, unless you had installed `ros2` on your host previously.
 
 
+<!-- TOC --><a name="launch-autoware-take-2"></a>
 ### Launch autoware take 2
 
 (also requires maps download, see above)
@@ -482,6 +542,7 @@ libGL error: MESA-LOADER: failed to retrieve device information
 [ERROR] [1666389050.805275164] [rviz2]: InvalidParametersException: Window with name 'OgreWindow(0)' already exists in GLRenderSystem::_createRenderWindow at /tmp/binarydeb/ros-galactic-rviz-ogre-vendor-8.5.1/.obj-x86_64-linux-gnu/ogre-v1.12.1-prefix/src/ogre-v1.12.1/RenderSystems/GL/src/OgreGLRenderSystem.cpp (line 1061)
 ```
 
+<!-- TOC --><a name="fix-rviz2-errors"></a>
 ### Fix rviz2 errors
 
 Relevant github issues:
@@ -601,6 +662,7 @@ sudo prime-select nvidia
 but I haven't verified this yet.
 
 
+<!-- TOC --><a name="start-autoware-docker-container-take-4"></a>
 ## Start autoware docker container take 4
 
 Add the `--devices /dev/dri` flag:
@@ -615,6 +677,7 @@ And now it finally works!! Running `rviz2` from within the container shows the r
 ![Screenshot from 2022-10-21 15-44-48](https://user-images.githubusercontent.com/296876/197299394-a1dcd275-4115-418c-9641-a4de762cf826.png)
 
 
+<!-- TOC --><a name="launch-autoware-take-3"></a>
 ### Launch autoware take 3
 
 (also requires maps download, see above)
@@ -639,6 +702,8 @@ Phew!  That was a lot harder than I thought it was going to be!  It would have g
 * I had known about the `--devices /dev/dri` or nvidia "prime-select" workarounds.  
 
 
+<!-- TOC --><a name="references"></a>
 # References
 
 * [Official autoware installation guide](https://autowarefoundation.github.io/autoware-documentation/main/installation/)
+
