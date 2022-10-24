@@ -1,0 +1,1084 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Installing Autoware on Ubuntu 20.04 - Seven Story Rabbit Hole</title>
+  <meta name="author" content="Traun Leyden">
+
+  
+  <meta name="description" content="This is a log of my experience installing Autoware on my bare metal laptop running Ubuntu 20.04. I had a ton of stumbling blocks but stuck with it &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://tleyden.github.io/blog/2022/10/19/installing-autoware">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+
+  <table><tr><td>
+  <h1><a href="/">Seven Story Rabbit Hole</a></h1>
+  
+    <h2>Sometimes awesome things happen in deep rabbit holes.  Or not.</h2>
+  
+  </td><td>&nbsp;&nbsp;
+  <img class="left" src="/images/rabbit_hole_graphic.png" width="132" height="105" title="image" alt="images">
+  </td></tr>
+  </table>
+
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:tleyden.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Installing Autoware on Ubuntu 20.04</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2022-10-19T14:10:00-07:00" pubdate data-updated="true">Oct 19<span>th</span>, 2022</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>This is a log of my experience installing Autoware on my bare metal laptop running Ubuntu 20.04.  I had a ton of stumbling blocks but stuck with it and eventually got it working.  I documented it along the way, so if you hit any of those same issues this might be useful to you.</p>
+
+<p>As a warning, this blog post is pretty messy because of all those stumbling blocks, so you&rsquo;re probably better off just following the <a href="https://autowarefoundation.github.io/autoware-documentation/main/installation/">official autoware installation docs</a> and referring to this in case you run into the same problems.</p>
+
+<p>Good luck!!</p>
+
+<h2>My system</h2>
+
+<ul>
+<li>Ubuntu 20.04</li>
+<li>System76 Oryx Pro laptop, 2017</li>
+<li>Nvidia GeForce GTX 1070</li>
+<li>Nvidia Driver Version: 470.141.03   CUDA Version: 11.4  (upgraded during this blog post to Driver Version: 510.73.05    CUDA Version: 11.6)</li>
+</ul>
+
+
+<h1>Pre-install steps</h1>
+
+<h2>Choose Ubuntu Linux version</h2>
+
+<p>Autoware currently supports both 20.04 and 22.04 (but not 18.04), and I decided to go with 20.04 since it was the next LTS version after the version I had installed (18.04).</p>
+
+<p>I noticed that autoware recommended cuda version of 11.6, which only has official downloads for 20.04 and not 22.04, so that made me think that Ubuntu 20.04 was the better choice.</p>
+
+<p>Here are the steps to upgrade to Ubuntu 20.04: <a href="https://ubuntu.com/blog/how-to-upgrade-from-ubuntu-18-04-lts-to-20-04-lts-today">official instructions</a>.</p>
+
+<h2>Docker vs source install</h2>
+
+<p>I decided to go with the easier docker install until I had a need to use the source install.</p>
+
+<h2>Clean out old ros installs</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ apt-get remove ros-dashing-*
+</span><span class='line'>$ apt-get remove ros-melodic-*
+</span><span class='line'>$ apt-get autoremove</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>Installation (docker-based)</h1>
+
+<h2>Install docker engine</h2>
+
+<p>Install docker engine based on <a href="https://github.com/autowarefoundation/autoware/tree/0423b84ee8d763879bbbf910d249728410b16943/ansible/roles/docker_engine#manual-installation">these instructions</a>.  This links to the snapshot of the instructions that I used (as do below links).  If you want to use the latest instructions, change the <code>0423b84ee8d763879bbbf910d249728410b16943</code> commit hash in the URL to <code>main</code>.</p>
+
+<h2>Nvidia container toolkit</h2>
+
+<p>Install the nvidia container toolkit based on <a href="https://github.com/autowarefoundation/autoware/tree/0423b84ee8d763879bbbf910d249728410b16943/ansible/roles/nvidia_docker#manual-installation">these instructions</a>.</p>
+
+<p>After this step I was able to run <code>nvidia-smi</code> within the container:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>root@apollo:/home/tleyden/Development# docker run --rm --gpus all nvidia/cuda:11.0.3-base-ubuntu20.04 nvidia-smi
+</span><span class='line'>Thu Oct 20 05:28:27 2022       
+</span><span class='line'>+-----------------------------------------------------------------------------+
+</span><span class='line'>| NVIDIA-SMI 470.141.03   Driver Version: 470.141.03   CUDA Version: 11.4     |
+</span><span class='line'>|-------------------------------+----------------------+----------------------+
+</span><span class='line'>| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+</span><span class='line'>| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+</span><span class='line'>|                               |                      |               MIG M. |
+</span><span class='line'>|===============================+======================+======================|
+</span><span class='line'>|   0  NVIDIA GeForce ...  Off  | 00000000:01:00.0  On |                  N/A |
+</span><span class='line'>| N/A   39C    P8     6W /  N/A |    116MiB /  8119MiB |     14%      Default |
+</span><span class='line'>|                               |                      |                  N/A |
+</span><span class='line'>+-------------------------------+----------------------+----------------------+
+</span><span class='line'>                                                                               
+</span><span class='line'>+-----------------------------------------------------------------------------+
+</span><span class='line'>| Processes:                                                                  |
+</span><span class='line'>|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
+</span><span class='line'>|        ID   ID                                                   Usage      |
+</span><span class='line'>|=============================================================================|
+</span><span class='line'>+-----------------------------------------------------------------------------+
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Rocker</h2>
+
+<p>Rocker is an alternative to Docker compose used by Autoware.</p>
+
+<p>Installed rocker based on <a href="https://github.com/autowarefoundation/autoware/tree/0423b84ee8d763879bbbf910d249728410b16943/ansible/roles/rocker#manual-installation">these instructions</a>.</p>
+
+<p>After this step, running <code>rocker</code> shows the rocker help.</p>
+
+<h2>Start autoware docker container</h2>
+
+<p>I ran:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ rocker --nvidia --x11 --user --volume $HOME/Development/autoware --volume $HOME/Development/autoware_map -- ghcr.io/autowarefoundation/autoware-universe:latest-cuda</span></code></pre></td></tr></table></div></figure>
+
+
+<p>but got this error:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Executing command: 
+</span><span class='line'>docker run --rm -it  --gpus all -v /home/tleyden/Development/autoware:/home/tleyden/Development/autoware -v /home/tleyden/Development/autoware_map:/home/tleyden/Development/autoware_map  -e DISPLAY -e TERM   -e QT_X11_NO_MITSHM=1   -e XAUTHORITY=/tmp/.docker_555jyzo.xauth -v /tmp/.docker_555jyzo.xauth:/tmp/.docker_555jyzo.xauth   -v /tmp/.X11-unix:/tmp/.X11-unix   -v /etc/localtime:/etc/localtime:ro  d0c01d5fe6d7 
+</span><span class='line'>docker: Error response from daemon: failed to create shim task: OCI runtime create failed: runc create failed: unable to start container process: error during container init: error running hook #0: error running hook: exit status 1, stdout: , stderr: Auto-detected mode as 'legacy'
+</span><span class='line'>nvidia-container-cli: requirement error: unsatisfied condition: cuda&gt;=11.6, please update your driver to a newer version, or use an earlier cuda container: unknown.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Error workaround</h3>
+
+<p>Using the approach suggested in <a href="https://github.com/NVIDIA/nvidia-docker/issues/1409#issuecomment-1154910556">this github post</a> to add <code>-e NVIDIA_DISABLE_REQUIRE=true</code>, I ran the new command:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>rocker -e NVIDIA_DISABLE_REQUIRE=true --nvidia --x11 --user --volume $HOME/Development/autoware --volume $HOME/Development/autoware_map -- ghcr.io/autowarefoundation/autoware-universe:latest-cuda
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>which seemed to work, as it dropped me into a container:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>tleyden@86a918b83192:~/Development/autoware$ docker ps
+</span><span class='line'>bash: docker: command not found</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Based on the response from the super helpful folks at Autoware in <a href="https://github.com/autowarefoundation/autoware/discussions/2961">this discussion</a> I determined I needed to upgrade my Cuda version based on <a href="https://github.com/autowarefoundation/autoware/tree/0423b84ee8d763879bbbf910d249728410b16943/ansible/roles/cuda#manual-installation">these instructions</a>.  (see later step below)</p>
+
+<h2>Install vcstool</h2>
+
+<p>In the source instructions, it mentions that autoware depends on vcstool, which is a tool that makes it easy to manage code from multiple repos.</p>
+
+<p>Install with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>curl -s https://packagecloud.io/install/repositories/dirk-thomas/vcstool/script.deb.sh | sudo bash
+</span><span class='line'>sudo apt-get update
+</span><span class='line'>sudo apt-get install python3-vcstool</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Setup workspace (from within container)</h2>
+
+<p>In the container shell (started above):</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>cd autoware
+</span><span class='line'>mkdir src
+</span><span class='line'>vcs import src &lt; autoware.repos
+</span><span class='line'>sudo apt update
+</span><span class='line'>rosdep update
+</span><span class='line'>rosdep install --from-paths . --ignore-src --rosdistro $ROS_DISTRO
+</span><span class='line'>colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release</span></code></pre></td></tr></table></div></figure>
+
+
+<p>it took about 40 mins to build:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Summary: 238 packages finished [39min 59s]
+</span><span class='line'>  17 packages had stderr output: bag_time_manager_rviz_plugin elevation_map_loader grid_map_pcl image_projection_based_fusion lidar_apollo_instance_segmentation lidar_apollo_segmentation_tvm lidar_apollo_segmentation_tvm_nodes lidar_centerpoint livox_tag_filter map_loader map_tf_generator ndt_omp simulator_compatibility_test tier4_traffic_light_rviz_plugin trtexec_vendor tvm_utility velodyne_pointcloud
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>Run a planning simulation</h1>
+
+<p>According to the docs: &ldquo;Ad hoc simulation is a flexible method for running basic simulations on your local machine, and is the recommended method for anyone new to Autoware.&rdquo;, but there are no docs on how to do run an ad hoc simulation, so I am going to try a planning simulation based on the <a href="https://autowarefoundation.github.io/autoware-documentation/main/tutorials/ad-hoc-simulation/planning-simulation/">planning simulation docs</a></p>
+
+<h2>Install the gdown utility</h2>
+
+<p>This tool is needed to download the map data.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>pip3 install gdown</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Download maps</h3>
+
+<p>In the container started above:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>
+</span><span class='line'>gdown -O ~/autoware_map/ 'https://docs.google.com/uc?export=download&id=1499_nsbUbIeturZaDj7jhUownh5fvXHd'
+</span><span class='line'>unzip -d ~/autoware_map ~/autoware_map/sample-map-planning.zip</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Launch autoware &ndash; take 1</h3>
+
+<p>From inside the container:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>source ~/autoware/install/setup.bash
+</span><span class='line'>ros2 launch autoware_launch planning_simulator.launch.xml map_path:=$HOME/autoware_map/sample-map-planning vehicle_model:=sample_vehicle sensor_model:=sample_sensor_kit
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I&rsquo;m seeing a ton of errors like:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[rviz2-33] [ERROR] [1666308693.487516652] [rviz2]: rviz::RenderSystem: error creating render window: InvalidParametersException: Window with name 'OgreWindow(0)' already exists in GLRenderSystem::_createRenderWindow at /tmp/binarydeb/ros-galactic-rviz-ogre-vendor-8.5.1/.obj-x86_64-linux-gnu/ogre-v1.12.1-prefix/src/ogre-v1.12.1/RenderSystems/GL/src/OgreGLRenderSystem.cpp (line 1061)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and red-herring error</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[component_container_mt-2] [ERROR] [1666308803.727411757] [system.system_monitor.hdd_monitor]: Failed to execute findmnt. /dev/sda3</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and possible red herring error</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[system_error_monitor-5] [ERROR] [1666308988.596834579] [system_error_monitor system_error_monitor/input_data_timeout]: [Single Point Fault]: </span></code></pre></td></tr></table></div></figure>
+
+
+<p>These issues seem related:</p>
+
+<ol>
+<li><a href="https://github.com/autowarefoundation/autoware.universe/issues/630">https://github.com/autowarefoundation/autoware.universe/issues/630</a></li>
+<li><a href="https://github.com/autowarefoundation/autoware.universe/issues/641">https://github.com/autowarefoundation/autoware.universe/issues/641</a></li>
+<li><a href="https://github.com/autowarefoundation/autoware.universe/issues/643">https://github.com/autowarefoundation/autoware.universe/issues/643</a></li>
+</ol>
+
+
+<p>I think this error matters the most, since I get it if I try to launch rviz directly:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[rviz2]: InvalidParametersException: Window with name 'OgreWindow(0)' already exists in GLRenderSystem::_createRenderWindow</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The same error was reported in <a href="https://github.com/ros2/rviz/issues/753">https://github.com/ros2/rviz/issues/753</a> and <a href="https://github.com/NVIDIA/nvidia-docker/issues/1438.">https://github.com/NVIDIA/nvidia-docker/issues/1438.</a></p>
+
+<p>I will update my nvidia driver as alluded to above, remove the <code>-e NVIDIA_DISABLE_REQUIRE=true</code> workaround, and retry.</p>
+
+<h3>Upgrade to CUDA 11.6</h3>
+
+<p>I erroneously used the <a href="https://developer.nvidia.com/cuda-11-6-0-download-archive?target_os=Linux&amp;target_arch=x86_64&amp;Distribution=Ubuntu&amp;target_version=20.04&amp;target_type=deb_local">official nvidia instructions</a> for installing cuda, so instead use the official <a href="https://github.com/autowarefoundation/autoware/tree/0423b84ee8d763879bbbf910d249728410b16943/ansible/roles/cuda">autoware instructions</a> to install cuda rather than the steps below.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-ubuntu2004.pin
+</span><span class='line'>sudo mv cuda-ubuntu2004.pin /etc/apt/preferences.d/cuda-repository-pin-600
+</span><span class='line'>wget https://developer.download.nvidia.com/compute/cuda/11.6.0/local_installers/cuda-repo-ubuntu2004-11-6-local_11.6.0-510.39.01-1_amd64.deb
+</span><span class='line'>sudo dpkg -i cuda-repo-ubuntu2004-11-6-local_11.6.0-510.39.01-1_amd64.deb
+</span><span class='line'>sudo apt-key add /var/cuda-repo-ubuntu2004-11-6-local/7fa2af80.pub
+</span><span class='line'>sudo apt-get update
+</span><span class='line'>sudo apt-get -y install cuda</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It failed on the last step:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># apt-get -y install cuda
+</span><span class='line'>Reading package lists... Done
+</span><span class='line'>Building dependency tree       
+</span><span class='line'>Reading state information... Done
+</span><span class='line'>Some packages could not be installed. This may mean that you have
+</span><span class='line'>requested an impossible situation or if you are using the unstable
+</span><span class='line'>distribution that some required packages have not yet been created
+</span><span class='line'>or been moved out of Incoming.
+</span><span class='line'>The following information may help to resolve the situation:
+</span><span class='line'>
+</span><span class='line'>The following packages have unmet dependencies:
+</span><span class='line'> cuda : Depends: cuda-11-6 (&gt;= 11.6.0) but it is not going to be installed
+</span><span class='line'>E: Unable to correct problems, you have held broken packages.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Based on <a href="https://github.com/autowarefoundation/autoware/discussions/2961#discussioncomment-3929511">this advice</a>, I&rsquo;m going to re-install.  First I am purging:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>apt-get purge "cuda*" "libcudnn*" "tensorrt*"  "nvidia*"
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Reboot.</p>
+
+<p>I still had some libnvidia packages, so I purged them with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>apt-get purge ~nnvidia</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Since I&rsquo;m running a system76 laptop, I went to them for support in order to upgrade the nvidia drivers.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>apt install system76-driver-nvidia</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and now I&rsquo;m running nvidia 515.65.01:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># nvidia-smi
+</span><span class='line'>+-----------------------------------------------------------------------------+
+</span><span class='line'>| NVIDIA-SMI 515.65.01    Driver Version: 515.65.01    CUDA Version: 11.7     |
+</span><span class='line'>|-------------------------------+----------------------+----------------------+
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Upgrade to CUDA 11.6 &ndash; take 2</h3>
+
+<p>Again for this step I erroneously used the <a href="https://developer.nvidia.com/cuda-11-6-0-download-archive?target_os=Linux&amp;target_arch=x86_64&amp;Distribution=Ubuntu&amp;target_version=20.04&amp;target_type=deb_local">official nvidia instructions</a> for installing cuda, so instead use the official <a href="https://github.com/autowarefoundation/autoware/tree/0423b84ee8d763879bbbf910d249728410b16943/ansible/roles/cuda">autoware instructions</a> to install cuda rather than the steps below.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>sudo dpkg -i cuda-repo-ubuntu2004-11-6-local_11.6.0-510.39.01-1_amd64.deb
+</span><span class='line'>sudo apt-key add /var/cuda-repo-ubuntu2004-11-6-local/7fa2af80.pub
+</span><span class='line'>sudo apt-get update
+</span><span class='line'>sudo apt-get -y install cuda</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This succeeded, but now <code>nvidia-smi</code> does not work:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ nvidia-smi
+</span><span class='line'>Failed to initialize NVML: Driver/library version mismatch</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I later realized that I diverged from the autoware instructions in two ways:</p>
+
+<ol>
+<li>I should have run <code>cuda_version=11-4 apt install cuda-${cuda_version} --no-install-recommends</code></li>
+<li>There are a few post-installation actions that need to be run</li>
+</ol>
+
+
+<p>Post-installation actions:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># Taken from: https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#post-installation-actions
+</span><span class='line'>echo 'export PATH=/usr/local/cuda/bin${PATH:+:${PATH}}' &gt;&gt; ~/.bashrc
+</span><span class='line'>echo 'export LD_LIBRARY_PATH=/usr/local/cuda/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}' &gt;&gt; ~/.bashrc</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>Fixing nvidia-smi error</h4>
+
+<p>I simply rebooted, and now nvidia-smi works.  Note that the cuda version went from 11.7 to 11.6.  The strange thing is that previously I idn&rsquo;t have the cuda packages installed.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ nvidia-smi
+</span><span class='line'>Fri Oct 21 13:56:48 2022       
+</span><span class='line'>+-----------------------------------------------------------------------------+
+</span><span class='line'>| NVIDIA-SMI 510.73.05    Driver Version: 510.73.05    CUDA Version: 11.6     |
+</span><span class='line'>|-------------------------------+----------------------+----------------------+
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Start autoware docker container take 2</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ rocker --nvidia --x11 --user --volume $HOME/Development/autoware --volume $HOME/Development/autoware_map -- ghcr.io/autowarefoundation/autoware-universe:latest-cuda</span></code></pre></td></tr></table></div></figure>
+
+
+<p>but got error:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>docker run --rm -it  --gpus all -v /home/tleyden/Development/autoware:/home/tleyden/Development/autoware -v /home/tleyden/Development/autoware_map:/home/tleyden/Development/autoware_map  -e DISPLAY -e TERM   -e QT_X11_NO_MITSHM=1   -e XAUTHORITY=/tmp/.dockerome5n2bc.xauth -v /tmp/.dockerome5n2bc.xauth:/tmp/.dockerome5n2bc.xauth   -v /tmp/.X11-unix:/tmp/.X11-unix   -v /etc/localtime:/etc/localtime:ro  d0c01d5fe6d7 
+</span><span class='line'>docker: Error response from daemon: could not select device driver "" with capabilities: [[gpu]].
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I realized I&rsquo;m still missing several requirements:</p>
+
+<ol>
+<li><a href="https://github.com/autowarefoundation/autoware/tree/main/ansible/roles/nvidia_docker#manual-installation">Nvidia container toolkit</a> &ndash; I had this previously, but it was uninstalled.</li>
+<li><a href="https://github.com/autowarefoundation/autoware/tree/main/ansible/roles/tensorrt#manual-installation">TensorRT and cuDNN</a> &ndash; ditto</li>
+</ol>
+
+
+<h2>Install Nvidia container toolkit</h2>
+
+<p>I installed nvidia container toolkit based on these <a href="https://github.com/autowarefoundation/autoware/tree/0423b84ee8d763879bbbf910d249728410b16943/ansible/roles/nvidia_docker#manual-installation">autoware instructions</a></p>
+
+<p>And now it&rsquo;s able to start a container and run <code>nvidia-smi</code>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># docker run --rm --gpus all nvidia/cuda:11.0.3-base-ubuntu20.04 nvidia-smi
+</span><span class='line'>Fri Oct 21 21:08:28 2022       
+</span><span class='line'>+-----------------------------------------------------------------------------+
+</span><span class='line'>| NVIDIA-SMI 510.73.05    Driver Version: 510.73.05    CUDA Version: 11.6     |
+</span><span class='line'>|-------------------------------+----------------------+----------------------+
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Install cuDNN</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># apt-get install libcudnn8=${cudnn_version} libcudnn8-dev=${cudnn_version}
+</span><span class='line'>Reading package lists... Done
+</span><span class='line'>Building dependency tree       
+</span><span class='line'>Reading state information... Done
+</span><span class='line'>E: Unable to locate package libcudnn8
+</span><span class='line'>E: Unable to locate package libcudnn8-dev</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This error was caused by another divergence from the autoware instructions, where I didn&rsquo;t run <a href="https://github.com/autowarefoundation/autoware/tree/0423b84ee8d763879bbbf910d249728410b16943/ansible/roles/cuda#manual-installation">this step</a>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>sudo add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /"</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I re-ran all of <a href="https://github.com/autowarefoundation/autoware/tree/0423b84ee8d763879bbbf910d249728410b16943/ansible/roles/tensorrt">these steps from the autoware docs</a>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-ubuntu2004.pin
+</span><span class='line'>sudo mv cuda-ubuntu2004.pin /etc/apt/preferences.d/cuda-repository-pin-600
+</span><span class='line'>sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/3bf863cc.pub
+</span><span class='line'>sudo add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /"
+</span><span class='line'>sudo apt-get update</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and now this step worked:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>apt-get install libcudnn8=${cudnn_version} libcudnn8-dev=${cudnn_version}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Pin the libraries at those versions with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>sudo apt-mark hold libcudnn8 libcudnn8-dev</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Install TensorRT</h2>
+
+<p>Using <a href="https://github.com/autowarefoundation/autoware/tree/0423b84ee8d763879bbbf910d249728410b16943/ansible/roles/tensorrt">these instructions</a>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>tensorrt_version=8.4.2-1+cuda11.6
+</span><span class='line'>sudo apt-get install libnvinfer8=${tensorrt_version} libnvonnxparsers8=${tensorrt_version} libnvparsers8=${tensorrt_version} libnvinfer-plugin8=${tensorrt_version} libnvinfer-dev=${tensorrt_version} libnvonnxparsers-dev=${tensorrt_version} libnvparsers-dev=${tensorrt_version} libnvinfer-plugin-dev=${tensorrt_version}
+</span><span class='line'>sudo apt-mark hold libnvinfer8 libnvonnxparsers8 libnvparsers8 libnvinfer-plugin8 libnvinfer-dev libnvonnxparsers-dev libnvparsers-dev libnvinfer-plugin-dev</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Start autoware docker container take 3</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ rocker --nvidia --x11 --user --volume $HOME/Development/autoware --volume $HOME/Development/autoware_map -- ghcr.io/autowarefoundation/autoware-universe:latest-cuda
+</span><span class='line'>tleyden@apollo:~$ rocker --nvidia --x11 --user --volume $HOME/Development/autoware --volume $HOME/Development/autoware_map -- ghcr.io/autowarefoundation/autoware-universe:latest-cuda
+</span><span class='line'>Extension volume doesn't support default arguments. Please extend it.
+</span><span class='line'>Active extensions ['nvidia', 'volume', 'x11', 'user']
+</span><span class='line'>Step 1/12 : FROM python:3-slim-stretch as detector
+</span><span class='line'>...
+</span><span class='line'>Executing command:
+</span><span class='line'>docker run --rm -it  --gpus all -v /home/tleyden/Development/autoware:/home/tleyden/Development/autoware -v /home/tleyden/Development/autoware_map:/home/tleyden/Development/autoware_map  -e DISPLAY -e TERM   -e QT_X11_NO_MITSHM=1   -e XAUTHORITY=/tmp/.docker77n9jx85.xauth -v /tmp/.docker77n9jx85.xauth:/tmp/.docker77n9jx85.xauth   -v /tmp/.X11-unix:/tmp/.X11-unix   -v /etc/localtime:/etc/localtime:ro  d0c01d5fe6d7
+</span><span class='line'>tleyden@0b1ce9ed54bd:~$</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This worked, but at first I was very confused that it actually worked.</p>
+
+<p>It drops you back at the prompt with no meaningful output, but if you look closely, <strong>it&rsquo;s a different prompt</strong>.  The hostname changes from your actual hostname (apollo in my case), to this cryptic container name (<code>0b1ce9ed54bd</code>).</p>
+
+<p>Note that if you run this in the container:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ros2 topic list
+</span><span class='line'>/parameter_events
+</span><span class='line'>/rosout</span></code></pre></td></tr></table></div></figure>
+
+
+<p>you will see meaningful output, whereas if you run that on your host, you will most likely see <code>ros2: command not found</code>, unless you had installed <code>ros2</code> on your host previously.</p>
+
+<h3>Launch autoware take 2</h3>
+
+<p>(also requires maps download, see above)</p>
+
+<p>From inside the container:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>source ~/autoware/install/setup.bash
+</span><span class='line'>ros2 launch autoware_launch planning_simulator.launch.xml map_path:=$HOME/autoware_map/sample-map-planning vehicle_model:=sample_vehicle sensor_model:=sample_sensor_kit
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>But the same errors are showing up:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[rviz2-33] libGL error: MESA-LOADER: failed to retrieve device information
+</span><span class='line'>[rviz2-33] libGL error: MESA-LOADER: failed to retrieve device information
+</span><span class='line'>[rviz2-33] [ERROR] [1666388259.903611735] [rviz2]: RenderingAPIException: OpenGL 1.5 is not supported in GLRenderSystem::initialiseContext at /tmp/binarydeb/ros-galactic-rviz-ogre-vendor-8.5.1/.obj-x86_64-linux-gnu/ogre-v1.12.1-prefix/src/ogre-v1.12.1/RenderSystems/GL/src/OgreGLRenderSystem.cpp (line 1201)
+</span><span class='line'>[rviz2-33] [ERROR] [1666388259.905397712] [rviz2]: rviz::RenderSystem: error creating render window: RenderingAPIException: OpenGL 1.5 is not supported in GLRenderSystem::initialiseContext at /tmp/binarydeb/ros-galactic-rviz-ogre-vendor-8.5.1/.obj-x86_64-linux-gnu/ogre-v1.12.1-prefix/src/ogre-v1.12.1/RenderSystems/GL/src/OgreGLRenderSystem.cpp (line 1201)
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><a href="https://gist.github.com/tleyden/64a84ca4316c95ca9daa0c8d73728ac1">Full output log</a></p>
+
+<p>Note that these errors are also shown if I run <code>rviz2</code> from within the container.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ rviz2
+</span><span class='line'>QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/tmp/runtime-tleyden'
+</span><span class='line'>libGL error: MESA-LOADER: failed to retrieve device information
+</span><span class='line'>libGL error: MESA-LOADER: failed to retrieve device information
+</span><span class='line'>[ERROR] [1666389050.804997231] [rviz2]: RenderingAPIException: OpenGL 1.5 is not supported in GLRenderSystem::initialiseContext at /tmp/binarydeb/ros-galactic-rviz-ogre-vendor-8.5.1/.obj-x86_64-linux-gnu/ogre-v1.12.1-prefix/src/ogre-v1.12.1/RenderSystems/GL/src/OgreGLRenderSystem.cpp (line 1201)
+</span><span class='line'>[ERROR] [1666389050.805238544] [rviz2]: rviz::RenderSystem: error creating render window: RenderingAPIException: OpenGL 1.5 is not supported in GLRenderSystem::initialiseContext at /tmp/binarydeb/ros-galactic-rviz-ogre-vendor-8.5.1/.obj-x86_64-linux-gnu/ogre-v1.12.1-prefix/src/ogre-v1.12.1/RenderSystems/GL/src/OgreGLRenderSystem.cpp (line 1201)
+</span><span class='line'>[ERROR] [1666389050.805275164] [rviz2]: InvalidParametersException: Window with name 'OgreWindow(0)' already exists in GLRenderSystem::_createRenderWindow at /tmp/binarydeb/ros-galactic-rviz-ogre-vendor-8.5.1/.obj-x86_64-linux-gnu/ogre-v1.12.1-prefix/src/ogre-v1.12.1/RenderSystems/GL/src/OgreGLRenderSystem.cpp (line 1061)</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Fix rviz2 errors</h3>
+
+<p>Relevant github issues:</p>
+
+<ol>
+<li><a href="https://github.com/ros2/rviz/issues/672">https://github.com/ros2/rviz/issues/672</a></li>
+<li><a href="https://github.com/openai/gym/issues/509">https://github.com/openai/gym/issues/509</a></li>
+</ol>
+
+
+<p>The recommended fix is:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>apt-get install -y mesa-utils libgl1-mesa-glx</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I don&rsquo;t currently have either of those libraries installed:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>dpkg -l | grep -i "mesa-utils"
+</span><span class='line'>dpkg -l | grep -i "libgl1-mesa-glx"
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I installed these packages on the host (outside the container), but that didn&rsquo;t fix the issue.</p>
+
+<p>I tried installing the packages in the container, but that didn&rsquo;t work either.</p>
+
+<p>There is a discrepancy between <code>glxinfo</code> on the host vs container.</p>
+
+<p>In this container:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ rocker --nvidia --x11 --user nvidia/cuda:11.0.3-base-ubuntu20.04</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It is returning an error:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ apt update && apt install -y mesa-utils
+</span><span class='line'>$ glxinfo -B
+</span><span class='line'>name of display: :1
+</span><span class='line'>libGL error: MESA-LOADER: failed to retrieve device information
+</span><span class='line'>display: :1  screen: 0
+</span><span class='line'>direct rendering: Yes
+</span><span class='line'>Extended renderer info (GLX_MESA_query_renderer):
+</span><span class='line'>    Vendor: Intel Open Source Technology Center (0x8086)
+</span><span class='line'>    Device: Mesa DRI Unknown Intel Chipset  (0x3e9b)
+</span><span class='line'>    Version: 21.2.6
+</span><span class='line'>    Accelerated: yes
+</span><span class='line'>    Video memory: 3072MB
+</span><span class='line'>    Unified memory: yes
+</span><span class='line'>    Preferred profile: compat (0x2)
+</span><span class='line'>    Max core profile version: 0.0
+</span><span class='line'>    Max compat profile version: 1.3
+</span><span class='line'>    Max GLES1 profile version: 1.1
+</span><span class='line'>    Max GLES[23] profile version: 0.0
+</span><span class='line'>OpenGL vendor string: Intel Open Source Technology Center
+</span><span class='line'>OpenGL renderer string: Mesa DRI Unknown Intel Chipset 
+</span><span class='line'>OpenGL version string: 1.3 Mesa 21.2.6
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Whereas on the host:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ glxinfo -B
+</span><span class='line'>name of display: :1
+</span><span class='line'>display: :1  screen: 0
+</span><span class='line'>direct rendering: Yes
+</span><span class='line'>Extended renderer info (GLX_MESA_query_renderer):
+</span><span class='line'>    Vendor: Intel (0x8086)
+</span><span class='line'>    Device: Mesa Intel(R) UHD Graphics 630 (CFL GT2) (0x3e9b)
+</span><span class='line'>    Version: 21.2.2
+</span><span class='line'>    Accelerated: yes
+</span><span class='line'>    Video memory: 3072MB
+</span><span class='line'>    Unified memory: yes
+</span><span class='line'>    Preferred profile: core (0x1)
+</span><span class='line'>    Max core profile version: 4.6
+</span><span class='line'>    Max compat profile version: 4.6
+</span><span class='line'>    Max GLES1 profile version: 1.1
+</span><span class='line'>    Max GLES[23] profile version: 3.2
+</span><span class='line'>OpenGL vendor string: Intel
+</span><span class='line'>OpenGL renderer string: Mesa Intel(R) UHD Graphics 630 (CFL GT2)
+</span><span class='line'>OpenGL core profile version string: 4.6 (Core Profile) Mesa 21.2.2
+</span><span class='line'>OpenGL core profile shading language version string: 4.60
+</span><span class='line'>OpenGL core profile context flags: (none)
+</span><span class='line'>OpenGL core profile profile mask: core profile
+</span><span class='line'>
+</span><span class='line'>OpenGL version string: 4.6 (Compatibility Profile) Mesa 21.2.2
+</span><span class='line'>OpenGL shading language version string: 4.60
+</span><span class='line'>OpenGL context flags: (none)
+</span><span class='line'>OpenGL profile mask: compatibility profile
+</span><span class='line'>
+</span><span class='line'>OpenGL ES profile version string: OpenGL ES 3.2 Mesa 21.2.2
+</span><span class='line'>OpenGL ES profile shading language version string: OpenGL ES GLSL ES 3.20
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This <a href="https://stackoverflow.com/questions/45136499/how-do-i-pass-data-info-about-the-gpu-versions-of-opengl-opencl-mesa-etc">stack overflow post</a> suggested a workaround, and according to the <a href="https://github.com/osrf/rocker">rocker docs</a></p>
+
+<p>&ldquo;For Intel integrated graphics support you will need to mount the /dev/dri directory as follows:&rdquo;</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>--devices /dev/dri</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After restarting a container with that flag, it no longer shows the <code>libGL error: MESA-LOADER: failed to retrieve device information</code> error.</p>
+
+<p>I <a href="https://github.com/autowarefoundation/autoware/discussions/2965">posted a question</a> on the autoware forum to find out why this workaround was needed.  Apparently there is another way to solve this problem by forcing the use of the nvidia gpu rather than the intel graphics card:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>prime-select query
+</span><span class='line'># It should show on-demand by default
+</span><span class='line'>sudo prime-select nvidia
+</span><span class='line'># Force to use NVIDIA GPU</span></code></pre></td></tr></table></div></figure>
+
+
+<p>but I haven&rsquo;t verified this yet.</p>
+
+<h2>Start autoware docker container take 4</h2>
+
+<p>Add the <code>--devices /dev/dri</code> flag:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ rocker --nvidia --x11 --devices /dev/dri --user --volume $HOME/Development/autoware --volume $HOME/Development/autoware_map -- ghcr.io/autowarefoundation/autoware-universe:latest-cuda</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And now it finally works!! Running <code>rviz2</code> from within the container shows the rviz window:</p>
+
+<p><img src="https://user-images.githubusercontent.com/296876/197299394-a1dcd275-4115-418c-9641-a4de762cf826.png" alt="Screenshot from 2022-10-21 15-44-48" /></p>
+
+<h3>Launch autoware take 3</h3>
+
+<p>(also requires maps download, see above)</p>
+
+<p>From inside the container:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>source ~/autoware/install/setup.bash
+</span><span class='line'>ros2 launch autoware_launch planning_simulator.launch.xml map_path:=$HOME/autoware_map/sample-map-planning vehicle_model:=sample_vehicle sensor_model:=sample_sensor_kit
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and rviz launched with autoware configured:</p>
+
+<p><img src="https://user-images.githubusercontent.com/296876/197301286-7e8b257e-0587-4fa1-ab54-ed5be4f0cfcd.png" alt="Screenshot from 2022-10-21 15-51-01" /></p>
+
+<p>Phew!  That was a lot harder than I thought it was going to be!  It would have gone smoother if:</p>
+
+<ul>
+<li>My nvidia/cuda drivers were up-to-date with Cuda 11.6 and a suitable nvidia driver version.</li>
+<li>I&rsquo;d followed the autoware docs rather than using the nvidia docs &ndash; the small divergences mattered a lot. (:facepalm)</li>
+<li>I had known about the <code>--devices /dev/dri</code> or nvidia &ldquo;prime-select&rdquo; workarounds.</li>
+</ul>
+
+
+<h1>References</h1>
+
+<ul>
+<li><a href="https://autowarefoundation.github.io/autoware-documentation/main/installation/">Official autoware installation guide</a></li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Traun Leyden</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2022-10-19T14:10:00-07:00" pubdate data-updated="true">Oct 19<span>th</span>, 2022</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2022/10/19/installing-autoware/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2022/10/19/installing-autoware/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2020/06/27/installing-ghost-on-aws-lightsail-with-sqlite/" title="Previous Post: Installing Ghost on AWS Lightsail with SQLite">&laquo; Installing Ghost on AWS Lightsail with SQLite</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>About Me</h1>
+  <p>
+  Indie hacker focused on applied Deep Learning.  Formerly Sr. SW Engineer at <a href="http://www.databricks.com">Databricks</a> on the ML Feature Store team.
+  </p>
+
+  </p>
+  My contact info is listed on my <a href="http://www.github.com/tleyden">GitHub profile</a>
+  </p>
+
+  <p>
+  Follow me on twitter: <a href="https://twitter.com/tleydn">@tleydn</a>
+  </p>
+
+
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2022/10/19/installing-autoware/">Installing Autoware on Ubuntu 20.04</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2020/06/27/installing-ghost-on-aws-lightsail-with-sqlite/">Installing Ghost on AWS Lightsail With SQLite</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/07/02/openwhisk-action-sequences/">OpenWhisk Action Sequences</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/06/14/running-postgresql-in-docker/">Running PostgreSQL in Docker</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/12/20/understanding-function-closures-in-go/">Understanding Function Closures in Go</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/tleyden">@tleyden</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'tleyden',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2022 - Traun Leyden -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'sevenstoryrabbithole';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://tleyden.github.io/blog/2022/10/19/installing-autoware/';
+        var disqus_url = 'http://tleyden.github.io/blog/2022/10/19/installing-autoware/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

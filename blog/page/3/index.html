@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="This will walk you through setting up a test coverage report on coveralls.io which will be updated every time a new build happens on drone.io (a &hellip;">
+  <meta name="description" content="I got a new computer last week. It&rsquo;s the latest macbook retina, and I needed to refresh because I wanted a bigger SSD drive (and after having &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,6 +72,159 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/04/25/setting-up-octopress-under-docker/">Setting Up Octopress Under Docker</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-04-25T03:57:00-07:00" pubdate data-updated="true">Apr 25<span>th</span>, 2015</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I got a new computer last week.  It&rsquo;s the latest macbook retina, and I needed to refresh because I wanted a bigger SSD drive (and after having an SSD drive, I&rsquo;ll never go back)</p>
+
+<p>Anyway, I&rsquo;m trying to get my Octopress blog going again, and oh my God, what a nightmare.  Octopress was working beautifully for me for years, and then all of the sudden I am at the edge of Ruby Dependency Hell staring at an Octopress giving me eight fingers.</p>
+
+<p>With the help of Docker, I&rsquo;ve managed to tame this eight legged beast, barely.</p>
+
+<h2>Run Docker</h2>
+
+<p>See <a href="https://docs.docker.com/installation/">Installing Docker</a> for instructions.</p>
+
+<p>This blog post assumes you <strong>already have an Octopress git repo</strong>.  If you are starting from scratch, then check out <a href="http://tleyden.github.io/blog/2013/09/07/octopress-setup-part-i/">Octopress Setup Part I</a> to become even more confused.</p>
+
+<h2>Install Octopress Docker image</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ docker run -ti tleyden5iwx/octopress /bin/bash</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After this point, the rest of the instructions assume that you are executing commands from inside the Docker Container.</p>
+
+<h2>Delete Octopress dir + clone your Octopress repo</h2>
+
+<p>The Docker container will contain an Octopress directory, but it&rsquo;s not needed.</p>
+
+<p>From within the container:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ cd /root
+</span><span class='line'>$ rm -rf octopress/
+</span><span class='line'>$ git clone https://github.com/your-github-username/your-github-username.github.io.git octopress
+</span><span class='line'>$ cd octopress/</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now, switch to the source branch (which contains the content)</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ git checkout source</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Re-install dependencies:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ bundle install</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Prevent ASCII encoding errors:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ export LC_ALL=C.UTF-8</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Clone deploy directory</strong></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ git clone https://github.com/your-github-username/your-github-username.github.io.git _deploy</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Rake preview</h2>
+
+<p>As a smoke test, run:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ bundle exec rake preview</span></code></pre></td></tr></table></div></figure>
+
+
+<p>NOTE: I have no idea why <code>bundle exec</code> is required here, I just used this in response to a previous error message and it&rsquo;s accompanying suggestion.</p>
+
+<p>If this gives no errors, that&rsquo;s a good sign.</p>
+
+<h2>Create a new blog post</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ bundle exec rake new_post["Setting up Octopress under Docker"]</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It will tell you the path to the blog post.  Now open the file in your favorite editor and add contect.</p>
+
+<h2>Push to Source branch</h2>
+
+<p>The source branch has the <strong>source markdown content</strong>.  It&rsquo;s actually the most important thing to preserve, because the HTML can always be regnerated from it.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ git push origin source</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Deploy to Master branch</h2>
+
+<p>The master branch contains the <strong>rendered HTML content</strong>.  Here&rsquo;s how to push it up to your github pages repo (remember, in an earlier step you cloned your github pages repo at <a href="https://github.com/your-github-username/your-github-username.github.io.git">https://github.com/your-github-username/your-github-username.github.io.git</a>)</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ bundle exec rake generate && bundle exec rake deploy</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After the above command, the changes should be visible on your github pages blog (eg, your-username.github.io)</p>
+
+<h2>Common errors</h2>
+
+<p>If you get:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>YAML Exception reading 2014-04-09-a-successful-git-branching-model-with-enterprise-support.markdown: invalid byte sequence in US-ASCII</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Run:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ export LC_ALL=C.UTF-8</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://github.com/imathis/octopress/issues/1344">https://github.com/imathis/octopress/issues/1344</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1795,303 +1948,6 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/11/04/coreos-with-nvidia-cuda-gpu-drivers/">CoreOS With Nvidia CUDA GPU Drivers</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-11-04T07:08:00-08:00" pubdate data-updated="true">Nov 4<span>th</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>This will walk you through installing the Nvidia GPU kernel module and CUDA drivers on a docker container running inside of CoreOS.</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/coreos-nvidia-gpu.png" alt="architecture diagram" /></p>
-
-<h2>Launch CoreOS on an AWS GPU instance</h2>
-
-<ul>
-<li><p>Launch a new EC2 instance</p></li>
-<li><p>Under &ldquo;Community AMIs&rdquo;, search for <strong>ami-f669f29e</strong> (CoreOS stable 494.4.0 (HVM))</p></li>
-<li><p>Select the GPU instances: <strong>g2.2xlarge</strong></p></li>
-<li><p>Increase root EBS store from 8 GB &ndash;> 20 GB to give yourself some breathing room</p></li>
-</ul>
-
-
-<h2>ssh into CoreOS instance</h2>
-
-<p>Find the public ip of the EC2 instance launched above, and ssh into it:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ ssh -A core@ec2-54-80-24-46.compute-1.amazonaws.com</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Run Ubuntu 14 docker container in privileged mode</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run --privileged=true -i -t ubuntu:14.04 /bin/bash</span></code></pre></td></tr></table></div></figure>
-
-
-<p>After the above command, you should be inside a root shell in your docker container.  The rest of the steps will assume this.</p>
-
-<h2>Install build tools + other required packages</h2>
-
-<p>In order to match the version of gcc that was used to build the CoreOS kernel.  (gcc 4.7)</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'># apt-get update
-</span><span class='line'># apt-get install gcc-4.7 g++-4.7 wget git make dpkg-dev</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Set gcc 4.7 as default</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'># update-alternatives --remove gcc /usr/bin/gcc-4.8
-</span><span class='line'># update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.7 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.7
-</span><span class='line'># update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 40 --slave /usr/bin/g++ g++ /usr/bin/g++-4.8</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Verify</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'># update-alternatives --config gcc</span></code></pre></td></tr></table></div></figure>
-
-
-<p>It should list gcc 4.7 with an asterisk next to it:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>* 0            /usr/bin/gcc-4.7   60        auto mode</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Prepare CoreOS kernel source</h2>
-
-<p><strong>Clone CoreOS kernel repository</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ mkdir -p /usr/src/kernels
-</span><span class='line'>$ cd /usr/src/kernels
-</span><span class='line'>$ git clone https://github.com/coreos/linux.git</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Find CoreOS kernel version</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'># uname -a
-</span><span class='line'>Linux ip-10-11-167-200.ec2.internal 3.17.2+ #2 SMP Tue Nov 4 04:15:48 UTC 2014 x86_64 Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz GenuineIntel GNU/Linux</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The CoreOS kernel version is <strong>3.17.2</strong></p>
-
-<p><strong>Switch correct branch for this kernel version </strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'># cd linux
-</span><span class='line'># git checkout remotes/origin/coreos/v3.17.2</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Create kernel configuration file</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'># zcat /proc/config.gz &gt; /usr/src/kernels/linux/.config</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Prepare kernel source for building modules</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'># make modules_prepare</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Now you should be ready to install the nvidia driver.</p>
-
-<p><strong>Hack the kernel version</strong></p>
-
-<p>In order to avoid <a href="https://gist.github.com/tleyden/2a46a86056e476976a8e#file-gistfile1-txt-L956">nvidia: version magic errors</a>, the following hack is required:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'># sed -i -e 's/3.17.2/3.17.2+/' include/generated/utsrelease.h</span></code></pre></td></tr></table></div></figure>
-
-
-<p>I&rsquo;ve <a href="https://groups.google.com/d/msg/coreos-user/CSp_wSywmI4/CBHwocj8v9oJ">posted to the CoreOS Group</a> to ask why this hack is needed.</p>
-
-<h2>Install nvidia driver</h2>
-
-<p><strong>Download</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'># mkdir -p /opt/nvidia
-</span><span class='line'># cd /opt/nvidia
-</span><span class='line'># wget http://developer.download.nvidia.com/compute/cuda/6_5/rel/installers/cuda_6.5.14_linux_64.run</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Unpack</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'># chmod +x cuda_6.5.14_linux_64.run
-</span><span class='line'># mkdir nvidia_installers
-</span><span class='line'># ./cuda_6.5.14_linux_64.run -extract=`pwd`/nvidia_installers</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Install</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'># cd nvidia_installers
-</span><span class='line'># ./NVIDIA-Linux-x86_64-340.29.run --kernel-source-path=/usr/src/kernels/linux/</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Installer Questions</strong></p>
-
-<ul>
-<li>Install NVidia&rsquo;s 32-bit compatibility libraries? <strong>YES</strong></li>
-<li>Would you like to run nvidia-xconfig? <strong>NO</strong></li>
-</ul>
-
-
-<p>If everything worked, you should see:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/nvidia_driver_installed.png" alt="nvidia drivers installed" /></p>
-
-<p>your <code>/var/log/nvidia-installer.log</code> should look something like <a href="https://gist.github.com/tleyden/6d585fb8ab08154949c8">this</a></p>
-
-<h2>Load nvidia kernel module</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'># modprobe nvidia</span></code></pre></td></tr></table></div></figure>
-
-
-<p>No errors should be returned.  Verify it&rsquo;s loaded by running:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'># lsmod | grep -i nvidia</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and you should see:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>nvidia              10533711  0
-</span><span class='line'>i2c_core               41189  2 nvidia,i2c_piix4</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Install CUDA</h2>
-
-<p>In order to fully verify that the kernel module is working correctly, install the CUDA drivers + library and run a device query.</p>
-
-<p>To install CUDA:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'># ./cuda-linux64-rel-6.5.14-18749181.run
-</span><span class='line'># ./cuda-samples-linux-6.5.14-18745345.run</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Verify CUDA</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'># cd /usr/local/cuda/samples/1_Utilities/deviceQuery
-</span><span class='line'># make
-</span><span class='line'># ./deviceQuery   </span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should see the following output:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 6.5, CUDA Runtime Version = 6.5, NumDevs = 1, Device0 = GRID K520
-</span><span class='line'>Result = PASS</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Congratulations!  You now have a docker container running under CoreOS that can access the GPU.</p>
-
-<h1>Appendix: Expose GPU to other docker containers</h1>
-
-<p>If you need <em>other</em> docker containers on this CoreOS instance to be able to access the GPU, you can do the following steps.</p>
-
-<p><strong>Exit docker container</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'># exit</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You should be back to your CoreOS shell.</p>
-
-<p><strong>Add nvidia device nodes</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ wget https://gist.githubusercontent.com/tleyden/74f593a0beea300de08c/raw/95ed93c5751a989e58153db6f88c35515b7af120/nvidia_devices.sh
-</span><span class='line'>$ chmod +x nvidia_devices.sh
-</span><span class='line'>$ sudo ./nvidia_devices.sh</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Verify device nodes</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ ls -alh /dev | grep -i nvidia
-</span><span class='line'>crw-rw-rw-  1 root root  251,   0 Nov  5 16:37 nvidia-uvm
-</span><span class='line'>crw-rw-rw-  1 root root  195,   0 Nov  5 16:37 nvidia0
-</span><span class='line'>crw-rw-rw-  1 root root  195, 255 Nov  5 16:37 nvidiactl</span></code></pre></td></tr></table></div></figure>
-
-
-<p><strong>Launch docker containers</strong></p>
-
-<p>When you launch other docker containers on the same CoreOS instance, to allow them to access the GPU device you will need to add the following arguments:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo docker run -ti --device /dev/nvidia0:/dev/nvidia0 --device /dev/nvidiactl:/dev/nvidiactl --device /dev/nvidia-uvm:/dev/nvidia-uvm tleyden5iwx/ubuntu-cuda /bin/bash</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>References</h2>
-
-<ul>
-<li><a href="https://github.com/tleyden/tleyden.github.io/blob/6d71759cc5e530efcae10d9c6012dd217f76795c/source/_posts/2014-11-04-coreos-with-nvidia-cuda-gpu-drivers.markdown">Previous version of this blog post</a></li>
-<li><a href="https://groups.google.com/forum/#!topic/coreos-user/CSp_wSywmI4">CoreOS Google Group thread</a> &ndash; Thanks Сергей!</li>
-<li><a href="http://tleyden.github.io/blog/2014/10/25/docker-on-aws-gpu-ubuntu-14-dot-04-slash-cuda-6-dot-5/">Docker on AWS GPU Ubuntu 14.04 / CUDA 6.5</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/4/">&larr; Older</a>
@@ -2107,7 +1963,7 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
     <section>
   <h1>About Me</h1>
   <p>
-  Sr. Software engineer at <a href="http://www.databricks.com">Databricks</a> - Apache Spark as a service for distributed analytics and machine learning.  We&#8217;re hiring.
+  Indie hacker focused on applied Deep Learning.  Formerly Sr. SW Engineer at <a href="http://www.databricks.com">Databricks</a> on the ML Feature Store team.
   </p>
 
   </p>
@@ -2125,6 +1981,10 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2022/10/19/installing-autoware/">Installing Autoware on Ubuntu 20.04</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2020/06/27/installing-ghost-on-aws-lightsail-with-sqlite/">Installing Ghost on AWS Lightsail With SQLite</a>
       </li>
     
@@ -2138,10 +1998,6 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
     
       <li class="post">
         <a href="/blog/2016/12/20/understanding-function-closures-in-go/">Understanding Function Closures in Go</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/11/21/tuning-the-go-http-client-library-for-load-testing/">Tuning the Go HTTP Client Settings for Load Testing</a>
       </li>
     
   </ul>
@@ -2183,7 +2039,7 @@ Fetching plugin "https://github.com/couchbaselabs/Couchbase-Lite-PhoneGap-Plugin
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2020 - Traun Leyden -
+  Copyright &copy; 2022 - Traun Leyden -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 
