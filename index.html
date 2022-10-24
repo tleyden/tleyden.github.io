@@ -107,6 +107,85 @@
 
 <p>Good luck!!</p>
 
+<!-- TOC start: generated with https://derlin.github.io/bitdowntoc/ -->
+
+
+<ul>
+<li><a href="#my-system">My system</a></li>
+<li><a href="#pre-install-steps">Pre-install steps</a>
+
+<ul>
+<li><a href="#choose-ubuntu-linux-version">Choose Ubuntu Linux version</a></li>
+<li><a href="#docker-vs-source-install">Docker vs source install</a></li>
+<li><a href="#clean-out-old-ros-installs">Clean out old ros installs</a></li>
+</ul>
+</li>
+<li><a href="#installation-docker-based">Installation (docker-based)</a>
+
+<ul>
+<li><a href="#install-docker-engine">Install docker engine</a></li>
+<li><a href="#nvidia-container-toolkit">Nvidia container toolkit</a></li>
+<li><a href="#rocker">Rocker</a></li>
+<li><a href="#start-autoware-docker-container">Start autoware docker container</a>
+
+<ul>
+<li><a href="#error-workaround">Error workaround</a></li>
+</ul>
+</li>
+<li><a href="#install-vcstool">Install vcstool</a></li>
+<li><a href="#setup-workspace-from-within-container">Setup workspace (from within container)</a></li>
+</ul>
+</li>
+<li><a href="#run-a-planning-simulation">Run a planning simulation</a>
+
+<ul>
+<li><a href="#install-the-gdown-utility">Install the gdown utility</a>
+
+<ul>
+<li><a href="#download-maps">Download maps</a></li>
+<li><a href="#launch-autoware-take-1">Launch autoware &ndash; take 1</a></li>
+<li><a href="#upgrade-to-cuda-116">Upgrade to CUDA 11.6</a></li>
+<li><a href="#upgrade-to-cuda-116-take-2">Upgrade to CUDA 11.6 &ndash; take 2</a>
+
+<ul>
+<li><a href="#fixing-nvidia-smi-error">Fixing nvidia-smi error</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#start-autoware-docker-container-take-2">Start autoware docker container take 2</a></li>
+<li><a href="#install-nvidia-container-toolkit">Install Nvidia container toolkit</a></li>
+<li><a href="#install-cudnn">Install cuDNN</a></li>
+<li><a href="#install-tensorrt">Install TensorRT</a></li>
+<li><a href="#start-autoware-docker-container-take-3">Start autoware docker container take 3</a>
+
+<ul>
+<li><a href="#launch-autoware-take-2">Launch autoware take 2</a></li>
+<li><a href="#fix-rviz2-errors">Fix rviz2 errors</a></li>
+</ul>
+</li>
+<li><a href="#start-autoware-docker-container-take-4">Start autoware docker container take 4</a>
+
+<ul>
+<li><a href="#launch-autoware-take-3">Launch autoware take 3</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#references">References</a></li>
+</ul>
+
+
+<!-- TOC end -->
+
+
+
+
+<!-- TOC -->
+
+
+<p><a name="my-system"></a></p>
+
 <h2>My system</h2>
 
 <ul>
@@ -117,7 +196,17 @@
 </ul>
 
 
+<!-- TOC -->
+
+
+<p><a name="pre-install-steps"></a></p>
+
 <h1>Pre-install steps</h1>
+
+<!-- TOC -->
+
+
+<p><a name="choose-ubuntu-linux-version"></a></p>
 
 <h2>Choose Ubuntu Linux version</h2>
 
@@ -127,9 +216,19 @@
 
 <p>Here are the steps to upgrade to Ubuntu 20.04: <a href="https://ubuntu.com/blog/how-to-upgrade-from-ubuntu-18-04-lts-to-20-04-lts-today">official instructions</a>.</p>
 
+<!-- TOC -->
+
+
+<p><a name="docker-vs-source-install"></a></p>
+
 <h2>Docker vs source install</h2>
 
 <p>I decided to go with the easier docker install until I had a need to use the source install.</p>
+
+<!-- TOC -->
+
+
+<p><a name="clean-out-old-ros-installs"></a></p>
 
 <h2>Clean out old ros installs</h2>
 
@@ -141,11 +240,28 @@
 </span><span class='line'>$ apt-get autoremove</span></code></pre></td></tr></table></div></figure>
 
 
+
+
+<!-- TOC -->
+
+
+<p><a name="installation-docker-based"></a></p>
+
 <h1>Installation (docker-based)</h1>
+
+<!-- TOC -->
+
+
+<p><a name="install-docker-engine"></a></p>
 
 <h2>Install docker engine</h2>
 
 <p>Install docker engine based on <a href="https://github.com/autowarefoundation/autoware/tree/0423b84ee8d763879bbbf910d249728410b16943/ansible/roles/docker_engine#manual-installation">these instructions</a>.  This links to the snapshot of the instructions that I used (as do below links).  If you want to use the latest instructions, change the <code>0423b84ee8d763879bbbf910d249728410b16943</code> commit hash in the URL to <code>main</code>.</p>
+
+<!-- TOC -->
+
+
+<p><a name="nvidia-container-toolkit"></a></p>
 
 <h2>Nvidia container toolkit</h2>
 
@@ -196,6 +312,13 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
+
+
+<!-- TOC -->
+
+
+<p><a name="rocker"></a></p>
+
 <h2>Rocker</h2>
 
 <p>Rocker is an alternative to Docker compose used by Autoware.</p>
@@ -203,6 +326,11 @@
 <p>Installed rocker based on <a href="https://github.com/autowarefoundation/autoware/tree/0423b84ee8d763879bbbf910d249728410b16943/ansible/roles/rocker#manual-installation">these instructions</a>.</p>
 
 <p>After this step, running <code>rocker</code> shows the rocker help.</p>
+
+<!-- TOC -->
+
+
+<p><a name="start-autoware-docker-container"></a></p>
 
 <h2>Start autoware docker container</h2>
 
@@ -225,6 +353,13 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
+
+
+<!-- TOC -->
+
+
+<p><a name="error-workaround"></a></p>
+
 <h3>Error workaround</h3>
 
 <p>Using the approach suggested in <a href="https://github.com/NVIDIA/nvidia-docker/issues/1409#issuecomment-1154910556">this github post</a> to add <code>-e NVIDIA_DISABLE_REQUIRE=true</code>, I ran the new command:</p>
@@ -244,6 +379,11 @@
 
 <p>Based on the response from the super helpful folks at Autoware in <a href="https://github.com/autowarefoundation/autoware/discussions/2961">this discussion</a> I determined I needed to upgrade my Cuda version based on <a href="https://github.com/autowarefoundation/autoware/tree/0423b84ee8d763879bbbf910d249728410b16943/ansible/roles/cuda#manual-installation">these instructions</a>.  (see later step below)</p>
 
+<!-- TOC -->
+
+
+<p><a name="install-vcstool"></a></p>
+
 <h2>Install vcstool</h2>
 
 <p>In the source instructions, it mentions that autoware depends on vcstool, which is a tool that makes it easy to manage code from multiple repos.</p>
@@ -257,6 +397,11 @@
 </span><span class='line'>sudo apt-get update
 </span><span class='line'>sudo apt-get install python3-vcstool</span></code></pre></td></tr></table></div></figure>
 
+
+<!-- TOC -->
+
+
+<p><a name="setup-workspace-from-within-container"></a></p>
 
 <h2>Setup workspace (from within container)</h2>
 
@@ -287,9 +432,21 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
+
+
+<!-- TOC -->
+
+
+<p><a name="run-a-planning-simulation"></a></p>
+
 <h1>Run a planning simulation</h1>
 
 <p>According to the docs: &ldquo;Ad hoc simulation is a flexible method for running basic simulations on your local machine, and is the recommended method for anyone new to Autoware.&rdquo;, but there are no docs on how to do run an ad hoc simulation, so I am going to try a planning simulation based on the <a href="https://autowarefoundation.github.io/autoware-documentation/main/tutorials/ad-hoc-simulation/planning-simulation/">planning simulation docs</a></p>
+
+<!-- TOC -->
+
+
+<p><a name="install-the-gdown-utility"></a></p>
 
 <h2>Install the gdown utility</h2>
 
@@ -298,6 +455,13 @@
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class=''><span class='line'>pip3 install gdown</span></code></pre></td></tr></table></div></figure>
 
+
+
+
+<!-- TOC -->
+
+
+<p><a name="download-maps"></a></p>
 
 <h3>Download maps</h3>
 
@@ -310,6 +474,13 @@
 </span><span class='line'>gdown -O ~/autoware_map/ 'https://docs.google.com/uc?export=download&id=1499_nsbUbIeturZaDj7jhUownh5fvXHd'
 </span><span class='line'>unzip -d ~/autoware_map ~/autoware_map/sample-map-planning.zip</span></code></pre></td></tr></table></div></figure>
 
+
+
+
+<!-- TOC -->
+
+
+<p><a name="launch-autoware-take-1"></a></p>
 
 <h3>Launch autoware &ndash; take 1</h3>
 
@@ -358,6 +529,11 @@
 <p>The same error was reported in <a href="https://github.com/ros2/rviz/issues/753">https://github.com/ros2/rviz/issues/753</a> and <a href="https://github.com/NVIDIA/nvidia-docker/issues/1438.">https://github.com/NVIDIA/nvidia-docker/issues/1438.</a></p>
 
 <p>I will update my nvidia driver as alluded to above, remove the <code>-e NVIDIA_DISABLE_REQUIRE=true</code> workaround, and retry.</p>
+
+<!-- TOC -->
+
+
+<p><a name="upgrade-to-cuda-116"></a></p>
 
 <h3>Upgrade to CUDA 11.6</h3>
 
@@ -444,6 +620,13 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
+
+
+<!-- TOC -->
+
+
+<p><a name="upgrade-to-cuda-116-take-2"></a></p>
+
 <h3>Upgrade to CUDA 11.6 &ndash; take 2</h3>
 
 <p>Again for this step I erroneously used the <a href="https://developer.nvidia.com/cuda-11-6-0-download-archive?target_os=Linux&amp;target_arch=x86_64&amp;Distribution=Ubuntu&amp;target_version=20.04&amp;target_type=deb_local">official nvidia instructions</a> for installing cuda, so instead use the official <a href="https://github.com/autowarefoundation/autoware/tree/0423b84ee8d763879bbbf910d249728410b16943/ansible/roles/cuda">autoware instructions</a> to install cuda rather than the steps below.</p>
@@ -484,6 +667,13 @@
 </span><span class='line'>echo 'export LD_LIBRARY_PATH=/usr/local/cuda/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}' &gt;&gt; ~/.bashrc</span></code></pre></td></tr></table></div></figure>
 
 
+
+
+<!-- TOC -->
+
+
+<p><a name="fixing-nvidia-smi-error"></a></p>
+
 <h4>Fixing nvidia-smi error</h4>
 
 <p>I simply rebooted, and now nvidia-smi works.  Note that the cuda version went from 11.7 to 11.6.  The strange thing is that previously I idn&rsquo;t have the cuda packages installed.</p>
@@ -500,6 +690,13 @@
 </span><span class='line'>|-------------------------------+----------------------+----------------------+
 </span></code></pre></td></tr></table></div></figure>
 
+
+
+
+<!-- TOC -->
+
+
+<p><a name="start-autoware-docker-container-take-2"></a></p>
 
 <h2>Start autoware docker container take 2</h2>
 
@@ -524,6 +721,11 @@
 </ol>
 
 
+<!-- TOC -->
+
+
+<p><a name="install-nvidia-container-toolkit"></a></p>
+
 <h2>Install Nvidia container toolkit</h2>
 
 <p>I installed nvidia container toolkit based on these <a href="https://github.com/autowarefoundation/autoware/tree/0423b84ee8d763879bbbf910d249728410b16943/ansible/roles/nvidia_docker#manual-installation">autoware instructions</a></p>
@@ -542,6 +744,13 @@
 </span><span class='line'>|-------------------------------+----------------------+----------------------+
 </span></code></pre></td></tr></table></div></figure>
 
+
+
+
+<!-- TOC -->
+
+
+<p><a name="install-cudnn"></a></p>
 
 <h2>Install cuDNN</h2>
 
@@ -591,6 +800,13 @@
 </pre></td><td class='code'><pre><code class=''><span class='line'>sudo apt-mark hold libcudnn8 libcudnn8-dev</span></code></pre></td></tr></table></div></figure>
 
 
+
+
+<!-- TOC -->
+
+
+<p><a name="install-tensorrt"></a></p>
+
 <h2>Install TensorRT</h2>
 
 <p>Using <a href="https://github.com/autowarefoundation/autoware/tree/0423b84ee8d763879bbbf910d249728410b16943/ansible/roles/tensorrt">these instructions</a>:</p>
@@ -602,6 +818,13 @@
 </span><span class='line'>sudo apt-get install libnvinfer8=${tensorrt_version} libnvonnxparsers8=${tensorrt_version} libnvparsers8=${tensorrt_version} libnvinfer-plugin8=${tensorrt_version} libnvinfer-dev=${tensorrt_version} libnvonnxparsers-dev=${tensorrt_version} libnvparsers-dev=${tensorrt_version} libnvinfer-plugin-dev=${tensorrt_version}
 </span><span class='line'>sudo apt-mark hold libnvinfer8 libnvonnxparsers8 libnvparsers8 libnvinfer-plugin8 libnvinfer-dev libnvonnxparsers-dev libnvparsers-dev libnvinfer-plugin-dev</span></code></pre></td></tr></table></div></figure>
 
+
+
+
+<!-- TOC -->
+
+
+<p><a name="start-autoware-docker-container-take-3"></a></p>
 
 <h2>Start autoware docker container take 3</h2>
 
@@ -640,6 +863,11 @@
 
 
 <p>you will see meaningful output, whereas if you run that on your host, you will most likely see <code>ros2: command not found</code>, unless you had installed <code>ros2</code> on your host previously.</p>
+
+<!-- TOC -->
+
+
+<p><a name="launch-autoware-take-2"></a></p>
 
 <h3>Launch autoware take 2</h3>
 
@@ -686,6 +914,13 @@
 </span><span class='line'>[ERROR] [1666389050.805238544] [rviz2]: rviz::RenderSystem: error creating render window: RenderingAPIException: OpenGL 1.5 is not supported in GLRenderSystem::initialiseContext at /tmp/binarydeb/ros-galactic-rviz-ogre-vendor-8.5.1/.obj-x86_64-linux-gnu/ogre-v1.12.1-prefix/src/ogre-v1.12.1/RenderSystems/GL/src/OgreGLRenderSystem.cpp (line 1201)
 </span><span class='line'>[ERROR] [1666389050.805275164] [rviz2]: InvalidParametersException: Window with name 'OgreWindow(0)' already exists in GLRenderSystem::_createRenderWindow at /tmp/binarydeb/ros-galactic-rviz-ogre-vendor-8.5.1/.obj-x86_64-linux-gnu/ogre-v1.12.1-prefix/src/ogre-v1.12.1/RenderSystems/GL/src/OgreGLRenderSystem.cpp (line 1061)</span></code></pre></td></tr></table></div></figure>
 
+
+
+
+<!-- TOC -->
+
+
+<p><a name="fix-rviz2-errors"></a></p>
 
 <h3>Fix rviz2 errors</h3>
 
@@ -860,6 +1095,11 @@
 
 <p>but I haven&rsquo;t verified this yet.</p>
 
+<!-- TOC -->
+
+
+<p><a name="start-autoware-docker-container-take-4"></a></p>
+
 <h2>Start autoware docker container take 4</h2>
 
 <p>Add the <code>--devices /dev/dri</code> flag:</p>
@@ -871,6 +1111,11 @@
 <p>And now it finally works!! Running <code>rviz2</code> from within the container shows the rviz window:</p>
 
 <p><img src="https://user-images.githubusercontent.com/296876/197299394-a1dcd275-4115-418c-9641-a4de762cf826.png" alt="Screenshot from 2022-10-21 15-44-48" /></p>
+
+<!-- TOC -->
+
+
+<p><a name="launch-autoware-take-3"></a></p>
 
 <h3>Launch autoware take 3</h3>
 
@@ -897,6 +1142,11 @@
 <li>I had known about the <code>--devices /dev/dri</code> or nvidia &ldquo;prime-select&rdquo; workarounds.</li>
 </ul>
 
+
+<!-- TOC -->
+
+
+<p><a name="references"></a></p>
 
 <h1>References</h1>
 
