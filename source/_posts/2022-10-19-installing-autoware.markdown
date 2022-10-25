@@ -13,7 +13,6 @@ As a warning, this blog post is pretty messy because of all those stumbling bloc
 Good luck!!
 
 
-
 <!-- TOC start -->
   * [My system](#my-system)
 - [Pre-install steps](#pre-install-steps)
@@ -30,7 +29,7 @@ Good luck!!
   * [Setup workspace (from within container)](#setup-workspace-from-within-container)
 - [Run a planning simulation](#run-a-planning-simulation)
   * [Install the gdown utility](#install-the-gdown-utility)
-    + [Download maps](#download-maps)
+  * [Download maps](#download-maps)
   * [Launch autoware - take 1](#launch-autoware-take-1)
   * [Upgrade to CUDA 11.6](#upgrade-to-cuda-116)
   * [Upgrade to CUDA 11.6 - take 2](#upgrade-to-cuda-116-take-2)
@@ -40,10 +39,10 @@ Good luck!!
   * [Install cuDNN](#install-cudnn)
   * [Install TensorRT](#install-tensorrt)
   * [Start autoware docker container take 3](#start-autoware-docker-container-take-3)
-    + [Launch autoware take 2](#launch-autoware-take-2)
-    + [Fix rviz2 errors](#fix-rviz2-errors)
+  * [Launch autoware take 2](#launch-autoware-take-2)
+    + [Workaround rviz2 errors by passing in /dev/dri device](#workaround-rviz2-errors-by-passing-in-devdri-device)
   * [Start autoware docker container take 4](#start-autoware-docker-container-take-4)
-    + [Launch autoware take 3](#launch-autoware-take-3)
+  * [Launch autoware take 3](#launch-autoware-take-3)
 - [References](#references)
 <!-- TOC end -->
 <!-- TOC --><a name="my-system"></a>
@@ -542,7 +541,7 @@ libGL error: MESA-LOADER: failed to retrieve device information
 [ERROR] [1666389050.805275164] [rviz2]: InvalidParametersException: Window with name 'OgreWindow(0)' already exists in GLRenderSystem::_createRenderWindow at /tmp/binarydeb/ros-galactic-rviz-ogre-vendor-8.5.1/.obj-x86_64-linux-gnu/ogre-v1.12.1-prefix/src/ogre-v1.12.1/RenderSystems/GL/src/OgreGLRenderSystem.cpp (line 1061)
 ```
 
-<!-- TOC --><a name="fix-rviz2-errors"></a>
+<!-- TOC --><a name="workaround-rviz2-errors-by-passing-in-devdri-device"></a>
 ### Workaround rviz2 errors by passing in /dev/dri device
 
 Relevant github issues:
