@@ -104,6 +104,8 @@ Install Ghost:
 $ ghost install --db sqlite3
 ```
 
+If you get an error about the node.js version being out of date, see the "Error installing ghost due to node.js being out of date" section below.
+
 Here is how I answered the setup questions, but you can customize to your needs:
 
 * **Enter your blog URL:** http://blog1.domainA.com
@@ -112,7 +114,10 @@ Here is how I answered the setup questions, but you can customize to your needs:
 * **Do you wish to setup Systemd?:** Yes
 * **Do you want to start Ghost?:** Yes 
 
-I decided to setup SSL in a separate step rather than initially, but the more secure approach would be to use **https** instead, eg https://blog1.domainA.com for the blog URL, which will trigger SSL setup initially.
+I decided to setup SSL in a separate step rather than initially, but the more secure approach would be to use **https** instead, eg https://blog1.domainA.com for the blog URL and answer Yes to the setup SSL question, which will trigger SSL setup initially.
+
+If you do setup SSL, you will need to open port 443 in the Lightsail console, otherwise it won't work.  See the "Setup SSL" section below for instructions.
+
 
 ### Create Ghost admin user
 
@@ -145,6 +150,101 @@ Use the same steps above, except for the blog URL use: http://blog.domainB.com
 ### Congrats!
 
 You now have two separate Ghost blogging sites setup on a single $5 / mo AWS Lightsail instance.
+
+### Appendix
+
+#### Error installing ghost due to node.js being out of date
+
+If you see this error:
+
+```
+$ ghost install --db sqlite3
+You are running an outdated version of Ghost-CLI.
+It is recommended that you upgrade before continuing.
+Run `npm install -g ghost-cli@latest` to upgrade.
+
+✔ Checking system Node.js version - found v12.22.10
+✔ Checking logged in user
+✔ Checking current folder permissions
+✔ Checking system compatibility
+✔ Checking memory availability
+✔ Checking free space
+✔ Checking for latest Ghost version
+✔ Setting up install directory
+✖ Downloading and installing Ghost v5.20.0
+A SystemError occurred.
+
+Message: Ghost v5.20.0 is not compatible with the current Node version. Your node version is 12.22.10, but Ghost v5.20.0 requires ^14.17.0 || ^16.13.0
+
+Debug Information:
+    OS: Ubuntu, v18.04.1 LTS
+    Node Version: v12.22.10
+    Ghost-CLI Version: 1.18.1
+    Environment: production
+    Command: 'ghost install --db sqlite3'
+
+Try running ghost doctor to check your system for known issues.
+
+You can always refer to https://ghost.org/docs/ghost-cli/ for troubleshooting.
+```
+
+##### Fix option #1 - specify an older version of ghost
+
+Find an older version of ghost that is compatible with the node.js you have installed, then specify that version of ghost when installing it:
+
+```
+$ ghost install 4.34.3 --db sqlite3
+```
+
+How do you find that version?  I happened to have another blog folder that I had previously installed, so I just used that.  Maybe on the ghost website they have a compatibility chart.
+
+The downside of this approach is that you won't have the latest and greatest version of ghost, including [security updates](https://github.com/TryGhost/Ghost/security/advisories/GHSA-7v28-g2pq-ggg8).  The upside though is that you won't break any existing ghost blogs on the same machine by upgrading node.js.
+
+
+##### Fix option #2 - upgrade to a later node.js and retry
+
+In the error above, it mentions that ghost requires node.js 14.17.0 or above.  
+
+The downside is that this could potentially break other existing ghost blogs on the same machine that are not compatible with the later version of node.js.  Using containers to isolate dependencies would be beneficial here.
+
+Upgrade to that version of node.js based on [these instructions](https://ghost.org/docs/reinstall/):
+
+```
+curl -fsSL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
+
+Run `node -v` to verify that you're running a recent enough version:
+
+```
+$ node -v
+v14.20.1
+```
+
+Update the ghost cli version:
+
+```
+sudo npm install -g ghost-cli@latest
+```
+
+Retry the ghost install command:
+
+```
+ghost install --db sqlite3
+```
+
+and this time it should not complain about the node.js version.
+
+
+#### Setup SSL
+
+During installation, you can answer "Yes" to setup SSL, and it will ask you for your email and use [letsencrypt](http://letsencrypt.org) to generate a certificate for you.  See [this page](https://ghost.org/integrations/lets-encrypt/) for more details.
+
+But you must also open port 443 in your Lightsail firewall, otherwise it won't work.
+
+![Screen Shot 2022-10-25 at 12 53 32 PM](https://user-images.githubusercontent.com/296876/197869779-dd7f5ce8-8815-4895-9f87-0837c435a0e4.png)
+
+
 
 
 ### References
