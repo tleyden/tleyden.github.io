@@ -12,7 +12,9 @@ As a warning, this blog post is pretty messy because of all those stumbling bloc
 
 Good luck!!
 
-<!-- TOC start: generated with https://derlin.github.io/bitdowntoc/ -->
+
+
+<!-- TOC start -->
   * [My system](#my-system)
 - [Pre-install steps](#pre-install-steps)
   * [Choose Ubuntu Linux version](#choose-ubuntu-linux-version)
@@ -29,10 +31,10 @@ Good luck!!
 - [Run a planning simulation](#run-a-planning-simulation)
   * [Install the gdown utility](#install-the-gdown-utility)
     + [Download maps](#download-maps)
-    + [Launch autoware - take 1](#launch-autoware-take-1)
-    + [Upgrade to CUDA 11.6](#upgrade-to-cuda-116)
-    + [Upgrade to CUDA 11.6 - take 2](#upgrade-to-cuda-116-take-2)
-      - [Fixing nvidia-smi error](#fixing-nvidia-smi-error)
+  * [Launch autoware - take 1](#launch-autoware-take-1)
+  * [Upgrade to CUDA 11.6](#upgrade-to-cuda-116)
+  * [Upgrade to CUDA 11.6 - take 2](#upgrade-to-cuda-116-take-2)
+    + [Fixing nvidia-smi error](#fixing-nvidia-smi-error)
   * [Start autoware docker container take 2](#start-autoware-docker-container-take-2)
   * [Install Nvidia container toolkit](#install-nvidia-container-toolkit)
   * [Install cuDNN](#install-cudnn)
@@ -44,8 +46,6 @@ Good luck!!
     + [Launch autoware take 3](#launch-autoware-take-3)
 - [References](#references)
 <!-- TOC end -->
-
-
 <!-- TOC --><a name="my-system"></a>
 ## My system
 
@@ -218,7 +218,7 @@ pip3 install gdown
 ```
 
 <!-- TOC --><a name="download-maps"></a>
-### Download maps
+## Download maps
 
 In the container started above:
 
@@ -505,7 +505,7 @@ you will see meaningful output, whereas if you run that on your host, you will m
 
 
 <!-- TOC --><a name="launch-autoware-take-2"></a>
-### Launch autoware take 2
+## Launch autoware take 2
 
 (also requires maps download, see above)
 
@@ -543,7 +543,7 @@ libGL error: MESA-LOADER: failed to retrieve device information
 ```
 
 <!-- TOC --><a name="fix-rviz2-errors"></a>
-### Fix rviz2 errors
+### Workaround rviz2 errors by passing in /dev/dri device
 
 Relevant github issues:
 
@@ -678,7 +678,7 @@ And now it finally works!! Running `rviz2` from within the container shows the r
 
 
 <!-- TOC --><a name="launch-autoware-take-3"></a>
-### Launch autoware take 3
+## Launch autoware take 3
 
 (also requires maps download, see above)
 
