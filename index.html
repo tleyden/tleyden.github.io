@@ -1297,6 +1297,8 @@
 </pre></td><td class='code'><pre><code class=''><span class='line'>$ ghost install --db sqlite3</span></code></pre></td></tr></table></div></figure>
 
 
+<p>If you get an error about the node.js version being out of date, see the &ldquo;Error installing ghost due to node.js being out of date&rdquo; section below.</p>
+
 <p>Here is how I answered the setup questions, but you can customize to your needs:</p>
 
 <ul>
@@ -1308,7 +1310,9 @@
 </ul>
 
 
-<p>I decided to setup SSL in a separate step rather than initially, but the more secure approach would be to use <strong>https</strong> instead, eg <a href="https://blog1.domainA.com">https://blog1.domainA.com</a> for the blog URL, which will trigger SSL setup initially.</p>
+<p>I decided to setup SSL in a separate step rather than initially, but the more secure approach would be to use <strong>https</strong> instead, eg <a href="https://blog1.domainA.com">https://blog1.domainA.com</a> for the blog URL and answer Yes to the setup SSL question, which will trigger SSL setup initially.</p>
+
+<p>If you do setup SSL, you will need to open port 443 in the Lightsail console, otherwise it won&rsquo;t work.  See the &ldquo;Setup SSL&rdquo; section below for instructions.</p>
 
 <h3>Create Ghost admin user</h3>
 
@@ -1347,6 +1351,126 @@
 <h3>Congrats!</h3>
 
 <p>You now have two separate Ghost blogging sites setup on a single $5 / mo AWS Lightsail instance.</p>
+
+<h3>Appendix</h3>
+
+<h4>Error installing ghost due to node.js being out of date</h4>
+
+<p>If you see this error:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ghost install --db sqlite3
+</span><span class='line'>You are running an outdated version of Ghost-CLI.
+</span><span class='line'>It is recommended that you upgrade before continuing.
+</span><span class='line'>Run `npm install -g ghost-cli@latest` to upgrade.
+</span><span class='line'>
+</span><span class='line'>✔ Checking system Node.js version - found v12.22.10
+</span><span class='line'>✔ Checking logged in user
+</span><span class='line'>✔ Checking current folder permissions
+</span><span class='line'>✔ Checking system compatibility
+</span><span class='line'>✔ Checking memory availability
+</span><span class='line'>✔ Checking free space
+</span><span class='line'>✔ Checking for latest Ghost version
+</span><span class='line'>✔ Setting up install directory
+</span><span class='line'>✖ Downloading and installing Ghost v5.20.0
+</span><span class='line'>A SystemError occurred.
+</span><span class='line'>
+</span><span class='line'>Message: Ghost v5.20.0 is not compatible with the current Node version. Your node version is 12.22.10, but Ghost v5.20.0 requires ^14.17.0 || ^16.13.0
+</span><span class='line'>
+</span><span class='line'>Debug Information:
+</span><span class='line'>    OS: Ubuntu, v18.04.1 LTS
+</span><span class='line'>    Node Version: v12.22.10
+</span><span class='line'>    Ghost-CLI Version: 1.18.1
+</span><span class='line'>    Environment: production
+</span><span class='line'>    Command: 'ghost install --db sqlite3'
+</span><span class='line'>
+</span><span class='line'>Try running ghost doctor to check your system for known issues.
+</span><span class='line'>
+</span><span class='line'>You can always refer to https://ghost.org/docs/ghost-cli/ for troubleshooting.</span></code></pre></td></tr></table></div></figure>
+
+
+<h5>Fix option #1 &ndash; specify an older version of ghost</h5>
+
+<p>Find an older version of ghost that is compatible with the node.js you have installed, then specify that version of ghost when installing it:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ghost install 4.34.3 --db sqlite3</span></code></pre></td></tr></table></div></figure>
+
+
+<p>How do you find that version?  I happened to have another blog folder that I had previously installed, so I just used that.  Maybe on the ghost website they have a compatibility chart.</p>
+
+<p>The downside of this approach is that you won&rsquo;t have the latest and greatest version of ghost, including <a href="https://github.com/TryGhost/Ghost/security/advisories/GHSA-7v28-g2pq-ggg8">security updates</a>.  The upside though is that you won&rsquo;t break any existing ghost blogs on the same machine by upgrading node.js.</p>
+
+<h5>Fix option #2 &ndash; upgrade to a later node.js and retry</h5>
+
+<p>In the error above, it mentions that ghost requires node.js 14.17.0 or above.</p>
+
+<p>The downside is that this could potentially break other existing ghost blogs on the same machine that are not compatible with the later version of node.js.  Using containers to isolate dependencies would be beneficial here.</p>
+
+<p>Upgrade to that version of node.js based on <a href="https://ghost.org/docs/reinstall/">these instructions</a>:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>curl -fsSL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+</span><span class='line'>sudo apt-get install -y nodejs</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Run <code>node -v</code> to verify that you&rsquo;re running a recent enough version:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ node -v
+</span><span class='line'>v14.20.1</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Update the ghost cli version:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>sudo npm install -g ghost-cli@latest</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Retry the ghost install command:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ghost install --db sqlite3</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and this time it should not complain about the node.js version.</p>
+
+<h4>Setup SSL</h4>
+
+<p>During installation, you can answer &ldquo;Yes&rdquo; to setup SSL, and it will ask you for your email and use <a href="http://letsencrypt.org">letsencrypt</a> to generate a certificate for you.  See <a href="https://ghost.org/integrations/lets-encrypt/">this page</a> for more details.</p>
+
+<p>But you must also open port 443 in your Lightsail firewall, otherwise it won&rsquo;t work.</p>
+
+<p><img src="https://user-images.githubusercontent.com/296876/197869779-dd7f5ce8-8815-4895-9f87-0837c435a0e4.png" alt="Screen Shot 2022-10-25 at 12 53 32 PM" /></p>
 
 <h3>References</h3>
 
