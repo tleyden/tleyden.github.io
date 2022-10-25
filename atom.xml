@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2022-10-24T14:14:30-07:00</updated>
+  <updated>2022-10-25T10:17:54-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -24,7 +24,7 @@
 
 <p>Good luck!!</p>
 
-<!-- TOC start: generated with https://derlin.github.io/bitdowntoc/ -->
+<!-- TOC start -->
 
 
 <ul>
@@ -56,9 +56,7 @@
 <li><a href="#run-a-planning-simulation">Run a planning simulation</a>
 
 <ul>
-<li><a href="#install-the-gdown-utility">Install the gdown utility</a>
-
-<ul>
+<li><a href="#install-the-gdown-utility">Install the gdown utility</a></li>
 <li><a href="#download-maps">Download maps</a></li>
 <li><a href="#launch-autoware-take-1">Launch autoware &ndash; take 1</a></li>
 <li><a href="#upgrade-to-cuda-116">Upgrade to CUDA 11.6</a></li>
@@ -68,25 +66,19 @@
 <li><a href="#fixing-nvidia-smi-error">Fixing nvidia-smi error</a></li>
 </ul>
 </li>
-</ul>
-</li>
 <li><a href="#start-autoware-docker-container-take-2">Start autoware docker container take 2</a></li>
 <li><a href="#install-nvidia-container-toolkit">Install Nvidia container toolkit</a></li>
 <li><a href="#install-cudnn">Install cuDNN</a></li>
 <li><a href="#install-tensorrt">Install TensorRT</a></li>
-<li><a href="#start-autoware-docker-container-take-3">Start autoware docker container take 3</a>
+<li><a href="#start-autoware-docker-container-take-3">Start autoware docker container take 3</a></li>
+<li><a href="#launch-autoware-take-2">Launch autoware take 2</a>
 
 <ul>
-<li><a href="#launch-autoware-take-2">Launch autoware take 2</a></li>
-<li><a href="#fix-rviz2-errors">Fix rviz2 errors</a></li>
+<li><a href="#workaround-rviz2-errors-by-passing-in-devdri-device">Workaround rviz2 errors by passing in /dev/dri device</a></li>
 </ul>
 </li>
-<li><a href="#start-autoware-docker-container-take-4">Start autoware docker container take 4</a>
-
-<ul>
+<li><a href="#start-autoware-docker-container-take-4">Start autoware docker container take 4</a></li>
 <li><a href="#launch-autoware-take-3">Launch autoware take 3</a></li>
-</ul>
-</li>
 </ul>
 </li>
 <li><a href="#references">References</a></li>
@@ -94,8 +86,6 @@
 
 
 <!-- TOC end -->
-
-
 
 
 <!-- TOC -->
@@ -380,7 +370,7 @@
 
 <p><a name="download-maps"></a></p>
 
-<h3>Download maps</h3>
+<h2>Download maps</h2>
 
 <p>In the container started above:</p>
 
@@ -399,7 +389,7 @@
 
 <p><a name="launch-autoware-take-1"></a></p>
 
-<h3>Launch autoware &ndash; take 1</h3>
+<h2>Launch autoware &ndash; take 1</h2>
 
 <p>From inside the container:</p>
 
@@ -452,7 +442,7 @@
 
 <p><a name="upgrade-to-cuda-116"></a></p>
 
-<h3>Upgrade to CUDA 11.6</h3>
+<h2>Upgrade to CUDA 11.6</h2>
 
 <p>I erroneously used the <a href="https://developer.nvidia.com/cuda-11-6-0-download-archive?target_os=Linux&amp;target_arch=x86_64&amp;Distribution=Ubuntu&amp;target_version=20.04&amp;target_type=deb_local">official nvidia instructions</a> for installing cuda, so instead use the official <a href="https://github.com/autowarefoundation/autoware/tree/0423b84ee8d763879bbbf910d249728410b16943/ansible/roles/cuda">autoware instructions</a> to install cuda rather than the steps below.</p>
 
@@ -544,7 +534,7 @@
 
 <p><a name="upgrade-to-cuda-116-take-2"></a></p>
 
-<h3>Upgrade to CUDA 11.6 &ndash; take 2</h3>
+<h2>Upgrade to CUDA 11.6 &ndash; take 2</h2>
 
 <p>Again for this step I erroneously used the <a href="https://developer.nvidia.com/cuda-11-6-0-download-archive?target_os=Linux&amp;target_arch=x86_64&amp;Distribution=Ubuntu&amp;target_version=20.04&amp;target_type=deb_local">official nvidia instructions</a> for installing cuda, so instead use the official <a href="https://github.com/autowarefoundation/autoware/tree/0423b84ee8d763879bbbf910d249728410b16943/ansible/roles/cuda">autoware instructions</a> to install cuda rather than the steps below.</p>
 
@@ -591,7 +581,7 @@
 
 <p><a name="fixing-nvidia-smi-error"></a></p>
 
-<h4>Fixing nvidia-smi error</h4>
+<h3>Fixing nvidia-smi error</h3>
 
 <p>I simply rebooted, and now nvidia-smi works.  Note that the cuda version went from 11.7 to 11.6.  The strange thing is that previously I idn&rsquo;t have the cuda packages installed.</p>
 
@@ -786,7 +776,7 @@
 
 <p><a name="launch-autoware-take-2"></a></p>
 
-<h3>Launch autoware take 2</h3>
+<h2>Launch autoware take 2</h2>
 
 <p>(also requires maps download, see above)</p>
 
@@ -837,9 +827,9 @@
 <!-- TOC -->
 
 
-<p><a name="fix-rviz2-errors"></a></p>
+<p><a name="workaround-rviz2-errors-by-passing-in-devdri-device"></a></p>
 
-<h3>Fix rviz2 errors</h3>
+<h3>Workaround rviz2 errors by passing in /dev/dri device</h3>
 
 <p>Relevant github issues:</p>
 
@@ -1034,7 +1024,7 @@
 
 <p><a name="launch-autoware-take-3"></a></p>
 
-<h3>Launch autoware take 3</h3>
+<h2>Launch autoware take 3</h2>
 
 <p>(also requires maps download, see above)</p>
 
