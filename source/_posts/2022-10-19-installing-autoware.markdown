@@ -229,7 +229,7 @@ unzip -d ~/autoware_map ~/autoware_map/sample-map-planning.zip
 ```
 
 <!-- TOC --><a name="launch-autoware-take-1"></a>
-### Launch autoware - take 1
+## Launch autoware - take 1
 
 From inside the container:
 
@@ -275,7 +275,7 @@ The same error was reported in https://github.com/ros2/rviz/issues/753 and https
 I will update my nvidia driver as alluded to above, remove the `-e NVIDIA_DISABLE_REQUIRE=true` workaround, and retry.
 
 <!-- TOC --><a name="upgrade-to-cuda-116"></a>
-### Upgrade to CUDA 11.6
+## Upgrade to CUDA 11.6
 
 I erroneously used the [official nvidia instructions](https://developer.nvidia.com/cuda-11-6-0-download-archive?target_os=Linux&target_arch=x86_64&Distribution=Ubuntu&target_version=20.04&target_type=deb_local) for installing cuda, so instead use the official [autoware instructions](https://github.com/autowarefoundation/autoware/tree/0423b84ee8d763879bbbf910d249728410b16943/ansible/roles/cuda) to install cuda rather than the steps below.
 
@@ -341,7 +341,7 @@ and now I'm running nvidia 515.65.01:
 ```
 
 <!-- TOC --><a name="upgrade-to-cuda-116-take-2"></a>
-### Upgrade to CUDA 11.6 - take 2
+## Upgrade to CUDA 11.6 - take 2
 
 Again for this step I erroneously used the [official nvidia instructions](https://developer.nvidia.com/cuda-11-6-0-download-archive?target_os=Linux&target_arch=x86_64&Distribution=Ubuntu&target_version=20.04&target_type=deb_local) for installing cuda, so instead use the official [autoware instructions](https://github.com/autowarefoundation/autoware/tree/0423b84ee8d763879bbbf910d249728410b16943/ansible/roles/cuda) to install cuda rather than the steps below.
 
@@ -373,7 +373,7 @@ echo 'export LD_LIBRARY_PATH=/usr/local/cuda/lib64${LD_LIBRARY_PATH:+:${LD_LIBRA
 ```
 
 <!-- TOC --><a name="fixing-nvidia-smi-error"></a>
-#### Fixing nvidia-smi error
+### Fixing nvidia-smi error
 
 I simply rebooted, and now nvidia-smi works.  Note that the cuda version went from 11.7 to 11.6.  The strange thing is that previously I idn't have the cuda packages installed.
 
