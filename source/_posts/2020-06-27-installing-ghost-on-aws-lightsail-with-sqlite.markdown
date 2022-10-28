@@ -244,7 +244,18 @@ But you must also open port 443 in your Lightsail firewall, otherwise it won't w
 
 ![Screen Shot 2022-10-25 at 12 53 32 PM](https://user-images.githubusercontent.com/296876/197869779-dd7f5ce8-8815-4895-9f87-0837c435a0e4.png)
 
+#### Auto-renew SSL cert every 90 days
 
+Lets Encrypt certificates expire after 90 days.  To avoid downtime on your site, you should auto-renew the certificates.  See this [blog post](https://blog.tekspace.io/how-to-renew-ghost-blog-lets-encrypt-certificate/) for details.
+
+I tried to follow the [blog post](https://blog.tekspace.io/how-to-renew-ghost-blog-lets-encrypt-certificate/), and ran `ghost setup ssl-renew` in my blog folder, but after switching to root with `sudo su`, I noticed this existing cron entry:
+
+```
+# crontab -l
+32 0 * * * "/etc/letsencrypt"/acme.sh --cron --home "/etc/letsencrypt" > /dev/null
+```
+
+So it looks like it is already setup to renew the certs every day.
 
 
 ### References
