@@ -1472,6 +1472,20 @@
 
 <p><img src="https://user-images.githubusercontent.com/296876/197869779-dd7f5ce8-8815-4895-9f87-0837c435a0e4.png" alt="Screen Shot 2022-10-25 at 12 53 32 PM" /></p>
 
+<h4>Auto-renew SSL cert every 90 days</h4>
+
+<p>Lets Encrypt certificates expire after 90 days.  To avoid downtime on your site, you should auto-renew the certificates.  See this <a href="https://blog.tekspace.io/how-to-renew-ghost-blog-lets-encrypt-certificate/">blog post</a> for details.</p>
+
+<p>I tried to follow the <a href="https://blog.tekspace.io/how-to-renew-ghost-blog-lets-encrypt-certificate/">blog post</a>, and ran <code>ghost setup ssl-renew</code> in my blog folder, but after switching to root with <code>sudo su</code>, I noticed this existing cron entry:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># crontab -l
+</span><span class='line'>32 0 * * * "/etc/letsencrypt"/acme.sh --cron --home "/etc/letsencrypt" &gt; /dev/null</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So it looks like it is already setup to renew the certs every day.</p>
+
 <h3>References</h3>
 
 <ul>
@@ -4520,11 +4534,11 @@
     <section>
   <h1>About Me</h1>
   <p>
-  Indie hacker focused on applied Deep Learning.  Formerly Sr. SW Engineer at <a href="http://www.databricks.com">Databricks</a> on the ML Feature Store team.
+  Indie hacker focused on applied Deep Learning.  Formerly Sr. SW Engineer at <a href="http://www.databricks.com">Databricks</a> working on MLOps (feature store).
   </p>
 
-  </p>
-  My contact info is listed on my <a href="http://www.github.com/tleyden">GitHub profile</a>
+  <p>
+  This is my old blog - check out <a href="https://blog.tleyden.net">my new blog</a> for the latest!
   </p>
 
   <p>

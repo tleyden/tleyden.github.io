@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2022-10-25T13:03:40-07:00</updated>
+  <updated>2022-10-28T13:00:26-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -1361,6 +1361,20 @@
 <p>But you must also open port 443 in your Lightsail firewall, otherwise it won&rsquo;t work.</p>
 
 <p><img src="https://user-images.githubusercontent.com/296876/197869779-dd7f5ce8-8815-4895-9f87-0837c435a0e4.png" alt="Screen Shot 2022-10-25 at 12 53 32 PM" /></p>
+
+<h4>Auto-renew SSL cert every 90 days</h4>
+
+<p>Lets Encrypt certificates expire after 90 days.  To avoid downtime on your site, you should auto-renew the certificates.  See this <a href="https://blog.tekspace.io/how-to-renew-ghost-blog-lets-encrypt-certificate/">blog post</a> for details.</p>
+
+<p>I tried to follow the <a href="https://blog.tekspace.io/how-to-renew-ghost-blog-lets-encrypt-certificate/">blog post</a>, and ran <code>ghost setup ssl-renew</code> in my blog folder, but after switching to root with <code>sudo su</code>, I noticed this existing cron entry:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'># crontab -l
+</span><span class='line'>32 0 * * * "/etc/letsencrypt"/acme.sh --cron --home "/etc/letsencrypt" &gt; /dev/null</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So it looks like it is already setup to renew the certs every day.</p>
 
 <h3>References</h3>
 
