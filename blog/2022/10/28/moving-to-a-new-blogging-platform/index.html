@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Android Studio + Genymotion Emulator - Seven Story Rabbit Hole</title>
+  <title>Moving to a new blogging platform - Seven Story Rabbit Hole</title>
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="The Android emulator is dog slow. The x86 intel emulators only work with certain versions of OSX, otherwise they crash miserably. Genymotion is &hellip;">
+  <meta name="description" content="Octopress has treated me well over the years, but with the advent of more modern blogging platforms like Ghost I decided it was time to switch. Check &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://tleyden.github.io/blog/2013/11/22/android-studio-plus-genymotion-emulator">
+  <link rel="canonical" href="http://tleyden.github.io/blog/2022/10/28/moving-to-a-new-blogging-platform">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Seven Story Rabbit Hole" type="application/atom+xml">
@@ -75,7 +75,7 @@
   
   <header>
     
-      <h1 class="entry-title">Android Studio + Genymotion Emulator</h1>
+      <h1 class="entry-title">Moving to a New Blogging Platform</h1>
     
     
       <p class="meta">
@@ -91,101 +91,54 @@
   
 
 
-<time datetime="2013-11-22T15:51:00-08:00" pubdate data-updated="true">Nov 22<span>nd</span>, 2013</time>
+<time datetime="2022-10-28T13:03:00-07:00" pubdate data-updated="true">Oct 28<span>th</span>, 2022</time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><p>The Android emulator is dog slow.  The x86 intel emulators only work with certain versions of OSX, otherwise they crash miserably.</p>
+<div class="entry-content"><p>Octopress has treated me well over the years, but with the advent of more modern blogging platforms like <a href="https://ghost.org/">Ghost</a> I decided it was time to switch.  Check out my new <a href="https://blog.tleyden.net">ghost blog</a>!</p>
 
-<p>Genymotion is apparently pretty good, so I&rsquo;m giving that a shot.</p>
+<h2>Ghost advantages</h2>
 
-<p>Here&rsquo;s how to do it.</p>
-
-<h2>Download and Install VirtualBox</h2>
-
-<p><a href="https://www.virtualbox.org/wiki/Downloads">Download VirtualBox</a> + follow instructions to install.</p>
-
-<h2>Signup with Genymotion + Download installer</h2>
-
-<ul>
-<li><p>Go to <a href="http://www.genymotion.com">genymotion.com</a> and signup</p></li>
-<li><p>Click the &ldquo;Get Genymotion&rdquo; button and <a href="https://cloud.genymotion.com/page/launchpad/download/">download</a> the appropriate version for your OS.</p></li>
-</ul>
+<ol>
+<li>Open source for hackability.</li>
+<li>Hosted and self-hosted offerings, with easy migration either direction.</li>
+<li>Very clean interface like Medium.</li>
+<li>You own all your content, unlike Medium.</li>
+<li>Extensible with plugins and themes.</li>
+<li>Easy to inject markdown snippets or embed many types of content.</li>
+<li>WYSIWIG editing straight from the browser is really nice and feels like a faster workflow.</li>
+<li>There are options to create a paid newsletter (a la substack).</li>
+</ol>
 
 
-<h2>Run the Genymotion application</h2>
+<h2>Ghost disadvantages</h2>
 
-<p>It will install Genymotion and Genmotion shell &mdash; run the Genymotion application (not the shell).</p>
-
-<p>When you run it, you will see:</p>
-
-<p><img src="http://cl.ly/image/0e1j3t1j1V3F/Screen%20Shot%202013-11-22%20at%203.57.11%20PM.png" alt="Screenshot" /></p>
-
-<p>Click add new virtual device.  It will ask you to login, then show you a list:</p>
-
-<p><img src="http://cl.ly/image/2i3M2D0p2M2J/Screen%20Shot%202013-11-22%20at%203.59.41%20PM.png" alt="Screenshot" /></p>
-
-<p>Pick the virtual device you want and it will download it.</p>
-
-<h2>Try starting a virtual device</h2>
-
-<p>Here&rsquo;s what happened on my system:</p>
-
-<ul>
-<li>Hit Play to run virtual device</li>
-<li>It asked me to configure the Android SDK location, I said &ldquo;No&rdquo;</li>
-<li>Then it gave me an error that VirtualBox was not installed</li>
-<li>I started VirtualBox manually</li>
-<li>I retried running the virtual device, this time it worked and I saw</li>
-</ul>
+<ol>
+<li>Since it&rsquo;s not a static blog, you can&rsquo;t just push to github pages and be done with it.</li>
+<li>Self-hosting is a bit of a pain. My server ran out of memory and I ended up throwing in the towel and going with the Ghost Pro hosted version for now.  (though I can always easily go back later, which is nice)</li>
+<li>Ghost Pro costs money.</li>
+</ol>
 
 
-<p><img src="http://cl.ly/image/252a1T3d2U1x/Screen%20Shot%202013-11-22%20at%204.06.46%20PM.png" alt="Screenshot" /></p>
+<h2>Octopress advantages</h2>
 
-<h2>Configure Android Studio plugin</h2>
+<ol>
+<li>When published to github pages, you get an amazing lightning-fast hosting service completely free.</li>
+<li>Markdown-centric means the content is very portable to other places that natively support markdown.</li>
+</ol>
 
-<p>Go to Preferences / Plugins and click &ldquo;Browse Repositories&rdquo;, then search for Genymotion.  Right click and choose &ldquo;Download and Install&rdquo;.</p>
 
-<p><img src="http://cl.ly/image/110z2N2i1S3N/Screen%20Shot%202013-11-22%20at%204.08.42%20PM.png" alt="Screenshot" /></p>
+<h2>Octopress disadvantages</h2>
 
-<p>Restart Android Studio and you should see a new icon in your IDE.</p>
+<ol>
+<li>Maintaining the ruby tooling can be a bit of a pain.  Upgrading is scary, so I got stuck at an old version.</li>
+<li>Extensibility seemed like a pain so I personally didn&rsquo;t bother.</li>
+<li>Feels a bit archaic at this point.</li>
+</ol>
 
-<p><img src="http://cl.ly/image/0F0N330u0C32/Screen%20Shot%202013-11-22%20at%204.11.00%20PM.png" alt="Screenshot" /></p>
-
-<p>Click the icon and it will bring up Preferences, and choose the path to the Genymotion application.</p>
-
-<p><img src="http://cl.ly/image/3G3K1s0p2h3x/Screen%20Shot%202013-11-22%20at%204.14.05%20PM.png" alt="Screenshot" /></p>
-
-<p>Now if you click the Genymotion icon again, you will see the list of devices available:</p>
-
-<p><img src="http://cl.ly/image/1Y120s1n1d2l/Screen%20Shot%202013-11-22%20at%204.15.20%20PM.png" alt="Screenshot" /></p>
-
-<h2>Start an emulator</h2>
-
-<p>Click the Genymotion icon within Android studio, select a virtual device, and hit start.</p>
-
-<p>It will ask you to choose the location of the SDK:</p>
-
-<p><img src="http://cl.ly/image/2N0W1h0O3Q2H/Screen%20Shot%202013-11-22%20at%204.18.02%20PM.png" alt="Screenshot" /></p>
-
-<p>On Mac OSX, I was not able to brows to the path since the application was greyed out in the chooser dialog, so I went onto the shell and found it (/Applications/Android Studio.app/sdk) and just copied and pasted it:</p>
-
-<p><img src="http://cl.ly/image/2V2H0d0M1z0f/Screen%20Shot%202013-11-22%20at%204.21.12%20PM.png" alt="Screenshot" /></p>
-
-<p>Select a virtual device, and hit start (again).  It should come up now.</p>
-
-<h2>Deploy an application/test to that emulator</h2>
-
-<p>In Android Studio, hit the &ldquo;Play&rdquo; or &ldquo;Debug&rdquo; button, and you should see the dialog that asks you to choose an emulator:</p>
-
-<p><img src="http://cl.ly/image/1I43000V3h12/Screen%20Shot%202013-11-22%20at%204.25.21%20PM.png" alt="Screenshot" /></p>
-
-<p>and one of the emulators will be the Genymotion emulator.  After you choose that emulator and hit &ldquo;OK&rdquo;, it will run your application in the Genymotion emulator (this is showing the <a href="https://github.com/couchbaselabs/GrocerySync-Android">Grocery Sync</a> demo app for <a href="https://github.com/couchbase/couchbase-lite-android">Couchbase Lite</a>):</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/Genymotion_Grocery_sync.png" alt="Screenshot" /></p>
 </div>
 
 
@@ -208,21 +161,15 @@
   
 
 
-<time datetime="2013-11-22T15:51:00-08:00" pubdate data-updated="true">Nov 22<span>nd</span>, 2013</time>
+<time datetime="2022-10-28T13:03:00-07:00" pubdate data-updated="true">Oct 28<span>th</span>, 2022</time>
       
-
-<span class="categories">
-  
-    <a class='category' href='/blog/categories/android/'>android</a>
-  
-</span>
 
 
     </p>
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2013/11/22/android-studio-plus-genymotion-emulator/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2013/11/22/android-studio-plus-genymotion-emulator/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://tleyden.github.io/blog/2022/10/28/moving-to-a-new-blogging-platform/" data-via="tleydn" data-counturl="http://tleyden.github.io/blog/2022/10/28/moving-to-a-new-blogging-platform/" >Tweet</a>
   
   
   
@@ -231,10 +178,8 @@
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2013/11/21/a-simple-data-race-in-go-and-how-to-fix-it/" title="Previous Post: A simple data race in Go and how to fix it">&laquo; A simple data race in Go and how to fix it</a>
+        <a class="basic-alignment left" href="/blog/2022/10/19/installing-autoware/" title="Previous Post: Installing Autoware on Ubuntu 20.04">&laquo; Installing Autoware on Ubuntu 20.04</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2013/11/23/understanding-chan-chans-in-go/" title="Next Post: Understanding chan chan's in Go">Understanding chan chan's in Go &raquo;</a>
       
     </p>
   </footer>
@@ -342,8 +287,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://tleyden.github.io/blog/2013/11/22/android-studio-plus-genymotion-emulator/';
-        var disqus_url = 'http://tleyden.github.io/blog/2013/11/22/android-studio-plus-genymotion-emulator/';
+        var disqus_identifier = 'http://tleyden.github.io/blog/2022/10/28/moving-to-a-new-blogging-platform/';
+        var disqus_url = 'http://tleyden.github.io/blog/2022/10/28/moving-to-a-new-blogging-platform/';
         var disqus_script = 'embed.js';
       
     (function () {
