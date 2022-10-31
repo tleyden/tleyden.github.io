@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2022-10-28T13:19:39-07:00</updated>
+  <updated>2022-10-31T16:03:48-07:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -1098,6 +1098,12 @@
 <li>I had known about the <code>--devices /dev/dri</code> or nvidia &ldquo;prime-select&rdquo; workarounds.</li>
 </ul>
 
+
+<h1>Continued ..</h1>
+
+<p>Unfortunately after these steps, <code>rviz2</code> is still using the integrated cpu driver rather than the GPU.</p>
+
+<p>See <a href="https://blog.tleyden.net/installing-autoware-docker-2/">this follow-up post</a> to see how to get it running on the GPU.</p>
 
 <!-- TOC -->
 
