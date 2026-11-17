@@ -9,7 +9,7 @@
   <meta name="author" content="Traun Leyden">
 
   
-  <meta name="description" content="Octopress has treated me well over the years, but with the advent of more modern blogging platforms like Ghost I decided it was time to switch. Check &hellip;">
+  <meta name="description" content="I&rsquo;m back to Octopress for now!! Ghost was cool, but I never migrated my content. I will probably convert this to Astro at some point, but for &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -40,10 +40,10 @@
   <table><tr><td>
   <h1><a href="/">Seven Story Rabbit Hole</a></h1>
   
-    <h2>Sometimes awesome things happen in deep rabbit holes.  Or not.</h2>
+    <h2>Building agents and MCP Apps, one rabbit hole at a time</h2>
   
   </td><td>&nbsp;&nbsp;
-  <img class="left" src="/images/rabbit_hole_graphic.png" width="132" height="105" title="image" alt="images">
+  <img src="/images/steampunk_rabbit.png" width="226" height="110" alt="Steampunk rabbit peeking out of a hole" style="image-rendering: pixelated; border: none; box-shadow: none; background: none;">
   </td></tr>
   </table>
 
@@ -72,6 +72,44 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2026/11/17/back-to-octopress/">I&#8217;m Back to Octopress for Now!!</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2026-11-17T12:30:00-08:00" pubdate data-updated="true">Nov 17<span>th</span>, 2026</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I&rsquo;m back to Octopress for now!!  Ghost was cool, but I never migrated my content.  I will probably convert this to Astro at some point, but for now it&rsquo;s Octopress.  Thank God for Claude Code to make the mainteance easier.</p>
+
+<p>I&rsquo;m not going to do any AI generated slop! I wrote this sentence one key-peck at a time.  For reals</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -4072,318 +4110,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/09/30/the-lifecycle-of-an-http-request/">What Happens Under the Hood When You Open a Web Page?</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2016-09-30T20:25:00-07:00" pubdate data-updated="true">Sep 30<span>th</span>, 2016</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>First, the bird&rsquo;s eye view:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>                                                                        
-</span><span class='line'>┌────┐                   ┌────────────────┐               ┌────────────────┐
-</span><span class='line'>│You │                   │ Google Chrome  │               │    Internet    │
-</span><span class='line'>└────┘                   └────────────────┘               └────────────────┘
-</span><span class='line'> │                               │                                  │   
-</span><span class='line'> │    Show me the website for    │                                  │   
-</span><span class='line'> │───organic-juice-for-dogs.io──▶│       1. Hey what's the IP of    │   
-</span><span class='line'> │                               │─────organic-juice-for-dogs.io?──▶│   
-</span><span class='line'> │                               │                                  │   
-</span><span class='line'> │                               │                                  │   
-</span><span class='line'> │                               │◀───────────63.120.10.5───────────│   
-</span><span class='line'> │                               │                                  │   
-</span><span class='line'> │                               │                                  │   
-</span><span class='line'> │                               │        2. HTTP GET / to          │   
-</span><span class='line'> │                               │───────────63.120.10.5───────────▶│   
-</span><span class='line'> │                               │                                  │   
-</span><span class='line'> │                               │                                  │   
-</span><span class='line'> │                               │     HTML Content for homepage    │   
-</span><span class='line'> │                               │◀───────────────of ───────────────│   
-</span><span class='line'> │                               │     organic-juice-for-dogs.io    │   
-</span><span class='line'> │                               │                                  │   
-</span><span class='line'> │                               │                                  │   
-</span><span class='line'> │         3. Render HTML into   │                                  │   
-</span><span class='line'> │◀────────────a Web Page────────│                                  │   
-</span><span class='line'> │                               │                                  │   
-</span><span class='line'> │                               │                                  │   
-</span><span class='line'> │      Click stuff in Google    │                                  │   
-</span><span class='line'> │─────────────Chrome───────────▶│                                  │   
-</span><span class='line'> │                               │                                  │   
-</span><span class='line'> │                               │                                  │   
-</span><span class='line'> │         4. Execute JavaScript │                                  │   
-</span><span class='line'> │◀─────────and update Web Page──┤                                  │   
-</span><span class='line'> │                               │                                  │   
-</span><span class='line'> ▼                               ▼                                  ▼</span></code></pre></td></tr></table></div></figure>
-
-
-<p>It all starts with a DNS lookup.</p>
-
-<h2>Step 1. The DNS Lookup</h2>
-
-<p>Your Google Chrome software contacts a server on the Internet called a DNS server and asks it &ldquo;Hey what&rsquo;s the IP of organic-juice-for-dogs.io?&rdquo;.</p>
-
-<p>DNS has an official sounding acronym, and for good reason, because it&rsquo;s a very authoritative and fundamental Internet service.</p>
-
-<p>So what exactly is DNS useful for?</p>
-
-<p><strong>It transforms Domain names into IP addresses</strong></p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>                                                                               
-</span><span class='line'> ┌────────────────────┐                                     ┌────────────────────┐
-</span><span class='line'> │                    │      What's the IP address of       │                    │
-</span><span class='line'> │                    │─────organic-juice-for-dogs.io?──────▶                    │
-</span><span class='line'> │                    │                                     │                    │
-</span><span class='line'> │       Chrome       │                                     │      DNS Server    │
-</span><span class='line'> │       Browser      ◀───────────63.120.10.5───────────────│                    │
-</span><span class='line'> │                    │                                     │                    │
-</span><span class='line'> │                    │                                     │                    │
-</span><span class='line'> │                    │                                     │                    │
-</span><span class='line'> └────────────────────┘                                     └────────────────────┘
-</span><span class='line'> </span></code></pre></td></tr></table></div></figure>
-
-
-<p>A <strong>Domain name</strong>, also referred to as a &ldquo;Dot com name&rdquo;, is an easy-to-remember word or group of words, so people don&rsquo;t have to memorize a list of meaningless numbers.  You could think of it like dialing <strong>1-800-FLOWERS</strong>, which is a lot easier to remember than <strong>1-800-901-1111</strong></p>
-
-<p>The IP address <code>63.120.10.5</code> is just like a phone number.  If you are a human being and want to call someone, you might dial <code>415-555-1212</code>.  But if you&rsquo;re a thing on the internet and you want to talk to another thing on the internet, you instead dial the <strong>IP address</strong> <code>63.120.10.5</code> &mdash; same concept though.</p>
-
-<p>So, that&rsquo;s DNS in a nutshell.  Not very complicated on the surface.</p>
-
-<h2>Step 2. Contact the IP address and fetch the HTML over HTTP</h2>
-
-<p>In this step, Google Chrome sends an <code>HTTP GET /</code> HTTP request to the HTTP Server software running on a computer somewhere on the Internet that has the IP address <code>63.120.10.5</code>.</p>
-
-<p>You can think of the <code>GET /</code> as &ldquo;Get me the top-most web page from the website&rdquo;.  This is known as the <em>root</em> of the website, in contrast to things deeper into the website, like <code>GET /juices/oakland</code>, which might return a list of dog juice products local to Oakland, CA.  Since the <em>root</em> is a the top, that means the tree is actually upside down, and folks tend to think of websites as being structured as <em>inverted trees</em>.</p>
-
-<p>The back-and-forth is going to look something like this:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>
-</span><span class='line'> ┌────────────────────┐                                         ┌────────────────────┐
-</span><span class='line'> │                    │          What's the HTML for            │                    │
-</span><span class='line'> │                    ├──────────http://63.120.10.5/?───────────▶                    │
-</span><span class='line'> │                    │                                         │                    │
-</span><span class='line'> │       Chrome       │                                         │    HTTP Server     │
-</span><span class='line'> │       Browser      ◀──────────────&lt;html&gt;stuff&lt;/html&gt;─────────│                    │
-</span><span class='line'> │                    │                                         │                    │
-</span><span class='line'> │    HTTP CLIENT     │                                         │                    │
-</span><span class='line'> │                    │                                         │                    │
-</span><span class='line'> └────────────────────┘                                         └────────────────────┘
-</span><span class='line'> </span></code></pre></td></tr></table></div></figure>
-
-
-<p>These things are speaking <strong>HTTP</strong> to each other.  What is HTTP?</p>
-
-<p>You can think of things that communicate with each other over the internet as using <strong>tubes</strong>.  There are lots of different types of tubes, and in this case it&rsquo;s an HTTP tube.  As long as the software on both ends agree on the type of tube they&rsquo;re using, everything <em>just works</em> and they can send stuff back and forth.  HTTP is a really common type of tube, but it&rsquo;s not the only one &mdash; for example the DNS lookup in the previous step used a completely <em>different</em> type of tube.</p>
-
-<p>Usually the stuff sent back from the HTTP Server is something called <strong>HTML</strong>, which stands for  <strong>H</strong>yper<strong>T</strong>ext <strong>M</strong>arkup <strong>L</strong>anguage.</p>
-
-<p>But HTML is not the only kind of stuff that can be sent through an HTTP tube.  In fact, JSON (Javascript Object Notation) and XML (eXtensible Markup Language) are also very common.  In fact there are tons of different types of things that can be sent through HTTP tubes.</p>
-
-<p>So at this point in our walk through, the Google Chrome web browser software has some HTML text, and it needs to <em>render</em> it in order for it to appear on your screen in a nice easy to view format.  That&rsquo;s the next step.</p>
-
-<h2>Step 3. Render HTML in a Web page</h2>
-
-<p>HTML is technically a <em>markup language</em>, which means that the text contains <em>formatting directives</em> which has an agreed upon standard on how it should be formatted.  You can think of HTML as being similar to a Microsoft Word document, but MS Word is obfuscated while HTML is very transparent and simple:</p>
-
-<p>For example, here is some HTML:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;html&gt;
-</span><span class='line'>   &lt;Header&gt;My first web page, circa, 1993!&lt;/Header&gt;
-</span><span class='line'>   &lt;Paragraph&gt;
-</span><span class='line'>        I am so proud to have made my very first web page, I &lt;blink&gt;Love&lt;/blink&gt; the World Wide Web
-</span><span class='line'>   &lt;Paragraph&gt;
-</span><span class='line'>   &lt;Footer&gt;Best Viewed on NCSA Mosaic&lt;/Footer&gt;
-</span><span class='line'>&lt;/html&gt;</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Which gets rendered into:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/my_first_webpage.jpg" alt="image" /></p>
-
-<p>So, you&rsquo;ll notice that the <code>&lt;Header&gt;</code> element is in a larger font.  And the <code>&lt;Paragraph&gt;</code> has spaces in between it and the other text.</p>
-
-<p>How does the Google Chrome Web Browser do the rendering?  It&rsquo;s just a piece of software, and rendering HTML is one of it&rsquo;s primary responsibilities.  There are tons of poor engineers at Google who do nothing all day but fix bugs in the Google Chrome rendering code.</p>
-
-<p> Of course, there&rsquo;s a lot more to it, but that&rsquo;s the essence of rendering HTML into a web page.</p>
-
-<h2>Step 4: Execute JavaScript in your Google Chrome Web Browser</h2>
-
-<p>So this step is <em>optional</em> because not all web pages will execute JavaScript in your web browser software, however it&rsquo;s getting more and more common these days.  When you open the Gmail website in your browser, it&rsquo;s running tons of Javascript code to make the website as fast and responsive as possible.</p>
-
-<p>Essentially, JavaScript adds another level of dynamic abilities to HTML, because when the browser is given HTML and it renders it .. that&rsquo;s it!  There&rsquo;s no more action, it just sits there &mdash; it&rsquo;s completely <em>inert</em>.</p>
-
-<p>JavaScript, on the other hand, is basically a program-within-a-program.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>                                                              
-</span><span class='line'> ┌───────────────────────────────────────────────────────────────┐
-</span><span class='line'> │                         Google Chrome                         │
-</span><span class='line'> │           (A program written in C++ you downloaded)           │
-</span><span class='line'> │                                                               │
-</span><span class='line'> │                                                               │
-</span><span class='line'> │      ┌──────────────────────────────────────────────────┐     │
-</span><span class='line'> │      │                                                  │     │
-</span><span class='line'> │      │                                                  │     │
-</span><span class='line'> │      │     JavaScript for organic-juice-for-dogs.io     │     │
-</span><span class='line'> │      │  (A program in JavaScript that snuck in via the  │     │
-</span><span class='line'> │      │                  HTML document)                  │     │
-</span><span class='line'> │      │                                                  │     │
-</span><span class='line'> │      │                                                  │     │
-</span><span class='line'> │      └──────────────────────────────────────────────────┘     │
-</span><span class='line'> │                                                               │
-</span><span class='line'> │                                                               │
-</span><span class='line'> └───────────────────────────────────────────────────────────────┘</span></code></pre></td></tr></table></div></figure>
-
-
-<p>How does the JavaScript get to the web browser?  It sneaks in over the HTML!  It&rsquo;s <em>embedded</em> in the HTML, since it&rsquo;s just another form of text, and your Web Browser (Google Chrome) executes it.</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;html&gt;
-</span><span class='line'>     &lt;Javascript&gt;
-</span><span class='line'>          if (Paragraph == CLICKED) {
-</span><span class='line'>              Window.Alert("YOU MAY BE INFECTED BY A VIRUS, CLICK HERE IMMEDIATELY")
-</span><span class='line'>    }
-</span><span class='line'>     &lt;/Javascript&gt;
-</span><span class='line'>    ...
-</span><span class='line'>&lt;/html&gt;</span></code></pre></td></tr></table></div></figure>
-
-
-<p>What can JavaScript do exactly?  The list is really, really long.  But as a simple example, if you click a button on a webpage:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/html_button.gif" alt="html button" /></p>
-
-<p>A JavasScript program can pop up a little &ldquo;Alert Box&rdquo;, like this:</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/javascript_alert.png" alt="javascript alert" /></p>
-
-<h2>Done!</h2>
-
-<p>And that&rsquo;s the World Wide Web!  You just went from typing a URL in your browser, from a shiny web page in your Google Chrome.  Soup to nuts.</p>
-
-<p>And you can finally buy some juice for your dog!</p>
-
-<p><img src="http://tleyden-misc.s3.amazonaws.com/blog_images/doge_coin_hungry_dog.png" alt="dogecoin dog" /></p>
-
-<p>So that&rsquo;s it for the high level stuff.</p>
-
-<p>If you&rsquo;re dying to know more, continue on to <a href="/blog/2016/10/02/deep-dive-of-what-happens-under-the-hood-when-you-open-a-web-page/">Deep Dive of What Happens Under The Hood When You Open A Web Page</a></p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -4397,11 +4123,7 @@
     <section>
   <h1>About Me</h1>
   <p>
-  Indie hacker focused on applied Deep Learning.  Formerly Sr. SW Engineer at <a href="http://www.databricks.com">Databricks</a> working on MLOps (feature store).
-  </p>
-
-  <p>
-  This is my old blog - check out <a href="https://blog.tleyden.net">my new blog</a> for the latest!
+  Freelance Software Engineer building <a href="https://fluensy.app">Fluensy</a>, an MCP App to learn foreign languages | Ex-Databricks, Ex-Couchbase.
   </p>
 
   <p>
@@ -4413,6 +4135,10 @@
 <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2026/11/17/back-to-octopress/">I&#8217;m Back to Octopress for Now!!</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2022/10/28/moving-to-a-new-blogging-platform/">Moving to a New Blogging Platform</a>
@@ -4428,10 +4154,6 @@
     
       <li class="post">
         <a href="/blog/2017/07/02/openwhisk-action-sequences/">OpenWhisk Action Sequences</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2017/06/14/running-postgresql-in-docker/">Running PostgreSQL in Docker</a>
       </li>
     
   </ul>
@@ -4473,25 +4195,12 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2022 - Traun Leyden -
+  Copyright &copy; 2026 - Traun Leyden -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 
 </footer>
   
-
-<script type="text/javascript">
-      var disqus_shortname = 'sevenstoryrabbithole';
-      
-        
-        var disqus_script = 'count.js';
-      
-    (function () {
-      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
-      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    }());
-</script>
 
 
 
