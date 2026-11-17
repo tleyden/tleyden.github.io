@@ -4,7 +4,7 @@
   <title><![CDATA[Seven Story Rabbit Hole]]></title>
   <link href="http://tleyden.github.io/atom.xml" rel="self"/>
   <link href="http://tleyden.github.io/"/>
-  <updated>2026-11-17T12:57:15-08:00</updated>
+  <updated>2026-11-17T13:01:55-08:00</updated>
   <id>http://tleyden.github.io/</id>
   <author>
     <name><![CDATA[Traun Leyden]]></name>
@@ -19,8 +19,6 @@
     <updated>2026-11-17T12:30:00-08:00</updated>
     <id>http://tleyden.github.io/blog/2026/11/17/back-to-octopress</id>
     <content type="html"><![CDATA[<p>I&rsquo;m back to Octopress for now!!  Ghost was cool, but I never migrated my content.  I will probably convert this to Astro at some point, but for now it&rsquo;s Octopress.  Thank God for Claude Code to make the mainteance easier.</p>
-
-<p>I&rsquo;m not going to do any AI generated slop! I wrote this sentence one key-peck at a time.  For reals</p>
 ]]></content>
   </entry>
   
