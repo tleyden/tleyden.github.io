@@ -704,7 +704,7 @@ Phew!  That was a lot harder than I thought it was going to be!  It would have g
 
 Unfortunately after these steps, `rviz2` is still using the integrated cpu driver rather than the GPU.
 
-See [this follow-up post](https://blog.tleyden.net/installing-autoware-docker-2/) to see how to get it running on the GPU.
+See this follow-up post on blog.tleyden.net (sorry this apparently got domain hijacked after I let it expire) to see how to get it running on the GPU.
 
 
 <!-- TOC --><a name="references"></a>

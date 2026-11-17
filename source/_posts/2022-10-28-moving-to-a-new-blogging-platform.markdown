@@ -6,7 +6,7 @@ comments: true
 categories: 
 ---
 
-Octopress has treated me well over the years, but with the advent of more modern blogging platforms like [Ghost](https://ghost.org/) I decided it was time to switch.  Check out my new [ghost blog](https://blog.tleyden.net)!
+Octopress has treated me well over the years, but with the advent of more modern blogging platforms like [Ghost](https://ghost.org/) I decided it was time to switch.  <del>Check out my new ghost blog at blog.tleyden.net</del> (sorry this apparently got domain hijacked after I let it expire).
 
 ## Ghost advantages
 
