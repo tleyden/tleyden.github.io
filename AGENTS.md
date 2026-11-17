@@ -3,6 +3,14 @@
 Live at https://tleyden.github.io. This is an old Octopress 2 / Jekyll 0.12 blog (Ruby, ~2013).
 All Ruby tooling runs **inside Docker**. Never install gems, Ruby, or Python on the host.
 
+## No AI writing
+
+**Never write or rewrite blog prose** (posts, About text, titles, subtitles) unless the user
+explicitly asks for that specific text to be written. The user writes the words; agents handle
+tooling, formatting, front matter, builds, and deploys. When the user supplies text, use it
+verbatim. Don't polish it, expand it, add sections, add links, or fix wording without asking.
+If something seems to need prose, ask the user for it instead of drafting it.
+
 ## Branches (important)
 
 | Branch   | Contents                                  | How it gets updated                    |
