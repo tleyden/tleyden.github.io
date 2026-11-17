@@ -698,7 +698,13 @@ Phew!  That was a lot harder than I thought it was going to be!  It would have g
 
 * My nvidia/cuda drivers were up-to-date with Cuda 11.6 and a suitable nvidia driver version.
 * I'd followed the autoware docs rather than using the nvidia docs - the small divergences mattered a lot. (:facepalm)
-* I had known about the `--devices /dev/dri` or nvidia "prime-select" workarounds.  
+* I had known about the `--devices /dev/dri` or nvidia "prime-select" workarounds.
+
+# Continued ..
+
+Unfortunately after these steps, `rviz2` is still using the integrated cpu driver rather than the GPU.
+
+See [this follow-up post](https://blog.tleyden.net/installing-autoware-docker-2/) to see how to get it running on the GPU.
 
 
 <!-- TOC --><a name="references"></a>

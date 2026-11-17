@@ -1,5 +1,3 @@
-
-# on my OSX box, this was needed.  But on linux, it works without the bundle exec
-# bundle exec rake generate && bundle exec rake deploy
-
-rake generate && rake deploy
+#!/usr/bin/env bash
+# Superseded by blog.sh (Dockerized). See AGENTS.md.
+exec "$(dirname "$0")/blog.sh" deploy

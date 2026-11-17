@@ -3,6 +3,7 @@ layout: post
 title: "Moving to a new blogging platform"
 date: 2022-10-28 13:03
 comments: true
+published: false
 categories: 
 ---
 
